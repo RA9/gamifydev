@@ -1,16 +1,45 @@
 {
     "name": "GamifyDev",
-    "short_name": "GamifyDev",
+    "short_name": "GDev",
     "description": "Learn web development in a fun and interactive way.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#4CAF50",
+    "theme_color": "#757195",
     "icons": [
         {
-            "src": "/images/icon.png",
-            "sizes": "192x192",
+            "src": "/images/gdlogo.jpeg",
+            "sizes": "1200x1200",
+            "type": "image/jpeg"
+        }, 
+        {
+            "src": "/images/nmn.png",
+            "sizes": "144x144",
             "type": "image/png"
+        },
+        {
+            "src": "/images/gdblack.png",
+            "sizes": "1200x1200",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/gdlogo.jpeg",
+            "sizes": "1200x1200",
+            "type": "image/png"
+        }
+
+    ], 
+    "screenshots": [
+        {
+            "src": "/images/frss.png",
+            "sizes": "750x1334",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/jdss.png",
+            "sizes": "1362x657",
+            "type": "image/png",
+            "form_factor": "wide"
         }
     ]
 }
