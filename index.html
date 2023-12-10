@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GamifyDev</title>
+    <!-- <link rel="stylesheet" href="css/bulma.min.css" /> -->
+    <!-- <link rel="stylesheet" href="css/main.css" /> -->
+    <script src="./js/tailwind.min.js"></script>
+  </head>
+  <body
+    class="bg-gray-100"
+    ondragstart="return false;"
+    onselectstart="return false;"
+    oncontextmenu="return false;"
+  >
+    <header class="bg-[#757195]">
+      <nav class="mx-auto max-w-7xl px-6 lg:px-8" aria-label="Top">
+        <div
+          class="flex w-full items-center justify-between border-b border-indigo-500 py-6 lg:border-none"
+        >
+          <div class="mx-auto lg:hidden">
+            <a href="/" class="text-center text-white font-medium text-2xl"
+              >GamifyDev</a
+            >
+          </div>
+
+          <div class="lg:flex hidden items-center">
+            <a
+              href="/"
+              class="inline-flex align-center text-white font-medium text-2xl w-auto p-1 rounded"
+            >
+              <span class="sr-only">GamifyDev</span>
+              GamifyDev
+            </a>
+            <div class="ml-10 hidden space-x-8 lg:block">
+              <a
+                href="#about"
+                class="text-base font-medium text-white hover:text-indigo-50"
+                >About</a
+              >
+              <a
+                href="#test"
+                class="text-base font-medium text-white hover:text-indigo-50"
+                >Test Yourself</a
+              >
+              <a
+                href="#contact"
+                class="text-base font-medium text-white hover:text-indigo-50"
+                >Contact</a
+              >
+            </div>
+          </div>
+          <!-- <div class="ml-10 space-x-4"> -->
+          <!-- <a
+              href="#"
+              class="inline-block rounded-md border border-transparent bg-indigo-500 px-4 py-2 text-base font-medium text-white hover:bg-opacity-75"
+              >Sign in</a
+            >
+            <a
+              href="#"
+              class="inline-block rounded-md border border-transparent bg-white px-4 py-2 text-base font-medium text-indigo-600 hover:bg-indigo-50"
+              >Sign up</a
+            > -->
+          <!-- </div> -->
+        </div>
+        <div class="flex flex-wrap justify-center gap-x-6 py-4 lg:hidden">
+          <a
+            href="#about"
+            class="text-base font-medium text-white hover:text-indigo-50"
+            >About</a
+          >
+          <a
+            href="#test"
+            class="text-base font-medium text-white hover:text-indigo-50"
+            >Test Yourself</a
+          >
+          <a
+            href="#contact"
+            class="text-base font-medium text-white hover:text-indigo-50"
+            >Contact</a
+          >
+        </div>
+      </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto my-10 p-5" id="page-content"></main>
+    <footer
+      class="bg-gray-800 text-white text-center py-4 fixed bottom-0 w-full"
+    >
+      &copy; 2023 GamifyDev
+    </footer>
+    <script type="module" src="js/index.js"></script>
+  </body>
+</html>

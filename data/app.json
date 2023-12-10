@@ -1,0 +1,42 @@
+{
+  "config": {
+    "paths": [
+      {
+        "name": "Frontend",
+        "modules": [
+          "History of the Web - Prof. Rudeen Zarwolo",
+          "Intro to Programming",
+          "HTML Basics - Prof. Rudeen Zarwolo",
+          "CSS Basics",
+          "Building a Website with HTML and CSS",
+          "JavaScript Basics",
+          "Building Interactive JavaScript Websites",
+          "Git and GitHub",
+          "Building your portfolio website",
+          "Next Steps"
+        ]
+      },
+      {
+        "name": "Backend",
+        "modules": [
+          "Intro to Node.js",
+          "Creating a Server with Node.js and Express",
+          "Intro to Databases and SQL",
+          "Building a Web Application with Node.js and Express"
+        ]
+      },
+      {
+        "name": "Full Stack",
+        "modules": [
+          "Intro to the Command Line",
+          "Deploying to Heroku/Digital Ocean",
+          "Intro to React",
+          "Building a Front-End Application with React",
+          "Building a Back-End Application with Express and PostgreSQL",
+          "Building a Full-Stack Application with React and Express",
+          "Building an ecommerce app"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,3847 @@
+{
+  "frontend": [
+    {
+      "id": "@3k4j5h6k7j8h9",
+      "question": "What does HTML stand for?",
+      "options": [
+        "Hyper Text Markup Language",
+        "Hyper Text Makeup Language",
+        "Hyper Text Marking Language",
+        "Hyper Text Marked Language"
+      ],
+      "answer": "Hyper Text Markup Language",
+      "explanation": "HTML stands for Hyper Text Markup Language",
+      "difficulty": "easy",
+      "category": "Frontend",
+      "duration": "15"
+    },
+    {
+      "id": "@3k4j5h6k7j3h9",
+      "question": "What does CSS stand for?",
+      "options": [
+        "Cascading Style Sheet",
+        "Cascading Style Sheep",
+        "Cascading Super Sheet",
+        "Cascading Super Sheep"
+      ],
+      "answer": "Cascading Style Sheet",
+      "explanation": "CSS stands for Cascading Style Sheet",
+      "difficulty": "easy",
+      "category": "Frontend",
+      "duration": "15"
+    },
+    {
+      "id": "@3k4j5h6r7j3h9",
+      "question": "What is the correct HTML element for inserting a line break?",
+      "options": [
+        "&lt;br&gt;",
+        "&lt;break&gt;",
+        "&lt;lb&gt;",
+        "&lt;linebreak&gt;"
+      ],
+      "answer": "&lt;br&gt;",
+      "explanation": "The &lt;br&gt; tag inserts a single line break.",
+      "difficulty": "easy",
+      "category": "Frontend",
+      "duration": "15"
+    },
+    {
+      "id": "@3k4j5h6347j3h9",
+      "question": "Who invented JavaScript?",
+      "options": [
+        "Douglas Crockford",
+        "Sheryl Sandberg",
+        "Brendan Eich",
+        "John Doe"
+      ],
+      "answer": "Brendan Eich",
+      "explanation": "Brendan Eich invented JavaScript",
+      "difficulty": "easy",
+      "category": "Frontend",
+      "duration": "15"
+    },
+    {
+      "id": "@3k4j5h6342j3h9",
+      "question": "Which of the following is not a JavaScript Data Type?",
+      "options": ["Undefined", "Number", "Boolean", "Float"],
+      "answer": "Float",
+      "explanation": "Float is not a JavaScript Data Type",
+      "difficulty": "easy",
+      "category": "Frontend",
+      "duration": "15"
+    },
+    {
+      "id": "@3k4j5h6342j3h9",
+      "question": "Who invented the web?",
+      "options": [
+        "Tim Berners-Lee",
+        "Sheryl Sandberg",
+        "Brendan Eich",
+        "John Doe"
+      ],
+      "answer": "Tim Berners-Lee",
+      "explanation": "Tim Berners-Lee invented the web in 1989",
+      "difficulty": "easy",
+      "category": "Frontend",
+      "duration": "15"
+    },
+    {
+      "id": "Q395",
+      "question": "What does CSS stand for?",
+      "options": [
+        "Cascading Style Sheets",
+        "Computer Style Sheets",
+        "Creative Style Sheets",
+        "Colorful Style Sheets"
+      ],
+      "answer": "Cascading Style Sheets",
+      "explanation": "CSS stands for Cascading Style Sheets, used for styling the presentation of a web page.",
+      "difficulty": "Easy",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "Q624",
+      "question": "What is the purpose of the 'viewport' meta tag in HTML?",
+      "options": [
+        "Define the page content width",
+        "Specify the font size",
+        "Set the page background color",
+        "Control the page layout"
+      ],
+      "answer": "Define the page content width",
+      "explanation": "The 'viewport' meta tag is used to define the page content width and adapt it to different device screen sizes.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q128",
+      "question": "What is responsive web design?",
+      "options": [
+        "Designing websites for different browsers",
+        "Creating websites that respond to user interactions",
+        "Building websites with flexible layouts",
+        "Designing visually appealing websites"
+      ],
+      "answer": "Building websites with flexible layouts",
+      "explanation": "Responsive web design involves creating websites with flexible layouts that adapt to various screen sizes and devices.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 35
+    },
+    {
+      "id": "Q743",
+      "question": "What is the purpose of the 'alt' attribute in HTML image tags?",
+      "options": [
+        "Define image alignment",
+        "Set image width and height",
+        "Provide alternative text for screen readers",
+        "Add a caption to the image"
+      ],
+      "answer": "Provide alternative text for screen readers",
+      "explanation": "The 'alt' attribute in HTML image tags is used to provide alternative text for screen readers and when the image cannot be displayed.",
+      "difficulty": "Easy",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "Q512",
+      "question": "What is the CSS 'box model' used for?",
+      "options": [
+        "Positioning elements on the page",
+        "Styling text within a container",
+        "Defining the layout of a webpage",
+        "Creating animations"
+      ],
+      "answer": "Defining the layout of a webpage",
+      "explanation": "The CSS 'box model' is used for defining the layout of a webpage, including padding, border, and margin.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q916",
+      "question": "What is the purpose of the 'defer' attribute in a script tag?",
+      "options": [
+        "Delay the execution of the script until after the page has finished parsing",
+        "Define a default value for a script variable",
+        "Load the script asynchronously",
+        "Specify the script source URL"
+      ],
+      "answer": "Delay the execution of the script until after the page has finished parsing",
+      "explanation": "The 'defer' attribute in a script tag is used to delay the execution of the script until after the page has finished parsing.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q729",
+      "question": "What is the purpose of the CSS 'flexbox' layout?",
+      "options": [
+        "Creating responsive tables",
+        "Positioning elements in a row or column",
+        "Styling form elements",
+        "Defining font styles"
+      ],
+      "answer": "Positioning elements in a row or column",
+      "explanation": "The CSS 'flexbox' layout is used for positioning elements in a row or column with flexibility and responsiveness.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 35
+    },
+    {
+      "id": "Q827",
+      "question": "What is the role of the 'meta charset' tag in HTML?",
+      "options": [
+        "Specify the page language",
+        "Set the character encoding for the document",
+        "Define the page viewport",
+        "Link to an external stylesheet"
+      ],
+      "answer": "Set the character encoding for the document",
+      "explanation": "The 'meta charset' tag in HTML is used to set the character encoding for the document, ensuring proper text rendering.",
+      "difficulty": "Easy",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "Q256",
+      "question": "What is the purpose of the CSS 'media queries'?",
+      "options": [
+        "Apply styles based on user interactions",
+        "Create responsive layouts for different devices",
+        "Define font styles",
+        "Position elements on the page"
+      ],
+      "answer": "Create responsive layouts for different devices",
+      "explanation": "CSS 'media queries' are used to create responsive layouts for different devices by applying styles based on screen size and characteristics.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q104",
+      "question": "What does the 'async' attribute in a script tag do?",
+      "options": [
+        "Load the script asynchronously",
+        "Execute the script before the page has finished parsing",
+        "Delay the script execution until after the page has finished parsing",
+        "Define a default value for a script variable"
+      ],
+      "answer": "Load the script asynchronously",
+      "explanation": "The 'async' attribute in a script tag is used to load the script asynchronously, allowing the page to continue parsing while the script is being fetched.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "Q837",
+      "question": "What is the purpose of the 'localStorage' in JavaScript?",
+      "options": [
+        "Storing data on the server",
+        "Storing data on the client's browser",
+        "Defining global variables",
+        "Querying databases"
+      ],
+      "answer": "Storing data on the client's browser",
+      "explanation": "`localStorage` is used for storing data on the client's browser.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q169",
+      "question": "What is the role of the 'canvas' element in HTML5?",
+      "options": [
+        "Drawing graphics with JavaScript",
+        "Defining image dimensions",
+        "Creating responsive layouts",
+        "Embedding video content"
+      ],
+      "answer": "Drawing graphics with JavaScript",
+      "explanation": "The 'canvas' element in HTML5 is used for drawing graphics with JavaScript.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 35
+    },
+    {
+      "id": "Q452",
+      "question": "What is the purpose of the CSS 'transition' property?",
+      "options": [
+        "Creating animations",
+        "Positioning elements on the page",
+        "Styling text",
+        "Defining layout structures"
+      ],
+      "answer": "Creating animations",
+      "explanation": "The CSS 'transition' property is used for creating smooth animations between different states of an element.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q578",
+      "question": "What does the term 'responsive images' refer to in web development?",
+      "options": [
+        "Images that change color based on user interactions",
+        "Images that adapt to different screen sizes",
+        "Images with embedded hyperlinks",
+        "Images with animated effects"
+      ],
+      "answer": "Images that adapt to different screen sizes",
+      "explanation": "Responsive images in web development are images that adapt to different screen sizes and devices.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 35
+    },
+    {
+      "id": "Q731",
+      "question": "What is the purpose of the 'fetch' API in JavaScript?",
+      "options": [
+        "Styling web pages",
+        "Querying databases",
+        "Loading external resources asynchronously",
+        "Creating animations"
+      ],
+      "answer": "Loading external resources asynchronously",
+      "explanation": "The 'fetch' API in JavaScript is used for loading external resources, such as JSON data, asynchronously.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q342",
+      "question": "What is the purpose of the 'box-shadow' property in CSS?",
+      "options": [
+        "Setting the background color of an element",
+        "Defining font styles",
+        "Creating a shadow effect around an element",
+        "Positioning elements on the page"
+      ],
+      "answer": "Creating a shadow effect around an element",
+      "explanation": "The 'box-shadow' property in CSS is used for creating a shadow effect around an element.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q619",
+      "question": "How can you vertically center an element in CSS?",
+      "options": [
+        "Using the 'vertical-align' property",
+        "Applying 'text-align: center'",
+        "Using 'margin: auto'",
+        "Applying 'padding: auto'"
+      ],
+      "answer": "Using 'margin: auto'",
+      "explanation": "You can vertically center an element in CSS by using 'margin: auto'.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "Q894",
+      "question": "What is the purpose of the 'aria-*' attributes in HTML?",
+      "options": [
+        "Styling web pages",
+        "Defining image dimensions",
+        "Providing accessibility information",
+        "Creating animations"
+      ],
+      "answer": "Providing accessibility information",
+      "explanation": "The 'aria-*' attributes in HTML are used for providing accessibility information to assistive technologies.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q187",
+      "question": "What does the term 'CSS preprocessor' refer to?",
+      "options": [
+        "A tool for optimizing CSS files",
+        "A programming language for styling web pages",
+        "A tool for analyzing CSS performance",
+        "A scripting language for automating CSS tasks"
+      ],
+      "answer": "A scripting language for automating CSS tasks",
+      "explanation": "A CSS preprocessor is a scripting language that extends CSS and is used for automating tasks, such as variables and mixins.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q513",
+      "question": "What is the purpose of the HTML 'semantic' elements (e.g., &lt;header&gt;, &lt;footer&gt;, &lt;nav&gt;)?",
+      "options": [
+        "Styling web pages",
+        "Enhancing SEO",
+        "Creating responsive layouts",
+        "Defining image dimensions"
+      ],
+      "answer": "Enhancing SEO",
+      "explanation": "Semantic HTML elements like &lt;header&gt;, &lt;footer&gt;, and &lt;nav&gt; enhance SEO by providing meaningful structure to the content.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 35
+    },
+    {
+      "id": "Q781",
+      "question": "What is the purpose of the 'CSS Grid' layout?",
+      "options": [
+        "Styling text within a container",
+        "Creating responsive tables",
+        "Positioning elements in a grid",
+        "Defining the layout of a webpage"
+      ],
+      "answer": "Positioning elements in a grid",
+      "explanation": "CSS Grid layout is used for positioning elements in a two-dimensional grid, allowing for complex and flexible layouts.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 35
+    },
+    {
+      "id": "Q239",
+      "question": "What is the purpose of the 'DPI' in the context of web development?",
+      "options": [
+        "Defining Pixels Index",
+        "Dots Per Inch",
+        "Dynamic Pixel Integration",
+        "Digital Printing Interface"
+      ],
+      "answer": "Dots Per Inch",
+      "explanation": "DPI (Dots Per Inch) is a measure of the resolution of a printed or displayed image, affecting its size and quality.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q664",
+      "question": "How can you optimize the loading time of a web page?",
+      "options": [
+        "Increase the number of images",
+        "Minify and concatenate CSS and JavaScript files",
+        "Use large, high-resolution images",
+        "Include unnecessary JavaScript libraries"
+      ],
+      "answer": "Minify and concatenate CSS and JavaScript files",
+      "explanation": "Minifying and concatenating CSS and JavaScript files reduces their size, improving the loading time of a web page.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 35
+    },
+    {
+      "id": "Q295",
+      "question": "What is the purpose of the 'z-index' property in CSS?",
+      "options": [
+        "Setting the background color of an element",
+        "Controlling the stacking order of elements",
+        "Defining font styles",
+        "Creating animations"
+      ],
+      "answer": "Controlling the stacking order of elements",
+      "explanation": "The 'z-index' property in CSS is used for controlling the stacking order of positioned elements on the page.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q847",
+      "question": "What is the role of the 'BEM' methodology in CSS?",
+      "options": [
+        "Defining font styles",
+        "Creating a naming convention for CSS classes",
+        "Creating responsive layouts",
+        "Positioning elements on the page"
+      ],
+      "answer": "Creating a naming convention for CSS classes",
+      "explanation": "BEM (Block Element Modifier) is a methodology in CSS that provides a naming convention for classes, promoting maintainability and modularity.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q729",
+      "question": "How can you include an external JavaScript file in an HTML document?",
+      "options": [
+        "Using the 'script' tag with the 'source' attribute",
+        "Using the 'link' tag",
+        "Using the 'js' tag",
+        "Using the 'include' tag"
+      ],
+      "answer": "Using the 'script' tag with the 'source' attribute",
+      "explanation": "To include an external JavaScript file in an HTML document, use the 'script' tag with the 'src' attribute pointing to the file's URL.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "Q512",
+      "question": "What is the purpose of the 'rgba()' function in CSS?",
+      "options": [
+        "Defining font styles",
+        "Setting the background color of an element",
+        "Creating transparent colors",
+        "Creating animations"
+      ],
+      "answer": "Creating transparent colors",
+      "explanation": "The 'rgba()' function in CSS is used for creating colors with transparency by specifying the red, green, blue, and alpha components.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q168",
+      "question": "What is the purpose of the 'viewport units' in CSS?",
+      "options": [
+        "Defining image dimensions",
+        "Creating a flexible layout",
+        "Styling text",
+        "Scaling elements based on the viewport size"
+      ],
+      "answer": "Scaling elements based on the viewport size",
+      "explanation": "Viewport units in CSS (e.g., vw, vh) are used for scaling elements based on the size of the viewport, creating a responsive design.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q923",
+      "question": "What is the purpose of the 'contenteditable' attribute in HTML?",
+      "options": [
+        "Embedding video content",
+        "Allowing user input in a specific element",
+        "Creating a fixed navigation bar",
+        "Setting the content width of an element"
+      ],
+      "answer": "Allowing user input in a specific element",
+      "explanation": "The 'contenteditable' attribute in HTML allows users to edit the content of a specific element, making it editable.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "Q415",
+      "question": "How can you include an external CSS file in an HTML document?",
+      "options": [
+        "Using the 'link' tag with the 'href' attribute",
+        "Using the 'style' tag",
+        "Using the 'css' tag",
+        "Using the 'include' tag"
+      ],
+      "answer": "Using the 'link' tag with the 'href' attribute",
+      "explanation": "To include an external CSS file in an HTML document, use the 'link' tag with the 'href' attribute pointing to the file's URL.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "Q112",
+      "question": "What does Git stand for?",
+      "options": [
+        "Global Internet Technology",
+        "Graphical Interface Tool",
+        "General Information Transfer",
+        "Version Control System"
+      ],
+      "answer": "Version Control System",
+      "explanation": "Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.",
+      "difficulty": "Easy",
+      "category": "Git",
+      "duration": 25
+    },
+    {
+      "id": "Q245",
+      "question": "What is the purpose of the 'git clone' command?",
+      "options": [
+        "Create a new Git repository",
+        "Clone a remote repository to your local machine",
+        "Commit changes to a repository",
+        "Delete a Git repository"
+      ],
+      "answer": "Clone a remote repository to your local machine",
+      "explanation": "The 'git clone' command is used to copy a repository from a remote source to your local machine.",
+      "difficulty": "Intermediate",
+      "category": "Git",
+      "duration": 30
+    },
+    {
+      "id": "Q378",
+      "question": "Who is the creator of Git?",
+      "options": [
+        "Linus Torvalds",
+        "Mark Zuckerberg",
+        "Bill Gates",
+        "Tim Berners-Lee"
+      ],
+      "answer": "Linus Torvalds",
+      "explanation": "Linus Torvalds, the creator of Linux, also created Git in 2005 to manage the development of the Linux kernel.",
+      "difficulty": "Easy",
+      "category": "Git",
+      "duration": 25
+    },
+    {
+      "id": "Q513",
+      "question": "What is the purpose of a 'pull request' in GitHub?",
+      "options": [
+        "Merge code into the main branch",
+        "Create a new repository",
+        "Clone a repository",
+        "Delete a repository"
+      ],
+      "answer": "Merge code into the main branch",
+      "explanation": "A pull request in GitHub is a way to propose changes and request that someone review and merge the changes into the main branch.",
+      "difficulty": "Intermediate",
+      "category": "GitHub",
+      "duration": 30
+    },
+    {
+      "id": "Q627",
+      "question": "What is the default branch name in Git?",
+      "options": ["master", "main", "branch1", "default"],
+      "answer": "main",
+      "explanation": "The default branch name in Git has transitioned from 'master' to 'main' in many repositories to promote inclusive language.",
+      "difficulty": "Easy",
+      "category": "Git",
+      "duration": 25
+    },
+    {
+      "id": "Q764",
+      "question": "What is the purpose of the 'git merge' command?",
+      "options": [
+        "Create a new branch",
+        "Merge changes from a remote repository",
+        "Commit changes to a branch",
+        "Combine changes from different branches"
+      ],
+      "answer": "Combine changes from different branches",
+      "explanation": "The 'git merge' command is used to combine changes from different branches into the current branch.",
+      "difficulty": "Intermediate",
+      "category": "Git",
+      "duration": 30
+    },
+    {
+      "id": "Q812",
+      "question": "Who is often referred to as the 'Father of the Web'?",
+      "options": [
+        "Bill Gates",
+        "Tim Berners-Lee",
+        "Mark Zuckerberg",
+        "Steve Jobs"
+      ],
+      "answer": "Tim Berners-Lee",
+      "explanation": "Tim Berners-Lee is credited with the invention of the World Wide Web, making him often referred to as the 'Father of the Web'.",
+      "difficulty": "Easy",
+      "category": "History of the Web",
+      "duration": 25
+    },
+    {
+      "id": "Q943",
+      "question": "In what year was the first website created?",
+      "options": ["1985", "1991", "1995", "2000"],
+      "answer": "1991",
+      "explanation": "The first website, created by Tim Berners-Lee, went live in 1991. It was a simple page providing information about the World Wide Web project.",
+      "difficulty": "Intermediate",
+      "category": "History of the Web",
+      "duration": 30
+    },
+    {
+      "id": "Q109",
+      "question": "What is the purpose of the 'git push' command?",
+      "options": [
+        "Fetch changes from a remote repository",
+        "Commit changes to a branch",
+        "Push changes to a remote repository",
+        "Create a new repository"
+      ],
+      "answer": "Push changes to a remote repository",
+      "explanation": "The 'git push' command is used to push local changes to a remote repository, making them accessible to others.",
+      "difficulty": "Intermediate",
+      "category": "Git",
+      "duration": 30
+    },
+    {
+      "id": "Q207",
+      "question": "What is the Git command used to view the commit history?",
+      "options": ["git log", "git status", "git commit", "git diff"],
+      "answer": "git log",
+      "explanation": "The 'git log' command displays the commit history of a Git repository, showing information about each commit.",
+      "difficulty": "Easy",
+      "category": "Git",
+      "duration": 25
+    },
+    {
+      "id": "Q321",
+      "question": "What is the purpose of the 'git branch' command?",
+      "options": [
+        "Create a new branch",
+        "Merge changes from a branch",
+        "Commit changes to a branch",
+        "Delete a branch"
+      ],
+      "answer": "Create a new branch",
+      "explanation": "The 'git branch' command is used to create a new branch in a Git repository.",
+      "difficulty": "Easy",
+      "category": "Git",
+      "duration": 25
+    },
+    {
+      "id": "Q485",
+      "question": "What is a 'fork' in the context of GitHub?",
+      "options": [
+        "Create a new repository",
+        "Clone a repository",
+        "Copy a repository to your GitHub account",
+        "Delete a repository"
+      ],
+      "answer": "Copy a repository to your GitHub account",
+      "explanation": "Forking a repository on GitHub creates a copy of the repository in your GitHub account, allowing you to make changes without affecting the original.",
+      "difficulty": "Intermediate",
+      "category": "GitHub",
+      "duration": 30
+    },
+    {
+      "id": "Q638",
+      "question": "What is the purpose of the 'git pull' command?",
+      "options": [
+        "Fetch changes from a remote repository",
+        "Commit changes to a branch",
+        "Push changes to a remote repository",
+        "Update the local repository with changes from the remote"
+      ],
+      "answer": "Update the local repository with changes from the remote",
+      "explanation": "The 'git pull' command is used to update the local repository with changes from the remote repository.",
+      "difficulty": "Intermediate",
+      "category": "Git",
+      "duration": 30
+    },
+    {
+      "id": "Q743",
+      "question": "What is the significance of the '404 Not Found' HTTP status code?",
+      "options": [
+        "Internal Server Error",
+        "Resource not modified",
+        "Page not found",
+        "Request Timeout"
+      ],
+      "answer": "Page not found",
+      "explanation": "The '404 Not Found' HTTP status code indicates that the requested resource could not be found on the server.",
+      "difficulty": "Easy",
+      "category": "History of the Web",
+      "duration": 25
+    },
+    {
+      "id": "Q894",
+      "question": "Who is the co-founder of GitHub?",
+      "options": [
+        "Linus Torvalds",
+        "Chris Wanstrath",
+        "Mark Zuckerberg",
+        "Tim Berners-Lee"
+      ],
+      "answer": "Chris Wanstrath",
+      "explanation": "Chris Wanstrath is one of the co-founders of GitHub, along with Tom Preston-Werner and PJ Hyett.",
+      "difficulty": "Intermediate",
+      "category": "GitHub",
+      "duration": 30
+    },
+    {
+      "id": "Q126",
+      "question": "What is the purpose of the 'git rebase' command?",
+      "options": [
+        "Synchronize a branch with the remote repository",
+        "Combine multiple commits into one",
+        "Create a new branch",
+        "Delete a branch"
+      ],
+      "answer": "Combine multiple commits into one",
+      "explanation": "The 'git rebase' command is used to reapply commits on top of another base commit, often used to combine multiple commits into a single, cleaner commit history.",
+      "difficulty": "Intermediate",
+      "category": "Git",
+      "duration": 30
+    },
+    {
+      "id": "Q572",
+      "question": "What is the purpose of the 'pull request review' feature in GitHub?",
+      "options": [
+        "Request changes to a pull request",
+        "Merge a pull request",
+        "Clone a repository",
+        "Delete a repository"
+      ],
+      "answer": "Request changes to a pull request",
+      "explanation": "The 'pull request review' feature in GitHub allows collaborators to review and request changes to a pull request before it is merged.",
+      "difficulty": "Intermediate",
+      "category": "GitHub",
+      "duration": 25
+    },
+    {
+      "id": "Q289",
+      "question": "What is the 'Three-Way Merge' in Git?",
+      "options": [
+        "Merging three branches into one",
+        "Resolving conflicts between three branches",
+        "Creating a new branch from three existing branches",
+        "Deleting three branches"
+      ],
+      "answer": "Resolving conflicts between three branches",
+      "explanation": "The 'Three-Way Merge' in Git is the process of resolving conflicts that arise when merging three branches, commonly used in a collaborative development environment.",
+      "difficulty": "Intermediate",
+      "category": "Git",
+      "duration": 30
+    },
+    {
+      "id": "Q671",
+      "question": "In the context of web development, what does 'SEO' stand for?",
+      "options": [
+        "Search Engine Optimization",
+        "Server Environment Optimization",
+        "Social Engagement Online",
+        "Software Enhancement Operations"
+      ],
+      "answer": "Search Engine Optimization",
+      "explanation": "'SEO' stands for Search Engine Optimization, which involves optimizing a website to improve its visibility on search engines.",
+      "difficulty": "Easy",
+      "category": "History of the Web",
+      "duration": 25
+    },
+    {
+      "id": "Q784",
+      "question": "What is the purpose of the 'git stash' command?",
+      "options": [
+        "Discard changes in a branch",
+        "Save changes temporarily",
+        "Create a new branch",
+        "Merge changes from a branch"
+      ],
+      "answer": "Save changes temporarily",
+      "explanation": "The 'git stash' command is used to save changes in a temporary area, allowing you to switch branches without committing changes.",
+      "difficulty": "Intermediate",
+      "category": "Git",
+      "duration": 30
+    }
+  ],
+  "javascript": [
+    {
+      "question": "What is closure in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "A way to access variables outside of a function",
+        "A built-in JavaScript function",
+        "A type of loop in JavaScript",
+        "A method to create new objects"
+      ],
+      "answer": "A way to access variables outside of a function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'let' keyword in JavaScript?",
+      "options": ["To declare a variable with block scope.", "To create a constant variable.", "To define a function.", "To import external libraries."],
+      "category": "Variables",
+      "duration": "2 minutes",
+      "answer": "To declare a variable with block scope."
+    },
+    {
+      "question": "How can you check the type of a variable in JavaScript?",
+      "options": ["Using the 'variableType()' function.", "By using the 'typeof' operator.", "By inspecting the variable's memory address.", "By using the 'checkType()' function."],
+      "category": "Data Types",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'typeof' operator."
+    },
+    {
+      "question": "What is the purpose of the 'async' keyword in JavaScript?",
+      "options": ["To create asynchronous functions.", "To define a constant variable.", "To import external libraries.", "To handle exceptions."],
+      "category": "Asynchronous Programming",
+      "duration": "2 minutes",
+      "answer": "To create asynchronous functions."
+    },
+    {
+      "question": "How can you add an event listener to a DOM element in JavaScript?",
+      "options": ["By using the 'attachEvent' method.", "By using the 'addEventListener' method.", "By using the 'onEvent' property.", "By using the 'listenTo' function."],
+      "category": "DOM Manipulation",
+      "duration": "1 minute",
+      "answer": "By using the 'addEventListener' method."
+    },
+    {
+      "question": "What is the purpose of the 'this' keyword in JavaScript?",
+      "options": ["To reference the current function.", "To create a new instance of an object.", "To refer to the global object.", "To refer to the calling object."],
+      "category": "Functions and Objects",
+      "duration": "2 minutes",
+      "answer": "To refer to the calling object."
+    },
+    {
+      "question": "How can you create a promise in JavaScript?",
+      "options": ["By using the 'new Promise()' constructor.", "By using the 'Promise.create()' method.", "By using the 'async/await' keywords.", "By using the 'Promise.then()' method."],
+      "category": "Promises",
+      "duration": "2.5 minutes",
+      "answer": "By using the 'new Promise()' constructor."
+    },
+    {
+      "question": "What is the purpose of the 'localStorage' in JavaScript?",
+      "options": ["To store session-specific data.", "To store data in the browser permanently.", "To handle server-side storage.", "To manage external libraries."],
+      "category": "Web Storage",
+      "duration": "1.5 minutes",
+      "answer": "To store data in the browser permanently."
+    },
+    {
+      "question": "How can you iterate over the elements of an array in JavaScript?",
+      "options": ["By using the 'for...in' loop.", "By using the 'forEach' method.", "By using the 'while' loop.", "By using the 'map' function."],
+      "category": "Arrays",
+      "duration": "1 minute",
+      "answer": "By using the 'forEach' method."
+    },
+    {
+      "question": "What is the purpose of the 'JSON.stringify()' method in JavaScript?",
+      "options": ["To parse a JSON string into an object.", "To convert a JavaScript object to a JSON string.", "To format a JSON object.", "To validate JSON syntax."],
+      "category": "JSON Handling",
+      "duration": "2 minutes",
+      "answer": "To convert a JavaScript object to a JSON string."
+    },
+    {
+      "question": "How can you prevent the default behavior of an event in JavaScript?",
+      "options": ["By using the 'stopPropagation' method.", "By using the 'preventDefault' method.", "By setting the 'defaultAction' property to false.", "By using the 'disableEvent' function."],
+      "category": "Event Handling",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'preventDefault' method."
+    },
+    {
+      "question": "What is the difference between '==' and '===' in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "'==' compares both value and type",
+        "'===' compares only value",
+        "'===' compares both value and type",
+        "'==' compares only value"
+      ],
+      "answer": "'==' compares only value",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of 'use strict' in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "To enable strict mode for the entire script or a function",
+        "To disable strict mode for the entire script or a function",
+        "To declare a variable as strict",
+        "To define a strict condition"
+      ],
+      "answer": "To enable strict mode for the entire script or a function",
+      "duration": 30
+    },
+    {
+      "question": "What is the 'this' keyword in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "Refers to the current object",
+        "Refers to the parent object",
+        "Refers to the global object",
+        "Refers to the child object"
+      ],
+      "answer": "Refers to the current object",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'map' function in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To remove elements from an array",
+        "To sort the elements of an array",
+        "To filter elements from an array"
+      ],
+      "answer": "To create a new array with the results of calling a provided function on every element in the array",
+      "duration": 30
+    },
+    {
+      "question": "What is a Promise in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "A way to handle asynchronous operations",
+        "A built-in JavaScript object",
+        "A type of loop in JavaScript",
+        "A method to create new objects"
+      ],
+      "answer": "A way to handle asynchronous operations",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'let' keyword in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "To declare a block-scoped variable",
+        "To declare a global variable",
+        "To declare a constant variable",
+        "To declare a function-scoped variable"
+      ],
+      "answer": "To declare a block-scoped variable",
+      "duration": 30
+    },
+    {
+      "question": "What is the difference between 'null' and 'undefined' in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "'null' represents an intentional absence of any object value",
+        "'undefined' represents an intentional absence of any object value",
+        "'null' is a type in JavaScript",
+        "'undefined' is a type in JavaScript"
+      ],
+      "answer": "'null' represents an intentional absence of any object value",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'filter' function in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with all elements that pass a test",
+        "To remove elements from an array",
+        "To sort the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To create a new array with all elements that pass a test",
+      "duration": 30
+    },
+    {
+      "question": "What is the 'spread' operator in JavaScript used for?",
+      "category": "JavaScript",
+      "options": [
+        "To split a string into an array",
+        "To combine multiple arrays into one",
+        "To create a copy of an object or array",
+        "To reverse the elements of an array"
+      ],
+      "answer": "To create a copy of an object or array",
+      "duration": 25
+    },
+    {
+      "question": "What is the difference between 'let' and 'var' in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "'let' has block scope, while 'var' has function scope",
+        "'let' is used for numbers, while 'var' is used for strings",
+        "'let' is used for global variables, while 'var' is used for local variables",
+        "'let' is a newer version of 'var'"
+      ],
+      "answer": "'let' has block scope, while 'var' has function scope",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'reduce' function in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "To execute a provided function for each element of the array",
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To reduce the array to a single value",
+        "To filter elements from an array"
+      ],
+      "answer": "To reduce the array to a single value",
+      "duration": 25
+    },
+    {
+      "question": "What is the 'async/await' feature in JavaScript used for?",
+      "category": "JavaScript",
+      "options": [
+        "To handle asynchronous operations with a more synchronous syntax",
+        "To handle synchronous operations with a more asynchronous syntax",
+        "To create new asynchronous functions",
+        "To handle error handling in asynchronous operations"
+      ],
+      "answer": "To handle asynchronous operations with a more synchronous syntax",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'Object.keys()' method in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "To return an array of a given object's own enumerable property names",
+        "To return an array of a given object's own non-enumerable property names",
+        "To return an array of a given object's prototype property names",
+        "To return an array of a given object's own property values"
+      ],
+      "answer": "To return an array of a given object's own enumerable property names",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'Array.isArray()' method in JavaScript?",
+      "category": "JavaScript",
+      "options": [
+        "To check if a variable is an array",
+        "To convert an array to a string",
+        "To check if a variable is an object",
+        "To check if a variable is a function"
+      ],
+      "answer": "To check if a variable is an array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'find' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To find the first element that satisfies the provided testing function",
+        "To find the last element that satisfies the provided testing function",
+        "To find the index of a specific element",
+        "To find the maximum value in the array"
+      ],
+      "answer": "To find the first element that satisfies the provided testing function",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'some' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To check if at least one element in the array satisfies the provided testing function",
+        "To check if all elements in the array satisfy the provided testing function",
+        "To check if the array is empty",
+        "To check if the array contains a specific value"
+      ],
+      "answer": "To check if at least one element in the array satisfies the provided testing function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'every' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To check if all elements in the array satisfy the provided testing function",
+        "To check if at least one element in the array satisfies the provided testing function",
+        "To check if the array is empty",
+        "To check if the array contains a specific value"
+      ],
+      "answer": "To check if all elements in the array satisfy the provided testing function",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'flat' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To flatten a nested array structure",
+        "To create a new array with all sub-array elements concatenated into it",
+        "To remove empty elements from an array",
+        "To sort the elements of an array"
+      ],
+      "answer": "To flatten a nested array structure",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'map' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To modify the original array directly",
+        "To filter elements from an array",
+        "To sort the elements of an array"
+      ],
+      "answer": "To create a new array with the results of calling a provided function on every element in the array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'forEach' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To execute a provided function once for each array element",
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To filter elements from an array",
+        "To sort the elements of an array"
+      ],
+      "answer": "To execute a provided function once for each array element",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'sort' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To modify the original array directly",
+        "To sort the elements of an array",
+        "To filter elements from an array"
+      ],
+      "answer": "To sort the elements of an array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'concat' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array by merging existing arrays",
+        "To remove elements from an array",
+        "To sort the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To create a new array by merging existing arrays",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'slice' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To remove elements from an array",
+        "To extract a section of an array and return a new array",
+        "To modify elements in an array"
+      ],
+      "answer": "To extract a section of an array and return a new array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'splice' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To remove elements from an array",
+        "To extract a section of an array and return a new array",
+        "To modify elements in an array"
+      ],
+      "answer": "To remove elements from an array and, if necessary, insert new elements in their place",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'reverse' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To remove elements from an array",
+        "To reverse the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To reverse the elements of an array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'join' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To join all elements of an array into a string",
+        "To reverse the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To join all elements of an array into a string",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'includes' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To check if an array includes a certain element",
+        "To remove elements from an array",
+        "To reverse the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To check if an array includes a certain element",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'fill' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on calling a provided function on every element in the array",
+        "To remove elements from an array",
+        "To fill all the elements of an array with a static value",
+        "To modify elements in an array"
+      ],
+      "answer": "To fill all the elements of an array with a static value",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'reduce' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with the results of calling a provided function on every element in the array",
+        "To reduce the array to a single value by executing a provided function for each value of the array",
+        "To filter elements from an array",
+        "To sort the elements of an array"
+      ],
+      "answer": "To reduce the array to a single value by executing a provided function for each value of the array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'some' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To check if at least one element in the array satisfies the provided testing function",
+        "To check if all elements in the array satisfy the provided testing function",
+        "To check if the array is empty",
+        "To check if the array contains a specific value"
+      ],
+      "answer": "To check if at least one element in the array satisfies the provided testing function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'every' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To check if all elements in the array satisfy the provided testing function",
+        "To check if at least one element in the array satisfies the provided testing function",
+        "To check if the array is empty",
+        "To check if the array contains a specific value"
+      ],
+      "answer": "To check if all elements in the array satisfy the provided testing function",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'filter' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with all elements that pass the test implemented by the provided function",
+        "To modify the original array directly",
+        "To sort the elements of an array",
+        "To check if the array is empty"
+      ],
+      "answer": "To create a new array with all elements that pass the test implemented by the provided function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'find' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To create a new array with all elements that pass the test implemented by the provided function",
+        "To find the first element in the array that satisfies the provided testing function",
+        "To check if the array is empty",
+        "To check if the array contains a specific value"
+      ],
+      "answer": "To find the first element in the array that satisfies the provided testing function",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'isArray' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To check if the array is empty",
+        "To check if the array contains a specific value",
+        "To check if the variable is an array",
+        "To create a new array with the results of calling a provided function on every element in the array"
+      ],
+      "answer": "To check if the variable is an array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'push' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To add one or more elements to the end of an array and returns the new length of the array",
+        "To remove elements from an array",
+        "To sort the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To add one or more elements to the end of an array and returns the new length of the array",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'pop' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To add one or more elements to the end of an array and returns the new length of the array",
+        "To remove the last element from an array and returns that element",
+        "To sort the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To remove the last element from an array and returns that element",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'shift' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To add one or more elements to the beginning of an array and returns the new length of the array",
+        "To remove the last element from an array and returns that element",
+        "To remove the first element",
+        "To remove the first element from an array and returns that element",
+        "To sort the elements of an array",
+        "To modify elements in an array"
+      ],
+      "answer": "To remove the first element from an array and returns that element",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'unshift' method in JavaScript arrays?",
+      "category": "JavaScript",
+      "options": [
+        "To add one or more elements to the beginning of an array and returns the new length of the array",
+        "To remove the last element from an array and returns that element",
+        "To remove the first element from an array and returns that element",
+        "To modify elements in an array"
+      ],
+      "answer": "To add one or more elements to the beginning of an array and returns the new length of the array",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'class' keyword in JavaScript?",
+      "options": ["To declare a constant variable.", "To define a function.", "To create an instance of an object.", "To define a class with properties and methods."],
+      "category": "Classes",
+      "duration": "2 minutes",
+      "answer": "To define a class with properties and methods."
+    },
+    {
+      "question": "How can you create an instance of a class in JavaScript?",
+      "options": ["By using the 'new' keyword followed by the class name.", "By calling the class as a function.", "By using the 'createInstance()' method.", "By using the 'instantiate' keyword."],
+      "category": "Classes",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'new' keyword followed by the class name."
+    },
+    {
+      "question": "What is the purpose of the 'prototype' property in JavaScript?",
+      "options": ["To define static methods in a class.", "To add methods and properties to an existing object or class.", "To specify the inheritance hierarchy.", "To create a new instance of an object."],
+      "category": "Prototypes",
+      "duration": "2 minutes",
+      "answer": "To add methods and properties to an existing object or class."
+    },
+    {
+      "question": "How can you define a default parameter in a JavaScript function?",
+      "options": ["By using the 'default' keyword.", "By using the 'optional' keyword.", "By assigning a value in the function parameter list.", "By using the 'DefaultValue' attribute."],
+      "category": "Functions",
+      "duration": "1 minute",
+      "answer": "By assigning a value in the function parameter list."
+    },
+    {
+      "question": "What is a closure in JavaScript?",
+      "options": ["A built-in JavaScript function.", "A way to create private variables in a class.", "A function that has access to variables from its outer (enclosing) scope.", "A function that returns a function."],
+      "category": "Closures",
+      "duration": "2.5 minutes",
+      "answer": "A function that has access to variables from its outer (enclosing) scope."
+    },
+    {
+      "question": "How do you check if an object has a specific property in JavaScript?",
+      "options": ["By using the 'propertyExists()' method.", "By checking the 'hasProperty' attribute.", "By using the 'in' operator.", "By calling the 'checkProperty' function."],
+      "category": "Objects",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'in' operator."
+    },
+    {
+      "question": "What is the purpose of the 'call' and 'apply' methods in JavaScript?",
+      "options": ["To create a new object.", "To invoke a function with a specified 'this' value and arguments.", "To define a class method.", "To concatenate two strings."],
+      "category": "Functions",
+      "duration": "1 minute",
+      "answer": "To invoke a function with a specified 'this' value and arguments."
+    },
+    {
+      "question": "How can you loop through the properties of an object in JavaScript?",
+      "options": ["By using the 'for...of' loop.", "By using the 'forEach' method.", "By using the 'for...in' loop.", "By using the 'while' loop."],
+      "category": "Objects",
+      "duration": "2 minutes",
+      "answer": "By using the 'for...in' loop."
+    },
+    {
+      "question": "What is the purpose of the 'bind' method in JavaScript?",
+      "options": ["To concatenate two arrays.", "To create a new instance of an object.", "To bind a function to a specific 'this' value.", "To define a static method in a class."],
+      "category": "Functions",
+      "duration": "2.5 minutes",
+      "answer": "To bind a function to a specific 'this' value."
+    },
+    {
+      "question": "What is the role of the 'super' keyword in JavaScript classes?",
+      "options": ["To access the parent class's methods and properties.", "To define a superclass in inheritance.", "To create an instance of a class.", "To invoke the child class's constructor."],
+      "category": "Classes",
+      "duration": "1.5 minutes",
+      "answer": "To access the parent class's methods and properties."
+    },
+    {
+      "question": "What is the difference between 'var', 'let', and 'const' in JavaScript?",
+      "options": ["They are interchangeable and can be used interchangeably.", "'var' is block-scoped, 'let' is function-scoped, and 'const' is block-scoped.", "'let' is block-scoped, 'const' is function-scoped, and 'var' is globally-scoped.", "'const' is used for primitive values, while 'let' and 'var' are used for objects and arrays."],
+      "category": "Variables",
+      "duration": "2 minutes",
+      "answer": "'var' is block-scoped, 'let' is function-scoped, and 'const' is block-scoped."
+    },
+    {
+      "question": "How do you check if a variable is of a specific data type in JavaScript?",
+      "options": ["By using the 'typeOf' operator.", "By using the 'checkType()' function.", "By comparing the variable to a prototype.", "By using the 'typeof' operator."],
+      "category": "Data Types",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'typeof' operator."
+    },
+    {
+      "question": "What are the primitive data types in JavaScript?",
+      "options": ["String, Object, Array, Boolean, Null, Undefined", "Number, String, Boolean, Object, Null, Undefined", "Integer, Float, String, Object, Array, Boolean", "Char, Int, Float, Double, Boolean, Array"],
+      "category": "Data Types",
+      "duration": "2 minutes",
+      "answer": "Number, String, Boolean, Object, Null, Undefined"
+    },
+    {
+      "question": "How do you declare and initialize an array in JavaScript?",
+      "options": ["let arr = array();", "let arr = [];","array arr = new Array();","array arr = Array();"],
+      "category": "Arrays",
+      "duration": "1 minute",
+      "answer": "let arr = [];"
+    },
+    {
+      "question": "What is the difference between '=='' and '===' in JavaScript?",
+      "options": ["They are interchangeable and can be used interchangeably.", "'==' performs type coercion, while '===' does not perform type coercion.", "'===' performs type coercion, while '==' does not perform type coercion.", "There is no difference between '==' and '==='."],
+      "category": "Operators",
+      "duration": "2.5 minutes",
+      "answer": "'==' performs type coercion, while '===' does not perform type coercion."
+    },
+    {
+      "question": "How can you add a new property to an existing object in JavaScript?",
+      "options": ["By using the 'insertProperty' method.", "By using the 'object.add()' method.", "By using the 'object[property] = value;' syntax.", "By using the 'appendProperty' function."],
+      "category": "Objects",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'object[property] = value;' syntax."
+    },
+    {
+      "question": "What is the purpose of the 'delete' operator in JavaScript?",
+      "options": ["To remove a property from an object.", "To delete a variable.", "To clear the console log.", "To delete a function."],
+      "category": "Objects",
+      "duration": "1 minute",
+      "answer": "To remove a property from an object."
+    },
+    {
+      "question": "How do you access the length of an array in JavaScript?",
+      "options": ["By using 'array.length()'.", "By using 'length(array)'.", "By using 'array.length'.", "By using 'array.size()'."],
+      "category": "Arrays",
+      "duration": "2 minutes",
+      "answer": "By using 'array.length'."
+    },
+    {
+      "question": "What is the purpose of the 'NaN' value in JavaScript?",
+      "options": ["To represent an undefined variable.", "To represent a null value.", "To indicate a failed mathematical operation or an undefined result.", "To represent a boolean value."],
+      "category": "Data Types",
+      "duration": "2.5 minutes",
+      "answer": "To indicate a failed mathematical operation or an undefined result."
+    },
+    {
+      "question": "How can you convert a string to an integer in JavaScript?",
+      "options": ["By using the 'parseInteger()' function.", "By using 'int(string)'.", "By using 'Number(string)'.", "By using 'convertToInt(string)'."],
+      "category": "Data Types",
+      "duration": "1.5 minutes",
+      "answer": "By using 'Number(string)'."
+    },
+    {
+      "question": "What is the scope of a variable declared with 'var' in JavaScript?",
+      "options": ["Global scope.", "Block scope.", "Function scope.", "Local scope."],
+      "category": "Scope",
+      "duration": "2 minutes",
+      "answer": "Function scope."
+    },
+    {
+      "question": "Explain what a closure is in JavaScript.",
+      "options": ["A way to create private variables in a class.", "A built-in JavaScript function.", "A function that has access to variables from its outer (enclosing) scope.", "A function that is executed immediately after being created."],
+      "category": "Closures",
+      "duration": "1.5 minutes",
+      "answer": "A function that has access to variables from its outer (enclosing) scope."
+    },
+    {
+      "question": "How do you create a closure in JavaScript?",
+      "options": ["By using the 'this' keyword.", "By using the 'new' keyword.", "By defining a function inside another function and accessing variables from the outer function.", "By using the 'closure()' function."],
+      "category": "Closures",
+      "duration": "2 minutes",
+      "answer": "By defining a function inside another function and accessing variables from the outer function."
+    },
+    {
+      "question": "What is the purpose of a higher-order function in JavaScript?",
+      "options": ["To perform mathematical operations on numbers.", "To convert a function into an object.", "To execute a function immediately after its creation.", "To take one or more functions as arguments or return a function as a result."],
+      "category": "Higher-Order Functions",
+      "duration": "1.5 minutes",
+      "answer": "To take one or more functions as arguments or return a function as a result."
+    },
+    {
+      "question": "How can you iterate over the elements of an array using the 'forEach' method?",
+      "options": ["By using a 'for' loop.", "By using the 'while' loop.", "By using recursion.", "By passing a callback function to 'forEach'."],
+      "category": "Loops",
+      "duration": "2.5 minutes",
+      "answer": "By passing a callback function to 'forEach'."
+    },
+    {
+      "question": "What is the purpose of the 'map' method in JavaScript?",
+      "options": ["To create a new array with elements that pass a test.", "To apply a function to each element of an array and create a new array with the results.", "To filter elements based on a condition.", "To sort the elements of an array."],
+      "category": "Higher-Order Functions",
+      "duration": "2 minutes",
+      "answer": "To apply a function to each element of an array and create a new array with the results."
+    },
+    {
+      "question": "Explain the difference between 'for...in' and 'for...of' loops in JavaScript.",
+      "options": ["There is no difference between them.", "'for...in' is used to iterate over the values of an array, while 'for...of' is used to iterate over the properties of an object.", "'for...in' is used to iterate over the properties of an object, while 'for...of' is used to iterate over the values of an array.", "'for...in' is used for asynchronous operations, while 'for...of' is used for synchronous operations."],
+      "category": "Loops",
+      "duration": "1.5 minutes",
+      "answer": "'for...in' is used to iterate over the properties of an object, while 'for...of' is used to iterate over the values of an array."
+    },
+    {
+      "question": "What is the purpose of the 'filter' method in JavaScript?",
+      "options": ["To create a new array with elements that pass a test.", "To apply a function to each element of an array and create a new array with the results.", "To filter elements based on a condition.", "To sort the elements of an array."],
+      "category": "Higher-Order Functions",
+      "duration": "1 minute",
+      "answer": "To create a new array with elements that pass a test."
+    },
+    {
+      "question": "How do you break out of a loop prematurely in JavaScript?",
+      "options": ["By using the 'end' statement.", "By using the 'break' keyword.", "By throwing an exception.", "By using the 'exit' function."],
+      "category": "Loops",
+      "duration": "2 minutes",
+      "answer": "By using the 'break' keyword."
+    },
+    {
+      "question": "What is the purpose of the 'reduce' method in JavaScript?",
+      "options": ["To create a new array with elements that pass a test.", "To apply a function to each element of an array and create a new array with the results.", "To reduce the elements of an array to a single value.", "To sort the elements of an array."],
+      "category": "Higher-Order Functions",
+      "duration": "2.5 minutes",
+      "answer": "To reduce the elements of an array to a single value."
+    },
+    {
+      "question": "What is the purpose of the 'for...of' loop in JavaScript?",
+      "options": ["To iterate over the properties of an object.", "To iterate over the values of an array.", "To create an infinite loop.", "To iterate over the keys of an object."],
+      "category": "Loops",
+      "duration": "2 minutes",
+      "answer": "To iterate over the values of an array."
+    },
+    {
+      "question": "Explain the concept of a callback function in JavaScript.",
+      "options": ["A function that is executed immediately after being created.", "A function passed as an argument to another function and is executed later.", "A function that returns another function.", "A built-in JavaScript function."],
+      "category": "Callbacks",
+      "duration": "1.5 minutes",
+      "answer": "A function passed as an argument to another function and is executed later."
+    },
+    {
+      "question": "How do you handle errors in JavaScript using try...catch?",
+      "options": ["By preventing the error from occurring.", "By displaying the error in the console log.", "By catching the error and executing a block of code.", "By ignoring the error and continuing with the program."],
+      "category": "Error Handling",
+      "duration": "2 minutes",
+      "answer": "By catching the error and executing a block of code."
+    },
+    {
+      "question": "What is the purpose of the 'Promise' object in JavaScript?",
+      "options": ["To handle errors and exceptions.", "To create a new instance of an object.", "To represent a value that might be available now, or in the future, or never.", "To perform asynchronous operations."],
+      "category": "Promises",
+      "duration": "1.5 minutes",
+      "answer": "To represent a value that might be available now, or in the future, or never."
+    },
+    {
+      "question": "How do you use the 'resolve' and 'reject' functions in a JavaScript Promise?",
+      "options": ["To handle errors in a promise.", "To fulfill or reject the promise with a value.", "To define the conditions for the 'then' method.", "To create a new promise instance."],
+      "category": "Promises",
+      "duration": "2.5 minutes",
+      "answer": "To fulfill or reject the promise with a value."
+    },
+    {
+      "question": "What is the purpose of the 'finally' block in a try...catch statement?",
+      "options": ["To handle errors that occur in the try block.", "To execute code regardless of whether an error occurs or not.", "To prevent the execution of the catch block.", "To skip the try block and directly execute the catch block."],
+      "category": "Error Handling",
+      "duration": "1.5 minutes",
+      "answer": "To execute code regardless of whether an error occurs or not."
+    },
+    {
+      "question": "How do you iterate over the properties of an object using a for...in loop?",
+      "options": ["By using the 'for...in' loop with a condition.", "By using the 'forEach' method.", "By using the 'while' loop.", "By using the 'for...of' loop."],
+      "category": "Loops",
+      "duration": "2 minutes",
+      "answer": "By using the 'for...in' loop with a condition."
+    },
+    {
+      "question": "What is the purpose of the 'catch' block in a try...catch statement?",
+      "options": ["To execute code regardless of whether an error occurs or not.", "To handle errors that occur in the try block.", "To prevent the execution of the try block.", "To skip the try block and directly execute the finally block."],
+      "category": "Error Handling",
+      "duration": "1 minute",
+      "answer": "To handle errors that occur in the try block."
+    },
+    {
+      "question": "What is the role of the 'then' method in a JavaScript Promise?",
+      "options": ["To define the conditions for the 'catch' block.", "To execute code regardless of whether the promise is fulfilled or rejected.", "To specify what to do when the promise is fulfilled.", "To create a new promise instance."],
+      "category": "Promises",
+      "duration": "2 minutes",
+      "answer": "To specify what to do when the promise is fulfilled."
+    },
+    {
+      "question": "How do you create a promise that immediately resolves with a value?",
+      "options": ["By using the 'Promise.reject()' method.", "By using the 'Promise.resolve()' method.", "By using the 'new Promise()' constructor.", "By using the 'createPromise()' function."],
+      "category": "Promises",
+      "duration": "2.5 minutes",
+      "answer": "By using the 'Promise.resolve()' method."
+    }
+  ],
+  "html": [
+    {
+      "question": "What does HTML stand for?",
+      "category": "HTML",
+      "options": [
+        "Hyper Text Markup Language",
+        "Hyperlinks and Text Markup Language",
+        "Home Tool Markup Language",
+        "Hyper Tool Markup Language"
+      ],
+      "answer": "Hyper Text Markup Language",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML element for the largest heading?",
+      "category": "HTML",
+      "options": ["<h1>", "<heading>", "<head>", "<h6>"],
+      "answer": "<h1>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a hyperlink?",
+      "category": "HTML",
+      "options": [
+        "<a href='http://www.example.com'>Example</a>",
+        "<link>http://www.example.com</link>",
+        "<a>http://www.example.com</a>",
+        "<hyperlink>http://www.example.com</hyperlink>"
+      ],
+      "answer": "<a href='http://www.example.com'>Example</a>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for inserting an image?",
+      "category": "HTML",
+      "options": [
+        "<img src='image.jpg' alt='MyImage'>",
+        "<image src='image.jpg' alt='MyImage'>",
+        "<img href='image.jpg' alt='MyImage'>",
+        "<image href='image.jpg' alt='MyImage'>"
+      ],
+      "answer": "<img src='image.jpg' alt='MyImage'>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a checkbox?",
+      "category": "HTML",
+      "options": [
+        "<input type='checkbox'>",
+        "<checkbox>",
+        "<check>",
+        "<input type='check'>"
+      ],
+      "answer": "<input type='checkbox'>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a drop-down list?",
+      "category": "HTML",
+      "options": [
+        "<select>",
+        "<input type='dropdown'>",
+        "<list>",
+        "<input type='list'>"
+      ],
+      "answer": "<select>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for making a text input field?",
+      "category": "HTML",
+      "options": [
+        "<input type='text'>",
+        "<textfield>",
+        "<textinput>",
+        "<input type='textfield'>"
+      ],
+      "answer": "<input type='text'>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a button?",
+      "category": "HTML",
+      "options": [
+        "<button>",
+        "<input type='button'>",
+        "<input type='submit'>",
+        "<submit>"
+      ],
+      "answer": "<button>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a line break?",
+      "category": "HTML",
+      "options": ["<br>", "<break>", "<lb>", "<linebreak>"],
+      "answer": "<br>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for adding a background color?",
+      "category": "HTML",
+      "options": ["<background>", "<color>", "<bgcolor>", "<style>"],
+      "answer": "<style>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a hyperlink?",
+      "category": "HTML",
+      "options": [
+        "<a href='http://www.example.com'>Example</a>",
+        "<link>http://www.example.com</link>",
+        "<a>http://www.example.com</a>",
+        "<hyperlink>http://www.example.com</hyperlink>"
+      ],
+      "answer": "<a href='http://www.example.com'>Example</a>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for inserting an image?",
+      "category": "HTML",
+      "options": [
+        "<img src='image.jpg' alt='MyImage'>",
+        "<image src='image.jpg' alt='MyImage'>",
+        "<img href='image.jpg' alt='MyImage'>",
+        "<image href='image.jpg' alt='MyImage'>"
+      ],
+      "answer": "<img src='image.jpg' alt='MyImage'>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a checkbox?",
+      "category": "HTML",
+      "options": [
+        "<input type='checkbox'>",
+        "<checkbox>",
+        "<check>",
+        "<input type='check'>"
+      ],
+      "answer": "<input type='checkbox'>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a drop-down list?",
+      "category": "HTML",
+      "options": [
+        "<select>",
+        "<input type='dropdown'>",
+        "<list>",
+        "<input type='list'>"
+      ],
+      "answer": "<select>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for making a text input field?",
+      "category": "HTML",
+      "options": [
+        "<input type='text'>",
+        "<textfield>",
+        "<textinput>",
+        "<input type='textfield'>"
+      ],
+      "answer": "<input type='text'>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a button?",
+      "category": "HTML",
+      "options": [
+        "<button>",
+        "<input type='button'>",
+        "<input type='submit'>",
+        "<submit>"
+      ],
+      "answer": "<button>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a line break?",
+      "category": "HTML",
+      "options": ["<br>", "<break>", "<lb>", "<linebreak>"],
+      "answer": "<br>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for adding a background color?",
+      "category": "HTML",
+      "options": ["<background>", "<color>", "<bgcolor>", "<style>"],
+      "answer": "<style>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a table?",
+      "category": "HTML",
+      "options": ["<table>", "<tab>", "<t>", "<tbl>"],
+      "answer": "<table>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a form?",
+      "category": "HTML",
+      "options": ["<form>", "<f>", "<frm>", "<fom>"],
+      "answer": "<form>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a paragraph?",
+      "category": "HTML",
+      "options": ["<p>", "<para>", "<paragraph>", "<pg>"],
+      "answer": "<p>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a horizontal rule?",
+      "category": "HTML",
+      "options": ["<hr>", "<line>", "<rule>", "<horizontal>"],
+      "answer": "<hr>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a comment?",
+      "category": "HTML",
+      "options": [
+        "<!--This is a comment-->",
+        "/*This is a comment*/",
+        "//This is a comment",
+        "<comment>This is a comment</comment>"
+      ],
+      "answer": "<!--This is a comment-->",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a bold text?",
+      "category": "HTML",
+      "options": ["<bold>", "<b>", "<strong>", "<important>"],
+      "answer": "<b>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating italicized text?",
+      "category": "HTML",
+      "options": ["<i>", "<italic>", "<em>", "<italics>"],
+      "answer": "<i>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a subscripted text?",
+      "category": "HTML",
+      "options": ["<sub>", "<subscript>", "<s>", "<subtext>"],
+      "answer": "<sub>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a superscripted text?",
+      "category": "HTML",
+      "options": ["<sup>", "<superscript>", "<s>", "<super>"],
+      "answer": "<sup>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a numbered list?",
+      "category": "HTML",
+      "options": ["<ol>", "<ul>", "<list>", "<li>"],
+      "answer": "<ol>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating an unordered list?",
+      "category": "HTML",
+      "options": ["<ul>", "<ol>", "<list>", "<li>"],
+      "answer": "<ul>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a hyperlink?",
+      "category": "HTML",
+      "options": [
+        "<a href='http://www.example.com'>Example</a>",
+        "<link>http://www.example.com</link>",
+        "<a>http://www.example.com</a>",
+        "<hyperlink>http://www.example.com</hyperlink>"
+      ],
+      "answer": "<a href='http://www.example.com'>Example</a>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a division or a section in HTML5?",
+      "category": "HTML",
+      "options": ["<div>", "<section>", "<article>", "<aside>"],
+      "answer": "<section>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a navigation bar?",
+      "category": "HTML",
+      "options": ["<nav>", "<navbar>", "<navigation>", "<menu>"],
+      "answer": "<nav>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a footer?",
+      "category": "HTML",
+      "options": ["<footer>", "<foot>", "<end>", "<bottom>"],
+      "answer": "<footer>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a header?",
+      "category": "HTML",
+      "options": ["<header>", "<head>", "<top>", "<heading>"],
+      "answer": "<header>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a bold text?",
+      "category": "HTML",
+      "options": ["<bold>", "<b>", "<strong>", "<important>"],
+      "answer": "<b>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating italicized text?",
+      "category": "HTML",
+      "options": ["<i>", "<italic>", "<em>", "<italics>"],
+      "answer": "<i>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a subscripted text?",
+      "category": "HTML",
+      "options": ["<sub>", "<subscript>", "<s>", "<subtext>"],
+      "answer": "<sub>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a superscripted text?",
+      "category": "HTML",
+      "options": ["<sup>", "<superscript>", "<s>", "<super>"],
+      "answer": "<sup>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a numbered list?",
+      "category": "HTML",
+      "options": ["<ol>", "<ul>", "<list>", "<li>"],
+      "answer": "<ol>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating an unordered list?",
+      "category": "HTML",
+      "options": ["<ul>", "<ol>", "<list>", "<li>"],
+      "answer": "<ul>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a paragraph?",
+      "category": "HTML",
+      "options": ["<p>", "<para>", "<paragraph>", "<pg>"],
+      "answer": "<p>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a horizontal rule?",
+      "category": "HTML",
+      "options": ["<hr>", "<line>", "<rule>", "<horizontal>"],
+      "answer": "<hr>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a comment?",
+      "category": "HTML",
+      "options": [
+        "<!--This is a comment-->",
+        "/*This is a comment*/",
+        "//This is a comment",
+        "<comment>This is a comment</comment>"
+      ],
+      "answer": "<!--This is a comment-->",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a bold text?",
+      "category": "HTML",
+      "options": ["<bold>", "<b>", "<strong>", "<important>"],
+      "answer": "<b>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating italicized text?",
+      "category": "HTML",
+      "options": ["<i>", "<italic>", "<em>", "<italics>"],
+      "answer": "<i>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a subscripted text?",
+      "category": "HTML",
+      "options": ["<sub>", "<subscript>", "<s>", "<subtext>"],
+      "answer": "<sub>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating a superscripted text?",
+      "category": "HTML",
+      "options": ["<sup>", "<superscript>", "<s>", "<super>"],
+      "answer": "<sup>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a numbered list?",
+      "category": "HTML",
+      "options": ["<ol>", "<ul>", "<list>", "<li>"],
+      "answer": "<ol>",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct HTML for creating an unordered list?",
+      "category": "HTML",
+      "options": ["<ul>", "<ol>", "<list>", "<li>"],
+      "answer": "<ul>",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct HTML for creating a hyperlink?",
+      "category": "HTML",
+      "options": [
+        "<a href='http://www.example.com'>Example</a>",
+        "<link>http://www.example.com</link>",
+        "<a>http://www.example.com</a>",
+        "<hyperlink>http://www.example.com</hyperlink>"
+      ],
+      "answer": "<a href='http://www.example.com'>Example</a>",
+      "duration": 25
+    }
+  ],
+  "css": [
+    {
+      "question": "What is the correct CSS property to change the text color of an element?",
+      "category": "CSS",
+      "options": ["color", "text-color", "font-color", "foreground-color"],
+      "answer": "color",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the background color of an element?",
+      "category": "CSS",
+      "options": [
+        "background-color",
+        "bg-color",
+        "element-color",
+        "back-color"
+      ],
+      "answer": "background-color",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the font size of an element?",
+      "category": "CSS",
+      "options": ["font-size", "text-size", "size", "element-size"],
+      "answer": "font-size",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the font family of an element?",
+      "category": "CSS",
+      "options": ["font-family", "text-family", "family", "element-family"],
+      "answer": "font-family",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the padding of an element?",
+      "category": "CSS",
+      "options": ["padding", "element-padding", "pad", "inner-padding"],
+      "answer": "padding",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the margin of an element?",
+      "category": "CSS",
+      "options": ["margin", "element-margin", "marg", "outer-margin"],
+      "answer": "margin",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the border of an element?",
+      "category": "CSS",
+      "options": ["border", "element-border", "bord", "outline"],
+      "answer": "border",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the width of an element?",
+      "category": "CSS",
+      "options": ["width", "element-width", "wide", "size"],
+      "answer": "width",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the height of an element?",
+      "category": "CSS",
+      "options": ["height", "element-height", "high", "tall"],
+      "answer": "height",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the display behavior of an element?",
+      "category": "CSS",
+      "options": ["display", "element-display", "show", "visible"],
+      "answer": "display",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the text alignment of an element?",
+      "category": "CSS",
+      "options": ["text-align", "align", "text-position", "text-justify"],
+      "answer": "text-align",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the opacity of an element?",
+      "category": "CSS",
+      "options": ["opacity", "element-opacity", "opac", "transparency"],
+      "answer": "opacity",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the text decoration of an element?",
+      "category": "CSS",
+      "options": ["text-decoration", "decoration", "text-decor", "decor"],
+      "answer": "text-decoration",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the position of an element?",
+      "category": "CSS",
+      "options": ["position", "element-position", "pos", "loc"],
+      "answer": "position",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the z-index of an element?",
+      "category": "CSS",
+      "options": ["z-index", "element-z", "z-pos", "index"],
+      "answer": "z-index",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the overflow behavior of an element?",
+      "category": "CSS",
+      "options": ["overflow", "element-overflow", "over", "scroll"],
+      "answer": "overflow",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the float behavior of an element?",
+      "category": "CSS",
+      "options": ["float", "element-float", "drift", "align"],
+      "answer": "float",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the clear behavior of an element?",
+      "category": "CSS",
+      "options": ["clear", "element-clear", "clean", "remove"],
+      "answer": "clear",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the visibility of an element?",
+      "category": "CSS",
+      "options": ["visibility", "element-visibility", "vis", "show"],
+      "answer": "visibility",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the box model for an element?",
+      "category": "CSS",
+      "options": ["box-sizing", "element-box", "box-model", "model"],
+      "answer": "box-sizing",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the background image of an element?",
+      "category": "CSS",
+      "options": ["background-image", "bg-image", "element-image", "back-img"],
+      "answer": "background-image",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the background repeat behavior of an element?",
+      "category": "CSS",
+      "options": [
+        "background-repeat",
+        "bg-repeat",
+        "element-repeat",
+        "back-repeat"
+      ],
+      "answer": "background-repeat",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the background position of an element?",
+      "category": "CSS",
+      "options": [
+        "background-position",
+        "bg-position",
+        "element-position",
+        "back-position"
+      ],
+      "answer": "background-position",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the background attachment of an element?",
+      "category": "CSS",
+      "options": [
+        "background-attachment",
+        "bg-attachment",
+        "element-attachment",
+        "back-attachment"
+      ],
+      "answer": "background-attachment",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the background size of an element?",
+      "category": "CSS",
+      "options": ["background-size", "bg-size", "element-size", "back-size"],
+      "answer": "background-size",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the border radius of an element?",
+      "category": "CSS",
+      "options": ["border-radius", "element-radius", "bord-rad", "round"],
+      "answer": "border-radius",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the box shadow of an element?",
+      "category": "CSS",
+      "options": ["box-shadow", "element-shadow", "b-shadow", "shadow"],
+      "answer": "box-shadow",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the text shadow of an element?",
+      "category": "CSS",
+      "options": ["text-shadow", "element-text-shadow", "t-shadow", "shadow"],
+      "answer": "text-shadow",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the transition of an element?",
+      "category": "CSS",
+      "options": ["transition", "element-transition", "transit", "animate"],
+      "answer": "transition",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the animation of an element?",
+      "category": "CSS",
+      "options": ["animation", "element-animation", "animate", "move"],
+      "answer": "animation",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the flex direction of a flex container?",
+      "category": "CSS",
+      "options": ["flex-direction", "flex-dir", "flex-flow", "direction"],
+      "answer": "flex-direction",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the flex wrap behavior of a flex container?",
+      "category": "CSS",
+      "options": ["flex-wrap", "wrap", "flex-flow", "flow"],
+      "answer": "flex-wrap",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the justify content of a flex container?",
+      "category": "CSS",
+      "options": ["justify-content", "content-justify", "justify", "align"],
+      "answer": "justify-content",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the align items of a flex container?",
+      "category": "CSS",
+      "options": ["align-items", "items-align", "align", "item-align"],
+      "answer": "align-items",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the align content of a flex container?",
+      "category": "CSS",
+      "options": ["align-content", "content-align", "align", "content"],
+      "answer": "align-content",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the order of a flex item?",
+      "category": "CSS",
+      "options": ["order", "item-order", "flex-order", "arrange"],
+      "answer": "order",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the flex grow factor of a flex item?",
+      "category": "CSS",
+      "options": ["flex-grow", "grow", "flex-factor", "expand"],
+      "answer": "flex-grow",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the flex shrink factor of a flex item?",
+      "category": "CSS",
+      "options": ["flex-shrink", "shrink", "flex-factor", "reduce"],
+      "answer": "flex-shrink",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the flex basis of a flex item?",
+      "category": "CSS",
+      "options": ["flex-basis", "basis", "flex-size", "size"],
+      "answer": "flex-basis",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the flex shorthand of a flex item?",
+      "category": "CSS",
+      "options": ["flex", "flex-shorthand", "flex-item", "shorthand"],
+      "answer": "flex",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the z-index of an element?",
+      "category": "CSS",
+      "options": ["z-index", "element-index", "z-order", "index"],
+      "answer": "z-index",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the position of an element?",
+      "category": "CSS",
+      "options": ["position", "element-position", "pos", "place"],
+      "answer": "position",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the top position of an element?",
+      "category": "CSS",
+      "options": ["top", "element-top", "top-position", "up"],
+      "answer": "top",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the right position of an element?",
+      "category": "CSS",
+      "options": ["right", "element-right", "right-position", "side"],
+      "answer": "right",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the bottom position of an element?",
+      "category": "CSS",
+      "options": ["bottom", "element-bottom", "bottom-position", "down"],
+      "answer": "bottom",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the left position of an element?",
+      "category": "CSS",
+      "options": ["left", "element-left", "left-position", "side"],
+      "answer": "left",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the overflow behavior of an element?",
+      "category": "CSS",
+      "options": ["overflow", "element-overflow", "flow", "hide"],
+      "answer": "overflow",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the clip behavior of an element?",
+      "category": "CSS",
+      "options": ["clip", "element-clip", "cut", "trim"],
+      "answer": "clip",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the clip path of an element?",
+      "category": "CSS",
+      "options": ["clip-path", "element-clip-path", "path", "shape"],
+      "answer": "clip-path",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the visibility of an element?",
+      "category": "CSS",
+      "options": ["visibility", "element-visibility", "vis", "show"],
+      "answer": "visibility",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the opacity of an element?",
+      "category": "CSS",
+      "options": ["opacity", "element-opacity", "opac", "transparency"],
+      "answer": "opacity",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the box shadow of an element?",
+      "category": "CSS",
+      "options": ["box-shadow", "element-shadow", "shadow", "box-effect"],
+      "answer": "box-shadow",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the text shadow of an element?",
+      "category": "CSS",
+      "options": [
+        "text-shadow",
+        "element-text-shadow",
+        "shadow",
+        "text-effect"
+      ],
+      "answer": "text-shadow",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the border radius of an element?",
+      "category": "CSS",
+      "options": ["border-radius", "element-radius", "radius", "round"],
+      "answer": "border-radius",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the outline of an element?",
+      "category": "CSS",
+      "options": ["outline", "element-outline", "border-outline", "line"],
+      "answer": "outline",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the cursor of an element?",
+      "category": "CSS",
+      "options": ["cursor", "element-cursor", "point", "mouse"],
+      "answer": "cursor",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the user select behavior of an element?",
+      "category": "CSS",
+      "options": ["user-select", "element-select", "select", "choose"],
+      "answer": "user-select",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the pointer events of an element?",
+      "category": "CSS",
+      "options": ["pointer-events", "element-events", "events", "point"],
+      "answer": "pointer-events",
+      "duration": 25
+    },
+    {
+      "question": "What is the correct CSS property to set the filter effects of an element?",
+      "category": "CSS",
+      "options": ["filter", "element-filter", "effects", "apply"],
+      "answer": "filter",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct CSS property to set the backdrop filter effects of an element?",
+      "category": "CSS",
+      "options": [
+        "backdrop-filter",
+        "element-backdrop-filter",
+        "backdrop",
+        "apply"
+      ],
+      "answer": "backdrop-filter",
+      "duration": 25
+    }
+  ],
+  "c": [
+    {
+      "question": "What is the purpose of the 'malloc' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To allocate memory on the heap",
+        "To declare a variable",
+        "To free allocated memory",
+        "To initialize a pointer"
+      ],
+      "answer": "To allocate memory on the heap",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct syntax for dynamically allocating memory for an integer in C using 'malloc'?",
+      "category": "C Programming",
+      "options": [
+        "int *ptr = malloc(sizeof(int));",
+        "int ptr = malloc(sizeof(int));",
+        "int *ptr = malloc(int);",
+        "int ptr = malloc(int);"
+      ],
+      "answer": "int *ptr = malloc(sizeof(int));",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'realloc' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To reallocate memory on the stack",
+        "To reallocate memory on the heap",
+        "To free allocated memory",
+        "To initialize a pointer"
+      ],
+      "answer": "To reallocate memory on the heap",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct syntax for dynamically reallocating memory for an array of integers in C using 'realloc'?",
+      "category": "C Programming",
+      "options": [
+        "ptr = realloc(ptr, new_size * sizeof(int));",
+        "ptr = realloc(new_size * sizeof(int));",
+        "ptr = realloc(sizeof(int));",
+        "ptr = realloc(ptr, new_size);"
+      ],
+      "answer": "ptr = realloc(ptr, new_size * sizeof(int));",
+      "duration": 25
+    },
+    {
+      "question": "What is a common cause of a segmentation fault in C?",
+      "category": "C Programming",
+      "options": [
+        "Accessing an out-of-bounds array element",
+        "Using too many variables",
+        "Not using pointers",
+        "Using 'malloc' instead of 'calloc'"
+      ],
+      "answer": "Accessing an out-of-bounds array element",
+      "duration": 30
+    },
+    {
+      "question": "Which keyword is used to define a structure in C?",
+      "category": "C Programming",
+      "options": ["struct", "class", "type", "define"],
+      "answer": "struct",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the '->' operator in C when working with structures?",
+      "category": "C Programming",
+      "options": [
+        "To access the value of a structure member",
+        "To declare a structure",
+        "To free allocated memory",
+        "To initialize a pointer"
+      ],
+      "answer": "To access the value of a structure member",
+      "duration": 30
+    },
+    {
+      "question": "In C, which loop is used to iterate a specific number of times?",
+      "category": "C Programming",
+      "options": ["for loop", "while loop", "do-while loop", "if-else loop"],
+      "answer": "for loop",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'break' statement in C?",
+      "category": "C Programming",
+      "options": [
+        "To exit the loop",
+        "To skip the current iteration",
+        "To continue to the next iteration",
+        "To print a message"
+      ],
+      "answer": "To exit the loop",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'continue' statement in C?",
+      "category": "C Programming",
+      "options": [
+        "To exit the loop",
+        "To skip the current iteration",
+        "To continue to the next iteration",
+        "To print a message"
+      ],
+      "answer": "To continue to the next iteration",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'sizeof' operator in C?",
+      "category": "C Programming",
+      "options": [
+        "To return the size of a variable",
+        "To allocate memory",
+        "To declare a structure",
+        "To initialize a pointer"
+      ],
+      "answer": "To return the size of a variable",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct way to declare a pointer in C?",
+      "category": "C Programming",
+      "options": ["int *ptr;", "int ptr;", "pointer int ptr;", "int &ptr;"],
+      "answer": "int *ptr;",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'void' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a variable",
+        "To define a function",
+        "To indicate an empty return type",
+        "To allocate memory"
+      ],
+      "answer": "To indicate an empty return type",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct syntax for a do-while loop in C?",
+      "category": "C Programming",
+      "options": [
+        "do { } while ();",
+        "while () { } do;",
+        "while () { } do;",
+        "do { } while ();"
+      ],
+      "answer": "do { } while ();",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'enum' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a variable",
+        "To define a function",
+        "To define a set of named integer constants",
+        "To allocate memory"
+      ],
+      "answer": "To define a set of named integer constants",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'break' statement in a switch-case statement in C?",
+      "category": "C Programming",
+      "options": [
+        "To exit the switch-case statement",
+        "To skip the current case",
+        "To continue to the next case",
+        "To print a message"
+      ],
+      "answer": "To exit the switch-case statement",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'continue' statement in a loop in C?",
+      "category": "C Programming",
+      "options": [
+        "To exit the loop",
+        "To skip the current iteration",
+        "To continue to the next iteration",
+        "To print a message"
+      ],
+      "answer": "To continue to the next iteration",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'static' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a variable",
+        "To define a function",
+        "To specify internal linkage",
+        "To allocate memory"
+      ],
+      "answer": "To specify internal linkage",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'const' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a constant",
+        "To define a function",
+        "To specify external linkage",
+        "To allocate memory"
+      ],
+      "answer": "To declare a constant",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'typedef' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a variable",
+        "To define a function",
+        "To create a new type name",
+        "To allocate memory"
+      ],
+      "answer": "To create a new type name",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of a pointer in C?",
+      "category": "C Programming",
+      "options": [
+        "To store memory addresses",
+        "To store integer values",
+        "To store character values",
+        "To store floating-point values"
+      ],
+      "answer": "To store memory addresses",
+      "duration": 30
+    },
+    {
+      "question": "What is the difference between 'malloc' and 'calloc' in C?",
+      "category": "C Programming",
+      "options": [
+        "'malloc' initializes allocated memory to 0, while 'calloc' does not",
+        "'calloc' initializes allocated memory to 0, while 'malloc' does not",
+        "'malloc' is used for allocating arrays, while 'calloc' is used for single variables",
+        "'calloc' is used for allocating arrays, while 'malloc' is used for single variables"
+      ],
+      "answer": "'calloc' initializes allocated memory to 0, while 'malloc' does not",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'sizeof' operator in C?",
+      "category": "C Programming",
+      "options": [
+        "To return the size of a variable",
+        "To allocate memory",
+        "To declare a structure",
+        "To initialize a pointer"
+      ],
+      "answer": "To return the size of a variable",
+      "duration": 30
+    },
+    {
+      "question": "What is the correct way to declare a structure in C?",
+      "category": "C Programming",
+      "options": [
+        "struct MyStruct { int x; float y; };",
+        "structure MyStruct { int x; float y; };",
+        "MyStruct { int x; float y; };",
+        "define struct MyStruct { int x; float y; };"
+      ],
+      "answer": "struct MyStruct { int x; float y; };",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'break' statement in C?",
+      "category": "C Programming",
+      "options": [
+        "To exit the loop",
+        "To skip the current iteration",
+        "To continue to the next iteration",
+        "To print a message"
+      ],
+      "answer": "To exit the loop",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'static' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a variable",
+        "To define a function",
+        "To specify internal linkage",
+        "To allocate memory"
+      ],
+      "answer": "To specify internal linkage",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'const' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a constant",
+        "To define a function",
+        "To specify external linkage",
+        "To allocate memory"
+      ],
+      "answer": "To declare a constant",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'typedef' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a variable",
+        "To define a function",
+        "To create a new type name",
+        "To allocate memory"
+      ],
+      "answer": "To create a new type name",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'fgets' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To read a string from the console",
+        "To print a string to the console",
+        "To concatenate two strings",
+        "To compare two strings"
+      ],
+      "answer": "To read a string from the console",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'fprintf' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To read a string from a file",
+        "To print a string to a file",
+        "To concatenate two strings",
+        "To compare two strings"
+      ],
+      "answer": "To print a string to a file",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'strcpy' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To copy a string",
+        "To compare two strings",
+        "To concatenate two strings",
+        "To read a string from the console"
+      ],
+      "answer": "To copy a string",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'strcat' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To concatenate two strings",
+        "To compare two strings",
+        "To copy a string",
+        "To read a string from the console"
+      ],
+      "answer": "To concatenate two strings",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'strcmp' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To compare two strings",
+        "To copy a string",
+        "To concatenate two strings",
+        "To read a string from the console"
+      ],
+      "answer": "To compare two strings",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'strlen' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To return the length of a string",
+        "To compare two strings",
+        "To copy a string",
+        "To read a string from the console"
+      ],
+      "answer": "To return the length of a string",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'malloc' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To allocate memory",
+        "To free memory",
+        "To copy a string",
+        "To read a string from the console"
+      ],
+      "answer": "To allocate memory",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'free' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To free memory",
+        "To allocate memory",
+        "To copy a string",
+        "To read a string from the console"
+      ],
+      "answer": "To free memory",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'sizeof' operator in C?",
+      "category": "C Programming",
+      "options": [
+        "To return the size of a variable",
+        "To allocate memory",
+        "To declare a structure",
+        "To initialize a pointer"
+      ],
+      "answer": "To return the size of a variable",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'typedef' keyword in C?",
+      "category": "C Programming",
+      "options": [
+        "To declare a variable",
+        "To define a function",
+        "To create a new type name",
+        "To allocate memory"
+      ],
+      "answer": "To create a new type name",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'fopen' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To open a file",
+        "To close a file",
+        "To read a string from a file",
+        "To print a string to a file"
+      ],
+      "answer": "To open a file",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'fclose' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To close a file",
+        "To open a file",
+        "To read a string from a file",
+        "To print a string to a file"
+      ],
+      "answer": "To close a file",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'fgets' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To read a string from the console",
+        "To print a string to the console",
+        "To concatenate two strings",
+        "To compare two strings"
+      ],
+      "answer": "To read a string from the console",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'fprintf' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To read a string from a file",
+        "To print a string to a file",
+        "To concatenate two strings",
+        "To compare two strings"
+      ],
+      "answer": "To print a string to a file",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'fscanf' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To read a string from a file",
+        "To print a string to a file",
+        "To read formatted input from a file",
+        "To write formatted output to a file"
+      ],
+      "answer": "To read formatted input from a file",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'fwrite' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To read data from a file",
+        "To write data to a file",
+        "To read formatted input from a file",
+        "To write formatted output to a file"
+      ],
+      "answer": "To write data to a file",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'fread' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To read data from a file",
+        "To write data to a file",
+        "To read formatted input from a file",
+        "To write formatted output to a file"
+      ],
+      "answer": "To read data from a file",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'feof' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To check for end-of-file indicator",
+        "To open a file",
+        "To close a file",
+        "To read a string from a file"
+      ],
+      "answer": "To check for end-of-file indicator",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'rewind' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To move the file position indicator to the beginning of the file",
+        "To move the file position indicator to the end of the file",
+        "To close a file",
+        "To read a string from a file"
+      ],
+      "answer": "To move the file position indicator to the beginning of the file",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'remove' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To delete a file",
+        "To rename a file",
+        "To copy a file",
+        "To open a file"
+      ],
+      "answer": "To delete a file",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'rename' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To rename a file",
+        "To delete a file",
+        "To copy a file",
+        "To open a file"
+      ],
+      "answer": "To rename a file",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'exit' function in C?",
+      "category": "C Programming",
+      "options": [
+        "To terminate the program",
+        "To pause the program",
+        "To restart the program",
+        "To close a file"
+      ],
+      "answer": "To terminate the program",
+      "duration": 25
+    }
+  ],
+  "python": [
+    {
+      "question": "What is the purpose of the 'def' keyword in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define a class",
+        "To define a function",
+        "To declare a variable",
+        "To import a module"
+      ],
+      "answer": "To define a function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'self' parameter in Python?",
+      "category": "Python 3",
+      "options": [
+        "To refer to the current instance of the class",
+        "To refer to the parent class",
+        "To refer to the child class",
+        "To refer to the global scope"
+      ],
+      "answer": "To refer to the current instance of the class",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'lambda' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define a class",
+        "To define a function",
+        "To create an anonymous function",
+        "To import a module"
+      ],
+      "answer": "To create an anonymous function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'map' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To apply a function to each element of an iterable",
+        "To filter elements of an iterable",
+        "To sort elements of an iterable",
+        "To reverse elements of an iterable"
+      ],
+      "answer": "To apply a function to each element of an iterable",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'filter' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To apply a function to each element of an iterable",
+        "To filter elements of an iterable",
+        "To sort elements of an iterable",
+        "To reverse elements of an iterable"
+      ],
+      "answer": "To filter elements of an iterable",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'reduce' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To apply a function to each element of an iterable",
+        "To filter elements of an iterable",
+        "To combine elements of an iterable",
+        "To reverse elements of an iterable"
+      ],
+      "answer": "To combine elements of an iterable",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'zip' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To combine two iterables element-wise",
+        "To apply a function to each element of an iterable",
+        "To filter elements of an iterable",
+        "To reverse elements of an iterable"
+      ],
+      "answer": "To combine two iterables element-wise",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'enumerate' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To apply a function to each element of an iterable",
+        "To filter elements of an iterable",
+        "To reverse elements of an iterable",
+        "To add a counter to an iterable"
+      ],
+      "answer": "To add a counter to an iterable",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'isinstance' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To check if an object is an instance of a class",
+        "To check if an object is a subclass of a class",
+        "To check if an object is iterable",
+        "To check if an object is callable"
+      ],
+      "answer": "To check if an object is an instance of a class",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'issubclass' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To check if a class is a subclass of another class",
+        "To check if a class is an instance of another class",
+        "To check if a class is iterable",
+        "To check if a class is callable"
+      ],
+      "answer": "To check if a class is a subclass of another class",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'super' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To call the superclass constructor",
+        "To call the subclass constructor",
+        "To access the superclass attributes",
+        "To access the subclass attributes"
+      ],
+      "answer": "To call the superclass constructor",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'try...except' statement in Python?",
+      "category": "Python 3",
+      "options": [
+        "To handle exceptions",
+        "To define a function",
+        "To create a class",
+        "To import a module"
+      ],
+      "answer": "To handle exceptions",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'assert' statement in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define a function",
+        "To check if a condition is true",
+        "To handle exceptions",
+        "To import a module"
+      ],
+      "answer": "To check if a condition is true",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'with' statement in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define a function",
+        "To handle exceptions",
+        "To open and close resources automatically",
+        "To import a module"
+      ],
+      "answer": "To open and close resources automatically",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'global' keyword in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define a global variable",
+        "To define a local variable",
+        "To handle exceptions",
+        "To import a module"
+      ],
+      "answer": "To define a global variable",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'nonlocal' keyword in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define a global variable",
+        "To define a local variable",
+        "To define a variable in an outer function's scope",
+        "To import a module"
+      ],
+      "answer": "To define a variable in an outer function's scope",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'yield' keyword in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define a generator function",
+        "To define a regular function",
+        "To handle exceptions",
+        "To import a module"
+      ],
+      "answer": "To define a generator function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'async' keyword in Python?",
+      "category": "Python 3",
+      "options": [
+        "To define an asynchronous function",
+        "To define a regular function",
+        "To handle exceptions",
+        "To import a module"
+      ],
+      "answer": "To define an asynchronous function",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the 'await' keyword in Python?",
+      "category": "Python 3",
+      "options": [
+        "To pause the execution of an asynchronous function",
+        "To define a regular function",
+        "To handle exceptions",
+        "To import a module"
+      ],
+      "answer": "To pause the execution of an asynchronous function",
+      "duration": 30
+    },
+    {
+      "question": "What is the purpose of the 'type' function in Python?",
+      "category": "Python 3",
+      "options": [
+        "To check the type of an object",
+        "To define a class",
+        "To handle exceptions",
+        "To import a module"
+      ],
+      "answer": "To check the type of an object",
+      "duration": 25
+    },
+    {
+      "question": "What is the purpose of the __init__ method in Python classes?",
+      "options": [
+        "To initialize class attributes.",
+        "To define the class constructor.",
+        "To create an instance of the class.",
+        "To finalize the class definition."
+      ],
+      "category": "Object-Oriented Programming",
+      "duration": "2 minutes",
+      "answer": "To define the class constructor."
+    },
+    {
+      "question": "How is an exception handled in Python?",
+      "options": [
+        "Using break statements.",
+        "Using try, except, and finally blocks.",
+        "By ignoring it.",
+        "Using goto statements."
+      ],
+      "category": "Exception Handling",
+      "duration": "3 minutes",
+      "answer": "Using try, except, and finally blocks."
+    },
+    {
+      "question": "What does the super() function do in Python?",
+      "options": [
+        "Calls the superclass constructor.",
+        "Retrieves the superclass object.",
+        "Calls a method in the superclass.",
+        "Initializes the subclass."
+      ],
+      "category": "Inheritance",
+      "duration": "1.5 minutes",
+      "answer": "Calls a method in the superclass."
+    },
+    {
+      "question": "How can you convert a list into a tuple in Python?",
+      "options": [
+        "Using list().",
+        "Using tuple(list).",
+        "Using convert(tuple, list).",
+        "Using tuple()."
+      ],
+      "category": "Data Types",
+      "duration": "1 minute",
+      "answer": "Using tuple()."
+    },
+    {
+      "question": "What is the purpose of the __str__ method in Python classes?",
+      "options": [
+        "To convert the object to a string representation.",
+        "To define the class string.",
+        "To compare two objects.",
+        "To format print statements."
+      ],
+      "category": "String Representation",
+      "duration": "2 minutes",
+      "answer": "To convert the object to a string representation."
+    },
+    {
+      "question": "In Python, what is the purpose of the with statement?",
+      "options": [
+        "To create a loop.",
+        "To define a function.",
+        "To open and close resources automatically.",
+        "To import modules."
+      ],
+      "category": "Context Managers",
+      "duration": "2.5 minutes",
+      "answer": "To open and close resources automatically."
+    },
+    {
+      "question": "How can you check if a key exists in a dictionary?",
+      "options": [
+        "Using the exists method.",
+        "Using the contains keyword.",
+        "By checking if key in dictionary.",
+        "Using dictionary.hasKey(key)."
+      ],
+      "category": "Dictionaries",
+      "duration": "1.5 minutes",
+      "answer": "By checking if key in dictionary."
+    },
+    {
+      "question": "What is the purpose of the __name__ variable in Python?",
+      "options": [
+        "To store the module name.",
+        "To check if the script is being run standalone.",
+        "To define the function name.",
+        "To set the global namespace."
+      ],
+      "category": "Modules and Scripts",
+      "duration": "1 minute",
+      "answer": "To check if the script is being run standalone."
+    },
+    {
+      "question": "How do you open a file in binary mode in Python?",
+      "options": [
+        "open_file(\"filename\", mode=\"rb\").",
+        "open(\"filename\", binary=True).",
+        "open(\"filename\", mode=\"r\").",
+        "open(\"filename\", mode=\"wb\")."
+      ],
+      "category": "File Handling",
+      "duration": "2 minutes",
+      "answer": "open(\"filename\", mode=\"wb\")."
+    },
+    {
+      "question": "What does the pass statement do in Python?",
+      "options": [
+        "Terminates the program.",
+        "Skips the current iteration of a loop.",
+        "Raises an exception.",
+        "Represents a null operation."
+      ],
+      "category": "Control Flow",
+      "duration": "1.5 minutes",
+      "answer": "Represents a null operation."
+    },
+    {
+      "question": "What is the purpose of the 'if __name__ == '__main__':' statement in Python?",
+      "options": [
+        "To check if a module is imported or run directly.",
+        "To define a main function.",
+        "To initialize global variables.",
+        "To handle command-line arguments."
+      ],
+      "category": "Modules and Scripts",
+      "duration": "2 minutes",
+      "answer": "To check if a module is imported or run directly."
+    },
+    {
+      "question": "How can you create a virtual environment in Python?",
+      "options": [
+        "Using the 'venv' module.",
+        "By installing 'virtualenv' package globally.",
+        "By creating a new folder.",
+        "By using the 'pipenv' package."
+      ],
+      "category": "Development Environment",
+      "duration": "3 minutes",
+      "answer": "Using the 'venv' module."
+    },
+    {
+      "question": "What is the purpose of the 'map' function in Python?",
+      "options": [
+        "To apply a function to each item in an iterable.",
+        "To create a new list by filtering elements.",
+        "To sort elements in a list.",
+        "To combine two iterables into a single iterable."
+      ],
+      "category": "Functional Programming",
+      "duration": "1.5 minutes",
+      "answer": "To apply a function to each item in an iterable."
+    },
+    {
+      "question": "How do you check the Python version currently installed on your system?",
+      "options": [
+        "Using 'version()' function.",
+        "By checking 'sys.version' attribute.",
+        "By running 'python --version' in the terminal.",
+        "By checking 'python_version' module."
+      ],
+      "category": "Python Basics",
+      "duration": "1 minute",
+      "answer": "By running 'python --version' in the terminal."
+    },
+    {
+      "question": "What is the purpose of the 'zip' function in Python?",
+      "options": [
+        "To create a compressed file.",
+        "To zip two lists into a list of tuples.",
+        "To merge two dictionaries.",
+        "To unzip a file."
+      ],
+      "category": "Data Manipulation",
+      "duration": "2 minutes",
+      "answer": "To zip two lists into a list of tuples."
+    },
+    {
+      "question": "How can you remove duplicates from a list in Python?",
+      "options": [
+        "Using the 'distinct' method.",
+        "By applying 'list(set(my_list))'.",
+        "By using the 'unique' function.",
+        "By iterating through the list and manually removing duplicates."
+      ],
+      "category": "Data Manipulation",
+      "duration": "2.5 minutes",
+      "answer": "By applying 'list(set(my_list))'."
+    },
+    {
+      "question": "What is the purpose of the 'global' keyword in Python?",
+      "options": [
+        "To declare a variable with global scope.",
+        "To define a global function.",
+        "To import global modules.",
+        "To create a global object."
+      ],
+      "category": "Variables and Scope",
+      "duration": "1.5 minutes",
+      "answer": "To declare a variable with global scope."
+    },
+    {
+      "question": "How can you handle file reading errors in Python?",
+      "options": [
+        "By using 'try' and 'except' blocks.",
+        "By ignoring errors.",
+        "By using 'read_errors()' function.",
+        "By using 'file.read().handle_errors()'."
+      ],
+      "category": "Error Handling",
+      "duration": "1 minute",
+      "answer": "By using 'try' and 'except' blocks."
+    },
+    {
+      "question": "What is the purpose of the 'lambda' function in Python?",
+      "options": [
+        "To define anonymous functions.",
+        "To create a list comprehension.",
+        "To represent infinity.",
+        "To filter elements in a list."
+      ],
+      "category": "Functional Programming",
+      "duration": "2 minutes",
+      "answer": "To define anonymous functions."
+    },
+    {
+      "question": "How can you install external packages in Python?",
+      "options": [
+        "By downloading and extracting the source code.",
+        "By using the 'install' command in the Python interpreter.",
+        "By copying the package files to the 'Lib' directory.",
+        "By manually compiling the package from source."
+      ],
+      "category": "Package Management",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'install' command in the Python interpreter."
+    },
+    {
+      "question": "What is the purpose of the 'if __name__ == '__main__':' statement in Python?",
+      "options": [
+        "To check if a module is imported or run directly.",
+        "To define a main function.",
+        "To initialize global variables.",
+        "To handle command-line arguments."
+      ],
+      "category": "Modules and Scripts",
+      "duration": "2 minutes",
+      "answer": "To check if a module is imported or run directly."
+    },
+    {
+      "question": "How can you create a virtual environment in Python?",
+      "options": [
+        "Using the 'venv' module.",
+        "By installing 'virtualenv' package globally.",
+        "By creating a new folder.",
+        "By using the 'pipenv' package."
+      ],
+      "category": "Development Environment",
+      "duration": "3 minutes",
+      "answer": "Using the 'venv' module."
+    },
+    {
+      "question": "What is the purpose of the 'map' function in Python?",
+      "options": [
+        "To apply a function to each item in an iterable.",
+        "To create a new list by filtering elements.",
+        "To sort elements in a list.",
+        "To combine two iterables into a single iterable."
+      ],
+      "category": "Functional Programming",
+      "duration": "1.5 minutes",
+      "answer": "To apply a function to each item in an iterable."
+    },
+    {
+      "question": "How do you check the Python version currently installed on your system?",
+      "options": [
+        "Using 'version()' function.",
+        "By checking 'sys.version' attribute.",
+        "By running 'python --version' in the terminal.",
+        "By checking 'python_version' module."
+      ],
+      "category": "Python Basics",
+      "duration": "1 minute",
+      "answer": "By running 'python --version' in the terminal."
+    },
+    {
+      "question": "What is the purpose of the 'zip' function in Python?",
+      "options": [
+        "To create a compressed file.",
+        "To zip two lists into a list of tuples.",
+        "To merge two dictionaries.",
+        "To unzip a file."
+      ],
+      "category": "Data Manipulation",
+      "duration": "2 minutes",
+      "answer": "To zip two lists into a list of tuples."
+    },
+    {
+      "question": "How can you remove duplicates from a list in Python?",
+      "options": [
+        "Using the 'distinct' method.",
+        "By applying 'list(set(my_list))'.",
+        "By using the 'unique' function.",
+        "By iterating through the list and manually removing duplicates."
+      ],
+      "category": "Data Manipulation",
+      "duration": "2.5 minutes",
+      "answer": "By applying 'list(set(my_list))'."
+    },
+    {
+      "question": "What is the purpose of the 'global' keyword in Python?",
+      "options": [
+        "To declare a variable with global scope.",
+        "To define a global function.",
+        "To import global modules.",
+        "To create a global object."
+      ],
+      "category": "Variables and Scope",
+      "duration": "1.5 minutes",
+      "answer": "To declare a variable with global scope."
+    },
+    {
+      "question": "How can you handle file reading errors in Python?",
+      "options": [
+        "By using 'try' and 'except' blocks.",
+        "By ignoring errors.",
+        "By using 'read_errors()' function.",
+        "By using 'file.read().handle_errors()'."
+      ],
+      "category": "Error Handling",
+      "duration": "1 minute",
+      "answer": "By using 'try' and 'except' blocks."
+    },
+    {
+      "question": "What is the purpose of the 'lambda' function in Python?",
+      "options": [
+        "To define anonymous functions.",
+        "To create a list comprehension.",
+        "To represent infinity.",
+        "To filter elements in a list."
+      ],
+      "category": "Functional Programming",
+      "duration": "2 minutes",
+      "answer": "To define anonymous functions."
+    },
+    {
+      "question": "How can you install external packages in Python?",
+      "options": [
+        "By downloading and extracting the source code.",
+        "By using the 'install' command in the Python interpreter.",
+        "By copying the package files to the 'Lib' directory.",
+        "By manually compiling the package from source."
+      ],
+      "category": "Package Management",
+      "duration": "1.5 minutes",
+      "answer": "By using the 'install' command in the Python interpreter."
+    }
+  ],
+  "java": [],
+  "sql": [
+    {
+      "question": "What is the purpose of the SELECT statement in SQL?",
+      "options": [
+        "To insert data into a table.",
+        "To retrieve data from one or more tables.",
+        "To update existing records in a table.",
+        "To delete records from a table."
+      ],
+      "category": "SQL Basics",
+      "duration": "2 minutes",
+      "answer": "To retrieve data from one or more tables."
+    },
+    {
+      "question": "How can you filter rows in a SQL query using the WHERE clause?",
+      "options": [
+        "By specifying the columns to include in the result.",
+        "By joining multiple tables.",
+        "By defining conditions that rows must meet.",
+        "By sorting the result set."
+      ],
+      "category": "Filtering Data",
+      "duration": "3 minutes",
+      "answer": "By defining conditions that rows must meet."
+    },
+    {
+      "question": "What is the purpose of the GROUP BY clause in SQL?",
+      "options": [
+        "To filter rows based on a specified condition.",
+        "To sort the result set in ascending or descending order.",
+        "To group rows that have the same values in specified columns.",
+        "To join two or more tables."
+      ],
+      "category": "Grouping and Aggregation",
+      "duration": "1.5 minutes",
+      "answer": "To group rows that have the same values in specified columns."
+    },
+    {
+      "question": "How can you perform a join operation in SQL?",
+      "options": [
+        "By using the UNION operator.",
+        "By using the JOIN keyword with appropriate clauses.",
+        "By using the INTERSECT operator.",
+        "By using the EXCEPT operator."
+      ],
+      "category": "Joins",
+      "duration": "1 minute",
+      "answer": "By using the JOIN keyword with appropriate clauses."
+    },
+    {
+      "question": "What is the purpose of the ORDER BY clause in SQL?",
+      "options": [
+        "To filter rows based on a specified condition.",
+        "To group rows based on common values.",
+        "To sort the result set in ascending or descending order.",
+        "To limit the number of rows returned by a query."
+      ],
+      "category": "Sorting Data",
+      "duration": "2 minutes",
+      "answer": "To sort the result set in ascending or descending order."
+    },
+    {
+      "question": "How can you insert data into a table in SQL?",
+      "options": [
+        "Using the SELECT statement.",
+        "Using the UPDATE statement.",
+        "Using the DELETE statement.",
+        "Using the INSERT INTO statement."
+      ],
+      "category": "Data Manipulation",
+      "duration": "2.5 minutes",
+      "answer": "Using the INSERT INTO statement."
+    },
+    {
+      "question": "What is the purpose of the DISTINCT keyword in SQL?",
+      "options": [
+        "To remove duplicate rows from the result set.",
+        "To filter rows based on a specified condition.",
+        "To update existing records in a table.",
+        "To join multiple tables."
+      ],
+      "category": "Filtering Data",
+      "duration": "1.5 minutes",
+      "answer": "To remove duplicate rows from the result set."
+    },
+    {
+      "question": "How can you update existing records in a SQL table?",
+      "options": [
+        "Using the SELECT statement.",
+        "Using the DELETE statement.",
+        "Using the UPDATE statement.",
+        "Using the INSERT INTO statement."
+      ],
+      "category": "Data Manipulation",
+      "duration": "1 minute",
+      "answer": "Using the UPDATE statement."
+    },
+    {
+      "question": "What is the purpose of the HAVING clause in SQL?",
+      "options": [
+        "To filter rows based on a specified condition.",
+        "To group rows that have the same values in specified columns.",
+        "To sort the result set in ascending or descending order.",
+        "To filter results based on aggregate functions."
+      ],
+      "category": "Grouping and Aggregation",
+      "duration": "2 minutes",
+      "answer": "To filter results based on aggregate functions."
+    },
+    {
+      "question": "How can you delete records from a SQL table?",
+      "options": [
+        "Using the UPDATE statement.",
+        "Using the SELECT statement.",
+        "Using the DELETE statement.",
+        "Using the INSERT INTO statement."
+      ],
+      "category": "Data Manipulation",
+      "duration": "1.5 minutes",
+      "answer": "Using the DELETE statement."
+    }
+  ]
+}
