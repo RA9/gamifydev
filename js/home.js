@@ -1,18 +1,20 @@
 import QuizPage from "./quiz.js";
-import { createStorage, getStorage } from "./storage.js";
+import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
+import { randomID } from "./utils.js";
 
-function HomePage(htmlEl) {
-  let state = getStorage("state");
+async function HomePage(htmlEl) {
+  let state = await DB.states.where("name").equals("general").last();
 
   if (!state) {
-    const newState = {
-      currentState: "home",
-      test: {}
-    };
-    state = createStorage("state", newState);
+    state = await createStorage("states", {
+      id: randomID(),
+      previous: null,
+      current: "home",
+      next: "user_info",
+    });
   }
 
-  if (state.currentState === "home") {
+  if (state.current === "home") {
     htmlEl.innerHTML = `
   <div class="max-w-7xl">
     <div class="bg-white shadow p-8 rounded-lg">
@@ -59,9 +61,11 @@ function HomePage(htmlEl) {
 
     // Show the preference card
     GET_STARTED_BUTTON.addEventListener("click", () => {
-      state.currentState = "user_info";
+      state.current = "user_info";
+      state.previous = "home";
+      state.next = "preference";
       const page = document.querySelector("main");
-      createStorage("state", state);
+      updateStorage("states", state);
       UserInfoSection(page);
     });
   } else if (state.currentState === "user_info") {
@@ -87,7 +91,7 @@ function UserInfoSection(htmlEl) {
   if (!state) {
     const newState = {
       currentState: "user_info",
-      test: {}
+      test: {},
     };
     state = createStorage("state", newState);
   }
@@ -124,7 +128,7 @@ function UserInfoSection(htmlEl) {
       user = createStorage("user", {
         name: "",
         preference: "",
-        test: {}
+        test: {},
       });
     }
 

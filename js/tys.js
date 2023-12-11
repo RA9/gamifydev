@@ -1,28 +1,21 @@
-import { createStorage, getStorage } from "./storage.js";
-import questions from "../data/questions.json" assert { type: "json" };
+import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
+// import questions from "../data/questions.json" assert { type: "json" };
+import { randomID, htmlencode } from "./utils.js";
 
-function TestYourselfPage(htmlEl) {
-  const state = getStorage("state");
-  const user = getStorage("user");
+async function TestYourselfPage(htmlEl) {
+  const stateArr = await DB.states.where("name").equals("tys").toArray();
+  const state =
+    stateArr.length > 0
+      ? stateArr[stateArr.length - 1]
+      : await createStorage("states", {
+          id: randomID(),
+          name: "tys",
+          previous: null,
+          current: "tys",
+          next: "tys-quiz",
+        });
 
-  if (!user) {
-    const newUser = {
-      name: "",
-      preference: "",
-      test: {},
-    };
-    createStorage("user", newUser);
-  }
-
-  if (!state) {
-    const newState = {
-      currentState: "home",
-      test: {},
-    };
-    createStorage("state", newState);
-  }
-
-  if (state.test.currentState !== "tys-quiz") {
+  if (state.current === "tys") {
     htmlEl.innerHTML = `
       <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
     <h1 class="text-3xl font-bold mb-4">Test Yourself</h1>
@@ -48,42 +41,53 @@ function TestYourselfPage(htmlEl) {
 
     const START_TYS_BUTTON = document.querySelector("#start-tys");
 
-    START_TYS_BUTTON.addEventListener("click", () => {
+    START_TYS_BUTTON.addEventListener("click", async () => {
       const language = document.querySelector("#language").value;
       const numQuestions = document.querySelector("#numQuestions").value;
-      const state = getStorage("state");
-      const user = getStorage("user");
+      state.current = "tys-quiz";
+      state.previous = "tys";
+      state.next = null;
 
-      if (!user) {
-        const newUser = {
-          name: "",
-          preference: "",
-          test: {},
-        };
-        createStorage("user", newUser);
-      }
+      // const testArr = await DB.tests.where("name").startsWith("tys").toArray();
 
-      if (!state) {
-        const newState = {
-          currentState: "home",
-          test: {},
-        };
-        createStorage("state", newState);
-      }
+      await createStorage("tests", {
+        id: randomID(),
+        name: "tys-" + randomID(),
+        is_completed: false,
+        language: language,
+        numQuestions,
+      });
 
-      state.test.currentState = "tys-quiz";
-      user.test.language = language;
-      user.test.numQuestions = numQuestions;
-      createStorage("state", state);
-      createStorage("user", user);
+      await updateStorage("states", state);
+
       const page = document.querySelector("main");
       TestYourselfSection(page);
     });
-  } else if (state.test.currentState === "tys-quiz") {
+  } else if (state.current === "tys-quiz") {
     const page = document.querySelector("main");
 
     TestYourselfSection(page);
   }
+}
+
+function randomizeOptions(options, answer = null) {
+  const randomOptions = options.sort(() => Math.random() - 0.5);
+  return randomOptions.map((option) => {
+    // console.log({ answer, option });
+    const id = randomID();
+    return `
+    <div class="mb-4 px-2">
+            <input type="radio" id="${id}" name="option" value="${htmlencode(
+      option
+    )}">
+            <label for="${id}">${htmlencode(option)}</label>
+    </div>
+  `;
+  });
+}
+
+function getRandomItem(limit) {
+  return Math.floor(Math.random() * limit + 1);
 }
 
 function randomizedQuestions(questions, limit) {
@@ -92,87 +96,163 @@ function randomizedQuestions(questions, limit) {
   return questionsLimit;
 }
 
-function getQuestions(questions,  limit) {
-  return randomizedQuestions(questions, limit)
+function getQuestions(questions, limit) {
+  return randomizedQuestions(questions, limit);
 }
 
-function TestYourselfSection(htmlEl) {
-  const user = getStorage("user");
-  const state = getStorage("state");
 
-  if (!user) {
-    const newUser = {
-      name: "",
-      preference: "",
-      test: {},
-    };
-    createStorage("user", newUser);
+function countDown(duration) {
+  let timer = Number(duration),
+    minutes,
+    seconds;
+  // document.querySelector("#tys-duration").textContent = "Duration: " + timer;
+  const interval = setInterval(function () {
+    minutes = parseInt(timer / 60, 10);
+    seconds = parseInt(timer % 60, 10);
+    // console.log({ timer, minutes, seconds });
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+
+    // console.log({ minutes, seconds });
+
+    if (timer === 0) {
+      clearInterval(interval);
+      document.querySelector(
+        "#tys-duration"
+      ).innerHTML = `<span class="text-red-400">Time is up!</span>`;
+      // disabled all input element
+      // document.querySelectorAll("input[type=radio]").forEach((el) => {
+      //   if (el.checked) {
+      //     storeAnswer(el.value);
+      //   } else {
+      //     storeAnswer(null);
+      //   }
+      //   el.classList.add("cursor-not-allowed");
+      //   el.setAttribute("disabled", true);
+      // });
+    } else {
+      document.querySelector(
+        "#tys-duration"
+      ).innerHTML = `<span class="text-green-400">${minutes}:${seconds} seconds</span>`;
+      timer--;
+    }
+  }, 1000);
+}
+
+async function TestYourselfSection(htmlEl) {
+  const state = (await DB.states.where("name").equals("tys").toArray())[0];
+  const test = await DB.tests
+    .where("name")
+    .startsWith("tys")
+    .and((test) => !test.is_completed)
+    .last();
+
+  let testQuestions = await DB.table("test_questions")
+    .where("test_id")
+    .equals(test.id)
+    .toArray();
+
+  if (testQuestions <= 0) {
+    const questions = await DB.questions.toArray();
+
+    testQuestions = await createStorage("test_questions", {
+      test_id: test.id,
+      id: randomID(),
+      questions: getQuestions(
+        questions.filter((question) => question.category === test.language),
+        Number(test.numQuestions)
+      ),
+    });
   }
 
-  if(!user.test.questions) {
-    user.test.questions = getQuestions(questions[user.test.language], Number(user.test.numQuestions))
-  }
+  testQuestions = Array.isArray(testQuestions)
+    ? testQuestions[0]
+    : testQuestions;
 
-  if (!state) {
-    const newState = {
-      currentState: "home",
-      test: {},
-    };
-    createStorage("state", newState);
-  }
+  if (state.current === "tys-quiz") {
+    if (!test.index) {
+      test.index = 0;
+    }
 
-  if (state.test.currentState === "tys-quiz") {
+    const questionr = testQuestions.questions[test.index];
+
+    const elHTML = [].concat(testQuestions.questions).map((question, index) => {
+      return `
+      <p class="text-lg font-bold mb-4">${index + 1}. ${htmlencode(
+        question.details.question
+      )}</p>
+      <form>
+      ${randomizeOptions(question.details.options).join("")}
+      </form>
+      <br/>
+      `;
+    });
+
+    const sumDuration = testQuestions.questions.reduce((acc, question) => {
+      // console.log({ question });
+      const duration =
+        typeof question.details.duration == "string"
+          ? question.details.duration.split(" ")
+          : question.details.duration;
+      if (typeof duration !== "number") {
+        if (duration.includes("minutes")) {
+          acc += Number(duration[0]) * 60;
+        } else if (duration.includes("seconds")) {
+          acc += Number(duration[0]);
+        }
+      } else {
+        acc += duration;
+      }
+      return acc;
+    }, 0);
+
     htmlEl.innerHTML = `
         <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-8">
-        <div class="flex justify-between items-center mb-4">
-          <p class="text-gray-700 font-bold">Question 1 of 20</p>
-          <p class="text-gray-700">Duration: 30 seconds</p>
-        </div>
-        <p class="text-lg font-bold mb-4">What is the purpose of the 'def' keyword in Python?</p>
-        <form>
-          <div class="mb-4">
-            <input type="radio" id="option1" name="option" value="To define a class">
-            <label for="option1">To define a class</label>
-          </div>
-          <div class="mb-4">
-            <input type="radio" id="option2" name="option" value="To define a function">
-            <label for="option2">To define a function</label>
-          </div>
-          <div class="mb-4">
-            <input type="radio" id="option3" name="option" value="To declare a variable">
-            <label for="option3">To declare a variable</label>
-          </div>
-          <div class="mb-4">
-            <input type="radio" id="option4" name="option" value="To import a module">
-            <label for="option4">To import a module</label>
-          </div>
-        </form>
         <div class="flex justify-between gap-4">
-         <button id="previous" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Previous</button>
-         <button id="next" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
-         <button id="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+         <p class="text-lg font-bold mb-4">Language: ${test.language.toUpperCase()}</p>
+          <p id="tys-duration" class="text-lg font-bold mb-4">Duration:</p>
         </div>
-      </div><br/>
+        ${elHTML.join("")} <br/>
+        <div class="flex justify-between gap-4">
+        <button id="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+      </div>
+      </div><br/><br/><br/>
     `;
 
-    const PREVIOUS_BUTTON = document.querySelector("#previous");
-    const NEXT_BUTTON = document.querySelector("#next");
-    const SUBMIT_BUTTON = document.querySelector("#submit")
+    countDown(sumDuration);
 
-    PREVIOUS_BUTTON.addEventListener("click", () => {
+    const SUBMIT_BUTTON = document.querySelector("#submit");
+
+    SUBMIT_BUTTON.addEventListener("click", () => {
       state.currentState = "quiz";
       const page = document.querySelector("main");
       createStorage("state", state);
       QuizPage(page);
     });
-
-    NEXT_BUTTON.addEventListener("click", () => {
-      state.currentState = "scratch";
-      const page = document.querySelector("main");
-      createStorage("state", state);
-      ScratchPage(page);
-    });
   }
 }
+
+
+async function TestResultPage(htmlEl) {
+  const state = (await DB.states.where("name").equals("tys").toArray())[0];
+  const test = await DB.tests
+    .where("name")
+    .startsWith("tys")
+    .and((test) => !test.is_completed)
+    .last();
+
+    if (state.current === "tys-result") {
+      htmlEl.innerHTML = `
+      <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-8">
+        <h1>Results of ${test.language.toUpperCase()} test.</h1>
+        <p></p>
+        <div class="flex justify-between gap-4">
+          <button id="home" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go Home</button>
+          <button id="tys-another" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Take Another</button>
+        </div>
+      </div>
+      `;
+    }
+} 
 
 export default TestYourselfPage;

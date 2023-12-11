@@ -1,4 +1,4 @@
-import { createStorage, getStorage, updateStorage } from "./storage.js";
+import { createStorage, getStorage } from "./storage.js";
 import data from "../data/questions.json" assert { type: "json" };
 
 function countDown(prop, element) {
@@ -34,9 +34,9 @@ function getQuestions(limit) {
 }
 
 function storeAnswer(answer) {
-  const user = getStorage("user");
+  const user = getStorage("users");
   const questions = getStorage("questions");
-  const state = getStorage("state");
+  const state = getStorage("states");
 
   if (!user.currentQuiz) {
     user.currentQuiz = {};
