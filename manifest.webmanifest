@@ -2,10 +2,11 @@
     "name": "GamifyDev",
     "short_name": "GDev",
     "description": "Learn web development in a fun and interactive way.",
-    "start_url": "/?version=4.0",
+    "start_url": "/index.html?version=4.0",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#757195",
+    "orintation": "protrait-primary",
     "icons": [
         {
             "src": "/images/gdlogo.jpeg",

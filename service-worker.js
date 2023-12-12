@@ -1,6 +1,7 @@
+const cacheName = 'gamifydev-v8'
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open("gamifydev-v3").then((cache) => {
+    caches.open(cacheName).then((cache) => {
       return cache.addAll([
         "/",
         "/index.html",
@@ -26,7 +27,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.filter((name) => name !== "gamifydev-v3").map((name) => {
+        cacheNames.filter((name) => name !== cacheName).map((name) => {
           return caches.delete(name);
         })
       );
@@ -34,11 +35,12 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-self.addEventListener("fetch", async (event) => {
-  const cache = await caches.open("gamifydev-v3");
-  const response = await cache.match(event.request);
-  return response || fetch(event.request).then((networkResponse) => {
-    cache.put(event.request, networkResponse.clone());
-    return networkResponse;
-  });
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.open(cacheName).then(async (cache) => {
+      return cache.match(event.request).then((response) => {
+        return response || fetch(event.request);
+      });
+    })
+  );
 });
