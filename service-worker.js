@@ -1,4 +1,4 @@
-const cacheName = 'gamifydev-v8'
+const cacheName = 'gamifydev-v9'
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(cacheName).then((cache) => {
