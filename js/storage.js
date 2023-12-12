@@ -2,10 +2,10 @@ import { randomID } from "./utils.js";
 
 const db = new Dexie("gamifydev");
 
-db.version(2).stores({
+db.version(3).stores({
   questions: "id, title, category, details, created_at, updated_at",
   app: "id, theme,mode,language",
-  users: "id, name, username, preference",
+  users: "id, name, preference",
   states: "id, name, previous, next, current",
   tests: "id, name, language, numOfQuestions, is_completed, index",
   test_questions: "id, test_id, questions",

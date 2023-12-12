@@ -1,3 +1,4 @@
+import { scratchPage } from "./modules.js";
 import QuizPage from "./quiz.js";
 import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
 import { randomID } from "./utils.js";
@@ -11,6 +12,7 @@ async function HomePage(htmlEl) {
       previous: null,
       current: "home",
       next: "user_info",
+      name: "general",
     });
   }
 
@@ -68,35 +70,30 @@ async function HomePage(htmlEl) {
       updateStorage("states", state);
       UserInfoSection(page);
     });
-  } else if (state.currentState === "user_info") {
+  } else if (state.current === "user_info") {
     const page = document.querySelector("main");
     UserInfoSection(page);
-  } else if (state.currentState === "preference") {
+  } else if (state.current === "preference") {
     const page = document.querySelector("main");
     PreferenceSection(page);
   } else if (
-    state.currentState === "quiz" ||
-    state.currentState === "quiz-started" ||
-    state.currentState === "quiz-completed"
+    state.current === "quiz" ||
+    state.current === "quiz-started" ||
+    state.current === "quiz-completed"
   ) {
-    console.log("Yeah");
     const page = document.querySelector("main");
     QuizPage(page);
+  } else if(state.current === "scratch") {
+    const page = document.querySelector("main");
+
+    scratchPage(page);
   }
 }
 
-function UserInfoSection(htmlEl) {
-  let state = getStorage("state");
+async function UserInfoSection(htmlEl) {
+  let state = await DB.states.where("name").equals("general").last();
 
-  if (!state) {
-    const newState = {
-      currentState: "user_info",
-      test: {},
-    };
-    state = createStorage("state", newState);
-  }
-
-  if (state.currentState === "user_info") {
+  if (state.current === "user_info") {
     htmlEl.innerHTML = `
   <div class="card" style="background: #fff; margin: auto; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); transition: 0.3s; border-radius: 5px;">
   <div class="card-content" style="padding: 2em;">
@@ -119,80 +116,83 @@ function UserInfoSection(htmlEl) {
 
   const SUBMIT_NAME_BUTTON = document.querySelector("#submit-name");
 
-  SUBMIT_NAME_BUTTON.addEventListener("click", () => {
+  SUBMIT_NAME_BUTTON.addEventListener("click", async () => {
     const name = document.querySelector("#name").value;
     const preference = document.querySelector("#preference").value;
-    let user = getStorage("user");
+    let user = await DB.users.where("name").equals(name).last();
+
+    if (name.length < 4) {
+      return alert("Your name should be at least 4 characters!");
+    }
 
     if (!user) {
-      user = createStorage("user", {
-        name: "",
-        preference: "",
-        test: {},
+      user = await createStorage("users", {
+        id: randomID(),
+        name,
+        preference,
+        // test: {},
       });
     }
 
-    state.currentState = "preference";
-    user.name = name;
-    user.preference = preference;
-    createStorage("state", state);
-    createStorage("user", user);
+    state.current = "preference";
+    // user.name = name;
+    // user.preference = preference;
+    await updateStorage("states", state);
+    // await createStorage("users", user);
     const page = document.querySelector("main");
     PreferenceSection(page);
   });
 }
 
-function PreferenceSection(htmlEl) {
-  const user = getStorage("user");
-  const state = getStorage("state");
+async function PreferenceSection(htmlEl) {
+  const user = (await DB.users.toArray())[0];
+  const state = await DB.states.where("name").equals("general").last();
 
-  if (!user) {
-    const newUser = {
-      name: "",
-      preference: "",
-    };
-    createStorage("user", newUser);
-  }
-
-  if (!state) {
-    const newState = {
-      currentState: "home",
-    };
-    createStorage("state", newState);
-  }
-
-  if (state.currentState === "preference") {
+  if (state.current === "preference") {
     htmlEl.innerHTML = `
   <div class="flex justify-center items-center">
-  <div class="bg-white shadow-md rounded p-8">
+  <div class="bg-white shadow-md rounded p-4">
   <h1 class="text-xl font-bold mb-4">Current Path Selected: ${user.preference.toUpperCase()}</h1>
   <p class="mb-4">Hi ${
     user.name
   }, welcome to GamifyDev. We are excited to have you here. 
   You have selected <b>${user.preference.toUpperCase()}</b> as your preferred path, click any of the buttons below to get started.
   </p>
-  <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+  <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
     <button id="get-started" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Take a quiz</button>
-    <button id="get-started" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start from scratch</button>
+    <button id="scratch" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start from scratch</button>
   </div>
 </div>
-</div><br/>
+</div><br/><br /> <br />
   `;
 
     const TAKE_QUIZ_BUTTON = document.querySelector("#get-started");
-    const START_FROM_SCRATCH_BUTTON = document.querySelector("#get-started");
+    const START_FROM_SCRATCH_BUTTON = document.querySelector("#scratch");
 
     TAKE_QUIZ_BUTTON.addEventListener("click", () => {
-      state.currentState = "quiz";
+      state.current = "quiz";
+      state.previous = "user_info";
+      state.next = "preference";
       const page = document.querySelector("main");
-      createStorage("state", state);
+      updateStorage("states", state);
       QuizPage(page);
     });
 
     START_FROM_SCRATCH_BUTTON.addEventListener("click", () => {
-      state.currentState = "scratch";
+      state.current = "scratch";
+      state.previous = "preference";
+      state.next = null;
+
+      console.log({ state });
+
       // window.location.href = "scratch.html";
+      updateStorage("states", state);
+      const page = document.querySelector("main");
+      scratchPage(page);
     });
+  } else if (state.current === "scratch") {
+    const page = document.querySelector("main");
+    scratchPage(page);
   }
 }
 
