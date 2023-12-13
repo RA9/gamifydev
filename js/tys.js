@@ -1,8 +1,8 @@
-import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
+// import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
 // import questions from "../data/questions.json" assert { type: "json" };
-import { randomID, htmlencode } from "./utils.js";
+// import { randomID, htmlencode } from "./utils.js";
 
-async function TestYourselfPage(htmlEl) {
+async function TestPage(htmlEl) {
   const stateArr = await DB.states.where("name").equals("tys").toArray();
   const state =
     stateArr.length > 0
@@ -99,7 +99,6 @@ function randomizedQuestions(questions, limit) {
 function getQuestions(questions, limit) {
   return randomizedQuestions(questions, limit);
 }
-
 
 function countDown(duration) {
   let timer = Number(duration),
@@ -232,7 +231,6 @@ async function TestYourselfSection(htmlEl) {
   }
 }
 
-
 async function TestResultPage(htmlEl) {
   const state = (await DB.states.where("name").equals("tys").toArray())[0];
   const test = await DB.tests
@@ -241,8 +239,8 @@ async function TestResultPage(htmlEl) {
     .and((test) => !test.is_completed)
     .last();
 
-    if (state.current === "tys-result") {
-      htmlEl.innerHTML = `
+  if (state.current === "tys-result") {
+    htmlEl.innerHTML = `
       <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-8">
         <h1>Results of ${test.language.toUpperCase()} test.</h1>
         <p></p>
@@ -252,7 +250,7 @@ async function TestResultPage(htmlEl) {
         </div>
       </div>
       `;
-    }
-} 
+  }
+}
 
-export default TestYourselfPage;
+// export default TestYourselfPage;

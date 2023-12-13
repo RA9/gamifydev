@@ -23,4 +23,4 @@ function htmlencode(str) {
 }
 
 
-  export { randomID, htmlencode };
+  // export { randomID, htmlencode };

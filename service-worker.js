@@ -1,5 +1,8 @@
-const cacheName = 'gamifydev-v9'
+const cacheName = "gamifydev-v25";
 self.addEventListener("install", (event) => {
+  // if there is a new service worker, skip waiting
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(cacheName).then((cache) => {
       return cache.addAll([
@@ -27,9 +30,11 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.filter((name) => name !== cacheName).map((name) => {
-          return caches.delete(name);
-        })
+        cacheNames
+          .filter((name) => name !== cacheName)
+          .map((name) => {
+            return caches.delete(name);
+          })
       );
     })
   );

@@ -1,5 +1,5 @@
-import { createStorage, getStorage } from "./storage.js";
-import data from "../data/questions.json" assert { type: "json" };
+// import { createStorage, getStorage } from "./storage.js";
+// import data from "../data/questions.json" assert { type: "json" };
 
 function countDown(prop, element) {
   const timer = document.querySelector("#timer");
@@ -397,4 +397,4 @@ function showQuizResultsPage(htmlEl) {
   }
 }
 
-export default QuizPage;
+// export default QuizPage;

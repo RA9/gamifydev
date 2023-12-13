@@ -24,4 +24,4 @@ function ContactPage(htmlEl) {
     `;
 }
 
-export default ContactPage;
+// export default ContactPage;

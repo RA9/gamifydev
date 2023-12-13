@@ -1,5 +1,5 @@
-import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
-import { randomID } from "./utils.js";
+// import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
+// import { randomID } from "./utils.js";
 
 async function scratchPage(htmlEl) {
   const state = await DB.states.where("name").equals("general").last();
@@ -28,4 +28,4 @@ async function scratchPage(htmlEl) {
   }
 }
 
-export { scratchPage };
+// export { scratchPage };

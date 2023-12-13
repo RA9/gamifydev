@@ -1,7 +1,7 @@
-import { scratchPage } from "./modules.js";
-import QuizPage from "./quiz.js";
-import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
-import { randomID } from "./utils.js";
+// import { scratchPage } from "./modules.js";
+// import QuizPage from "./quiz.js";
+// import { DB, createStorage, getStorage, updateStorage } from "./storage.js";
+// import { randomID } from "./utils.js";
 
 async function HomePage(htmlEl) {
   let state = await DB.states.where("name").equals("general").last();
@@ -196,4 +196,4 @@ async function PreferenceSection(htmlEl) {
   }
 }
 
-export default HomePage;
+// export default HomePage;

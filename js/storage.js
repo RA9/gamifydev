@@ -1,4 +1,4 @@
-import { randomID } from "./utils.js";
+// import { randomID } from "./utils.js";
 
 const db = new Dexie("gamifydev");
 
@@ -94,4 +94,6 @@ async function getStorage(table, id) {
 
 createQuestions();
 
-export { db as DB, getQuestions, createStorage, getStorage, updateStorage };
+const DB = db;
+
+// export { db as DB, getQuestions, createStorage, getStorage, updateStorage };
