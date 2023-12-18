@@ -70,17 +70,16 @@ async function TestPage(htmlEl) {
   }
 }
 
-function randomizeOptions(options, answer = null) {
+function tysRandomizeOptions(options, answer = null) {
   const randomOptions = options.sort(() => Math.random() - 0.5);
   return randomOptions.map((option) => {
-    // console.log({ answer, option });
     const id = randomID();
     return `
     <div class="mb-4 px-2">
-            <input type="radio" id="${id}" name="option" value="${htmlencode(
+            <input type="radio" id="${id}" name="option" value="${escapeHTMLToEntities(
       option
     )}">
-            <label for="${id}">${htmlencode(option)}</label>
+            <label for="${id}">${escapeHTMLToEntities(option)}</label>
     </div>
   `;
   });
@@ -96,11 +95,11 @@ function randomizedQuestions(questions, limit) {
   return questionsLimit;
 }
 
-function getQuestions(questions, limit) {
+function getQuestionsByLimit(questions, limit) {
   return randomizedQuestions(questions, limit);
 }
 
-function countDown(duration) {
+function tysCountDown(duration) {
   let timer = Number(duration),
     minutes,
     seconds;
@@ -151,37 +150,39 @@ async function TestYourselfSection(htmlEl) {
     .equals(test.id)
     .toArray();
 
-  if (testQuestions <= 0) {
+  console.log({ yep: testQuestions });
+
+  if (testQuestions.length <= 0) {
     const questions = await DB.questions.toArray();
 
     testQuestions = await createStorage("test_questions", {
       test_id: test.id,
       id: randomID(),
-      questions: getQuestions(
+      questions: getQuestionsByLimit(
         questions.filter((question) => question.category === test.language),
         Number(test.numQuestions)
       ),
     });
+
+    console.log({ yah: testQuestions})
   }
+
+  console.log({ testQuestions });
 
   testQuestions = Array.isArray(testQuestions)
     ? testQuestions[0]
     : testQuestions;
 
+  console.log({ testQuestions });
+
   if (state.current === "tys-quiz") {
-    if (!test.index) {
-      test.index = 0;
-    }
-
-    const questionr = testQuestions.questions[test.index];
-
     const elHTML = [].concat(testQuestions.questions).map((question, index) => {
       return `
-      <p class="text-lg font-bold mb-4">${index + 1}. ${htmlencode(
+      <p class="text-lg font-bold mb-4">${index + 1}. ${escapeHTMLToEntities(
         question.details.question
       )}</p>
       <form>
-      ${randomizeOptions(question.details.options).join("")}
+        ${tysRandomizeOptions(question.details.options).join("")}
       </form>
       <br/>
       `;
@@ -209,18 +210,31 @@ async function TestYourselfSection(htmlEl) {
         <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-8">
         <div class="flex justify-between gap-4">
          <p class="text-lg font-bold mb-4">Language: ${test.language.toUpperCase()}</p>
-          <p id="tys-duration" class="text-lg font-bold mb-4">Duration:</p>
+          <p id="tys-duration" class="text-lg font-bold mb-4"></p>
         </div>
         ${elHTML.join("")} <br/>
         <div class="flex justify-between gap-4">
+        <button id="tys-cancel" class="w-full bg-red-500 hover:bg-reds-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
         <button id="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
       </div>
       </div><br/><br/><br/>
     `;
 
-    countDown(sumDuration);
+    tysCountDown(sumDuration);
 
     const SUBMIT_BUTTON = document.querySelector("#submit");
+    const CANCEL_BUTTON = document.querySelector("#tys-cancel");
+
+    CANCEL_BUTTON.addEventListener("click", () => {
+      state.current = "tys";
+      state.previous = "tys-quiz";
+      state.next = null;
+      updateStorage("states", state);
+
+      // reload page and remove test_questions
+      window.location.reload();
+      removeStorage("test_questions", testQuestions.id);
+    });
 
     SUBMIT_BUTTON.addEventListener("click", () => {
       state.currentState = "quiz";

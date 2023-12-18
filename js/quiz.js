@@ -5,6 +5,7 @@ function countDown(prop, element) {
   const timer = document.querySelector("#timer");
   let time = prop.duration;
   const interval = setInterval(() => {
+    console.log({ timer });
     if (time === 0) {
       clearInterval(interval);
       timer.innerHTML = `<span class="text-red-400">Time is up!</span>`;
@@ -340,7 +341,6 @@ function showQuizResultsPage(htmlEl) {
       return question.answer;
     });
 
-    
     const correctAnswersCount = userAnswers.filter((answer, index) => {
       return answer.answer === correctAnswers[index];
     }).length;
@@ -352,14 +352,12 @@ function showQuizResultsPage(htmlEl) {
     if (!user.score) {
       user.score = 0;
       updateStorage("user", user);
-    } 
-    
-    if(user.score < percentage){
+    }
+
+    if (user.score < percentage) {
       user.score = percentage;
       updateStorage("user", user);
     }
-
-
 
     htmlEl.innerHTML = `
     <div class="flex justify-center items-center">

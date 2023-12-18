@@ -105,8 +105,34 @@
       </nav>
     </header>
 
-    <main class="max-w-7xl mx-auto my-10 p-5" id="page-content">
-    </main>
+    <div
+      id="promptForUpdateModal"
+      class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden"
+    >
+      <div class="bg-white p-8 rounded shadow-lg">
+        <h2 class="text-2xl font-bold mb-4">New Update Available</h2>
+        <p class="mb-4">
+          A new version of the app is available. Do you want to update now?
+        </p>
+        <div class="flex justify-end">
+          <button
+            id="updateButton"
+            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
+          >
+            Update
+          </button>
+          <button
+            id="cancelButton"
+            class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto my-10 p-5" id="page-content"></main>
+
     <footer
       class="bg-gray-800 text-white text-center py-4 fixed bottom-0 w-full"
     >
@@ -121,6 +147,70 @@
     <script src="./js/modules.js"></script>
     <script src="./js/quiz.js"></script>
     <script src="./js/home.js"></script>
-    <script src="./index.js" ></script>
+    <!-- <script type="module">
+      import { Workbox } from "./js/external/workbox.mjs";
+
+      const promptForUpdate = () => {
+        return new Promise((resolve, reject) => {
+          const modal = document.getElementById("promptForUpdateModal");
+          modal.classList.remove("hidden");
+
+          const updateButton = document.getElementById("updateButton");
+          const cancelButton = document.getElementById("cancelButton");
+
+          updateButton.addEventListener("click", () => {
+            modal.classList.add("hidden");
+            resolve(true);
+          });
+
+          cancelButton.addEventListener("click", () => {
+            modal.classList.add("hidden");
+            resolve(false);
+          });
+        });
+      };
+
+      if ("serviceWorker" in navigator) {
+        const wb = new Workbox("/sw.js");
+        let registration;
+
+        const showSkipWaitingPrompt = async (event) => {
+          // Assuming the user accepted the update, set up a listener
+          // that will reload the page as soon as the previously waiting
+          // service worker has taken control.
+          wb.addEventListener("controlling", () => {
+            // At this point, reloading will ensure that the current
+            // tab is loaded under the control of the new service worker.
+            // Depending on your web app, you may want to auto-save or
+            // persist transient state before triggering the reload.
+            window.location.reload();
+          });
+
+          // When `event.wasWaitingBeforeRegister` is true, a previously
+          // updated service worker is still waiting.
+          // You may want to customize the UI prompt accordingly.
+
+          // This code assumes your app has a promptForUpdate() method,
+          // which returns true if the user wants to update.
+          // Implementing this is app-specific; some examples are:
+          // https://open-ui.org/components/alert.research or
+          // https://open-ui.org/components/toast.research
+          const updateAccepted = await promptForUpdate();
+
+          if (updateAccepted) {
+            wb.messageSkipWaiting();
+          }
+        };
+
+        // Add an event listener to detect when the registered
+        // service worker has installed but is waiting to activate.
+        wb.addEventListener("waiting", (event) => {
+          showSkipWaitingPrompt(event);
+        });
+
+        wb.register();
+      }
+    </script> -->
+    <script src="./index.js"></script>
   </body>
 </html>

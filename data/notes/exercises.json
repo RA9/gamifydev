@@ -1,0 +1,176 @@
+[
+  {
+    "name": "Exercise 1",
+    "noteFileName": "web_history_exercise1.md",
+    "marker": "WEB_HISTORY_EXERCISE_1",
+    "content": "Explain the significance of Tim Berners-Lee's contribution to the World Wide Web in 1989-1990.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Explain the concept of 'hypertext' and its role in Tim Berners-Lee's vision for the web.",
+        "hint": "Consider how 'hypertext' facilitates the connection of information on the web."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Explain the concept of 'hypertext' and its role in Tim Berners-Lee's vision for the web.",
+        "expectedOutput": "The response should cover the role of 'hypertext' in connecting information on the web as envisioned by Tim Berners-Lee."
+      }
+    ]
+  }, 
+  {
+    "name": "Exercise 2",
+    "noteFileName": "web_history_exercise2.md",
+    "marker": "WEB_HISTORY_EXERCISE_2",
+    "content": "List three key developments in the 1990s that contributed to the growth of the World Wide Web.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Identify and briefly explain the significance of the first-ever website, info.cern.ch.",
+        "hint": "Consider its importance in the early stages of the web."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Identify and briefly explain the significance of the first-ever website, info.cern.ch.",
+        "expectedOutput": "The response should cover the importance of info.cern.ch as the first-ever website and its role in the early stages of the web."
+      }
+    ]
+  },
+  {
+    "name": "Exercise 3",
+    "noteFileName": "web_history_exercise3.md",
+    "marker": "WEB_HISTORY_EXERCISE_3",
+    "content": "Describe the 'dot-com boom' and its consequences on the development of the World Wide Web.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Explain why some companies experienced a crash during the 'dot-com bust' in the early 2000s.",
+        "hint": "Consider the factors contributing to the burst of the dot-com bubble."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Explain why some companies experienced a crash during the 'dot-com bust' in the early 2000s.",
+        "expectedOutput": "The response should cover the factors contributing to the burst of the dot-com bubble and the consequences for companies."
+      }
+    ]
+  },
+  {
+    "name": "Exercise 4",
+    "noteFileName": "web_history_exercise4.md",
+    "marker": "WEB_HISTORY_EXERCISE_4",
+    "content": "Discuss the impact of social media on the World Wide Web in the mid-2000s.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Explain how Facebook, launched in 2004, became a significant platform for online social interaction.",
+        "hint": "Consider the features that contributed to its global popularity."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Explain how Facebook, launched in 2004, became a significant platform for online social interaction.",
+        "expectedOutput": "The response should cover the features that contributed to Facebook's global popularity and its impact on online social interaction."
+      }
+    ]
+  },
+  {
+    "name": "Exercise 5",
+    "noteFileName": "web_history_exercise.md",
+    "marker": "WEB_HISTORY_EXERCISE_5",
+    "content": "Explore the evolution of web development in the late 2000s to the 2010s, focusing on the mobile web and responsive design.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Discuss the impact of smartphones on web access and the need for mobile-friendly websites.",
+        "hint": "Consider how responsive design became essential for a seamless user experience."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Discuss the impact of smartphones on web access and the need for mobile-friendly websites.",
+        "expectedOutput": "The response should cover the impact of smartphones on web access and the importance of mobile-friendly websites, including the role of responsive design."
+      }
+    ]
+  },
+  {
+    "name": "Exercise 6",
+    "noteFileName": "web_history_exercise.md",
+    "marker": "WEB_HISTORY_EXERCISE_6",
+    "content": "Investigate the role of apps, cloud services, and e-commerce in shaping the World Wide Web during the 2010s.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Explain how cloud services like Amazon Web Services (AWS) contributed to scalable and flexible web infrastructure.",
+        "hint": "Consider the advantages of using cloud services for web development and data storage."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Explain how cloud services like Amazon Web Services (AWS) contributed to scalable and flexible web infrastructure.",
+        "expectedOutput": "The response should cover the advantages of using cloud services for web development and data storage, with a focus on Amazon Web Services (AWS)."
+      }
+    ]
+  },
+  {
+    "name": "Exercise 7",
+    "noteFileName": "web_history_exercise.md",
+    "marker": "WEB_HISTORY_EXERCISE_7",
+    "content": "Explore the advancements in web development during the 2010s, including the introduction of web development frameworks and progressive web apps.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Discuss the significance of web development frameworks like React and their impact on creating dynamic and interactive web applications.",
+        "hint": "Consider how these frameworks simplify the development process."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Discuss the significance of web development frameworks like React and their impact on creating dynamic and interactive web applications.",
+        "expectedOutput": "The response should cover the significance of web development frameworks like React and how they simplify the process of creating dynamic and interactive web applications."
+      }
+    ]
+  },
+  {
+    "name": "Exercise 8",
+    "noteFileName": "web_history_exercise.md",
+    "marker": "WEB_HISTORY_EXERCISE_8",
+    "content": "Delve into the concept of Web3 and its potential impact on the future of the World Wide Web in the 2020s.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Explain the key principles of Web3, emphasizing decentralization and blockchain technology.",
+        "hint": "Consider how these principles differ from the traditional web."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Explain the key principles of Web3, emphasizing decentralization and blockchain technology.",
+        "expectedOutput": "The response should cover the key principles of Web3, focusing on decentralization and blockchain technology and how they differ from the traditional web."
+      }
+    ]
+  },
+  {
+    "name": "Exercise 9",
+    "noteFileName": "web_history_exercise.md",
+    "marker": "WEB_HISTORY_EXERCISE_9",
+    "content": "Imagine the future possibilities of the World Wide Web, considering advancements in artificial intelligence, virtual reality, and potential innovations like flying websites.",
+    "input": [
+      {
+        "label": "Example 1",
+        "value": "Describe how artificial intelligence might enhance the user experience on the web in the coming years.",
+        "hint": "Consider potential applications and improvements AI could bring to web interactions."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Describe how artificial intelligence might enhance the user experience on the web in the coming years.",
+        "expectedOutput": "The response should cover potential applications and improvements that artificial intelligence could bring to web interactions, considering the future possibilities of the web."
+      }
+    ]
+  }
+    
+          
+  ]
+  

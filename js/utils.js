@@ -22,5 +22,19 @@ function htmlencode(str) {
   });
 }
 
+function escapeHTML(htmlStr) {
+  return htmlStr.replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");        
+
+}
+
+function escapeHTMLToEntities(str) {
+  return str.replace(/[\u00A0-\u9999<>\&]/gim, function(i) {
+    return '&#'+i.charCodeAt(0)+';';
+  });
+}
 
   // export { randomID, htmlencode };

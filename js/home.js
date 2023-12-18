@@ -83,7 +83,7 @@ async function HomePage(htmlEl) {
   ) {
     const page = document.querySelector("main");
     QuizPage(page);
-  } else if(state.current === "scratch") {
+  } else if(state.current === "scratch" || state.current === "note") {
     const page = document.querySelector("main");
 
     scratchPage(page);
@@ -190,7 +190,7 @@ async function PreferenceSection(htmlEl) {
       const page = document.querySelector("main");
       scratchPage(page);
     });
-  } else if (state.current === "scratch") {
+  } else if (state.current === "scratch" || state.current === "note") {
     const page = document.querySelector("main");
     scratchPage(page);
   }

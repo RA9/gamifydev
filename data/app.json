@@ -4,37 +4,115 @@
       {
         "name": "Frontend",
         "modules": [
-          "History of the Web - Prof. Rudeen Zarwolo",
-          "Intro to Programming",
-          "HTML Basics - Prof. Rudeen Zarwolo",
-          "CSS Basics",
-          "Building a Website with HTML and CSS",
-          "JavaScript Basics",
-          "Building Interactive JavaScript Websites",
-          "Git and GitHub",
-          "Building your portfolio website",
-          "Next Steps"
-        ]
-      },
-      {
-        "name": "Backend",
-        "modules": [
-          "Intro to Node.js",
-          "Creating a Server with Node.js and Express",
-          "Intro to Databases and SQL",
-          "Building a Web Application with Node.js and Express"
-        ]
-      },
-      {
-        "name": "Full Stack",
-        "modules": [
-          "Intro to the Command Line",
-          "Deploying to Heroku/Digital Ocean",
-          "Intro to React",
-          "Building a Front-End Application with React",
-          "Building a Back-End Application with Express and PostgreSQL",
-          "Building a Full-Stack Application with React and Express",
-          "Building an ecommerce app"
+          {
+            "title": "History of the Web",
+            "description": "The web is a big place. Let's learn about how it got started and where it's going.",
+            "resources": [
+              {
+                "title": "The History of the Web",
+                "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4"
+              },
+              {
+                "title": "The History of the Web",
+                "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4"
+              }
+            ],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Intro to Programming",
+            "previous": null
+          },
+          {
+            "title": "Intro to Programming",
+            "description": "Get started with programming by learning about what it is and how it works.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "HTML Basics",
+            "previous": "History of the Web"
+          },
+          {
+            "title": "HTML Basics",
+            "description": "Let's learn about what HTML is and how it works.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "CSS Basics",
+            "previous": "Intro to Programming"
+          },
+          {
+            "title": "CSS Basics",
+            "description": "Create beautiful webpages using CSS.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building a Website with HTML and CSS",
+            "previous": "HTML Basics"
+          },
+          {
+            "title": "Building a Website with HTML and CSS",
+            "description": "A hands-on approach to building stunning webpages.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "JavaScript Basics",
+            "previous": "CSS Basics"
+          },
+          {
+            "title": "JavaScript Basics",
+            "description": "Let's learn about what JavaScript is and how it works.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building Interactive JavaScript Websites",
+            "previous": "Building a Website with HTML and CSS"
+          },
+          {
+            "title": "Building Interactive JavaScript Websites",
+            "description": "Build interactive websites with lots of features using JavaScript.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Git and GitHub",
+            "previous": "JavaScript Basics"
+          },
+          {
+            "title": "Git and GitHub",
+            "description": "Let's learn about what Git and GitHub are and how they work.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building your portfolio website",
+            "previous": "Building Interactive JavaScript Websites"
+          },
+          {
+            "title": "Building your portfolio website",
+            "description": "Build your own portfolio website to showcase your work.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps",
+            "previous": "Git and GitHub"
+          },
+          {
+            "title": "Next Steps",
+            "description": "A guide to what to do next after completing the Frontend path.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Building your portfolio website"
+          }
         ]
       }
     ]
