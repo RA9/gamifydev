@@ -18,7 +18,6 @@ async function TestPage(htmlEl) {
   if (state.current === "tys") {
     htmlEl.innerHTML = `
       <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
-    <h1 class="text-3xl font-bold mb-4">Test Yourself</h1>
     <div class="mb-4">
       <label for="language" class="block text-gray-700 text-sm font-bold mb-2">Choose a language:</label>
       <select id="language" name="language" class="block w-full bg-white border border-gray-400 rounded py-2 px-3">
@@ -59,13 +58,13 @@ async function TestPage(htmlEl) {
       });
 
       await updateStorage("states", state);
-
+      
+      // window.location.reload()
       const page = document.querySelector("main");
       TestYourselfSection(page);
     });
   } else if (state.current === "tys-quiz") {
     const page = document.querySelector("main");
-
     TestYourselfSection(page);
   }
 }
@@ -150,9 +149,10 @@ async function TestYourselfSection(htmlEl) {
     .equals(test.id)
     .toArray();
 
-  console.log({ yep: testQuestions });
 
   if (testQuestions.length <= 0) {
+    console.log({ yep: testQuestions });
+
     const questions = await DB.questions.toArray();
 
     testQuestions = await createStorage("test_questions", {

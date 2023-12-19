@@ -103,7 +103,6 @@ async function getQuestions(questionID) {
 async function createStorage(table, data) {
   try {
     const storage = await db.table(table).add(data);
-    console.log({ storage })
     return await getStorage("states", storage);
   } catch (error) {
     console.log(error);
@@ -124,7 +123,6 @@ async function updateStorage(table, data) {
 async function getStorage(table, id) {
   try {
     const storage = await db.table(table).get(id);
-    console.log({ storage })
     return storage;
   } catch (error) {
     console.log(error);
