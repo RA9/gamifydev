@@ -68,7 +68,7 @@ async function createPaths() {
 
     pathsData.forEach(async (path) => {
       path.modules.forEach(async (mod) => {
-        console.log({ mod });
+        // console.log({ mod });
         await db.paths.add({
           id: randomID(),
           path_name: path.name.toLowerCase(),
