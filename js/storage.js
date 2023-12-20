@@ -2,7 +2,7 @@
 
 const db = new Dexie("gamifydev");
 
-db.version(6).stores({
+db.version(8).stores({
   questions: "id, title, category, details, created_at, updated_at",
   app: "id, theme,mode,language",
   paths:
@@ -10,9 +10,9 @@ db.version(6).stores({
   // author: "id, name, email, created_at, updated_at",
   users: "id, name, preference",
   states: "id, name, previous, next, current",
-  tests: "id, name, language, numOfQuestions, is_completed, index",
+  tests: "id, name, language, numOfQuestions, is_completed, created_at, updated_at",
   test_questions: "id, test_id, questions",
-  scores: "id, test_id, score, numCorrect, numWrong, created_at, updated_at",
+  scores: "id, test_id, score, numCorrect, numWrong, details, created_at, updated_at",
 });
 
 async function createQuestions() {

@@ -47,18 +47,17 @@ async function TestPage(htmlEl) {
       state.previous = "tys";
       state.next = null;
 
-      // const testArr = await DB.tests.where("name").startsWith("tys").toArray();
-
       await createStorage("tests", {
         id: randomID(),
         name: "tys-" + randomID(),
         is_completed: false,
         language: language,
         numQuestions,
+        created_at: new Date(),
       });
 
       await updateStorage("states", state);
-      
+
       // window.location.reload()
       const page = document.querySelector("main");
       TestYourselfSection(page);
@@ -66,6 +65,8 @@ async function TestPage(htmlEl) {
   } else if (state.current === "tys-quiz") {
     const page = document.querySelector("main");
     TestYourselfSection(page);
+  } else if (state.current === "tys-quiz-result") {
+    TestResultPage(document.querySelector("main"));
   }
 }
 
@@ -144,18 +145,12 @@ async function TestYourselfSection(htmlEl) {
     .and((test) => !test.is_completed)
     .last();
 
-  let testQuestions = await DB.table("test_questions")
-    .where("test_id")
-    .equals(test.id)
-    .toArray();
-
+  let testQuestions = (await DB.table("test_questions").toArray()) || [];
 
   if (testQuestions.length <= 0) {
-    console.log({ yep: testQuestions });
-
     const questions = await DB.questions.toArray();
 
-    testQuestions = await createStorage("test_questions", {
+    await createStorage("test_questions", {
       test_id: test.id,
       id: randomID(),
       questions: getQuestionsByLimit(
@@ -164,26 +159,26 @@ async function TestYourselfSection(htmlEl) {
       ),
     });
 
-    console.log({ yah: testQuestions})
+    testQuestions = (await DB.table("test_questions").toArray())[0];
   }
-
-  console.log({ testQuestions });
 
   testQuestions = Array.isArray(testQuestions)
     ? testQuestions[0]
     : testQuestions;
 
-  console.log({ testQuestions });
+  // console.log({ testQuestions });
 
   if (state.current === "tys-quiz") {
     const elHTML = [].concat(testQuestions.questions).map((question, index) => {
       return `
+      <div class="question mb-2">
       <p class="text-lg font-bold mb-4">${index + 1}. ${escapeHTMLToEntities(
         question.details.question
       )}</p>
       <form>
         ${tysRandomizeOptions(question.details.options).join("")}
       </form>
+      </div>
       <br/>
       `;
     });
@@ -215,14 +210,14 @@ async function TestYourselfSection(htmlEl) {
         ${elHTML.join("")} <br/>
         <div class="flex justify-between gap-4">
         <button id="tys-cancel" class="w-full bg-red-500 hover:bg-reds-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
-        <button id="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+        <button id="tys-submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
       </div>
       </div><br/><br/><br/>
     `;
 
     tysCountDown(sumDuration);
 
-    const SUBMIT_BUTTON = document.querySelector("#submit");
+    const SUBMIT_BUTTON = document.querySelector("#tys-submit");
     const CANCEL_BUTTON = document.querySelector("#tys-cancel");
 
     CANCEL_BUTTON.addEventListener("click", () => {
@@ -234,15 +229,97 @@ async function TestYourselfSection(htmlEl) {
       // reload page and remove test_questions
       window.location.reload();
       removeStorage("test_questions", testQuestions.id);
+      updateStorage("tests", { ...test, is_completed: true });
     });
 
-    SUBMIT_BUTTON.addEventListener("click", () => {
-      state.currentState = "quiz";
-      const page = document.querySelector("main");
-      createStorage("state", state);
-      QuizPage(page);
+    // intercept the location.reload() function and cancel the test
+    window.addEventListener("beforeunload", (e) => {
+      if (state.current === "tys-quiz") {
+        e.preventDefault();
+        e.returnValue = "";
+        state.current = "tys";
+        state.previous = "tys-quiz";
+        state.next = null;
+        updateStorage("states", state);
+
+        // reload page and remove test_questions
+        removeStorage("test_questions", testQuestions.id);
+        updateStorage("tests", { ...test, is_completed: true });
+      }
+    });
+
+    SUBMIT_BUTTON.addEventListener("click", async () => {
+      state.current = "tys-quiz-result";
+      state.previous = "tys-quiz";
+      state.next = null;
+      // const page = document.querySelector("main");
+
+      // Query all elements with the .question class
+      const questionElements = document.querySelectorAll(".question");
+
+      // Create an array to store the selected options for each question
+      const selectedOptions = [];
+
+      // Loop through each question element and get the value of the checked input
+      questionElements.forEach((questionElement) => {
+        const selectedOption =
+          questionElement.querySelector('input[name="option"]:checked')
+            ?.value || null;
+        selectedOptions.push(selectedOption);
+      });
+
+      const scoreDetails = {
+        id: randomID(),
+        test_id: test.id,
+        score: 0,
+        numWrong: 0,
+        numCorrect: 0,
+        details: {},
+      };
+
+      // Loop through each test question and compare it with the selected options
+      const quizDetails = calculateQuizScore(testQuestions, selectedOptions);
+      scoreDetails.score = quizDetails.score;
+      scoreDetails.numCorrect = quizDetails.numCorrect;
+      scoreDetails.numWrong = quizDetails.numWrong;
+
+      // add details
+      scoreDetails.details = {
+        questions: testQuestions.questions,
+        selectedOptions,
+      };
+
+      scoreDetails.created_at = new Date();
+
+      await updateStorage("states", state);
+      await updateStorage("tests", { ...test, is_completed: true });
+      await createStorage("scores", scoreDetails);
+
+      // QuizPage(page);
+      TestResultPage(document.querySelector("main"));
     });
   }
+}
+
+function calculateQuizScore(testQuestions, selectedOptions) {
+  let score = 0;
+  let numCorrect = 0;
+  let numWrong = 0;
+
+  testQuestions.questions.forEach((question, index) => {
+    const selectedOption = selectedOptions[index];
+    const correctAnswer = question.details.answer;
+
+    if (selectedOption === correctAnswer) {
+      numCorrect++;
+    } else {
+      numWrong++;
+    }
+  });
+
+  score = (numCorrect / testQuestions.questions.length) * 100;
+
+  return { score, numCorrect, numWrong };
 }
 
 async function TestResultPage(htmlEl) {
@@ -250,16 +327,29 @@ async function TestResultPage(htmlEl) {
   const test = await DB.tests
     .where("name")
     .startsWith("tys")
-    .and((test) => !test.is_completed)
+    .and((test) => test.is_completed)
     .last();
 
-  if (state.current === "tys-result") {
+  const testDetails = await DB.scores.where("test_id").equals(test.id).last();
+  console.log({ testDetails }, "What is this");
+
+  if (state.current === "tys-quiz-result") {
     htmlEl.innerHTML = `
       <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-8">
-        <h1>Results of ${test.language.toUpperCase()} test.</h1>
-        <p></p>
+        <h1 class="font-medium text-2xl">Results of ${test.language.toUpperCase()} test.</h1>
+        <p class="py-4">You got ${testDetails.numCorrect} correct and ${
+      testDetails.numWrong
+    } wrong. You total score is <span class="text-${
+      testDetails.score > 70
+        ? testDetails.score > 85
+          ? "green"
+          : "yellow"
+        : "red"
+    }-500">${testDetails.score}%</span>.
+
+     </p>
         <div class="flex justify-between gap-4">
-          <button id="home" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go Home</button>
+          <button id="home" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">View Result</button>
           <button id="tys-another" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Take Another</button>
         </div>
       </div>

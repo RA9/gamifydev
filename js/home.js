@@ -33,7 +33,7 @@ async function HomePage(htmlEl) {
               Yeah! You heard me right, you're in the right place. 
               Actually, you do need a laptop and a good internet connection to get started. 
               But, you don't need to know how to code to get started. 
-              You will learn how to code by building real-world projects. So, go and sort
+              You will learn how to code by building projects. So, go and sort
               out your internet issues, and get a laptop if you don't have one, before moving on.
             </p>
             <p class="text-xl font-sm p-2">
@@ -41,17 +41,16 @@ async function HomePage(htmlEl) {
               software developer overnight. You will not become a software developer 
               in a week. You will not become a software developer in a month. You will
               not become a software developer in a year. We are not here to teach you how to become a software developer.
-              We are here to provide you with the fundamentals of programming and help you build real-world projects.
+              We are here to provide you with the fundamentals of programming and help you build seemingly real-world projects.
                It is up to you to decide what you want to do with the knowledge you will gain from this platform.
             </p><br/><br />
 
             <h2 class="text-2xl font-bold">A message from the creator</h2>
             <p class="text-xl font-sm p-2">
-              Hi there, my name is <a class="underline text-blue-400" href="https://twitter.com/rademejs" target="_blank">Carlos S. Nah</a>, I am a software engineer and I am
-              excited to have you here. I have been a software engineer for over 5 years and I have been teaching people how to code for over 3+ years.<br /><br /> And on this journey; it is 
-              my hope that you learn enough to be dangerous. If at any point you need to dive deeper; I recommend you give 
-              <a class="underline text-blue-400" href="https://twitter.com/rademejs" target="_blank">Kwagei Innovators Training</a> a try.<br/>
-              <b>To get started, click the button below.</b>
+            <b>Welcome, fellow web explorers!</b>  I'm <a class="underline text-blue-400" href="https://twitter.com/rademejs" target="_blank">Carlos S. Nah</a>, a software engineer passionate about empowering fellow developers.
+            <b>Navigating the web dev world can be tough, but you're not alone.</b> Finding the right resources and community shouldn't feel like a never-ending quest. <br /><br /> That's why we're building a platform focused on boosting your mental agility and problem-solving skills.
+            Ready to dive deeper and unlock your full potential?    Check out <a href="https://kit.kwagei.com" class="text-blue-400 text-underline" target="_blank">Kwagei Innovators Training</a> for a deeper dive!
+            <b>Don't wait—click the button below to get started!</b>
             </p>
             <button id="get-started" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Get Started</button>
       </div>
@@ -83,7 +82,7 @@ async function HomePage(htmlEl) {
   ) {
     const page = document.querySelector("main");
     QuizPage(page);
-  } else if(state.current === "scratch" || state.current === "note") {
+  } else if (state.current === "scratch" || state.current === "note") {
     const page = document.querySelector("main");
 
     scratchPage(page);
