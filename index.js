@@ -25,6 +25,9 @@ function displayContent() {
         case 'test':
             TestPage(page);
             break;
+        case 'progress':
+            ProgressPage(page);
+            break;
         default:
             HomePage(page);
     }
