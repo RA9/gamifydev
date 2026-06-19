@@ -293,3 +293,30 @@
   background-color: #2a2356;
   color: #c7b8ff;
 }
+
+/* Friendly light tints used on cards, badges and callouts: darken them so
+ * they don't glow against the dark backdrop. */
+.dark .bg-slate-50 {
+  background-color: #1b2236;
+}
+.dark .bg-slate-100 {
+  background-color: #2a3450;
+}
+.dark .bg-brand-50 {
+  background-color: #201f49;
+}
+.dark .bg-brand-100 {
+  background-color: #2a2356;
+}
+.dark .border-brand-200 {
+  border-color: #3b3470;
+}
+.dark .bg-amber-50 {
+  background-color: #3b2606;
+}
+.dark .border-amber-200 {
+  border-color: #6b4a12;
+}
+.dark .text-amber-800 {
+  color: #fcd34d;
+}
