@@ -29,6 +29,16 @@
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="stylesheet" href="./css/tailwind.css" />
+    <script>
+      // Apply the saved theme before paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          if (localStorage.getItem("gamifydev-theme") === "dark") {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body
     class="bg-gray-100"
@@ -76,6 +86,13 @@
                 class="text-base font-medium text-white hover:text-indigo-50"
                 >Contact</a
               >
+              <button
+                onclick="toggleTheme()"
+                aria-label="Toggle dark mode"
+                class="text-xl leading-none align-middle"
+              >
+                <span class="theme-toggle-icon">🌙</span>
+              </button>
             </div>
           </div>
           <!-- <div class="ml-10 space-x-4"> -->
@@ -112,6 +129,13 @@
             class="text-base font-medium text-white hover:text-indigo-50"
             >Contact</a
           >
+          <button
+            onclick="toggleTheme()"
+            aria-label="Toggle dark mode"
+            class="text-xl leading-none"
+          >
+            <span class="theme-toggle-icon">🌙</span>
+          </button>
         </div>
       </nav>
     </header>
@@ -152,6 +176,7 @@
     <script src="./js/external/dexie.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/storage.js"></script>
+    <script src="./js/theme.js"></script>
     <script src="./js/tys.js"></script>
     <script src="./js/progress.js"></script>
     <script src="./js/about.js"></script>

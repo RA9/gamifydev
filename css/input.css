@@ -1,3 +1,79 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Dark mode.
+ * The UI is built from utility classes scattered across many JS template
+ * strings, so instead of adding `dark:` variants to every string we remap the
+ * handful of common surface/text/border utilities when `.dark` is on <html>.
+ * `.dark .foo` (two classes) outranks Tailwind's single-class `.foo`, so these
+ * win without !important.
+ */
+.dark body {
+  color: #e2e8f0;
+}
+.dark body,
+.dark .bg-gray-100 {
+  background-color: #0f172a;
+}
+.dark .bg-white {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+.dark .bg-gray-50 {
+  background-color: #334155;
+}
+.dark .bg-gray-200 {
+  background-color: #334155;
+}
+.dark .text-gray-800 {
+  color: #f1f5f9;
+}
+.dark .text-gray-700 {
+  color: #e2e8f0;
+}
+.dark .text-gray-600 {
+  color: #cbd5e1;
+}
+.dark .text-gray-500 {
+  color: #94a3b8;
+}
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: #334155;
+}
+
+/* Status chips and review highlights: darker tints that stay readable. */
+.dark .bg-green-50 {
+  background-color: #064e3b;
+}
+.dark .text-green-800 {
+  color: #bbf7d0;
+}
+.dark .bg-red-50 {
+  background-color: #7f1d1d;
+}
+.dark .text-red-800 {
+  color: #fecaca;
+}
+.dark .bg-green-100 {
+  background-color: #065f46;
+}
+.dark .text-green-700 {
+  color: #bbf7d0;
+}
+.dark .bg-blue-100 {
+  background-color: #1e3a8a;
+}
+.dark .text-blue-700 {
+  color: #bfdbfe;
+}
+.dark .bg-indigo-50,
+.dark .bg-indigo-100 {
+  background-color: #312e81;
+}
+.dark .text-indigo-700 {
+  color: #c7d2fe;
+}

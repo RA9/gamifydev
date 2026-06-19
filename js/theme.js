@@ -1,0 +1,28 @@
+// Dark-mode toggle. The initial theme is applied by a tiny inline script in
+// <head> (before paint, to avoid a flash); this file just handles toggling and
+// keeping the button icons in sync. Theme is persisted in localStorage so it
+// can be read synchronously on load.
+const THEME_KEY = "gamifydev-theme";
+
+function isDarkMode() {
+  return document.documentElement.classList.contains("dark");
+}
+
+function updateThemeToggleIcons() {
+  const icon = isDarkMode() ? "☀️" : "🌙";
+  document
+    .querySelectorAll(".theme-toggle-icon")
+    .forEach((el) => (el.textContent = icon));
+}
+
+function toggleTheme() {
+  const dark = document.documentElement.classList.toggle("dark");
+  try {
+    localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+  } catch (e) {
+    console.log("theme persist failed:", e);
+  }
+  updateThemeToggleIcons();
+}
+
+document.addEventListener("DOMContentLoaded", updateThemeToggleIcons);
