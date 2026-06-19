@@ -80,8 +80,8 @@ async function HomePage(htmlEl) {
     state.current === "quiz-started" ||
     state.current === "quiz-completed"
   ) {
-    const page = document.querySelector("main");
-    QuizPage(page);
+    // Legacy quiz states route into the working "Test Yourself" flow (tys.js).
+    window.location.hash = "test";
   } else if (state.current === "scratch" || state.current === "note") {
     const page = document.querySelector("main");
 
@@ -169,12 +169,8 @@ async function PreferenceSection(htmlEl) {
     const START_FROM_SCRATCH_BUTTON = document.querySelector("#scratch");
 
     TAKE_QUIZ_BUTTON.addEventListener("click", () => {
-      state.current = "quiz";
-      state.previous = "user_info";
-      state.next = "preference";
-      const page = document.querySelector("main");
-      updateStorage("states", state);
-      QuizPage(page);
+      // The interactive quiz lives in the "Test Yourself" flow (tys.js).
+      window.location.hash = "test";
     });
 
     START_FROM_SCRATCH_BUTTON.addEventListener("click", () => {

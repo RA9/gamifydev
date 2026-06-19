@@ -71,7 +71,7 @@ async function TestPage(htmlEl) {
 }
 
 function tysRandomizeOptions(options, answer = null) {
-  const randomOptions = options.sort(() => Math.random() - 0.5);
+  const randomOptions = shuffle(options);
   return randomOptions.map((option) => {
     const id = randomID();
     return `
@@ -90,8 +90,7 @@ function getRandomItem(limit) {
 }
 
 function randomizedQuestions(questions, limit) {
-  questions.sort(() => Math.random() - 0.5);
-  const questionsLimit = questions.slice(0, limit);
+  const questionsLimit = shuffle(questions).slice(0, limit);
   return questionsLimit;
 }
 
@@ -105,6 +104,12 @@ function tysCountDown(duration) {
     seconds;
   // document.querySelector("#tys-duration").textContent = "Duration: " + timer;
   const interval = setInterval(function () {
+    const durationEl = document.querySelector("#tys-duration");
+    // Quiz DOM is gone (submitted/cancelled/navigated away) — stop ticking.
+    if (!durationEl) {
+      clearInterval(interval);
+      return;
+    }
     minutes = parseInt(timer / 60, 10);
     seconds = parseInt(timer % 60, 10);
     // console.log({ timer, minutes, seconds });
@@ -118,16 +123,12 @@ function tysCountDown(duration) {
       document.querySelector(
         "#tys-duration"
       ).innerHTML = `<span class="text-red-400">Time is up!</span>`;
-      // disabled all input element
-      // document.querySelectorAll("input[type=radio]").forEach((el) => {
-      //   if (el.checked) {
-      //     storeAnswer(el.value);
-      //   } else {
-      //     storeAnswer(null);
-      //   }
-      //   el.classList.add("cursor-not-allowed");
-      //   el.setAttribute("disabled", true);
-      // });
+      // Lock in the current answers and auto-submit when time runs out.
+      document.querySelectorAll("input[type=radio]").forEach((el) => {
+        el.classList.add("cursor-not-allowed");
+        el.setAttribute("disabled", true);
+      });
+      document.querySelector("#tys-submit")?.click();
     } else {
       document.querySelector(
         "#tys-duration"
@@ -317,7 +318,7 @@ function calculateQuizScore(testQuestions, selectedOptions) {
     }
   });
 
-  score = (numCorrect / testQuestions.questions.length) * 100;
+  score = Math.round((numCorrect / testQuestions.questions.length) * 100);
 
   return { score, numCorrect, numWrong };
 }
@@ -349,11 +350,27 @@ async function TestResultPage(htmlEl) {
 
      </p>
         <div class="flex justify-between gap-4">
-          <button id="home" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">View Result</button>
+          <button id="home" class="w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Back to Home</button>
           <button id="tys-another" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Take Another</button>
         </div>
       </div>
       `;
+
+    document.querySelector("#home").addEventListener("click", () => {
+      window.location.hash = "";
+    });
+
+    document
+      .querySelector("#tys-another")
+      .addEventListener("click", async () => {
+        // Reset to the language/question-count selection screen for a fresh test.
+        await DB.test_questions.clear();
+        state.current = "tys";
+        state.previous = "tys-quiz-result";
+        state.next = "tys-quiz";
+        await updateStorage("states", state);
+        TestPage(document.querySelector("main"));
+      });
   }
 }
 

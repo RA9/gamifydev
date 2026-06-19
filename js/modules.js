@@ -46,7 +46,7 @@ async function handleNotePage() {
 
 async function fetchNotes(preference, noteFileName) {
   const response = await fetch(
-    `notes/${(preference, toLowerCase())}/${noteFileName}`
+    `data/notes/${preference.toLowerCase()}/${noteFileName}`
   );
   return await response.text();
 }

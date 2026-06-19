@@ -4,10 +4,15 @@
   "description": "",
   "main": "service-worker.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "tailwindcss -c tailwind.config.js -i css/input.css -o css/tailwind.css --minify",
+    "watch:css": "tailwindcss -c tailwind.config.js -i css/input.css -o css/tailwind.css --watch"
   },
   "dependencies": {
     "@vercel/edge": "^0.1.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
   },
   "keywords": [],
   "author": "",
