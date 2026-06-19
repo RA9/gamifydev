@@ -84,11 +84,12 @@ function computeProgress(scores, languageByTestId = {}) {
   };
 }
 
-function statCard(label, value) {
+function statCard(label, value, icon) {
   return `
-    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-      <p class="text-3xl font-bold text-gray-800">${value}</p>
-      <p class="text-sm text-gray-500">${label}</p>
+    <div class="gd-card-sm text-center">
+      <div class="text-2xl mb-1">${icon}</div>
+      <p class="text-3xl font-extrabold text-slate-800">${value}</p>
+      <p class="text-xs font-bold uppercase tracking-wide text-slate-500">${label}</p>
     </div>`;
 }
 
@@ -97,11 +98,14 @@ async function ProgressPage(htmlEl) {
 
   if (scores.length === 0) {
     htmlEl.innerHTML = `
-      <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8 text-center">
-        <h1 class="text-2xl font-bold mb-2">Your Progress</h1>
-        <p class="text-gray-600 mb-6">You haven't taken any tests yet. Complete a quiz to start earning XP, streaks, and badges!</p>
-        <a href="#test" class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">Take a Test</a>
-      </div><br/><br/><br/>`;
+      <div class="max-w-xl mx-auto animate-fade-up">
+        <div class="gd-card text-center">
+          <div class="text-5xl mb-3 animate-float">🏆</div>
+          <h1 class="text-2xl font-extrabold mb-2">Your Progress</h1>
+          <p class="text-slate-600 mb-6">No quizzes yet! Complete one to start earning <b>XP</b>, build a <b>streak</b>, and unlock <b>badges</b>.</p>
+          <a href="#test" class="gd-btn gd-btn-grass">Take your first quiz</a>
+        </div>
+      </div>`;
     return;
   }
 
@@ -114,14 +118,19 @@ async function ProgressPage(htmlEl) {
   const badgesHTML = p.badges
     .map(
       (b) => `
-      <div class="rounded-lg p-4 text-center border ${
+      <div class="rounded-2xl p-4 text-center border-2 transition-transform hover:-translate-y-0.5 ${
         b.earned
-          ? "border-indigo-300 bg-indigo-50"
-          : "border-gray-200 bg-gray-50 opacity-50"
+          ? "border-brand-200 bg-brand-50 shadow-card"
+          : "border-slate-200 bg-slate-50 opacity-60"
       }" title="${b.desc}">
-        <div class="text-3xl mb-1 ${b.earned ? "" : "grayscale"}">${b.icon}</div>
-        <p class="text-sm font-semibold text-gray-800">${b.name}</p>
-        <p class="text-xs text-gray-500">${b.desc}</p>
+        <div class="text-3xl mb-1 ${b.earned ? "" : "grayscale opacity-70"}">${b.icon}</div>
+        <p class="text-sm font-extrabold text-slate-800">${b.name}</p>
+        <p class="text-xs text-slate-500">${b.desc}</p>
+        ${
+          b.earned
+            ? '<span class="gd-chip gd-chip-grass mt-2 text-[10px]">Unlocked</span>'
+            : '<span class="gd-chip gd-chip-slate mt-2 text-[10px]">🔒 Locked</span>'
+        }
       </div>`
     )
     .join("");
@@ -129,13 +138,24 @@ async function ProgressPage(htmlEl) {
   const languagesHTML = Object.entries(p.bestByLanguage)
     .sort((a, b) => b[1] - a[1])
     .map(
-      ([lang, best]) => `
-      <div class="flex items-center justify-between py-2 border-b border-gray-100">
-        <span class="font-medium text-gray-700">${lang.toUpperCase()}</span>
-        <span class="font-bold ${
-          best >= 85 ? "text-green-600" : best >= 70 ? "text-yellow-600" : "text-red-600"
-        }">${best}%</span>
-      </div>`
+      ([lang, best]) => {
+        const barColor =
+          best >= 85
+            ? "from-grass-400 to-grass-600"
+            : best >= 70
+            ? "from-amber-400 to-amber-500"
+            : "from-rose-400 to-rose-500";
+        return `
+      <div class="py-2.5">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="font-extrabold text-slate-700">${lang.toUpperCase()}</span>
+          <span class="font-extrabold text-slate-500 text-sm">${best}%</span>
+        </div>
+        <div class="gd-progress h-2.5">
+          <div class="h-full rounded-full bg-gradient-to-r ${barColor}" style="width: ${best}%"></div>
+        </div>
+      </div>`;
+      }
     )
     .join("");
 
@@ -147,72 +167,85 @@ async function ProgressPage(htmlEl) {
         s.details?.questions?.[0]?.category ||
         "unknown";
       const date = new Date(s.created_at).toLocaleDateString();
+      const scoreColor =
+        s.score >= 85 ? "text-grass-600" : s.score >= 70 ? "text-amber-500" : "text-rose-500";
       return `
-      <div class="border border-gray-200 rounded-lg mb-2">
+      <div class="border-2 border-slate-100 rounded-2xl mb-2">
         <div class="flex items-center justify-between p-3">
-          <div>
-            <span class="font-semibold text-gray-800">${lang.toUpperCase()}</span>
-            <span class="text-sm text-gray-500 ml-2">${date}</span>
-          </div>
           <div class="flex items-center gap-3">
-            <span class="font-bold ${
-              s.score >= 85 ? "text-green-600" : s.score >= 70 ? "text-yellow-600" : "text-red-600"
-            }">${s.score}%</span>
-            <button class="history-review text-sm bg-indigo-600 hover:bg-indigo-700 text-white py-1 px-3 rounded" data-index="${i}">Review</button>
+            <span class="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-sm font-extrabold ${scoreColor}">${s.score}</span>
+            <div>
+              <span class="font-extrabold text-slate-800 block leading-tight">${lang.toUpperCase()}</span>
+              <span class="text-xs text-slate-400">${date}</span>
+            </div>
           </div>
+          <button class="history-review gd-btn gd-btn-secondary !py-1.5 !px-4 !text-xs" data-index="${i}">Review</button>
         </div>
         <div class="history-review-container hidden px-3 pb-3" data-index="${i}"></div>
       </div>`;
     })
     .join("");
 
+  const earnedBadges = p.badges.filter((b) => b.earned).length;
+
   htmlEl.innerHTML = `
-    <div class="max-w-5xl mx-auto space-y-4">
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 class="text-2xl font-bold">Your Progress</h1>
-            <p class="text-gray-500">Level ${p.level} · ${p.xp} XP</p>
+    <div class="max-w-5xl mx-auto space-y-5 animate-fade-up">
+      <!-- Level / XP / streak hero -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-500 text-white shadow-soft p-6 sm:p-8">
+        <div class="absolute -top-8 -right-6 h-36 w-36 rounded-full bg-white/10 blur-2xl"></div>
+        <div class="relative flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="grid h-16 w-16 place-items-center rounded-2xl bg-white/15 text-3xl font-extrabold">${p.level}</div>
+            <div>
+              <h1 class="text-2xl font-extrabold text-white">Level ${p.level}</h1>
+              <p class="text-white/80 font-bold">💎 ${p.xp} XP total</p>
+            </div>
           </div>
-          <div class="text-right">
-            <p class="text-2xl font-bold text-orange-500">🔥 ${p.streak}</p>
-            <p class="text-sm text-gray-500">day streak</p>
+          <div class="flex gap-3">
+            <div class="text-center rounded-2xl bg-white/15 px-4 py-2">
+              <p class="text-2xl font-extrabold">🔥 ${p.streak}</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-white/80">Streak</p>
+            </div>
+            <div class="text-center rounded-2xl bg-white/15 px-4 py-2">
+              <p class="text-2xl font-extrabold">🏅 ${earnedBadges}</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-white/80">Badges</p>
+            </div>
           </div>
         </div>
-        <div class="mt-4">
-          <div class="flex justify-between text-sm text-gray-500 mb-1">
+        <div class="relative mt-6">
+          <div class="flex justify-between text-sm font-bold text-white/90 mb-1.5">
             <span>Level ${p.level}</span>
-            <span>${p.xpIntoLevel} / ${XP_PER_LEVEL} XP to next level</span>
+            <span>${p.xpIntoLevel} / ${XP_PER_LEVEL} XP to Level ${p.level + 1}</span>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-3">
-            <div class="bg-indigo-600 h-3 rounded-full" style="width: ${p.xpIntoLevel}%"></div>
+          <div class="w-full bg-white/20 rounded-full h-3.5 overflow-hidden">
+            <div class="h-full rounded-full bg-gradient-to-r from-grass-300 to-grass-500" style="width: ${p.xpIntoLevel}%"></div>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        ${statCard("Tests Taken", p.totalTests)}
-        ${statCard("Questions Answered", p.totalQuestions)}
-        ${statCard("Accuracy", p.accuracy + "%")}
-        ${statCard("Perfect Scores", p.perfectCount)}
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        ${statCard("Tests Taken", p.totalTests, "📝")}
+        ${statCard("Questions", p.totalQuestions, "❓")}
+        ${statCard("Accuracy", p.accuracy + "%", "🎯")}
+        ${statCard("Perfect Scores", p.perfectCount, "⭐")}
       </div>
 
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-bold mb-4">Badges</h2>
+      <div class="gd-card">
+        <h2 class="text-xl font-extrabold mb-4">🏆 Badges</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">${badgesHTML}</div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-bold mb-2">Best Score by Language</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="gd-card">
+          <h2 class="text-xl font-extrabold mb-3">Best Score by Language</h2>
           ${languagesHTML}
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-bold mb-2">Recent Tests</h2>
+        <div class="gd-card">
+          <h2 class="text-xl font-extrabold mb-3">Recent Tests</h2>
           ${recentHTML}
         </div>
       </div>
-    </div><br/><br/><br/>`;
+    </div>`;
 
   // Expand/collapse per-attempt answer review, reusing buildTysReview from tys.js.
   htmlEl.querySelectorAll(".history-review").forEach((btn) => {

@@ -18,44 +18,85 @@ async function HomePage(htmlEl) {
 
   if (state.current === "home") {
     htmlEl.innerHTML = `
-  <div class="max-w-7xl">
-    <div class="bg-white shadow p-8 rounded-lg">
-      <div class="card-content">
-            <h1 class="text-2xl font-bold mb-4">Welcome to GamifyDev v1.0</h1>
-            <p class="text-xl font-sm p-2">
-              Are you a beginner who struggles to learn how to code? Do you want
-              to learn how to code but don't know where to start? Do you want to
-              learn how to code but don't have access to the internet? Do you
-              want to learn how to code but don't have a laptop? If you answered
-              yes to any of these questions, then you are in the right place.
-            </p>
-            <p class="text-xl font-sm p-2">
-              Yeah! You heard me right, you're in the right place. 
-              Actually, you do need a laptop and a good internet connection to get started. 
-              But, you don't need to know how to code to get started. 
-              You will learn how to code by building projects. So, go and sort
-              out your internet issues, and get a laptop if you don't have one, before moving on.
-            </p>
-            <p class="text-xl font-sm p-2">
-              <span style="color: orange">Warning:</span> This is not a get rich quick scheme. You will not become a 
-              software developer overnight. You will not become a software developer 
-              in a week. You will not become a software developer in a month. You will
-              not become a software developer in a year. We are not here to teach you how to become a software developer.
-              We are here to provide you with the fundamentals of programming and help you build seemingly real-world projects.
-               It is up to you to decide what you want to do with the knowledge you will gain from this platform.
-            </p><br/><br />
-
-            <h2 class="text-2xl font-bold">A message from the creator</h2>
-            <p class="text-xl font-sm p-2">
-            <b>Welcome, fellow web explorers!</b>  I'm <a class="underline text-blue-400" href="https://twitter.com/rademejs" target="_blank">Carlos S. Nah</a>, a software engineer passionate about empowering fellow developers.
-            <b>Navigating the web dev world can be tough, but you're not alone.</b> Finding the right resources and community shouldn't feel like a never-ending quest. <br /><br /> That's why we're building a platform focused on boosting your mental agility and problem-solving skills.
-            Ready to dive deeper and unlock your full potential?    Check out <a href="https://kit.kwagei.com" class="text-blue-400 text-underline" target="_blank">Kwagei Innovators Training</a> for a deeper dive!
-            <b>Don't wait—click the button below to get started!</b>
-            </p>
-            <button id="get-started" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Get Started</button>
+  <div class="space-y-8 animate-fade-up">
+    <!-- Hero -->
+    <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 text-white shadow-soft">
+      <div class="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-grass-400/30 blur-2xl"></div>
+      <div class="absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
+      <div class="relative grid gap-8 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
+        <div>
+          <span class="gd-chip bg-white/15 text-white mb-4">🎮 Learn by playing</span>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+            Level up your<br/>coding skills.
+          </h1>
+          <p class="mt-4 text-lg text-white/90 max-w-md">
+            GamifyDev turns learning to code into a game — earn XP, keep streaks,
+            unlock badges, and build real projects from scratch.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <button id="get-started" class="gd-btn gd-btn-amber">Get Started — it's free</button>
+            <a href="#test" class="gd-btn gd-btn-secondary">Take a quick quiz</a>
+          </div>
+          <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/80 font-bold">
+            <span>⚡ XP & Levels</span>
+            <span>🔥 Daily Streaks</span>
+            <span>🏆 Badges</span>
+            <span>📚 Guided Lessons</span>
+          </div>
+        </div>
+        <div class="hidden lg:flex justify-center">
+          <div class="animate-float text-[10rem] leading-none select-none">👩‍💻</div>
+        </div>
       </div>
-    </div>
-  </div> <br><br>
+    </section>
+
+    <!-- How it works -->
+    <section class="grid gap-4 sm:grid-cols-3">
+      <div class="gd-card-sm flex items-start gap-4">
+        <div class="text-3xl">🎯</div>
+        <div>
+          <h3 class="font-extrabold text-lg">Pick a path</h3>
+          <p class="text-slate-600 text-sm mt-1">Frontend, backend, or fullstack — start where you are.</p>
+        </div>
+      </div>
+      <div class="gd-card-sm flex items-start gap-4">
+        <div class="text-3xl">🧩</div>
+        <div>
+          <h3 class="font-extrabold text-lg">Learn & practice</h3>
+          <p class="text-slate-600 text-sm mt-1">Bite-size lessons and quizzes that actually stick.</p>
+        </div>
+      </div>
+      <div class="gd-card-sm flex items-start gap-4">
+        <div class="text-3xl">🚀</div>
+        <div>
+          <h3 class="font-extrabold text-lg">Build for real</h3>
+          <p class="text-slate-600 text-sm mt-1">Apply the fundamentals to real-world projects.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Creator note -->
+    <section class="gd-card">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="grid h-11 w-11 place-items-center rounded-full bg-brand-100 text-2xl">💬</div>
+        <h2 class="text-xl font-extrabold">A message from the creator</h2>
+      </div>
+      <p class="text-slate-600 leading-relaxed">
+        <b>Welcome, fellow web explorers!</b> I'm
+        <a class="font-bold text-brand-600 underline decoration-2 underline-offset-2" href="https://twitter.com/rademejs" target="_blank" rel="noopener">Carlos S. Nah</a>,
+        a software engineer passionate about empowering fellow developers. Navigating the
+        web-dev world can be tough — but you're not alone. We're building a platform focused
+        on boosting your mental agility and problem-solving skills. Ready to dive deeper?
+        Check out
+        <a href="https://kit.kwagei.com" class="font-bold text-brand-600 underline decoration-2 underline-offset-2" target="_blank" rel="noopener">Kwagei Innovators Training</a>
+        for more.
+      </p>
+      <p class="mt-4 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+        <b>Heads up:</b> this isn't a get-rich-quick scheme. We give you the fundamentals of
+        programming and help you build real projects — what you do with that is up to you.
+      </p>
+    </section>
+  </div>
     `;
 
     const GET_STARTED_BUTTON = document.querySelector("#get-started");
@@ -94,22 +135,32 @@ async function UserInfoSection(htmlEl) {
 
   if (state.current === "user_info") {
     htmlEl.innerHTML = `
-  <div class="card" style="background: #fff; margin: auto; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); transition: 0.3s; border-radius: 5px;">
-  <div class="card-content" style="padding: 2em;">
-      <p class="card-text" style="margin-bottom: 1em;">Enter your name and select your preferred field below to get started.</p>
-      <div class="card-action" style="display: flex; flex-direction: column; gap: 1em;">
-      <input type="text" id="name" placeholder="Enter your name" style="padding: 0.5em; font-size: 1em; border: 1px solid #757195; border-radius: 5px;"/>
-      <select id="preference" style="padding: 0.5em; font-size: 1em; border: 1px solid #757195; border-radius: 5px;">
-      <option value="">Choose your field</option>
-  <option value="fullstack">Fullstack</option>
-  <option value="frontend">Frontend</option>
-  <option value="backend">Backend</option>
-  <option value="notsure">Not sure</option>
-</select>
-          <button id="submit-name" class="submit-button" style="padding: 0.5em; font-size: 1em; background-color: #757195; color: white; border: none; border-radius: 5px; cursor: pointer;">Submit</button>
+  <div class="max-w-lg mx-auto animate-fade-up">
+    <div class="gd-card">
+      <div class="text-center mb-6">
+        <div class="text-4xl mb-2">👋</div>
+        <h1 class="text-2xl font-extrabold">Let's get you set up</h1>
+        <p class="text-slate-500 mt-1">Tell us your name and what you'd like to focus on.</p>
       </div>
+      <div class="space-y-4">
+        <div>
+          <label for="name" class="gd-label">Your name</label>
+          <input type="text" id="name" placeholder="e.g. Ada Lovelace" class="gd-input" />
+        </div>
+        <div>
+          <label for="preference" class="gd-label">Preferred field</label>
+          <select id="preference" class="gd-select">
+            <option value="">Choose your field…</option>
+            <option value="fullstack">Fullstack</option>
+            <option value="frontend">Frontend</option>
+            <option value="backend">Backend</option>
+            <option value="notsure">Not sure yet</option>
+          </select>
+        </div>
+        <button id="submit-name" class="gd-btn gd-btn-primary gd-btn-block">Continue</button>
+      </div>
+    </div>
   </div>
-</div>
   `;
   }
 
@@ -149,20 +200,29 @@ async function PreferenceSection(htmlEl) {
 
   if (state.current === "preference") {
     htmlEl.innerHTML = `
-  <div class="flex justify-center items-center">
-  <div class="bg-white shadow-md rounded p-4">
-  <h1 class="text-xl font-bold mb-4">Current Path Selected: ${user.preference.toUpperCase()}</h1>
-  <p class="mb-4">Hi ${
-    user.name
-  }, welcome to GamifyDev. We are excited to have you here. 
-  You have selected <b>${user.preference.toUpperCase()}</b> as your preferred path, click any of the buttons below to get started.
-  </p>
-  <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-    <button id="get-started" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Take a quiz</button>
-    <button id="scratch" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start from scratch</button>
+  <div class="max-w-3xl mx-auto animate-fade-up">
+    <div class="text-center mb-6">
+      <span class="gd-chip gd-chip-brand mb-3">${user.preference.toUpperCase()} PATH</span>
+      <h1 class="text-2xl sm:text-3xl font-extrabold">Welcome aboard, ${user.name}! 🎉</h1>
+      <p class="text-slate-500 mt-2 max-w-xl mx-auto">
+        You're all set on the <b>${user.preference.toUpperCase()}</b> path. How would you like to begin?
+      </p>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <button id="scratch" class="gd-card text-left hover:shadow-soft hover:-translate-y-0.5 transition-all">
+        <div class="text-4xl mb-3">📚</div>
+        <h2 class="text-xl font-extrabold">Start from scratch</h2>
+        <p class="text-slate-600 mt-1 text-sm">Follow guided lessons step by step and build up from the basics.</p>
+        <span class="gd-chip gd-chip-grass mt-4">Recommended</span>
+      </button>
+      <button id="get-started" class="gd-card text-left hover:shadow-soft hover:-translate-y-0.5 transition-all">
+        <div class="text-4xl mb-3">⚡</div>
+        <h2 class="text-xl font-extrabold">Test yourself</h2>
+        <p class="text-slate-600 mt-1 text-sm">Already know some things? Jump into a timed quiz and earn XP now.</p>
+        <span class="gd-chip gd-chip-slate mt-4">Quick challenge</span>
+      </button>
+    </div>
   </div>
-</div>
-</div><br/><br /> <br />
   `;
 
     const TAKE_QUIZ_BUTTON = document.querySelector("#get-started");

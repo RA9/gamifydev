@@ -80,7 +80,7 @@ function markdownToHtml(md) {
 
   const inline = (s) =>
     esc(s)
-      .replace(/`([^`]+)`/g, '<code class="bg-gray-100 text-pink-600 px-1 rounded">$1</code>')
+      .replace(/`([^`]+)`/g, '<code class="gd-code">$1</code>')
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
       .replace(/\*([^*]+)\*/g, "<em>$1</em>")
       .replace(
@@ -148,23 +148,32 @@ async function scratchPage(htmlEl) {
     const record = recordByTitle[currentNote.title] || {};
     let badge = "";
     let button;
+    let accent = "border-slate-100";
+    let stepIcon = "🔒";
     if (record.is_completed) {
-      badge = `<span class="inline-block text-xs font-semibold text-green-700 bg-green-100 rounded px-2 py-1 mb-2">✓ Completed</span>`;
-      button = `<button onclick="handleNotePage('${currentNote.title.replace(/'/g, "\\'")}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-block">Review</button>`;
+      accent = "border-grass-200";
+      stepIcon = "✓";
+      badge = `<span class="gd-chip gd-chip-grass mb-3">✓ Completed</span>`;
+      button = `<button onclick="handleNotePage('${currentNote.title.replace(/'/g, "\\'")}')" class="gd-btn gd-btn-secondary gd-btn-block">Review lesson</button>`;
     } else if (currentNote.current) {
-      badge = `<span class="inline-block text-xs font-semibold text-blue-700 bg-blue-100 rounded px-2 py-1 mb-2">In Progress</span>`;
-      button = `<button onclick="handleNotePage()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block">Enroll Now</button>`;
+      accent = "border-brand-300 ring-2 ring-brand-200";
+      stepIcon = "▶";
+      badge = `<span class="gd-chip gd-chip-brand mb-3">In Progress</span>`;
+      button = `<button onclick="handleNotePage()" class="gd-btn gd-btn-grass gd-btn-block">Start lesson</button>`;
     } else {
-      badge = `<span class="inline-block text-xs font-semibold text-gray-500 bg-gray-100 rounded px-2 py-1 mb-2">🔒 Locked</span>`;
-      button = `<button class="bg-gray-300 text-white font-bold py-2 px-4 rounded inline-block cursor-not-allowed" disabled>Locked</button>`;
+      badge = `<span class="gd-chip gd-chip-slate mb-3">🔒 Locked</span>`;
+      button = `<button class="gd-btn gd-btn-secondary gd-btn-block" disabled>Locked</button>`;
     }
 
     scratchNotesArray.push(`
-    <div class="bg-white rounded-lg shadow p-8 flex flex-col">
-      <div class="flex-1">
+    <div class="gd-card !p-6 flex flex-col border-2 ${accent}">
+      <div class="flex items-start justify-between gap-3 mb-1">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 text-lg font-extrabold">${stepIcon}</div>
         ${badge}
-        <h2 class="text-2xl font-bold mb-2">${currentNote.title}</h2>
-        <p class="text-gray-700 mb-4">${currentNote.description}</p>
+      </div>
+      <div class="flex-1">
+        <h2 class="text-xl font-extrabold mb-2">${currentNote.title}</h2>
+        <p class="text-slate-600 text-sm mb-5">${currentNote.description}</p>
       </div>
       ${button}
     </div>`);
@@ -173,10 +182,29 @@ async function scratchPage(htmlEl) {
   }
 
   if (state.current === "scratch") {
+    const completedCount = notes.filter((n) => n.is_completed).length;
+    const pct = notes.length ? Math.round((completedCount / notes.length) * 100) : 0;
     htmlEl.innerHTML = `
-        <div class="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-3 gap-4">
-        ${scratchNotesArray.join("")}
-      </div><br /> <br /><br />
+      <div class="animate-fade-up space-y-6">
+        <div class="gd-card">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span class="gd-chip gd-chip-brand mb-2">📚 Your learning path</span>
+              <h1 class="text-2xl font-extrabold">Keep building, one lesson at a time</h1>
+            </div>
+            <div class="text-right">
+              <p class="text-2xl font-extrabold text-grass-600">${completedCount}/${notes.length}</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Completed</p>
+            </div>
+          </div>
+          <div class="gd-progress h-3 mt-4">
+            <div class="gd-progress-fill" style="width: ${pct}%"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${scratchNotesArray.join("")}
+        </div>
+      </div>
         `;
   } else if (state.current === "note") {
     return notePage(document.querySelector("main"));
@@ -225,10 +253,13 @@ async function notePage(htmlEl, requestedTitle) {
 
   if (!current) {
     htmlEl.innerHTML = `
-      <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8">
-        <p class="text-gray-600 mb-4">No lessons are available for this path yet.</p>
-        <button id="back-to-modules" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Back to Modules</button>
-      </div><br/><br/><br/>`;
+      <div class="max-w-2xl mx-auto animate-fade-up">
+        <div class="gd-card text-center">
+          <div class="text-4xl mb-2">🚧</div>
+          <p class="text-slate-600 mb-5">No lessons are available for this path yet.</p>
+          <button id="back-to-modules" class="gd-btn gd-btn-primary">Back to Modules</button>
+        </div>
+      </div>`;
     document.querySelector("#back-to-modules").addEventListener("click", backToModules);
     return;
   }
@@ -244,13 +275,13 @@ async function notePage(htmlEl, requestedTitle) {
 
   const resources = Array.isArray(current.resources) ? current.resources : [];
   const resourcesHtml = resources.length
-    ? `<div class="mt-8 border-t border-gray-200 pt-4">
-         <h3 class="text-lg font-bold mb-2">Resources</h3>
-         <ul class="list-disc pl-6 space-y-1">
+    ? `<div class="mt-8 border-t border-slate-200 pt-5">
+         <h3 class="text-lg font-extrabold mb-3">📎 Resources</h3>
+         <ul class="space-y-2">
            ${resources
              .map(
                (r) =>
-                 `<li><a href="${esc(r.url)}" target="_blank" rel="noopener" class="text-blue-600 underline">${esc(r.title)}</a></li>`
+                 `<li><a href="${esc(r.url)}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 font-bold text-brand-700 hover:bg-brand-100 transition-colors"><span>🔗</span>${esc(r.title)}</a></li>`
              )
              .join("")}
          </ul>
@@ -265,21 +296,21 @@ async function notePage(htmlEl, requestedTitle) {
   const hasQuiz = quizCount > 0;
 
   htmlEl.innerHTML = `
-    <article class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8 prose-gray">
-      ${isReview ? '<span class="inline-block text-xs font-semibold text-green-700 bg-green-100 rounded px-2 py-1 mb-4">✓ Completed lesson</span>' : ""}
+    <article class="max-w-3xl mx-auto gd-card animate-fade-up">
+      ${isReview ? '<span class="gd-chip gd-chip-grass mb-4">✓ Completed lesson</span>' : '<span class="gd-chip gd-chip-brand mb-4">📖 Lesson</span>'}
       ${body}
       ${resourcesHtml}
-      <div class="mt-8 flex flex-wrap justify-between gap-4">
-        <button id="back-to-modules" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Back to Modules</button>
+      <div class="mt-8 flex flex-wrap justify-between gap-3 border-t border-slate-200 pt-6">
+        <button id="back-to-modules" class="gd-btn gd-btn-secondary">← Back to Modules</button>
         ${
           isReview
             ? ""
-            : `<button id="complete-continue" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-          ${hasQuiz ? "Take the Quiz" : hasNext ? "Mark Complete & Continue" : "Finish Path"}
+            : `<button id="complete-continue" class="gd-btn gd-btn-grass">
+          ${hasQuiz ? "Take the Quiz →" : hasNext ? "Mark Complete & Continue →" : "Finish Path 🎉"}
         </button>`
         }
       </div>
-    </article><br/><br/><br/>`;
+    </article>`;
 
   document.querySelector("#back-to-modules").addEventListener("click", backToModules);
 
@@ -335,24 +366,29 @@ async function lessonQuizPage(htmlEl, module, pathName, category) {
   const questionsHtml = quizQuestions
     .map(
       (q, i) => `
-      <div class="lq-question mb-4 border-b border-gray-100 pb-4">
-        <p class="text-lg font-semibold mb-2">${i + 1}. ${escapeHTMLToEntities(q.details.question)}</p>
-        <form>${tysRandomizeOptions(q.details.options).join("")}</form>
+      <div class="lq-question gd-card-sm mb-3">
+        <div class="flex items-start gap-3 mb-3">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-100 text-brand-700 font-extrabold text-sm">${i + 1}</span>
+          <p class="text-lg font-bold pt-0.5">${escapeHTMLToEntities(q.details.question)}</p>
+        </div>
+        <form class="space-y-2">${tysRandomizeOptions(q.details.options).join("")}</form>
       </div>`
     )
     .join("");
 
   htmlEl.innerHTML = `
-    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8">
-      <span class="inline-block text-xs font-semibold text-indigo-700 bg-indigo-100 rounded px-2 py-1 mb-2">Lesson Quiz</span>
-      <h1 class="text-2xl font-bold mb-1">${escapeHTMLToEntities(module.title)}</h1>
-      <p class="text-gray-500 mb-6">Answer these ${quizQuestions.length} questions to check your understanding.</p>
-      ${questionsHtml}
-      <div class="mt-4 flex flex-wrap justify-between gap-4">
-        <button id="lq-skip" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Skip</button>
-        <button id="lq-submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Submit Quiz</button>
+    <div class="max-w-3xl mx-auto animate-fade-up">
+      <div class="text-center mb-6">
+        <span class="gd-chip gd-chip-brand mb-3">🧩 Lesson Quiz</span>
+        <h1 class="text-2xl font-extrabold">${escapeHTMLToEntities(module.title)}</h1>
+        <p class="text-slate-500 mt-1">Answer these ${quizQuestions.length} questions to check your understanding.</p>
       </div>
-    </div><br/><br/><br/>`;
+      ${questionsHtml}
+      <div class="mt-5 flex gap-3">
+        <button id="lq-skip" class="gd-btn gd-btn-secondary flex-1">Skip</button>
+        <button id="lq-submit" class="gd-btn gd-btn-grass flex-[2]">Submit Quiz</button>
+      </div>
+    </div>`;
 
   document
     .querySelector("#lq-skip")
@@ -396,21 +432,27 @@ function lessonQuizResult(htmlEl, module, pathName, result) {
   };
 
   htmlEl.innerHTML = `
-    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8">
-      <h1 class="text-2xl font-bold mb-2">${escapeHTMLToEntities(module.title)} — Quiz Results</h1>
-      <p class="mb-4">You scored
-        <span class="font-bold ${passed ? "text-green-600" : "text-red-600"}">${result.score}%</span>
-        (${result.numCorrect}/${result.questions.length} correct).
-        ${passed ? "Great job! 🎉" : "Review the explanations below, then continue or try again."}
-      </p>
-      <div id="lq-review" class="mb-6">${buildTysReview(reviewData)}</div>
-      <div class="flex flex-wrap justify-between gap-4">
-        <button id="lq-retry" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Retake Quiz</button>
-        <button id="lq-continue" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-          ${module.next ? "Complete & Continue" : "Finish Path"}
-        </button>
+    <div class="max-w-3xl mx-auto animate-fade-up">
+      <div class="gd-card">
+        <div class="text-center mb-6">
+          <div class="text-5xl mb-2">${passed ? "🎉" : "💪"}</div>
+          <h1 class="text-2xl font-extrabold mb-2">${escapeHTMLToEntities(module.title)}</h1>
+          <p class="text-slate-600">
+            You scored
+            <span class="font-extrabold ${passed ? "text-grass-600" : "text-rose-500"}">${result.score}%</span>
+            (${result.numCorrect}/${result.questions.length} correct).
+            ${passed ? "Great job!" : "Review the explanations below, then continue or try again."}
+          </p>
+        </div>
+        <div id="lq-review" class="mb-6">${buildTysReview(reviewData)}</div>
+        <div class="flex gap-3">
+          <button id="lq-retry" class="gd-btn gd-btn-secondary flex-1">Retake Quiz</button>
+          <button id="lq-continue" class="gd-btn gd-btn-grass flex-1">
+            ${module.next ? "Continue →" : "Finish Path 🎉"}
+          </button>
+        </div>
       </div>
-    </div><br/><br/><br/>`;
+    </div>`;
 
   document
     .querySelector("#lq-retry")

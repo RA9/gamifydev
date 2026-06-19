@@ -1,48 +1,248 @@
+/* Friendly rounded display face. Falls back to a system rounded stack offline. */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Dark mode.
- * The UI is built from utility classes scattered across many JS template
- * strings, so instead of adding `dark:` variants to every string we remap the
- * handful of common surface/text/border utilities when `.dark` is on <html>.
- * `.dark .foo` (two classes) outranks Tailwind's single-class `.foo`, so these
- * win without !important.
- */
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-sans antialiased text-slate-700;
+    /* Soft, airy backdrop with a faint brand wash at the top. */
+    background-color: #f6f6fb;
+    background-image: radial-gradient(
+        1200px 480px at 50% -10%,
+        rgba(120, 87, 247, 0.12),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 400px at 100% 0%,
+        rgba(88, 204, 2, 0.08),
+        transparent 55%
+      );
+    background-attachment: fixed;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-extrabold tracking-tight text-slate-800;
+  }
+  /* Visible, friendly focus ring for keyboard users. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    @apply outline-none ring-4 ring-brand-300/60 ring-offset-2 ring-offset-transparent rounded-xl;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Components
+ * ------------------------------------------------------------------ */
+@layer components {
+  /* Card surface ------------------------------------------------------ */
+  .gd-card {
+    @apply bg-white rounded-3xl shadow-soft border border-slate-100 p-6 sm:p-8;
+  }
+  .gd-card-sm {
+    @apply bg-white rounded-2xl shadow-card border border-slate-100 p-4 sm:p-5;
+  }
+
+  /* Buttons: tactile "press" with a darker bottom edge ---------------- */
+  .gd-btn {
+    @apply inline-flex items-center justify-center gap-2 select-none
+      font-extrabold uppercase tracking-wide text-sm sm:text-base
+      px-5 py-3 rounded-2xl border-b-4 cursor-pointer
+      transition-all duration-100 active:translate-y-0.5 active:border-b-0 active:mt-1
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:active:border-b-4 disabled:active:mt-0;
+  }
+  .gd-btn-primary {
+    @apply bg-brand-500 hover:bg-brand-600 text-white border-brand-700;
+  }
+  .gd-btn-grass {
+    @apply bg-grass-500 hover:bg-grass-600 text-white border-grass-700;
+  }
+  .gd-btn-secondary {
+    @apply bg-white hover:bg-slate-50 text-slate-700 border-slate-300 border-b-4;
+  }
+  .gd-btn-danger {
+    @apply bg-rose-500 hover:bg-rose-600 text-white border-rose-700;
+  }
+  .gd-btn-amber {
+    @apply bg-amber-400 hover:bg-amber-500 text-amber-950 border-amber-600;
+  }
+  .gd-btn-block {
+    @apply w-full;
+  }
+
+  /* Chips / pills ----------------------------------------------------- */
+  .gd-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide;
+  }
+  .gd-chip-brand {
+    @apply bg-brand-100 text-brand-700;
+  }
+  .gd-chip-grass {
+    @apply bg-grass-100 text-grass-700;
+  }
+  .gd-chip-amber {
+    @apply bg-amber-100 text-amber-700;
+  }
+  .gd-chip-slate {
+    @apply bg-slate-100 text-slate-500;
+  }
+
+  /* Form controls ----------------------------------------------------- */
+  .gd-input,
+  .gd-select {
+    @apply block w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3
+      text-base font-semibold text-slate-700 placeholder:text-slate-400 placeholder:font-normal
+      focus:border-brand-400 focus:outline-none transition-colors;
+  }
+  .gd-label {
+    @apply block text-sm font-extrabold uppercase tracking-wide text-slate-500 mb-2;
+  }
+
+  /* Progress bar ------------------------------------------------------ */
+  .gd-progress {
+    @apply w-full bg-slate-200 rounded-full overflow-hidden;
+  }
+  .gd-progress-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-grass-400 to-grass-600;
+  }
+  .gd-progress-fill-brand {
+    @apply h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600;
+  }
+
+  /* Quiz answer option (label acts as a selectable tile) -------------- */
+  .gd-option {
+    @apply flex items-center gap-3 rounded-2xl border-2 border-slate-200 bg-white
+      px-4 py-3 cursor-pointer font-semibold text-slate-700
+      transition-all hover:border-brand-300 hover:bg-brand-50;
+  }
+  .gd-option-selected {
+    @apply border-brand-500 bg-brand-50 text-brand-800;
+  }
+  /* A radio option whose input is checked gets the selected treatment. */
+  .gd-option:has(input:checked) {
+    @apply border-brand-500 bg-brand-50 text-brand-800;
+  }
+
+  /* Inline code inside lesson markdown -------------------------------- */
+  .gd-code {
+    @apply rounded-md bg-brand-50 px-1.5 py-0.5 font-mono text-[0.9em] text-brand-700;
+  }
+
+  /* Top nav link ------------------------------------------------------ */
+  .gd-nav-link {
+    @apply relative font-bold text-white/85 hover:text-white transition-colors px-1 py-1;
+  }
+  .gd-nav-link.active {
+    @apply text-white;
+  }
+  .gd-nav-link.active::after {
+    content: "";
+    @apply absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-white/90;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Dark mode
+ * The UI is assembled from utility classes spread across many JS template
+ * strings, so rather than annotate each one we remap the common surface /
+ * text / border utilities (and our component classes) when `.dark` is set on
+ * <html>. `.dark .foo` outranks Tailwind's single-class `.foo`.
+ * ------------------------------------------------------------------ */
 .dark body {
   color: #e2e8f0;
+  background-color: #0b1020;
+  background-image: radial-gradient(
+      1200px 480px at 50% -10%,
+      rgba(120, 87, 247, 0.22),
+      transparent 60%
+    ),
+    radial-gradient(900px 400px at 100% 0%, rgba(88, 204, 2, 0.1), transparent 55%);
 }
-.dark body,
 .dark .bg-gray-100 {
-  background-color: #0f172a;
+  background-color: #0b1020;
 }
-.dark .bg-white {
-  background-color: #1e293b;
+.dark .bg-white,
+.dark .gd-card,
+.dark .gd-card-sm {
+  background-color: #161c30;
   color: #e2e8f0;
+  border-color: #25304d;
 }
-.dark .bg-gray-50 {
-  background-color: #334155;
-}
-.dark .bg-gray-200 {
-  background-color: #334155;
-}
-.dark .text-gray-800 {
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4 {
   color: #f1f5f9;
 }
-.dark .text-gray-700 {
+.dark .bg-gray-50 {
+  background-color: #1b2236;
+}
+.dark .bg-gray-200,
+.dark .gd-progress {
+  background-color: #2a3450;
+}
+.dark .text-gray-800,
+.dark .text-slate-800 {
+  color: #f1f5f9;
+}
+.dark .text-gray-700,
+.dark .text-slate-700 {
   color: #e2e8f0;
 }
-.dark .text-gray-600 {
+.dark .text-gray-600,
+.dark .text-slate-600 {
   color: #cbd5e1;
 }
-.dark .text-gray-500 {
+.dark .text-gray-500,
+.dark .text-slate-500 {
   color: #94a3b8;
 }
 .dark .border-gray-100,
 .dark .border-gray-200,
-.dark .border-gray-300 {
-  border-color: #334155;
+.dark .border-gray-300,
+.dark .border-slate-100,
+.dark .border-slate-200 {
+  border-color: #25304d;
+}
+
+/* Form controls in dark. */
+.dark .gd-input,
+.dark .gd-select {
+  background-color: #1b2236;
+  border-color: #2a3450;
+  color: #e2e8f0;
+}
+
+/* Secondary button stays legible on dark surfaces. */
+.dark .gd-btn-secondary {
+  background-color: #1b2236;
+  color: #e2e8f0;
+  border-color: #2a3450;
+}
+
+/* Quiz options in dark. */
+.dark .gd-option {
+  background-color: #1b2236;
+  border-color: #2a3450;
+  color: #e2e8f0;
+}
+.dark .gd-option-selected {
+  background-color: #2a2356;
+  border-color: #7857f7;
+  color: #d2cdff;
 }
 
 /* Status chips and review highlights: darker tints that stay readable. */
@@ -58,14 +258,18 @@
 .dark .text-red-800 {
   color: #fecaca;
 }
-.dark .bg-green-100 {
+.dark .bg-green-100,
+.dark .gd-chip-grass {
   background-color: #065f46;
+  color: #bbf7d0;
 }
 .dark .text-green-700 {
   color: #bbf7d0;
 }
-.dark .bg-blue-100 {
-  background-color: #1e3a8a;
+.dark .bg-blue-100,
+.dark .gd-chip-brand {
+  background-color: #312e81;
+  color: #c7d2fe;
 }
 .dark .text-blue-700 {
   color: #bfdbfe;
@@ -76,4 +280,16 @@
 }
 .dark .text-indigo-700 {
   color: #c7d2fe;
+}
+.dark .gd-chip-slate {
+  background-color: #2a3450;
+  color: #cbd5e1;
+}
+.dark .gd-chip-amber {
+  background-color: #78350f;
+  color: #fde68a;
+}
+.dark .gd-code {
+  background-color: #2a2356;
+  color: #c7b8ff;
 }

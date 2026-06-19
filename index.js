@@ -1,22 +1,8 @@
-// if ('serviceWorker' in navigator) {
-//     navigator.serviceWorker.register('./service-worker.js');
-
-//     navigator.serviceWorker.addEventListener('message', (event) => {
-//         if (event.data && event.data.type === 'CACHE_UPDATED') {
-//           // Reload the page when the cache is updated
-//           window.location.reload(true);
-//         }
-//       });
-// }
-
-
 function displayContent() {
     const page = document.querySelector('main');
     const currentURL = (window.location.href).split('#')[1];
-    // console.log(currentURL);
     switch (currentURL) {
         case 'about':
-            console.log('about');
             AboutPage(page);
             break;
         case 'contact':
@@ -31,10 +17,46 @@ function displayContent() {
         default:
             HomePage(page);
     }
+    updateActiveNav(currentURL);
+    updateHud();
 }
 
+// Highlight the nav link matching the current route.
+function updateActiveNav(route) {
+    document.querySelectorAll('[data-route]').forEach((el) => {
+        el.classList.toggle('active', el.dataset.route === route);
+    });
+}
+
+// Populate the header HUD (streak + XP) from past quiz attempts. Reuses the
+// helpers defined in progress.js (computeStreak, XP_PER_CORRECT). Stays hidden
+// until the learner has at least one recorded attempt.
+async function updateHud() {
+    const hud = document.getElementById('gd-hud');
+    if (!hud || typeof DB === 'undefined') return;
+    try {
+        const scores = await DB.scores.toArray();
+        if (!scores.length) {
+            hud.classList.add('hidden');
+            hud.classList.remove('flex');
+            return;
+        }
+        const totalCorrect = scores.reduce((a, s) => a + (s.numCorrect || 0), 0);
+        const xp = totalCorrect * (typeof XP_PER_CORRECT !== 'undefined' ? XP_PER_CORRECT : 10);
+        const streak = typeof computeStreak === 'function'
+            ? computeStreak(scores.map((s) => s.created_at))
+            : 0;
+        const streakEl = document.getElementById('gd-hud-streak');
+        const xpEl = document.getElementById('gd-hud-xp');
+        if (streakEl) streakEl.textContent = streak;
+        if (xpEl) xpEl.textContent = xp;
+        hud.classList.remove('hidden');
+        hud.classList.add('flex');
+    } catch (e) {
+        // No data yet / DB not ready — leave the HUD hidden.
+    }
+}
 
 displayContent();
 
 window.addEventListener('hashchange', displayContent);
-

@@ -26,3 +26,21 @@ function toggleTheme() {
 }
 
 document.addEventListener("DOMContentLoaded", updateThemeToggleIcons);
+
+// --- Mobile navigation menu -------------------------------------------------
+function toggleMobileMenu() {
+  const menu = document.getElementById("gd-mobile-menu");
+  const btn = document.getElementById("gd-menu-btn");
+  if (!menu) return;
+  const open = menu.classList.toggle("hidden") === false;
+  if (btn) btn.setAttribute("aria-expanded", String(open));
+}
+
+function closeMobileMenu() {
+  const menu = document.getElementById("gd-mobile-menu");
+  const btn = document.getElementById("gd-menu-btn");
+  if (menu && !menu.classList.contains("hidden")) {
+    menu.classList.add("hidden");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+}

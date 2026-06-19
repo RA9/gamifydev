@@ -16,27 +16,80 @@ async function TestPage(htmlEl) {
         });
 
   if (state.current === "tys") {
+    const languages = [
+      { value: "html", label: "HTML", icon: "🧱" },
+      { value: "css", label: "CSS", icon: "🎨" },
+      { value: "javascript", label: "JavaScript", icon: "⚡" },
+      { value: "c", label: "C", icon: "🔧" },
+      { value: "python", label: "Python", icon: "🐍" },
+      { value: "java", label: "Java", icon: "☕" },
+      { value: "sql", label: "SQL", icon: "🗄️" },
+    ];
+
     htmlEl.innerHTML = `
-      <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
-    <div class="mb-4">
-      <label for="language" class="block text-gray-700 text-sm font-bold mb-2">Choose a language:</label>
-      <select id="language" name="language" class="block w-full bg-white border border-gray-400 rounded py-2 px-3">
-        <option value="html">HTML</option>
-        <option value="css">CSS</option>
-        <option value="javascript">JavaScript</option>
-        <option value="c">C</option>
-        <option value="python">Python</option>
-        <option value="java">Java</option>
-        <option value="sql">SQL</option>
-      </select>
-    </div>
-    <div class="mb-4">
-      <label for="numQuestions" class="block text-gray-700 text-sm font-bold mb-2">Number of questions:</label>
-      <input id="numQuestions" name="numQuestions" type="number" value="20" class="block w-full bg-white border border-gray-400 rounded py-2 px-3">
-    </div>
-    <button id="start-tys" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start</button>
-  </div>
+      <div class="max-w-3xl mx-auto animate-fade-up">
+        <div class="text-center mb-6">
+          <span class="gd-chip gd-chip-brand mb-3">⚡ Test Yourself</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold">Choose your challenge</h1>
+          <p class="text-slate-500 mt-1">Pick a language and how many questions you want.</p>
+        </div>
+        <div class="gd-card space-y-6">
+          <div>
+            <span class="gd-label">Language</span>
+            <input type="hidden" id="language" value="html" />
+            <div id="lang-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              ${languages
+                .map(
+                  (l, i) => `
+                <button type="button" data-lang="${l.value}"
+                  class="lang-tile gd-option justify-center flex-col gap-1 py-4 ${
+                    i === 0 ? "gd-option-selected" : ""
+                  }">
+                  <span class="text-2xl">${l.icon}</span>
+                  <span class="text-sm font-extrabold">${l.label}</span>
+                </button>`
+                )
+                .join("")}
+            </div>
+          </div>
+
+          <div>
+            <label for="numQuestions" class="gd-label">Number of questions</label>
+            <div class="flex items-center gap-3">
+              <input id="numQuestions" name="numQuestions" type="number" min="1" max="50" value="20" class="gd-input w-28 text-center" />
+              <div class="flex gap-2">
+                ${[10, 20, 30]
+                  .map(
+                    (n) =>
+                      `<button type="button" class="num-preset gd-btn gd-btn-secondary !py-2 !px-4 !text-sm" data-num="${n}">${n}</button>`
+                  )
+                  .join("")}
+              </div>
+            </div>
+          </div>
+
+          <button id="start-tys" class="gd-btn gd-btn-grass gd-btn-block">Start Quiz</button>
+        </div>
+      </div>
       `;
+
+    // Language tile selection -> hidden input.
+    htmlEl.querySelectorAll(".lang-tile").forEach((tile) => {
+      tile.addEventListener("click", () => {
+        htmlEl
+          .querySelectorAll(".lang-tile")
+          .forEach((t) => t.classList.remove("gd-option-selected"));
+        tile.classList.add("gd-option-selected");
+        document.querySelector("#language").value = tile.dataset.lang;
+      });
+    });
+
+    // Quick presets for question count.
+    htmlEl.querySelectorAll(".num-preset").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelector("#numQuestions").value = btn.dataset.num;
+      });
+    });
 
     const START_TYS_BUTTON = document.querySelector("#start-tys");
 
@@ -75,12 +128,12 @@ function tysRandomizeOptions(options, answer = null) {
   return randomOptions.map((option) => {
     const id = randomID();
     return `
-    <div class="mb-4 px-2">
-            <input type="radio" id="${id}" name="option" value="${escapeHTMLToEntities(
+    <label for="${id}" class="gd-option mb-2">
+      <input type="radio" id="${id}" name="option" value="${escapeHTMLToEntities(
       option
-    )}">
-            <label for="${id}">${escapeHTMLToEntities(option)}</label>
-    </div>
+    )}" class="h-5 w-5 shrink-0 accent-brand-500">
+      <span>${escapeHTMLToEntities(option)}</span>
+    </label>
   `;
   });
 }
@@ -122,7 +175,7 @@ function tysCountDown(duration) {
       clearInterval(interval);
       document.querySelector(
         "#tys-duration"
-      ).innerHTML = `<span class="text-red-400">Time is up!</span>`;
+      ).innerHTML = `<span class="text-rose-500">⏰ Time's up!</span>`;
       // Lock in the current answers and auto-submit when time runs out.
       document.querySelectorAll("input[type=radio]").forEach((el) => {
         el.classList.add("cursor-not-allowed");
@@ -130,9 +183,12 @@ function tysCountDown(duration) {
       });
       document.querySelector("#tys-submit")?.click();
     } else {
+      const low = timer <= 10;
       document.querySelector(
         "#tys-duration"
-      ).innerHTML = `<span class="text-green-400">${minutes}:${seconds} seconds</span>`;
+      ).innerHTML = `<span class="${
+        low ? "text-rose-500" : "text-grass-600"
+      }">⏱ ${minutes}:${seconds}</span>`;
       timer--;
     }
   }, 1000);
@@ -170,17 +226,22 @@ async function TestYourselfSection(htmlEl) {
   // console.log({ testQuestions });
 
   if (state.current === "tys-quiz") {
+    const total = [].concat(testQuestions.questions).length;
     const elHTML = [].concat(testQuestions.questions).map((question, index) => {
       return `
-      <div class="question mb-2">
-      <p class="text-lg font-bold mb-4">${index + 1}. ${escapeHTMLToEntities(
-        question.details.question
-      )}</p>
-      <form>
-        ${tysRandomizeOptions(question.details.options).join("")}
-      </form>
+      <div class="question gd-card-sm">
+        <div class="flex items-start gap-3 mb-4">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-100 text-brand-700 font-extrabold text-sm">${
+            index + 1
+          }</span>
+          <p class="text-lg font-bold pt-0.5">${escapeHTMLToEntities(
+            question.details.question
+          )}</p>
+        </div>
+        <form class="space-y-2">
+          ${tysRandomizeOptions(question.details.options).join("")}
+        </form>
       </div>
-      <br/>
       `;
     });
 
@@ -203,17 +264,26 @@ async function TestYourselfSection(htmlEl) {
     }, 0);
 
     htmlEl.innerHTML = `
-        <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-8">
-        <div class="flex justify-between gap-4">
-         <p class="text-lg font-bold mb-4">Language: ${test.language.toUpperCase()}</p>
-          <p id="tys-duration" class="text-lg font-bold mb-4"></p>
+      <div class="max-w-3xl mx-auto animate-fade-up">
+        <div class="sticky top-16 z-30 -mx-4 px-4 py-3 mb-4 bg-white/80 dark:bg-slate-900/70 backdrop-blur rounded-b-2xl border-b border-slate-200/70">
+          <div class="flex items-center justify-between gap-4">
+            <span class="gd-chip gd-chip-brand">${test.language.toUpperCase()}</span>
+            <span class="text-sm font-bold text-slate-500">${total} question${
+      total === 1 ? "" : "s"
+    }</span>
+            <span id="tys-duration" class="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 font-extrabold text-sm"></span>
+          </div>
         </div>
-        ${elHTML.join("")} <br/>
-        <div class="flex justify-between gap-4">
-        <button id="tys-cancel" class="w-full bg-red-500 hover:bg-reds-700 text-white font-bold py-2 px-4 rounded">Cancel</button>
-        <button id="tys-submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
+
+        <div class="space-y-4">
+          ${elHTML.join("")}
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button id="tys-cancel" class="gd-btn gd-btn-secondary flex-1">Cancel</button>
+          <button id="tys-submit" class="gd-btn gd-btn-grass flex-[2]">Submit Quiz</button>
+        </div>
       </div>
-      </div><br/><br/><br/>
     `;
 
     tysCountDown(sumDuration);
@@ -338,16 +408,16 @@ function buildTysReview(testDetails) {
         .map((opt) => {
           const isCorrectOpt = opt === correct;
           const isChosenWrong = opt === chosen && !isCorrectOpt;
-          let cls = "border-gray-200 text-gray-700";
+          let cls = "border-slate-200 text-slate-600";
           let tag = "";
           if (isCorrectOpt) {
             cls = "border-green-500 bg-green-50 text-green-800";
-            tag = ` <span class="font-semibold">✓ correct answer</span>`;
+            tag = ` <span class="font-extrabold">✓ correct answer</span>`;
           } else if (isChosenWrong) {
             cls = "border-red-500 bg-red-50 text-red-800";
-            tag = ` <span class="font-semibold">✗ your answer</span>`;
+            tag = ` <span class="font-extrabold">✗ your answer</span>`;
           }
-          return `<li class="border ${cls} rounded px-3 py-2 mb-1 list-none">${escapeHTMLToEntities(
+          return `<li class="border-2 ${cls} rounded-xl px-3 py-2 mb-1.5 list-none font-semibold">${escapeHTMLToEntities(
             opt
           )}${tag}</li>`;
         })
@@ -392,25 +462,56 @@ async function TestResultPage(htmlEl) {
   console.log({ testDetails }, "What is this");
 
   if (state.current === "tys-quiz-result") {
-    htmlEl.innerHTML = `
-      <div class="max-w-6xl mx-auto bg-white rounded-lg shadow p-8">
-        <h1 class="font-medium text-2xl">Results of ${test.language.toUpperCase()} test.</h1>
-        <p class="py-4">You got ${testDetails.numCorrect} correct and ${
-      testDetails.numWrong
-    } wrong. You total score is <span class="text-${
-      testDetails.score > 70
-        ? testDetails.score > 85
-          ? "green"
-          : "yellow"
-        : "red"
-    }-500">${testDetails.score}%</span>.
+    const score = testDetails.score;
+    const tone = score >= 85 ? "grass" : score >= 70 ? "amber" : "rose";
+    const ringColor =
+      tone === "grass" ? "#46a302" : tone === "amber" ? "#f59e0b" : "#f43f5e";
+    const headline =
+      score >= 85
+        ? "Outstanding! 🎉"
+        : score >= 70
+        ? "Nice work! 👏"
+        : "Keep practicing! 💪";
+    const xpEarned = testDetails.numCorrect * 10;
 
-     </p>
-        <button id="tys-review" class="w-full mb-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Review Answers</button>
-        <div id="tys-review-container" class="hidden mb-4"></div>
-        <div class="flex justify-between gap-4">
-          <button id="home" class="w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Back to Home</button>
-          <button id="tys-another" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Take Another</button>
+    htmlEl.innerHTML = `
+      <div class="max-w-2xl mx-auto animate-fade-up">
+        <div class="gd-card text-center">
+          <p class="gd-chip gd-chip-brand mx-auto mb-4">${test.language.toUpperCase()} Results</p>
+          <h1 class="text-2xl sm:text-3xl font-extrabold mb-6">${headline}</h1>
+
+          <div class="relative mx-auto h-40 w-40 mb-6">
+            <div class="absolute inset-0 rounded-full"
+              style="background: conic-gradient(${ringColor} ${score}%, rgba(148,163,184,0.2) 0);"></div>
+            <div class="absolute inset-[10px] rounded-full bg-white dark:bg-[#161c30] grid place-items-center">
+              <div>
+                <p class="text-4xl font-extrabold">${score}<span class="text-xl">%</span></p>
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Score</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="rounded-2xl bg-grass-50 border border-grass-200 py-3">
+              <p class="text-2xl font-extrabold text-grass-600">${testDetails.numCorrect}</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Correct</p>
+            </div>
+            <div class="rounded-2xl bg-rose-50 border border-rose-200 py-3">
+              <p class="text-2xl font-extrabold text-rose-500">${testDetails.numWrong}</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Wrong</p>
+            </div>
+            <div class="rounded-2xl bg-amber-50 border border-amber-200 py-3">
+              <p class="text-2xl font-extrabold text-amber-500">+${xpEarned}</p>
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">XP 💎</p>
+            </div>
+          </div>
+
+          <button id="tys-review" class="gd-btn gd-btn-secondary gd-btn-block mb-3">Review Answers</button>
+          <div id="tys-review-container" class="hidden mb-4 text-left"></div>
+          <div class="flex gap-3">
+            <button id="home" class="gd-btn gd-btn-secondary flex-1">Home</button>
+            <button id="tys-another" class="gd-btn gd-btn-primary flex-1">Take Another</button>
+          </div>
         </div>
       </div>
       `;
