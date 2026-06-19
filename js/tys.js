@@ -323,6 +323,63 @@ function calculateQuizScore(testQuestions, selectedOptions) {
   return { score, numCorrect, numWrong };
 }
 
+// Builds the per-question review: highlights the correct option, flags the
+// user's wrong pick, and shows the explanation for each question.
+function buildTysReview(testDetails) {
+  const { questions, selectedOptions } = testDetails.details;
+
+  return questions
+    .map((q, i) => {
+      const correct = q.details.answer;
+      const chosen = selectedOptions[i];
+      const isRight = chosen === correct;
+
+      const optionsHTML = q.details.options
+        .map((opt) => {
+          const isCorrectOpt = opt === correct;
+          const isChosenWrong = opt === chosen && !isCorrectOpt;
+          let cls = "border-gray-200 text-gray-700";
+          let tag = "";
+          if (isCorrectOpt) {
+            cls = "border-green-500 bg-green-50 text-green-800";
+            tag = ` <span class="font-semibold">✓ correct answer</span>`;
+          } else if (isChosenWrong) {
+            cls = "border-red-500 bg-red-50 text-red-800";
+            tag = ` <span class="font-semibold">✗ your answer</span>`;
+          }
+          return `<li class="border ${cls} rounded px-3 py-2 mb-1 list-none">${escapeHTMLToEntities(
+            opt
+          )}${tag}</li>`;
+        })
+        .join("");
+
+      return `
+      <div class="border-b border-gray-200 py-4">
+        <p class="font-bold mb-2">${i + 1}. ${escapeHTMLToEntities(
+        q.details.question
+      )}
+          <span class="text-sm font-normal ${
+            isRight ? "text-green-600" : "text-red-600"
+          }">(${isRight ? "Correct" : "Incorrect"})</span>
+        </p>
+        <ul class="mb-2">${optionsHTML}</ul>
+        ${
+          chosen === null
+            ? '<p class="text-sm text-gray-500 mb-1">You did not answer this question.</p>'
+            : ""
+        }
+        ${
+          q.details.explanation
+            ? `<p class="text-sm text-gray-600"><span class="font-semibold">Explanation:</span> ${escapeHTMLToEntities(
+                q.details.explanation
+              )}</p>`
+            : ""
+        }
+      </div>`;
+    })
+    .join("");
+}
+
 async function TestResultPage(htmlEl) {
   const state = (await DB.states.where("name").equals("tys").toArray())[0];
   const test = await DB.tests
@@ -349,12 +406,30 @@ async function TestResultPage(htmlEl) {
     }-500">${testDetails.score}%</span>.
 
      </p>
+        <button id="tys-review" class="w-full mb-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Review Answers</button>
+        <div id="tys-review-container" class="hidden mb-4"></div>
         <div class="flex justify-between gap-4">
           <button id="home" class="w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Back to Home</button>
           <button id="tys-another" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Take Another</button>
         </div>
       </div>
       `;
+
+    const REVIEW_BUTTON = document.querySelector("#tys-review");
+    const REVIEW_CONTAINER = document.querySelector("#tys-review-container");
+    REVIEW_BUTTON.addEventListener("click", () => {
+      if (REVIEW_CONTAINER.classList.contains("hidden")) {
+        if (!REVIEW_CONTAINER.dataset.rendered) {
+          REVIEW_CONTAINER.innerHTML = buildTysReview(testDetails);
+          REVIEW_CONTAINER.dataset.rendered = "true";
+        }
+        REVIEW_CONTAINER.classList.remove("hidden");
+        REVIEW_BUTTON.textContent = "Hide Review";
+      } else {
+        REVIEW_CONTAINER.classList.add("hidden");
+        REVIEW_BUTTON.textContent = "Review Answers";
+      }
+    });
 
     document.querySelector("#home").addEventListener("click", () => {
       window.location.hash = "";
