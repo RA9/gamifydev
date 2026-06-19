@@ -63,7 +63,12 @@
     {
       "id": "@3k4j5h6342j3h9",
       "question": "Which of the following is not a JavaScript Data Type?",
-      "options": ["Undefined", "Number", "Boolean", "Float"],
+      "options": [
+        "Undefined",
+        "Number",
+        "Boolean",
+        "Float"
+      ],
       "answer": "Float",
       "explanation": "Float is not a JavaScript Data Type",
       "difficulty": "easy",
@@ -598,7 +603,12 @@
     {
       "id": "Q627",
       "question": "What is the default branch name in Git?",
-      "options": ["master", "main", "branch1", "default"],
+      "options": [
+        "master",
+        "main",
+        "branch1",
+        "default"
+      ],
       "answer": "main",
       "explanation": "The default branch name in Git has transitioned from 'master' to 'main' in many repositories to promote inclusive language.",
       "difficulty": "Easy",
@@ -638,7 +648,12 @@
     {
       "id": "Q943",
       "question": "In what year was the first website created?",
-      "options": ["1985", "1991", "1995", "2000"],
+      "options": [
+        "1985",
+        "1991",
+        "1995",
+        "2000"
+      ],
       "answer": "1991",
       "explanation": "The first website, created by Tim Berners-Lee, went live in 1991. It was a simple page providing information about the World Wide Web project.",
       "difficulty": "Intermediate",
@@ -663,7 +678,12 @@
     {
       "id": "Q207",
       "question": "What is the Git command used to view the commit history?",
-      "options": ["git log", "git status", "git commit", "git diff"],
+      "options": [
+        "git log",
+        "git status",
+        "git commit",
+        "git diff"
+      ],
       "answer": "git log",
       "explanation": "The 'git log' command displays the commit history of a Git repository, showing information about each commit.",
       "difficulty": "Easy",
@@ -836,70 +856,120 @@
     },
     {
       "question": "What is the purpose of the 'let' keyword in JavaScript?",
-      "options": ["To declare a variable with block scope.", "To create a constant variable.", "To define a function.", "To import external libraries."],
+      "options": [
+        "To declare a variable with block scope.",
+        "To create a constant variable.",
+        "To define a function.",
+        "To import external libraries."
+      ],
       "category": "Variables",
       "duration": "2 minutes",
       "answer": "To declare a variable with block scope."
     },
     {
       "question": "How can you check the type of a variable in JavaScript?",
-      "options": ["Using the 'variableType()' function.", "By using the 'typeof' operator.", "By inspecting the variable's memory address.", "By using the 'checkType()' function."],
+      "options": [
+        "Using the 'variableType()' function.",
+        "By using the 'typeof' operator.",
+        "By inspecting the variable's memory address.",
+        "By using the 'checkType()' function."
+      ],
       "category": "Data Types",
       "duration": "1.5 minutes",
       "answer": "By using the 'typeof' operator."
     },
     {
       "question": "What is the purpose of the 'async' keyword in JavaScript?",
-      "options": ["To create asynchronous functions.", "To define a constant variable.", "To import external libraries.", "To handle exceptions."],
+      "options": [
+        "To create asynchronous functions.",
+        "To define a constant variable.",
+        "To import external libraries.",
+        "To handle exceptions."
+      ],
       "category": "Asynchronous Programming",
       "duration": "2 minutes",
       "answer": "To create asynchronous functions."
     },
     {
       "question": "How can you add an event listener to a DOM element in JavaScript?",
-      "options": ["By using the 'attachEvent' method.", "By using the 'addEventListener' method.", "By using the 'onEvent' property.", "By using the 'listenTo' function."],
+      "options": [
+        "By using the 'attachEvent' method.",
+        "By using the 'addEventListener' method.",
+        "By using the 'onEvent' property.",
+        "By using the 'listenTo' function."
+      ],
       "category": "DOM Manipulation",
       "duration": "1 minute",
       "answer": "By using the 'addEventListener' method."
     },
     {
       "question": "What is the purpose of the 'this' keyword in JavaScript?",
-      "options": ["To reference the current function.", "To create a new instance of an object.", "To refer to the global object.", "To refer to the calling object."],
+      "options": [
+        "To reference the current function.",
+        "To create a new instance of an object.",
+        "To refer to the global object.",
+        "To refer to the calling object."
+      ],
       "category": "Functions and Objects",
       "duration": "2 minutes",
       "answer": "To refer to the calling object."
     },
     {
       "question": "How can you create a promise in JavaScript?",
-      "options": ["By using the 'new Promise()' constructor.", "By using the 'Promise.create()' method.", "By using the 'async/await' keywords.", "By using the 'Promise.then()' method."],
+      "options": [
+        "By using the 'new Promise()' constructor.",
+        "By using the 'Promise.create()' method.",
+        "By using the 'async/await' keywords.",
+        "By using the 'Promise.then()' method."
+      ],
       "category": "Promises",
       "duration": "2.5 minutes",
       "answer": "By using the 'new Promise()' constructor."
     },
     {
       "question": "What is the purpose of the 'localStorage' in JavaScript?",
-      "options": ["To store session-specific data.", "To store data in the browser permanently.", "To handle server-side storage.", "To manage external libraries."],
+      "options": [
+        "To store session-specific data.",
+        "To store data in the browser permanently.",
+        "To handle server-side storage.",
+        "To manage external libraries."
+      ],
       "category": "Web Storage",
       "duration": "1.5 minutes",
       "answer": "To store data in the browser permanently."
     },
     {
       "question": "How can you iterate over the elements of an array in JavaScript?",
-      "options": ["By using the 'for...in' loop.", "By using the 'forEach' method.", "By using the 'while' loop.", "By using the 'map' function."],
+      "options": [
+        "By using the 'for...in' loop.",
+        "By using the 'forEach' method.",
+        "By using the 'while' loop.",
+        "By using the 'map' function."
+      ],
       "category": "Arrays",
       "duration": "1 minute",
       "answer": "By using the 'forEach' method."
     },
     {
       "question": "What is the purpose of the 'JSON.stringify()' method in JavaScript?",
-      "options": ["To parse a JSON string into an object.", "To convert a JavaScript object to a JSON string.", "To format a JSON object.", "To validate JSON syntax."],
+      "options": [
+        "To parse a JSON string into an object.",
+        "To convert a JavaScript object to a JSON string.",
+        "To format a JSON object.",
+        "To validate JSON syntax."
+      ],
       "category": "JSON Handling",
       "duration": "2 minutes",
       "answer": "To convert a JavaScript object to a JSON string."
     },
     {
       "question": "How can you prevent the default behavior of an event in JavaScript?",
-      "options": ["By using the 'stopPropagation' method.", "By using the 'preventDefault' method.", "By setting the 'defaultAction' property to false.", "By using the 'disableEvent' function."],
+      "options": [
+        "By using the 'stopPropagation' method.",
+        "By using the 'preventDefault' method.",
+        "By setting the 'defaultAction' property to false.",
+        "By using the 'disableEvent' function."
+      ],
       "category": "Event Handling",
       "duration": "1.5 minutes",
       "answer": "By using the 'preventDefault' method."
@@ -1364,280 +1434,480 @@
     },
     {
       "question": "What is the purpose of the 'class' keyword in JavaScript?",
-      "options": ["To declare a constant variable.", "To define a function.", "To create an instance of an object.", "To define a class with properties and methods."],
+      "options": [
+        "To declare a constant variable.",
+        "To define a function.",
+        "To create an instance of an object.",
+        "To define a class with properties and methods."
+      ],
       "category": "Classes",
       "duration": "2 minutes",
       "answer": "To define a class with properties and methods."
     },
     {
       "question": "How can you create an instance of a class in JavaScript?",
-      "options": ["By using the 'new' keyword followed by the class name.", "By calling the class as a function.", "By using the 'createInstance()' method.", "By using the 'instantiate' keyword."],
+      "options": [
+        "By using the 'new' keyword followed by the class name.",
+        "By calling the class as a function.",
+        "By using the 'createInstance()' method.",
+        "By using the 'instantiate' keyword."
+      ],
       "category": "Classes",
       "duration": "1.5 minutes",
       "answer": "By using the 'new' keyword followed by the class name."
     },
     {
       "question": "What is the purpose of the 'prototype' property in JavaScript?",
-      "options": ["To define static methods in a class.", "To add methods and properties to an existing object or class.", "To specify the inheritance hierarchy.", "To create a new instance of an object."],
+      "options": [
+        "To define static methods in a class.",
+        "To add methods and properties to an existing object or class.",
+        "To specify the inheritance hierarchy.",
+        "To create a new instance of an object."
+      ],
       "category": "Prototypes",
       "duration": "2 minutes",
       "answer": "To add methods and properties to an existing object or class."
     },
     {
       "question": "How can you define a default parameter in a JavaScript function?",
-      "options": ["By using the 'default' keyword.", "By using the 'optional' keyword.", "By assigning a value in the function parameter list.", "By using the 'DefaultValue' attribute."],
+      "options": [
+        "By using the 'default' keyword.",
+        "By using the 'optional' keyword.",
+        "By assigning a value in the function parameter list.",
+        "By using the 'DefaultValue' attribute."
+      ],
       "category": "Functions",
       "duration": "1 minute",
       "answer": "By assigning a value in the function parameter list."
     },
     {
       "question": "What is a closure in JavaScript?",
-      "options": ["A built-in JavaScript function.", "A way to create private variables in a class.", "A function that has access to variables from its outer (enclosing) scope.", "A function that returns a function."],
+      "options": [
+        "A built-in JavaScript function.",
+        "A way to create private variables in a class.",
+        "A function that has access to variables from its outer (enclosing) scope.",
+        "A function that returns a function."
+      ],
       "category": "Closures",
       "duration": "2.5 minutes",
       "answer": "A function that has access to variables from its outer (enclosing) scope."
     },
     {
       "question": "How do you check if an object has a specific property in JavaScript?",
-      "options": ["By using the 'propertyExists()' method.", "By checking the 'hasProperty' attribute.", "By using the 'in' operator.", "By calling the 'checkProperty' function."],
+      "options": [
+        "By using the 'propertyExists()' method.",
+        "By checking the 'hasProperty' attribute.",
+        "By using the 'in' operator.",
+        "By calling the 'checkProperty' function."
+      ],
       "category": "Objects",
       "duration": "1.5 minutes",
       "answer": "By using the 'in' operator."
     },
     {
       "question": "What is the purpose of the 'call' and 'apply' methods in JavaScript?",
-      "options": ["To create a new object.", "To invoke a function with a specified 'this' value and arguments.", "To define a class method.", "To concatenate two strings."],
+      "options": [
+        "To create a new object.",
+        "To invoke a function with a specified 'this' value and arguments.",
+        "To define a class method.",
+        "To concatenate two strings."
+      ],
       "category": "Functions",
       "duration": "1 minute",
       "answer": "To invoke a function with a specified 'this' value and arguments."
     },
     {
       "question": "How can you loop through the properties of an object in JavaScript?",
-      "options": ["By using the 'for...of' loop.", "By using the 'forEach' method.", "By using the 'for...in' loop.", "By using the 'while' loop."],
+      "options": [
+        "By using the 'for...of' loop.",
+        "By using the 'forEach' method.",
+        "By using the 'for...in' loop.",
+        "By using the 'while' loop."
+      ],
       "category": "Objects",
       "duration": "2 minutes",
       "answer": "By using the 'for...in' loop."
     },
     {
       "question": "What is the purpose of the 'bind' method in JavaScript?",
-      "options": ["To concatenate two arrays.", "To create a new instance of an object.", "To bind a function to a specific 'this' value.", "To define a static method in a class."],
+      "options": [
+        "To concatenate two arrays.",
+        "To create a new instance of an object.",
+        "To bind a function to a specific 'this' value.",
+        "To define a static method in a class."
+      ],
       "category": "Functions",
       "duration": "2.5 minutes",
       "answer": "To bind a function to a specific 'this' value."
     },
     {
       "question": "What is the role of the 'super' keyword in JavaScript classes?",
-      "options": ["To access the parent class's methods and properties.", "To define a superclass in inheritance.", "To create an instance of a class.", "To invoke the child class's constructor."],
+      "options": [
+        "To access the parent class's methods and properties.",
+        "To define a superclass in inheritance.",
+        "To create an instance of a class.",
+        "To invoke the child class's constructor."
+      ],
       "category": "Classes",
       "duration": "1.5 minutes",
       "answer": "To access the parent class's methods and properties."
     },
     {
       "question": "What is the difference between 'var', 'let', and 'const' in JavaScript?",
-      "options": ["They are interchangeable and can be used interchangeably.", "'var' is block-scoped, 'let' is function-scoped, and 'const' is block-scoped.", "'let' is block-scoped, 'const' is function-scoped, and 'var' is globally-scoped.", "'const' is used for primitive values, while 'let' and 'var' are used for objects and arrays."],
+      "options": [
+        "They are interchangeable and can be used interchangeably.",
+        "'var' is block-scoped, 'let' is function-scoped, and 'const' is block-scoped.",
+        "'let' is block-scoped, 'const' is function-scoped, and 'var' is globally-scoped.",
+        "'const' is used for primitive values, while 'let' and 'var' are used for objects and arrays."
+      ],
       "category": "Variables",
       "duration": "2 minutes",
       "answer": "'var' is block-scoped, 'let' is function-scoped, and 'const' is block-scoped."
     },
     {
       "question": "How do you check if a variable is of a specific data type in JavaScript?",
-      "options": ["By using the 'typeOf' operator.", "By using the 'checkType()' function.", "By comparing the variable to a prototype.", "By using the 'typeof' operator."],
+      "options": [
+        "By using the 'typeOf' operator.",
+        "By using the 'checkType()' function.",
+        "By comparing the variable to a prototype.",
+        "By using the 'typeof' operator."
+      ],
       "category": "Data Types",
       "duration": "1.5 minutes",
       "answer": "By using the 'typeof' operator."
     },
     {
       "question": "What are the primitive data types in JavaScript?",
-      "options": ["String, Object, Array, Boolean, Null, Undefined", "Number, String, Boolean, Object, Null, Undefined", "Integer, Float, String, Object, Array, Boolean", "Char, Int, Float, Double, Boolean, Array"],
+      "options": [
+        "String, Object, Array, Boolean, Null, Undefined",
+        "Number, String, Boolean, Object, Null, Undefined",
+        "Integer, Float, String, Object, Array, Boolean",
+        "Char, Int, Float, Double, Boolean, Array"
+      ],
       "category": "Data Types",
       "duration": "2 minutes",
       "answer": "Number, String, Boolean, Object, Null, Undefined"
     },
     {
       "question": "How do you declare and initialize an array in JavaScript?",
-      "options": ["let arr = array();", "let arr = [];","array arr = new Array();","array arr = Array();"],
+      "options": [
+        "let arr = array();",
+        "let arr = [];",
+        "array arr = new Array();",
+        "array arr = Array();"
+      ],
       "category": "Arrays",
       "duration": "1 minute",
       "answer": "let arr = [];"
     },
     {
       "question": "What is the difference between '=='' and '===' in JavaScript?",
-      "options": ["They are interchangeable and can be used interchangeably.", "'==' performs type coercion, while '===' does not perform type coercion.", "'===' performs type coercion, while '==' does not perform type coercion.", "There is no difference between '==' and '==='."],
+      "options": [
+        "They are interchangeable and can be used interchangeably.",
+        "'==' performs type coercion, while '===' does not perform type coercion.",
+        "'===' performs type coercion, while '==' does not perform type coercion.",
+        "There is no difference between '==' and '==='."
+      ],
       "category": "Operators",
       "duration": "2.5 minutes",
       "answer": "'==' performs type coercion, while '===' does not perform type coercion."
     },
     {
       "question": "How can you add a new property to an existing object in JavaScript?",
-      "options": ["By using the 'insertProperty' method.", "By using the 'object.add()' method.", "By using the 'object[property] = value;' syntax.", "By using the 'appendProperty' function."],
+      "options": [
+        "By using the 'insertProperty' method.",
+        "By using the 'object.add()' method.",
+        "By using the 'object[property] = value;' syntax.",
+        "By using the 'appendProperty' function."
+      ],
       "category": "Objects",
       "duration": "1.5 minutes",
       "answer": "By using the 'object[property] = value;' syntax."
     },
     {
       "question": "What is the purpose of the 'delete' operator in JavaScript?",
-      "options": ["To remove a property from an object.", "To delete a variable.", "To clear the console log.", "To delete a function."],
+      "options": [
+        "To remove a property from an object.",
+        "To delete a variable.",
+        "To clear the console log.",
+        "To delete a function."
+      ],
       "category": "Objects",
       "duration": "1 minute",
       "answer": "To remove a property from an object."
     },
     {
       "question": "How do you access the length of an array in JavaScript?",
-      "options": ["By using 'array.length()'.", "By using 'length(array)'.", "By using 'array.length'.", "By using 'array.size()'."],
+      "options": [
+        "By using 'array.length()'.",
+        "By using 'length(array)'.",
+        "By using 'array.length'.",
+        "By using 'array.size()'."
+      ],
       "category": "Arrays",
       "duration": "2 minutes",
       "answer": "By using 'array.length'."
     },
     {
       "question": "What is the purpose of the 'NaN' value in JavaScript?",
-      "options": ["To represent an undefined variable.", "To represent a null value.", "To indicate a failed mathematical operation or an undefined result.", "To represent a boolean value."],
+      "options": [
+        "To represent an undefined variable.",
+        "To represent a null value.",
+        "To indicate a failed mathematical operation or an undefined result.",
+        "To represent a boolean value."
+      ],
       "category": "Data Types",
       "duration": "2.5 minutes",
       "answer": "To indicate a failed mathematical operation or an undefined result."
     },
     {
       "question": "How can you convert a string to an integer in JavaScript?",
-      "options": ["By using the 'parseInteger()' function.", "By using 'int(string)'.", "By using 'Number(string)'.", "By using 'convertToInt(string)'."],
+      "options": [
+        "By using the 'parseInteger()' function.",
+        "By using 'int(string)'.",
+        "By using 'Number(string)'.",
+        "By using 'convertToInt(string)'."
+      ],
       "category": "Data Types",
       "duration": "1.5 minutes",
       "answer": "By using 'Number(string)'."
     },
     {
       "question": "What is the scope of a variable declared with 'var' in JavaScript?",
-      "options": ["Global scope.", "Block scope.", "Function scope.", "Local scope."],
+      "options": [
+        "Global scope.",
+        "Block scope.",
+        "Function scope.",
+        "Local scope."
+      ],
       "category": "Scope",
       "duration": "2 minutes",
       "answer": "Function scope."
     },
     {
       "question": "Explain what a closure is in JavaScript.",
-      "options": ["A way to create private variables in a class.", "A built-in JavaScript function.", "A function that has access to variables from its outer (enclosing) scope.", "A function that is executed immediately after being created."],
+      "options": [
+        "A way to create private variables in a class.",
+        "A built-in JavaScript function.",
+        "A function that has access to variables from its outer (enclosing) scope.",
+        "A function that is executed immediately after being created."
+      ],
       "category": "Closures",
       "duration": "1.5 minutes",
       "answer": "A function that has access to variables from its outer (enclosing) scope."
     },
     {
       "question": "How do you create a closure in JavaScript?",
-      "options": ["By using the 'this' keyword.", "By using the 'new' keyword.", "By defining a function inside another function and accessing variables from the outer function.", "By using the 'closure()' function."],
+      "options": [
+        "By using the 'this' keyword.",
+        "By using the 'new' keyword.",
+        "By defining a function inside another function and accessing variables from the outer function.",
+        "By using the 'closure()' function."
+      ],
       "category": "Closures",
       "duration": "2 minutes",
       "answer": "By defining a function inside another function and accessing variables from the outer function."
     },
     {
       "question": "What is the purpose of a higher-order function in JavaScript?",
-      "options": ["To perform mathematical operations on numbers.", "To convert a function into an object.", "To execute a function immediately after its creation.", "To take one or more functions as arguments or return a function as a result."],
+      "options": [
+        "To perform mathematical operations on numbers.",
+        "To convert a function into an object.",
+        "To execute a function immediately after its creation.",
+        "To take one or more functions as arguments or return a function as a result."
+      ],
       "category": "Higher-Order Functions",
       "duration": "1.5 minutes",
       "answer": "To take one or more functions as arguments or return a function as a result."
     },
     {
       "question": "How can you iterate over the elements of an array using the 'forEach' method?",
-      "options": ["By using a 'for' loop.", "By using the 'while' loop.", "By using recursion.", "By passing a callback function to 'forEach'."],
+      "options": [
+        "By using a 'for' loop.",
+        "By using the 'while' loop.",
+        "By using recursion.",
+        "By passing a callback function to 'forEach'."
+      ],
       "category": "Loops",
       "duration": "2.5 minutes",
       "answer": "By passing a callback function to 'forEach'."
     },
     {
       "question": "What is the purpose of the 'map' method in JavaScript?",
-      "options": ["To create a new array with elements that pass a test.", "To apply a function to each element of an array and create a new array with the results.", "To filter elements based on a condition.", "To sort the elements of an array."],
+      "options": [
+        "To create a new array with elements that pass a test.",
+        "To apply a function to each element of an array and create a new array with the results.",
+        "To filter elements based on a condition.",
+        "To sort the elements of an array."
+      ],
       "category": "Higher-Order Functions",
       "duration": "2 minutes",
       "answer": "To apply a function to each element of an array and create a new array with the results."
     },
     {
       "question": "Explain the difference between 'for...in' and 'for...of' loops in JavaScript.",
-      "options": ["There is no difference between them.", "'for...in' is used to iterate over the values of an array, while 'for...of' is used to iterate over the properties of an object.", "'for...in' is used to iterate over the properties of an object, while 'for...of' is used to iterate over the values of an array.", "'for...in' is used for asynchronous operations, while 'for...of' is used for synchronous operations."],
+      "options": [
+        "There is no difference between them.",
+        "'for...in' is used to iterate over the values of an array, while 'for...of' is used to iterate over the properties of an object.",
+        "'for...in' is used to iterate over the properties of an object, while 'for...of' is used to iterate over the values of an array.",
+        "'for...in' is used for asynchronous operations, while 'for...of' is used for synchronous operations."
+      ],
       "category": "Loops",
       "duration": "1.5 minutes",
       "answer": "'for...in' is used to iterate over the properties of an object, while 'for...of' is used to iterate over the values of an array."
     },
     {
       "question": "What is the purpose of the 'filter' method in JavaScript?",
-      "options": ["To create a new array with elements that pass a test.", "To apply a function to each element of an array and create a new array with the results.", "To filter elements based on a condition.", "To sort the elements of an array."],
+      "options": [
+        "To create a new array with elements that pass a test.",
+        "To apply a function to each element of an array and create a new array with the results.",
+        "To filter elements based on a condition.",
+        "To sort the elements of an array."
+      ],
       "category": "Higher-Order Functions",
       "duration": "1 minute",
       "answer": "To create a new array with elements that pass a test."
     },
     {
       "question": "How do you break out of a loop prematurely in JavaScript?",
-      "options": ["By using the 'end' statement.", "By using the 'break' keyword.", "By throwing an exception.", "By using the 'exit' function."],
+      "options": [
+        "By using the 'end' statement.",
+        "By using the 'break' keyword.",
+        "By throwing an exception.",
+        "By using the 'exit' function."
+      ],
       "category": "Loops",
       "duration": "2 minutes",
       "answer": "By using the 'break' keyword."
     },
     {
       "question": "What is the purpose of the 'reduce' method in JavaScript?",
-      "options": ["To create a new array with elements that pass a test.", "To apply a function to each element of an array and create a new array with the results.", "To reduce the elements of an array to a single value.", "To sort the elements of an array."],
+      "options": [
+        "To create a new array with elements that pass a test.",
+        "To apply a function to each element of an array and create a new array with the results.",
+        "To reduce the elements of an array to a single value.",
+        "To sort the elements of an array."
+      ],
       "category": "Higher-Order Functions",
       "duration": "2.5 minutes",
       "answer": "To reduce the elements of an array to a single value."
     },
     {
       "question": "What is the purpose of the 'for...of' loop in JavaScript?",
-      "options": ["To iterate over the properties of an object.", "To iterate over the values of an array.", "To create an infinite loop.", "To iterate over the keys of an object."],
+      "options": [
+        "To iterate over the properties of an object.",
+        "To iterate over the values of an array.",
+        "To create an infinite loop.",
+        "To iterate over the keys of an object."
+      ],
       "category": "Loops",
       "duration": "2 minutes",
       "answer": "To iterate over the values of an array."
     },
     {
       "question": "Explain the concept of a callback function in JavaScript.",
-      "options": ["A function that is executed immediately after being created.", "A function passed as an argument to another function and is executed later.", "A function that returns another function.", "A built-in JavaScript function."],
+      "options": [
+        "A function that is executed immediately after being created.",
+        "A function passed as an argument to another function and is executed later.",
+        "A function that returns another function.",
+        "A built-in JavaScript function."
+      ],
       "category": "Callbacks",
       "duration": "1.5 minutes",
       "answer": "A function passed as an argument to another function and is executed later."
     },
     {
       "question": "How do you handle errors in JavaScript using try...catch?",
-      "options": ["By preventing the error from occurring.", "By displaying the error in the console log.", "By catching the error and executing a block of code.", "By ignoring the error and continuing with the program."],
+      "options": [
+        "By preventing the error from occurring.",
+        "By displaying the error in the console log.",
+        "By catching the error and executing a block of code.",
+        "By ignoring the error and continuing with the program."
+      ],
       "category": "Error Handling",
       "duration": "2 minutes",
       "answer": "By catching the error and executing a block of code."
     },
     {
       "question": "What is the purpose of the 'Promise' object in JavaScript?",
-      "options": ["To handle errors and exceptions.", "To create a new instance of an object.", "To represent a value that might be available now, or in the future, or never.", "To perform asynchronous operations."],
+      "options": [
+        "To handle errors and exceptions.",
+        "To create a new instance of an object.",
+        "To represent a value that might be available now, or in the future, or never.",
+        "To perform asynchronous operations."
+      ],
       "category": "Promises",
       "duration": "1.5 minutes",
       "answer": "To represent a value that might be available now, or in the future, or never."
     },
     {
       "question": "How do you use the 'resolve' and 'reject' functions in a JavaScript Promise?",
-      "options": ["To handle errors in a promise.", "To fulfill or reject the promise with a value.", "To define the conditions for the 'then' method.", "To create a new promise instance."],
+      "options": [
+        "To handle errors in a promise.",
+        "To fulfill or reject the promise with a value.",
+        "To define the conditions for the 'then' method.",
+        "To create a new promise instance."
+      ],
       "category": "Promises",
       "duration": "2.5 minutes",
       "answer": "To fulfill or reject the promise with a value."
     },
     {
       "question": "What is the purpose of the 'finally' block in a try...catch statement?",
-      "options": ["To handle errors that occur in the try block.", "To execute code regardless of whether an error occurs or not.", "To prevent the execution of the catch block.", "To skip the try block and directly execute the catch block."],
+      "options": [
+        "To handle errors that occur in the try block.",
+        "To execute code regardless of whether an error occurs or not.",
+        "To prevent the execution of the catch block.",
+        "To skip the try block and directly execute the catch block."
+      ],
       "category": "Error Handling",
       "duration": "1.5 minutes",
       "answer": "To execute code regardless of whether an error occurs or not."
     },
     {
       "question": "How do you iterate over the properties of an object using a for...in loop?",
-      "options": ["By using the 'for...in' loop with a condition.", "By using the 'forEach' method.", "By using the 'while' loop.", "By using the 'for...of' loop."],
+      "options": [
+        "By using the 'for...in' loop with a condition.",
+        "By using the 'forEach' method.",
+        "By using the 'while' loop.",
+        "By using the 'for...of' loop."
+      ],
       "category": "Loops",
       "duration": "2 minutes",
       "answer": "By using the 'for...in' loop with a condition."
     },
     {
       "question": "What is the purpose of the 'catch' block in a try...catch statement?",
-      "options": ["To execute code regardless of whether an error occurs or not.", "To handle errors that occur in the try block.", "To prevent the execution of the try block.", "To skip the try block and directly execute the finally block."],
+      "options": [
+        "To execute code regardless of whether an error occurs or not.",
+        "To handle errors that occur in the try block.",
+        "To prevent the execution of the try block.",
+        "To skip the try block and directly execute the finally block."
+      ],
       "category": "Error Handling",
       "duration": "1 minute",
       "answer": "To handle errors that occur in the try block."
     },
     {
       "question": "What is the role of the 'then' method in a JavaScript Promise?",
-      "options": ["To define the conditions for the 'catch' block.", "To execute code regardless of whether the promise is fulfilled or rejected.", "To specify what to do when the promise is fulfilled.", "To create a new promise instance."],
+      "options": [
+        "To define the conditions for the 'catch' block.",
+        "To execute code regardless of whether the promise is fulfilled or rejected.",
+        "To specify what to do when the promise is fulfilled.",
+        "To create a new promise instance."
+      ],
       "category": "Promises",
       "duration": "2 minutes",
       "answer": "To specify what to do when the promise is fulfilled."
     },
     {
       "question": "How do you create a promise that immediately resolves with a value?",
-      "options": ["By using the 'Promise.reject()' method.", "By using the 'Promise.resolve()' method.", "By using the 'new Promise()' constructor.", "By using the 'createPromise()' function."],
+      "options": [
+        "By using the 'Promise.reject()' method.",
+        "By using the 'Promise.resolve()' method.",
+        "By using the 'new Promise()' constructor.",
+        "By using the 'createPromise()' function."
+      ],
       "category": "Promises",
       "duration": "2.5 minutes",
       "answer": "By using the 'Promise.resolve()' method."
@@ -1659,7 +1929,12 @@
     {
       "question": "What is the correct HTML element for the largest heading?",
       "category": "HTML",
-      "options": ["<h1>", "<heading>", "<head>", "<h6>"],
+      "options": [
+        "<h1>",
+        "<heading>",
+        "<head>",
+        "<h6>"
+      ],
       "answer": "<h1>",
       "duration": 25
     },
@@ -1738,14 +2013,24 @@
     {
       "question": "What is the correct HTML for creating a line break?",
       "category": "HTML",
-      "options": ["<br>", "<break>", "<lb>", "<linebreak>"],
+      "options": [
+        "<br>",
+        "<break>",
+        "<lb>",
+        "<linebreak>"
+      ],
       "answer": "<br>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for adding a background color?",
       "category": "HTML",
-      "options": ["<background>", "<color>", "<bgcolor>", "<style>"],
+      "options": [
+        "<background>",
+        "<color>",
+        "<bgcolor>",
+        "<style>"
+      ],
       "answer": "<style>",
       "duration": 25
     },
@@ -1824,42 +2109,72 @@
     {
       "question": "What is the correct HTML for creating a line break?",
       "category": "HTML",
-      "options": ["<br>", "<break>", "<lb>", "<linebreak>"],
+      "options": [
+        "<br>",
+        "<break>",
+        "<lb>",
+        "<linebreak>"
+      ],
       "answer": "<br>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for adding a background color?",
       "category": "HTML",
-      "options": ["<background>", "<color>", "<bgcolor>", "<style>"],
+      "options": [
+        "<background>",
+        "<color>",
+        "<bgcolor>",
+        "<style>"
+      ],
       "answer": "<style>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a table?",
       "category": "HTML",
-      "options": ["<table>", "<tab>", "<t>", "<tbl>"],
+      "options": [
+        "<table>",
+        "<tab>",
+        "<t>",
+        "<tbl>"
+      ],
       "answer": "<table>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a form?",
       "category": "HTML",
-      "options": ["<form>", "<f>", "<frm>", "<fom>"],
+      "options": [
+        "<form>",
+        "<f>",
+        "<frm>",
+        "<fom>"
+      ],
       "answer": "<form>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a paragraph?",
       "category": "HTML",
-      "options": ["<p>", "<para>", "<paragraph>", "<pg>"],
+      "options": [
+        "<p>",
+        "<para>",
+        "<paragraph>",
+        "<pg>"
+      ],
       "answer": "<p>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a horizontal rule?",
       "category": "HTML",
-      "options": ["<hr>", "<line>", "<rule>", "<horizontal>"],
+      "options": [
+        "<hr>",
+        "<line>",
+        "<rule>",
+        "<horizontal>"
+      ],
       "answer": "<hr>",
       "duration": 25
     },
@@ -1878,42 +2193,72 @@
     {
       "question": "What is the correct HTML for creating a bold text?",
       "category": "HTML",
-      "options": ["<bold>", "<b>", "<strong>", "<important>"],
+      "options": [
+        "<bold>",
+        "<b>",
+        "<strong>",
+        "<important>"
+      ],
       "answer": "<b>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating italicized text?",
       "category": "HTML",
-      "options": ["<i>", "<italic>", "<em>", "<italics>"],
+      "options": [
+        "<i>",
+        "<italic>",
+        "<em>",
+        "<italics>"
+      ],
       "answer": "<i>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a subscripted text?",
       "category": "HTML",
-      "options": ["<sub>", "<subscript>", "<s>", "<subtext>"],
+      "options": [
+        "<sub>",
+        "<subscript>",
+        "<s>",
+        "<subtext>"
+      ],
       "answer": "<sub>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a superscripted text?",
       "category": "HTML",
-      "options": ["<sup>", "<superscript>", "<s>", "<super>"],
+      "options": [
+        "<sup>",
+        "<superscript>",
+        "<s>",
+        "<super>"
+      ],
       "answer": "<sup>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a numbered list?",
       "category": "HTML",
-      "options": ["<ol>", "<ul>", "<list>", "<li>"],
+      "options": [
+        "<ol>",
+        "<ul>",
+        "<list>",
+        "<li>"
+      ],
       "answer": "<ol>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating an unordered list?",
       "category": "HTML",
-      "options": ["<ul>", "<ol>", "<list>", "<li>"],
+      "options": [
+        "<ul>",
+        "<ol>",
+        "<list>",
+        "<li>"
+      ],
       "answer": "<ul>",
       "duration": 30
     },
@@ -1932,84 +2277,144 @@
     {
       "question": "What is the correct HTML for creating a division or a section in HTML5?",
       "category": "HTML",
-      "options": ["<div>", "<section>", "<article>", "<aside>"],
+      "options": [
+        "<div>",
+        "<section>",
+        "<article>",
+        "<aside>"
+      ],
       "answer": "<section>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a navigation bar?",
       "category": "HTML",
-      "options": ["<nav>", "<navbar>", "<navigation>", "<menu>"],
+      "options": [
+        "<nav>",
+        "<navbar>",
+        "<navigation>",
+        "<menu>"
+      ],
       "answer": "<nav>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a footer?",
       "category": "HTML",
-      "options": ["<footer>", "<foot>", "<end>", "<bottom>"],
+      "options": [
+        "<footer>",
+        "<foot>",
+        "<end>",
+        "<bottom>"
+      ],
       "answer": "<footer>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a header?",
       "category": "HTML",
-      "options": ["<header>", "<head>", "<top>", "<heading>"],
+      "options": [
+        "<header>",
+        "<head>",
+        "<top>",
+        "<heading>"
+      ],
       "answer": "<header>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a bold text?",
       "category": "HTML",
-      "options": ["<bold>", "<b>", "<strong>", "<important>"],
+      "options": [
+        "<bold>",
+        "<b>",
+        "<strong>",
+        "<important>"
+      ],
       "answer": "<b>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating italicized text?",
       "category": "HTML",
-      "options": ["<i>", "<italic>", "<em>", "<italics>"],
+      "options": [
+        "<i>",
+        "<italic>",
+        "<em>",
+        "<italics>"
+      ],
       "answer": "<i>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a subscripted text?",
       "category": "HTML",
-      "options": ["<sub>", "<subscript>", "<s>", "<subtext>"],
+      "options": [
+        "<sub>",
+        "<subscript>",
+        "<s>",
+        "<subtext>"
+      ],
       "answer": "<sub>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a superscripted text?",
       "category": "HTML",
-      "options": ["<sup>", "<superscript>", "<s>", "<super>"],
+      "options": [
+        "<sup>",
+        "<superscript>",
+        "<s>",
+        "<super>"
+      ],
       "answer": "<sup>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a numbered list?",
       "category": "HTML",
-      "options": ["<ol>", "<ul>", "<list>", "<li>"],
+      "options": [
+        "<ol>",
+        "<ul>",
+        "<list>",
+        "<li>"
+      ],
       "answer": "<ol>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating an unordered list?",
       "category": "HTML",
-      "options": ["<ul>", "<ol>", "<list>", "<li>"],
+      "options": [
+        "<ul>",
+        "<ol>",
+        "<list>",
+        "<li>"
+      ],
       "answer": "<ul>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a paragraph?",
       "category": "HTML",
-      "options": ["<p>", "<para>", "<paragraph>", "<pg>"],
+      "options": [
+        "<p>",
+        "<para>",
+        "<paragraph>",
+        "<pg>"
+      ],
       "answer": "<p>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a horizontal rule?",
       "category": "HTML",
-      "options": ["<hr>", "<line>", "<rule>", "<horizontal>"],
+      "options": [
+        "<hr>",
+        "<line>",
+        "<rule>",
+        "<horizontal>"
+      ],
       "answer": "<hr>",
       "duration": 25
     },
@@ -2028,42 +2433,72 @@
     {
       "question": "What is the correct HTML for creating a bold text?",
       "category": "HTML",
-      "options": ["<bold>", "<b>", "<strong>", "<important>"],
+      "options": [
+        "<bold>",
+        "<b>",
+        "<strong>",
+        "<important>"
+      ],
       "answer": "<b>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating italicized text?",
       "category": "HTML",
-      "options": ["<i>", "<italic>", "<em>", "<italics>"],
+      "options": [
+        "<i>",
+        "<italic>",
+        "<em>",
+        "<italics>"
+      ],
       "answer": "<i>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a subscripted text?",
       "category": "HTML",
-      "options": ["<sub>", "<subscript>", "<s>", "<subtext>"],
+      "options": [
+        "<sub>",
+        "<subscript>",
+        "<s>",
+        "<subtext>"
+      ],
       "answer": "<sub>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating a superscripted text?",
       "category": "HTML",
-      "options": ["<sup>", "<superscript>", "<s>", "<super>"],
+      "options": [
+        "<sup>",
+        "<superscript>",
+        "<s>",
+        "<super>"
+      ],
       "answer": "<sup>",
       "duration": 30
     },
     {
       "question": "What is the correct HTML for creating a numbered list?",
       "category": "HTML",
-      "options": ["<ol>", "<ul>", "<list>", "<li>"],
+      "options": [
+        "<ol>",
+        "<ul>",
+        "<list>",
+        "<li>"
+      ],
       "answer": "<ol>",
       "duration": 25
     },
     {
       "question": "What is the correct HTML for creating an unordered list?",
       "category": "HTML",
-      "options": ["<ul>", "<ol>", "<list>", "<li>"],
+      "options": [
+        "<ul>",
+        "<ol>",
+        "<list>",
+        "<li>"
+      ],
       "answer": "<ul>",
       "duration": 30
     },
@@ -2084,7 +2519,12 @@
     {
       "question": "What is the correct CSS property to change the text color of an element?",
       "category": "CSS",
-      "options": ["color", "text-color", "font-color", "foreground-color"],
+      "options": [
+        "color",
+        "text-color",
+        "font-color",
+        "foreground-color"
+      ],
       "answer": "color",
       "duration": 30
     },
@@ -2103,133 +2543,228 @@
     {
       "question": "What is the correct CSS property to set the font size of an element?",
       "category": "CSS",
-      "options": ["font-size", "text-size", "size", "element-size"],
+      "options": [
+        "font-size",
+        "text-size",
+        "size",
+        "element-size"
+      ],
       "answer": "font-size",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the font family of an element?",
       "category": "CSS",
-      "options": ["font-family", "text-family", "family", "element-family"],
+      "options": [
+        "font-family",
+        "text-family",
+        "family",
+        "element-family"
+      ],
       "answer": "font-family",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the padding of an element?",
       "category": "CSS",
-      "options": ["padding", "element-padding", "pad", "inner-padding"],
+      "options": [
+        "padding",
+        "element-padding",
+        "pad",
+        "inner-padding"
+      ],
       "answer": "padding",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the margin of an element?",
       "category": "CSS",
-      "options": ["margin", "element-margin", "marg", "outer-margin"],
+      "options": [
+        "margin",
+        "element-margin",
+        "marg",
+        "outer-margin"
+      ],
       "answer": "margin",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the border of an element?",
       "category": "CSS",
-      "options": ["border", "element-border", "bord", "outline"],
+      "options": [
+        "border",
+        "element-border",
+        "bord",
+        "outline"
+      ],
       "answer": "border",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the width of an element?",
       "category": "CSS",
-      "options": ["width", "element-width", "wide", "size"],
+      "options": [
+        "width",
+        "element-width",
+        "wide",
+        "size"
+      ],
       "answer": "width",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the height of an element?",
       "category": "CSS",
-      "options": ["height", "element-height", "high", "tall"],
+      "options": [
+        "height",
+        "element-height",
+        "high",
+        "tall"
+      ],
       "answer": "height",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the display behavior of an element?",
       "category": "CSS",
-      "options": ["display", "element-display", "show", "visible"],
+      "options": [
+        "display",
+        "element-display",
+        "show",
+        "visible"
+      ],
       "answer": "display",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the text alignment of an element?",
       "category": "CSS",
-      "options": ["text-align", "align", "text-position", "text-justify"],
+      "options": [
+        "text-align",
+        "align",
+        "text-position",
+        "text-justify"
+      ],
       "answer": "text-align",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the opacity of an element?",
       "category": "CSS",
-      "options": ["opacity", "element-opacity", "opac", "transparency"],
+      "options": [
+        "opacity",
+        "element-opacity",
+        "opac",
+        "transparency"
+      ],
       "answer": "opacity",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the text decoration of an element?",
       "category": "CSS",
-      "options": ["text-decoration", "decoration", "text-decor", "decor"],
+      "options": [
+        "text-decoration",
+        "decoration",
+        "text-decor",
+        "decor"
+      ],
       "answer": "text-decoration",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the position of an element?",
       "category": "CSS",
-      "options": ["position", "element-position", "pos", "loc"],
+      "options": [
+        "position",
+        "element-position",
+        "pos",
+        "loc"
+      ],
       "answer": "position",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the z-index of an element?",
       "category": "CSS",
-      "options": ["z-index", "element-z", "z-pos", "index"],
+      "options": [
+        "z-index",
+        "element-z",
+        "z-pos",
+        "index"
+      ],
       "answer": "z-index",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the overflow behavior of an element?",
       "category": "CSS",
-      "options": ["overflow", "element-overflow", "over", "scroll"],
+      "options": [
+        "overflow",
+        "element-overflow",
+        "over",
+        "scroll"
+      ],
       "answer": "overflow",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the float behavior of an element?",
       "category": "CSS",
-      "options": ["float", "element-float", "drift", "align"],
+      "options": [
+        "float",
+        "element-float",
+        "drift",
+        "align"
+      ],
       "answer": "float",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the clear behavior of an element?",
       "category": "CSS",
-      "options": ["clear", "element-clear", "clean", "remove"],
+      "options": [
+        "clear",
+        "element-clear",
+        "clean",
+        "remove"
+      ],
       "answer": "clear",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the visibility of an element?",
       "category": "CSS",
-      "options": ["visibility", "element-visibility", "vis", "show"],
+      "options": [
+        "visibility",
+        "element-visibility",
+        "vis",
+        "show"
+      ],
       "answer": "visibility",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the box model for an element?",
       "category": "CSS",
-      "options": ["box-sizing", "element-box", "box-model", "model"],
+      "options": [
+        "box-sizing",
+        "element-box",
+        "box-model",
+        "model"
+      ],
       "answer": "box-sizing",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the background image of an element?",
       "category": "CSS",
-      "options": ["background-image", "bg-image", "element-image", "back-img"],
+      "options": [
+        "background-image",
+        "bg-image",
+        "element-image",
+        "back-img"
+      ],
       "answer": "background-image",
       "duration": 30
     },
@@ -2272,196 +2807,336 @@
     {
       "question": "What is the correct CSS property to set the background size of an element?",
       "category": "CSS",
-      "options": ["background-size", "bg-size", "element-size", "back-size"],
+      "options": [
+        "background-size",
+        "bg-size",
+        "element-size",
+        "back-size"
+      ],
       "answer": "background-size",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the border radius of an element?",
       "category": "CSS",
-      "options": ["border-radius", "element-radius", "bord-rad", "round"],
+      "options": [
+        "border-radius",
+        "element-radius",
+        "bord-rad",
+        "round"
+      ],
       "answer": "border-radius",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the box shadow of an element?",
       "category": "CSS",
-      "options": ["box-shadow", "element-shadow", "b-shadow", "shadow"],
+      "options": [
+        "box-shadow",
+        "element-shadow",
+        "b-shadow",
+        "shadow"
+      ],
       "answer": "box-shadow",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the text shadow of an element?",
       "category": "CSS",
-      "options": ["text-shadow", "element-text-shadow", "t-shadow", "shadow"],
+      "options": [
+        "text-shadow",
+        "element-text-shadow",
+        "t-shadow",
+        "shadow"
+      ],
       "answer": "text-shadow",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the transition of an element?",
       "category": "CSS",
-      "options": ["transition", "element-transition", "transit", "animate"],
+      "options": [
+        "transition",
+        "element-transition",
+        "transit",
+        "animate"
+      ],
       "answer": "transition",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the animation of an element?",
       "category": "CSS",
-      "options": ["animation", "element-animation", "animate", "move"],
+      "options": [
+        "animation",
+        "element-animation",
+        "animate",
+        "move"
+      ],
       "answer": "animation",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the flex direction of a flex container?",
       "category": "CSS",
-      "options": ["flex-direction", "flex-dir", "flex-flow", "direction"],
+      "options": [
+        "flex-direction",
+        "flex-dir",
+        "flex-flow",
+        "direction"
+      ],
       "answer": "flex-direction",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the flex wrap behavior of a flex container?",
       "category": "CSS",
-      "options": ["flex-wrap", "wrap", "flex-flow", "flow"],
+      "options": [
+        "flex-wrap",
+        "wrap",
+        "flex-flow",
+        "flow"
+      ],
       "answer": "flex-wrap",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the justify content of a flex container?",
       "category": "CSS",
-      "options": ["justify-content", "content-justify", "justify", "align"],
+      "options": [
+        "justify-content",
+        "content-justify",
+        "justify",
+        "align"
+      ],
       "answer": "justify-content",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the align items of a flex container?",
       "category": "CSS",
-      "options": ["align-items", "items-align", "align", "item-align"],
+      "options": [
+        "align-items",
+        "items-align",
+        "align",
+        "item-align"
+      ],
       "answer": "align-items",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the align content of a flex container?",
       "category": "CSS",
-      "options": ["align-content", "content-align", "align", "content"],
+      "options": [
+        "align-content",
+        "content-align",
+        "align",
+        "content"
+      ],
       "answer": "align-content",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the order of a flex item?",
       "category": "CSS",
-      "options": ["order", "item-order", "flex-order", "arrange"],
+      "options": [
+        "order",
+        "item-order",
+        "flex-order",
+        "arrange"
+      ],
       "answer": "order",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the flex grow factor of a flex item?",
       "category": "CSS",
-      "options": ["flex-grow", "grow", "flex-factor", "expand"],
+      "options": [
+        "flex-grow",
+        "grow",
+        "flex-factor",
+        "expand"
+      ],
       "answer": "flex-grow",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the flex shrink factor of a flex item?",
       "category": "CSS",
-      "options": ["flex-shrink", "shrink", "flex-factor", "reduce"],
+      "options": [
+        "flex-shrink",
+        "shrink",
+        "flex-factor",
+        "reduce"
+      ],
       "answer": "flex-shrink",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the flex basis of a flex item?",
       "category": "CSS",
-      "options": ["flex-basis", "basis", "flex-size", "size"],
+      "options": [
+        "flex-basis",
+        "basis",
+        "flex-size",
+        "size"
+      ],
       "answer": "flex-basis",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the flex shorthand of a flex item?",
       "category": "CSS",
-      "options": ["flex", "flex-shorthand", "flex-item", "shorthand"],
+      "options": [
+        "flex",
+        "flex-shorthand",
+        "flex-item",
+        "shorthand"
+      ],
       "answer": "flex",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the z-index of an element?",
       "category": "CSS",
-      "options": ["z-index", "element-index", "z-order", "index"],
+      "options": [
+        "z-index",
+        "element-index",
+        "z-order",
+        "index"
+      ],
       "answer": "z-index",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the position of an element?",
       "category": "CSS",
-      "options": ["position", "element-position", "pos", "place"],
+      "options": [
+        "position",
+        "element-position",
+        "pos",
+        "place"
+      ],
       "answer": "position",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the top position of an element?",
       "category": "CSS",
-      "options": ["top", "element-top", "top-position", "up"],
+      "options": [
+        "top",
+        "element-top",
+        "top-position",
+        "up"
+      ],
       "answer": "top",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the right position of an element?",
       "category": "CSS",
-      "options": ["right", "element-right", "right-position", "side"],
+      "options": [
+        "right",
+        "element-right",
+        "right-position",
+        "side"
+      ],
       "answer": "right",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the bottom position of an element?",
       "category": "CSS",
-      "options": ["bottom", "element-bottom", "bottom-position", "down"],
+      "options": [
+        "bottom",
+        "element-bottom",
+        "bottom-position",
+        "down"
+      ],
       "answer": "bottom",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the left position of an element?",
       "category": "CSS",
-      "options": ["left", "element-left", "left-position", "side"],
+      "options": [
+        "left",
+        "element-left",
+        "left-position",
+        "side"
+      ],
       "answer": "left",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the overflow behavior of an element?",
       "category": "CSS",
-      "options": ["overflow", "element-overflow", "flow", "hide"],
+      "options": [
+        "overflow",
+        "element-overflow",
+        "flow",
+        "hide"
+      ],
       "answer": "overflow",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the clip behavior of an element?",
       "category": "CSS",
-      "options": ["clip", "element-clip", "cut", "trim"],
+      "options": [
+        "clip",
+        "element-clip",
+        "cut",
+        "trim"
+      ],
       "answer": "clip",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the clip path of an element?",
       "category": "CSS",
-      "options": ["clip-path", "element-clip-path", "path", "shape"],
+      "options": [
+        "clip-path",
+        "element-clip-path",
+        "path",
+        "shape"
+      ],
       "answer": "clip-path",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the visibility of an element?",
       "category": "CSS",
-      "options": ["visibility", "element-visibility", "vis", "show"],
+      "options": [
+        "visibility",
+        "element-visibility",
+        "vis",
+        "show"
+      ],
       "answer": "visibility",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the opacity of an element?",
       "category": "CSS",
-      "options": ["opacity", "element-opacity", "opac", "transparency"],
+      "options": [
+        "opacity",
+        "element-opacity",
+        "opac",
+        "transparency"
+      ],
       "answer": "opacity",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the box shadow of an element?",
       "category": "CSS",
-      "options": ["box-shadow", "element-shadow", "shadow", "box-effect"],
+      "options": [
+        "box-shadow",
+        "element-shadow",
+        "shadow",
+        "box-effect"
+      ],
       "answer": "box-shadow",
       "duration": 25
     },
@@ -2480,42 +3155,72 @@
     {
       "question": "What is the correct CSS property to set the border radius of an element?",
       "category": "CSS",
-      "options": ["border-radius", "element-radius", "radius", "round"],
+      "options": [
+        "border-radius",
+        "element-radius",
+        "radius",
+        "round"
+      ],
       "answer": "border-radius",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the outline of an element?",
       "category": "CSS",
-      "options": ["outline", "element-outline", "border-outline", "line"],
+      "options": [
+        "outline",
+        "element-outline",
+        "border-outline",
+        "line"
+      ],
       "answer": "outline",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the cursor of an element?",
       "category": "CSS",
-      "options": ["cursor", "element-cursor", "point", "mouse"],
+      "options": [
+        "cursor",
+        "element-cursor",
+        "point",
+        "mouse"
+      ],
       "answer": "cursor",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the user select behavior of an element?",
       "category": "CSS",
-      "options": ["user-select", "element-select", "select", "choose"],
+      "options": [
+        "user-select",
+        "element-select",
+        "select",
+        "choose"
+      ],
       "answer": "user-select",
       "duration": 30
     },
     {
       "question": "What is the correct CSS property to set the pointer events of an element?",
       "category": "CSS",
-      "options": ["pointer-events", "element-events", "events", "point"],
+      "options": [
+        "pointer-events",
+        "element-events",
+        "events",
+        "point"
+      ],
       "answer": "pointer-events",
       "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the filter effects of an element?",
       "category": "CSS",
-      "options": ["filter", "element-filter", "effects", "apply"],
+      "options": [
+        "filter",
+        "element-filter",
+        "effects",
+        "apply"
+      ],
       "answer": "filter",
       "duration": 30
     },
@@ -2596,7 +3301,12 @@
     {
       "question": "Which keyword is used to define a structure in C?",
       "category": "C Programming",
-      "options": ["struct", "class", "type", "define"],
+      "options": [
+        "struct",
+        "class",
+        "type",
+        "define"
+      ],
       "answer": "struct",
       "duration": 25
     },
@@ -2615,7 +3325,12 @@
     {
       "question": "In C, which loop is used to iterate a specific number of times?",
       "category": "C Programming",
-      "options": ["for loop", "while loop", "do-while loop", "if-else loop"],
+      "options": [
+        "for loop",
+        "while loop",
+        "do-while loop",
+        "if-else loop"
+      ],
       "answer": "for loop",
       "duration": 25
     },
@@ -2658,7 +3373,12 @@
     {
       "question": "What is the correct way to declare a pointer in C?",
       "category": "C Programming",
-      "options": ["int *ptr;", "int ptr;", "pointer int ptr;", "int &ptr;"],
+      "options": [
+        "int *ptr;",
+        "int ptr;",
+        "pointer int ptr;",
+        "int &ptr;"
+      ],
       "answer": "int *ptr;",
       "duration": 25
     },
@@ -3721,7 +4441,218 @@
       "answer": "By using the 'install' command in the Python interpreter."
     }
   ],
-  "java": [],
+  "java": [
+    {
+      "question": "Which keyword is used to define a class in Java?",
+      "options": [
+        "class",
+        "struct",
+        "define",
+        "object"
+      ],
+      "answer": "class",
+      "explanation": "Classes are declared with the `class` keyword in Java.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "What is the entry point method of a Java application?",
+      "options": [
+        "start()",
+        "main()",
+        "run()",
+        "init()"
+      ],
+      "answer": "main()",
+      "explanation": "Execution begins at `public static void main(String[] args)`.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which data type stores a single 16-bit Unicode character?",
+      "options": [
+        "char",
+        "String",
+        "byte",
+        "int"
+      ],
+      "answer": "char",
+      "explanation": "`char` holds a single 16-bit Unicode character.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "How do you declare a constant in Java?",
+      "options": [
+        "const int x",
+        "final int x",
+        "static int x",
+        "let int x"
+      ],
+      "answer": "final int x",
+      "explanation": "The `final` keyword makes a variable's value unchangeable.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which collection does NOT allow duplicate elements?",
+      "options": [
+        "ArrayList",
+        "LinkedList",
+        "HashSet",
+        "Vector"
+      ],
+      "answer": "HashSet",
+      "explanation": "A Set (e.g. HashSet) stores only unique elements.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "What is the size of an int in Java?",
+      "options": [
+        "8 bits",
+        "16 bits",
+        "32 bits",
+        "64 bits"
+      ],
+      "answer": "32 bits",
+      "explanation": "An int is always 32 bits in Java, regardless of platform.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which keyword is used to inherit a class in Java?",
+      "options": [
+        "implements",
+        "extends",
+        "inherits",
+        "super"
+      ],
+      "answer": "extends",
+      "explanation": "A subclass uses `extends` to inherit from a superclass.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "What does JVM stand for?",
+      "options": [
+        "Java Virtual Machine",
+        "Java Variable Method",
+        "Just Validated Memory",
+        "Java Verified Module"
+      ],
+      "answer": "Java Virtual Machine",
+      "explanation": "The JVM executes Java bytecode, enabling 'write once, run anywhere'.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which exception is thrown when dividing an integer by zero?",
+      "options": [
+        "NullPointerException",
+        "ArithmeticException",
+        "IOException",
+        "NumberFormatException"
+      ],
+      "answer": "ArithmeticException",
+      "explanation": "Integer division by zero throws ArithmeticException.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which access modifier makes a member visible only within its own class?",
+      "options": [
+        "public",
+        "protected",
+        "private",
+        "default"
+      ],
+      "answer": "private",
+      "explanation": "private members are accessible only inside the declaring class.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "What is the correct way to create an object of class Car?",
+      "options": [
+        "Car c = new Car();",
+        "Car c = Car();",
+        "new Car c;",
+        "Car c = create Car();"
+      ],
+      "answer": "Car c = new Car();",
+      "explanation": "Objects are created with the new keyword and a constructor call.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which interface enables a class to be iterated with forEach?",
+      "options": [
+        "Comparable",
+        "Iterable",
+        "Runnable",
+        "Serializable"
+      ],
+      "answer": "Iterable",
+      "explanation": "Classes implementing Iterable can be iterated, e.g. with forEach.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "What is the result of the expression 5 / 2 in Java?",
+      "options": [
+        "2.5",
+        "2",
+        "3",
+        "2.0"
+      ],
+      "answer": "2",
+      "explanation": "Integer division truncates the decimal part, giving 2.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which keyword refers to the current object instance?",
+      "options": [
+        "self",
+        "this",
+        "current",
+        "me"
+      ],
+      "answer": "this",
+      "explanation": "this references the current object within an instance method.",
+      "category": "Java",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which feature allows the same method name with different parameters?",
+      "options": [
+        "Overriding",
+        "Overloading",
+        "Hiding",
+        "Shadowing"
+      ],
+      "answer": "Overloading",
+      "explanation": "Method overloading defines methods with the same name but different parameter lists.",
+      "category": "Java",
+      "difficulty": "medium",
+      "duration": "30 seconds"
+    }
+  ],
   "sql": [
     {
       "question": "What is the purpose of the SELECT statement in SQL?",
@@ -3842,6 +4773,174 @@
       "category": "Data Manipulation",
       "duration": "1.5 minutes",
       "answer": "Using the DELETE statement."
+    },
+    {
+      "question": "Which SQL clause filters rows BEFORE grouping?",
+      "options": [
+        "HAVING",
+        "WHERE",
+        "GROUP BY",
+        "ORDER BY"
+      ],
+      "answer": "WHERE",
+      "explanation": "WHERE filters individual rows; HAVING filters grouped results.",
+      "category": "SQL",
+      "difficulty": "medium",
+      "duration": "1 minute"
+    },
+    {
+      "question": "Which keyword removes duplicate rows from a result set?",
+      "options": [
+        "UNIQUE",
+        "DISTINCT",
+        "ONLY",
+        "FILTER"
+      ],
+      "answer": "DISTINCT",
+      "explanation": "SELECT DISTINCT returns only unique rows.",
+      "category": "SQL",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which JOIN returns only rows with matches in both tables?",
+      "options": [
+        "LEFT JOIN",
+        "RIGHT JOIN",
+        "INNER JOIN",
+        "FULL JOIN"
+      ],
+      "answer": "INNER JOIN",
+      "explanation": "An INNER JOIN returns rows that match in both tables.",
+      "category": "SQL",
+      "difficulty": "medium",
+      "duration": "1 minute"
+    },
+    {
+      "question": "Which statement adds a new row to a table?",
+      "options": [
+        "ADD",
+        "INSERT INTO",
+        "UPDATE",
+        "APPEND"
+      ],
+      "answer": "INSERT INTO",
+      "explanation": "INSERT INTO ... VALUES (...) adds new rows.",
+      "category": "SQL",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which function counts the number of rows?",
+      "options": [
+        "SUM()",
+        "COUNT()",
+        "TOTAL()",
+        "ROWS()"
+      ],
+      "answer": "COUNT()",
+      "explanation": "COUNT(*) returns the number of rows.",
+      "category": "SQL",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which clause sorts the result set?",
+      "options": [
+        "SORT BY",
+        "ORDER BY",
+        "GROUP BY",
+        "ARRANGE"
+      ],
+      "answer": "ORDER BY",
+      "explanation": "ORDER BY sorts results, ascending by default.",
+      "category": "SQL",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "What does the PRIMARY KEY constraint guarantee?",
+      "options": [
+        "Values can repeat",
+        "Uniqueness and non-null",
+        "Only text values",
+        "Foreign references"
+      ],
+      "answer": "Uniqueness and non-null",
+      "explanation": "A primary key uniquely identifies each row and cannot be NULL.",
+      "category": "SQL",
+      "difficulty": "medium",
+      "duration": "1 minute"
+    },
+    {
+      "question": "Which keyword changes existing data in a table?",
+      "options": [
+        "MODIFY",
+        "UPDATE",
+        "CHANGE",
+        "SET"
+      ],
+      "answer": "UPDATE",
+      "explanation": "UPDATE ... SET ... WHERE ... modifies existing rows.",
+      "category": "SQL",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which statement permanently removes a table and its structure?",
+      "options": [
+        "DELETE",
+        "TRUNCATE",
+        "DROP TABLE",
+        "REMOVE"
+      ],
+      "answer": "DROP TABLE",
+      "explanation": "DROP TABLE deletes the table and its definition entirely.",
+      "category": "SQL",
+      "difficulty": "medium",
+      "duration": "1 minute"
+    },
+    {
+      "question": "Which operator tests whether a value is within a range?",
+      "options": [
+        "IN",
+        "BETWEEN",
+        "LIKE",
+        "EXISTS"
+      ],
+      "answer": "BETWEEN",
+      "explanation": "BETWEEN a AND b matches values within an inclusive range.",
+      "category": "SQL",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "Which wildcard in a LIKE pattern matches any sequence of characters?",
+      "options": [
+        "_",
+        "%",
+        "*",
+        "#"
+      ],
+      "answer": "%",
+      "explanation": "In SQL LIKE, % matches any number of characters; _ matches one.",
+      "category": "SQL",
+      "difficulty": "easy",
+      "duration": "30 seconds"
+    },
+    {
+      "question": "What does a FOREIGN KEY enforce?",
+      "options": [
+        "Unique rows",
+        "Referential integrity",
+        "Sorted order",
+        "Faster reads"
+      ],
+      "answer": "Referential integrity",
+      "explanation": "A foreign key links to a primary key in another table, enforcing valid references.",
+      "category": "SQL",
+      "difficulty": "medium",
+      "duration": "1 minute"
     }
   ]
 }

@@ -17,36 +17,28 @@ db.version(8).stores({
 
 async function createQuestions() {
   try {
-    const ques = await db.questions.toArray();
-
-    if (ques.length > 0) return;
-
     const questions = await fetch("./data/questions.json");
     const data = await questions.json();
 
-    // join all properties
-    const questionsData = Object.keys(data).map((key) => {
-      return [
-        ...data[key].map((question) => {
-          return {
-            ...question,
-            category: key,
-          };
-        }),
-      ];
-    });
+    // Seed per category and add only questions not already present (matched by
+    // question text). This imports newly added categories (e.g. Java) and
+    // expands existing ones (e.g. more SQL) for existing users, without
+    // creating duplicates.
+    for (const key of Object.keys(data)) {
+      const existingRows = await db.questions.where("category").equals(key).toArray();
+      const existingQuestions = new Set(existingRows.map((r) => r.details?.question));
 
-    questionsData.forEach(async (ques) => {
-      ques.forEach(async (question) => {
+      for (const question of data[key]) {
+        if (existingQuestions.has(question.question)) continue;
         await db.questions.add({
           id: randomID(),
-          title: question.title,
-          category: question.category,
-          details: question,
+          title: question.title || question.question,
+          category: key,
+          details: { ...question, category: key },
           created_at: new Date(),
         });
-      });
-    });
+      }
+    }
   } catch (error) {
     console.log(error);
     return null;
