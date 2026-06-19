@@ -258,6 +258,12 @@ async function notePage(htmlEl, requestedTitle) {
     : "";
 
   const hasNext = !!current.next;
+  const quizCategory = moduleQuizCategory(current.title);
+  const quizCount = quizCategory
+    ? await DB.questions.where("category").equals(quizCategory).count()
+    : 0;
+  const hasQuiz = quizCount > 0;
+
   htmlEl.innerHTML = `
     <article class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8 prose-gray">
       ${isReview ? '<span class="inline-block text-xs font-semibold text-green-700 bg-green-100 rounded px-2 py-1 mb-4">✓ Completed lesson</span>' : ""}
@@ -269,7 +275,7 @@ async function notePage(htmlEl, requestedTitle) {
           isReview
             ? ""
             : `<button id="complete-continue" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-          ${hasNext ? "Mark Complete & Continue" : "Finish Path"}
+          ${hasQuiz ? "Take the Quiz" : hasNext ? "Mark Complete & Continue" : "Finish Path"}
         </button>`
         }
       </div>
@@ -279,24 +285,141 @@ async function notePage(htmlEl, requestedTitle) {
 
   if (isReview) return;
 
-  document.querySelector("#complete-continue").addEventListener("click", async () => {
-    // Mark this module complete and advance the "current" pointer to the next.
-    await DB.paths.update(current.id, { is_completed: true, current: false });
-    const next = current.next
-      ? await DB.paths
-          .where("path_name")
-          .equals(pathName)
-          .and((c) => c.title === current.next)
-          .first()
-      : null;
-
-    if (next) {
-      await DB.paths.update(next.id, { current: true });
-      notePage(htmlEl); // render the next lesson
+  document.querySelector("#complete-continue").addEventListener("click", () => {
+    if (hasQuiz) {
+      lessonQuizPage(htmlEl, current, pathName, quizCategory);
     } else {
-      backToModules(); // path finished — return to the module list
+      advanceFromModule(current, pathName, htmlEl);
     }
   });
+}
+
+// Maps a lesson title to a question-bank category for its check-for-understanding
+// quiz. Returns null when no category fits (e.g. history or soft-skill modules).
+function moduleQuizCategory(title) {
+  const t = title.toLowerCase();
+  if (t.includes("javascript")) return "javascript";
+  if (t.includes("css")) return "css";
+  if (t.includes("html")) return "html";
+  return null;
+}
+
+// Marks a module complete and moves the "current" pointer to the next one.
+async function advanceFromModule(current, pathName, htmlEl) {
+  await DB.paths.update(current.id, { is_completed: true, current: false });
+  const next = current.next
+    ? await DB.paths
+        .where("path_name")
+        .equals(pathName)
+        .and((c) => c.title === current.next)
+        .first()
+    : null;
+
+  if (next) {
+    await DB.paths.update(next.id, { current: true });
+    notePage(htmlEl); // render the next lesson
+  } else {
+    backToModules(); // path finished — return to the module list
+  }
+}
+
+const LESSON_QUIZ_SIZE = 5;
+const LESSON_QUIZ_PASS = 60;
+
+// A short check-for-understanding quiz tied to a lesson. Reuses the Test
+// Yourself option renderer and the answer-review builder.
+async function lessonQuizPage(htmlEl, module, pathName, category) {
+  const all = await DB.questions.where("category").equals(category).toArray();
+  const quizQuestions = shuffle(all).slice(0, Math.min(LESSON_QUIZ_SIZE, all.length));
+
+  const questionsHtml = quizQuestions
+    .map(
+      (q, i) => `
+      <div class="lq-question mb-4 border-b border-gray-100 pb-4">
+        <p class="text-lg font-semibold mb-2">${i + 1}. ${escapeHTMLToEntities(q.details.question)}</p>
+        <form>${tysRandomizeOptions(q.details.options).join("")}</form>
+      </div>`
+    )
+    .join("");
+
+  htmlEl.innerHTML = `
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8">
+      <span class="inline-block text-xs font-semibold text-indigo-700 bg-indigo-100 rounded px-2 py-1 mb-2">Lesson Quiz</span>
+      <h1 class="text-2xl font-bold mb-1">${escapeHTMLToEntities(module.title)}</h1>
+      <p class="text-gray-500 mb-6">Answer these ${quizQuestions.length} questions to check your understanding.</p>
+      ${questionsHtml}
+      <div class="mt-4 flex flex-wrap justify-between gap-4">
+        <button id="lq-skip" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Skip</button>
+        <button id="lq-submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Submit Quiz</button>
+      </div>
+    </div><br/><br/><br/>`;
+
+  document
+    .querySelector("#lq-skip")
+    .addEventListener("click", () => advanceFromModule(module, pathName, htmlEl));
+
+  document.querySelector("#lq-submit").addEventListener("click", async () => {
+    const selected = [...htmlEl.querySelectorAll(".lq-question")].map(
+      (q) => q.querySelector('input[name="option"]:checked')?.value ?? null
+    );
+    let numCorrect = 0;
+    quizQuestions.forEach((q, i) => {
+      if (selected[i] === q.details.answer) numCorrect++;
+    });
+    const numWrong = quizQuestions.length - numCorrect;
+    const score = Math.round((numCorrect / quizQuestions.length) * 100);
+
+    // Record the attempt so it feeds XP, streaks, badges and history.
+    await createStorage("scores", {
+      id: randomID(),
+      test_id: "lesson-" + randomID(),
+      score,
+      numCorrect,
+      numWrong,
+      details: { questions: quizQuestions, selectedOptions: selected },
+      created_at: new Date(),
+    });
+
+    lessonQuizResult(htmlEl, module, pathName, {
+      score,
+      numCorrect,
+      questions: quizQuestions,
+      selected,
+    });
+  });
+}
+
+function lessonQuizResult(htmlEl, module, pathName, result) {
+  const passed = result.score >= LESSON_QUIZ_PASS;
+  const reviewData = {
+    details: { questions: result.questions, selectedOptions: result.selected },
+  };
+
+  htmlEl.innerHTML = `
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8">
+      <h1 class="text-2xl font-bold mb-2">${escapeHTMLToEntities(module.title)} — Quiz Results</h1>
+      <p class="mb-4">You scored
+        <span class="font-bold ${passed ? "text-green-600" : "text-red-600"}">${result.score}%</span>
+        (${result.numCorrect}/${result.questions.length} correct).
+        ${passed ? "Great job! 🎉" : "Review the explanations below, then continue or try again."}
+      </p>
+      <div id="lq-review" class="mb-6">${buildTysReview(reviewData)}</div>
+      <div class="flex flex-wrap justify-between gap-4">
+        <button id="lq-retry" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Retake Quiz</button>
+        <button id="lq-continue" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+          ${module.next ? "Complete & Continue" : "Finish Path"}
+        </button>
+      </div>
+    </div><br/><br/><br/>`;
+
+  document
+    .querySelector("#lq-retry")
+    .addEventListener("click", () =>
+      lessonQuizPage(htmlEl, module, pathName, moduleQuizCategory(module.title))
+    );
+  document
+    .querySelector("#lq-continue")
+    .addEventListener("click", () => advanceFromModule(module, pathName, htmlEl));
 }
 
 // export { scratchPage };
