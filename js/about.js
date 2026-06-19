@@ -1,17 +1,33 @@
 function AboutPage(htmlEl) {
   htmlEl.innerHTML = `
-  <div class="max-w-7xl mx-auto bg-white rounded-lg p-8">
-  <div class="mt-2">
-      <h2 class="font-medium text-2xl">What is GamifyDev?</h2>
-      <p class="card-text"> GamifyDev is a project-based learning platform that teaches you how to code by building real-world projects, through our interactive learning environment, you will learn how to code by building real-world projects.
-      We have curated a list of projects that will help you learn how to code in a fun and interactive way. This is achievable without any prior knowledge of programming and little internet bandwidth.</p>
+  <div class="max-w-3xl mx-auto space-y-5 animate-fade-up">
+    <div class="text-center">
+      <span class="gd-chip gd-chip-brand mb-3">About</span>
+      <h1 class="text-3xl font-extrabold">Learn to code, the fun way</h1>
+    </div>
+    <div class="gd-card">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-2xl">🎮</span>
+        <h2 class="text-xl font-extrabold">What is GamifyDev?</h2>
+      </div>
+      <p class="text-slate-600 leading-relaxed">
+        GamifyDev is a project-based learning platform that teaches you how to code by building
+        real-world projects. Through an interactive, game-like environment, you'll pick up the
+        fundamentals in a fun way — no prior programming knowledge and very little internet
+        bandwidth required.
+      </p>
+    </div>
+    <div class="gd-card">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-2xl">🎯</span>
+        <h2 class="text-xl font-extrabold">Our Mission</h2>
+      </div>
+      <p class="text-slate-600 leading-relaxed">
+        Learning something new is hardest at the very start. We make that first step lower,
+        friendlier, and a lot more rewarding — so you actually keep going.
+      </p>
+    </div>
   </div>
-
-  <div class="mt-2">
-      <h2 class="font-medium text-2xl">Our Mission</h2>
-      <p class="card-text">Learning new things can be difficult to start.</p>
-  </div>
-</div><br /><br /><br />
       `;
 }
 
