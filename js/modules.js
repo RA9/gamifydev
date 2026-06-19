@@ -71,59 +71,239 @@ async function fetchNote(pathName, title) {
 // Minimal, safe Markdown -> HTML renderer. Escapes all input first (no raw
 // HTML injection), then applies a small subset: headings, bold/italic/code,
 // links, and unordered lists. Deliberately avoids eval / innerHTML of raw md.
+// Escapes text for safe insertion as element content.
+function mdEscHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+// Escapes text for safe insertion into a double-quoted attribute.
+function mdEscAttr(s) {
+  return mdEscHtml(s).replace(/"/g, "&quot;");
+}
+
+// Inline markdown: code, bold, italic, links, inline images. HTML is escaped
+// first so authored lessons can't inject markup.
+function mdInline(s) {
+  return mdEscHtml(s)
+    .replace(/`([^`]+)`/g, '<code class="gd-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    // Links (but not the "[..](..)" part of an image — keep a non-"!" prefix).
+    .replace(
+      /(^|[^!])\[([^\]]+)\]\(([^)\s]+)\)/g,
+      '$1<a href="$3" target="_blank" rel="noopener" class="font-bold text-brand-600 underline decoration-2 underline-offset-2">$2</a>'
+    );
+}
+
+// Friendly, callout-box presets keyed by the `:::type` fence.
+const MD_CALLOUTS = {
+  tip: { cls: "gd-callout-tip", icon: "bulb", label: "Tip" },
+  analogy: { cls: "gd-callout-analogy", icon: "puzzle", label: "Think of it like…" },
+  warning: { cls: "gd-callout-warning", icon: "alert", label: "Watch out" },
+  key: { cls: "gd-callout-key", icon: "key", label: "Key idea" },
+  example: { cls: "gd-callout-example", icon: "flask", label: "Example" },
+};
+
+function renderCallout(type, inner) {
+  const c = MD_CALLOUTS[type] || MD_CALLOUTS.tip;
+  // Inner content is rendered as full markdown (paragraphs, lists, code).
+  return `<aside class="gd-callout ${c.cls}">
+    <p class="gd-callout-title">${icon(c.icon, "w-4 h-4 shrink-0")} ${c.label}</p>
+    <div class="gd-callout-body">${markdownToHtml(inner)}</div>
+  </aside>`;
+}
+
+function renderCodeBlock(code, lang) {
+  const label = lang ? lang.toUpperCase() : "CODE";
+  return `<div class="gd-codeblock">
+    <div class="gd-codeblock-head">${mdEscHtml(label)}</div>
+    <pre><code>${mdEscHtml(code)}</code></pre>
+  </div>`;
+}
+
+// Parses a `:::quiz` block into an interactive check-for-understanding widget.
+// Syntax:  Q: question / - option (append " *" to mark correct) / E: explanation
+function renderInlineQuiz(buf) {
+  let question = "";
+  let explanation = "";
+  const options = [];
+  buf.forEach((l) => {
+    const t = l.trim();
+    if (/^Q:/i.test(t)) question = t.replace(/^Q:\s*/i, "");
+    else if (/^E:/i.test(t)) explanation = t.replace(/^E:\s*/i, "");
+    else if (/^[-*]\s+/.test(t)) {
+      let txt = t.replace(/^[-*]\s+/, "");
+      const correct = /\*\s*$/.test(txt);
+      txt = txt.replace(/\s*\*\s*$/, "");
+      options.push({ txt, correct });
+    }
+  });
+
+  const optsHtml = options
+    .map(
+      (o) =>
+        `<button type="button" class="lesson-quiz-option gd-option w-full text-left" data-correct="${o.correct}">${mdInline(
+          o.txt
+        )}</button>`
+    )
+    .join("");
+
+  return `<div class="lesson-quiz gd-card-sm my-6"${
+    explanation ? ` data-explanation="${mdEscAttr(explanation)}"` : ""
+  }>
+    <p class="gd-label mb-2 flex items-center gap-1.5">${icon("help", "w-4 h-4")} Quick check</p>
+    <p class="font-extrabold mb-3">${mdInline(question)}</p>
+    <div class="space-y-2">${optsHtml}</div>
+    <div class="lesson-quiz-feedback hidden mt-3 text-sm font-bold"></div>
+  </div>`;
+}
+
+// Wires an inline quiz widget: reveal correct answer + explanation on first click.
+function initLessonQuiz(quizEl) {
+  const opts = quizEl.querySelectorAll(".lesson-quiz-option");
+  const feedback = quizEl.querySelector(".lesson-quiz-feedback");
+  const explanation = quizEl.getAttribute("data-explanation");
+  let answered = false;
+
+  opts.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (answered) return;
+      answered = true;
+      const correct = btn.dataset.correct === "true";
+      opts.forEach((o) => {
+        o.disabled = true;
+        if (o.dataset.correct === "true") o.classList.add("lesson-quiz-correct");
+      });
+      if (!correct) btn.classList.add("lesson-quiz-wrong");
+      feedback.classList.remove("hidden");
+      feedback.classList.add(correct ? "text-grass-600" : "text-rose-500");
+      feedback.innerHTML =
+        `<span class="inline-flex items-center gap-1 align-text-bottom">${icon(
+          correct ? "checkCircle" : "xCircle",
+          "w-4 h-4"
+        )} ${correct ? "Correct!" : "Not quite."}</span> ` +
+        (explanation ? `<span class="font-normal text-slate-600">${explanation}</span>` : "");
+    });
+  });
+}
+
+// Lightweight Markdown -> HTML for lessons. Supports headings, ordered &
+// unordered lists, bold/italic/inline-code, links, block images (figures),
+// fenced code blocks (```lang), callout boxes (:::tip/analogy/warning/key/
+// example) and interactive inline quizzes (:::quiz). All input is escaped, so
+// authored lessons cannot inject raw HTML or scripts.
 function markdownToHtml(md) {
-  const esc = (s) =>
-    s
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
-  const inline = (s) =>
-    esc(s)
-      .replace(/`([^`]+)`/g, '<code class="gd-code">$1</code>')
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-      .replace(
-        /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-        '<a href="$2" target="_blank" rel="noopener" class="text-blue-600 underline">$1</a>'
-      );
-
   const lines = md.split("\n");
   const html = [];
-  let inList = false;
-  const closeList = () => {
-    if (inList) {
+  let i = 0;
+  let inUL = false;
+  let inOL = false;
+  const closeLists = () => {
+    if (inUL) {
       html.push("</ul>");
-      inList = false;
+      inUL = false;
+    }
+    if (inOL) {
+      html.push("</ol>");
+      inOL = false;
     }
   };
 
-  for (const raw of lines) {
-    const line = raw.trimEnd();
+  while (i < lines.length) {
+    const line = lines[i].trimEnd();
+
+    // Fenced code block: ```lang ... ```
+    if (/^```/.test(line.trim())) {
+      closeLists();
+      const lang = line.trim().slice(3).trim();
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^```/.test(lines[i].trim())) {
+        buf.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing fence
+      html.push(renderCodeBlock(buf.join("\n"), lang));
+      continue;
+    }
+
+    // Fenced callout / quiz: :::type ... :::
+    const fence = line.trim().match(/^:::\s*([a-z]+)\s*$/i);
+    if (fence) {
+      closeLists();
+      const type = fence[1].toLowerCase();
+      const buf = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== ":::") {
+        buf.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing :::
+      html.push(
+        type === "quiz" ? renderInlineQuiz(buf) : renderCallout(type, buf.join("\n"))
+      );
+      continue;
+    }
+
+    // Standalone image -> figure with caption.
+    const img = line.match(/^!\[([^\]]*)\]\(([^)\s]+)\)\s*$/);
+    if (img) {
+      closeLists();
+      const cap = img[1]
+        ? `<figcaption class="text-center text-sm text-slate-500 mt-2">${mdInline(
+            img[1]
+          )}</figcaption>`
+        : "";
+      html.push(
+        `<figure class="my-6"><img src="${mdEscAttr(
+          img[2]
+        )}" alt="${mdEscAttr(img[1])}" loading="lazy" class="mx-auto rounded-2xl max-w-full" />${cap}</figure>`
+      );
+      i++;
+      continue;
+    }
+
     const heading = line.match(/^(#{1,4})\s+(.*)$/);
-    const listItem = line.match(/^[-*]\s+(.*)$/);
+    const ul = line.match(/^[-*]\s+(.*)$/);
+    const ol = line.match(/^\d+\.\s+(.*)$/);
 
     if (heading) {
-      closeList();
+      closeLists();
       const level = heading[1].length;
       const sizes = { 1: "text-3xl", 2: "text-2xl", 3: "text-xl", 4: "text-lg" };
       html.push(
-        `<h${level} class="${sizes[level]} font-bold mt-6 mb-2">${inline(heading[2])}</h${level}>`
+        `<h${level} class="${sizes[level]} font-extrabold mt-7 mb-3">${mdInline(
+          heading[2]
+        )}</h${level}>`
       );
-    } else if (listItem) {
-      if (!inList) {
-        html.push('<ul class="list-disc pl-6 mb-4 space-y-1">');
-        inList = true;
+    } else if (ul) {
+      if (inOL) {
+        html.push("</ol>");
+        inOL = false;
       }
-      html.push(`<li>${inline(listItem[1])}</li>`);
+      if (!inUL) {
+        html.push('<ul class="list-disc pl-6 mb-4 space-y-1.5">');
+        inUL = true;
+      }
+      html.push(`<li>${mdInline(ul[1])}</li>`);
+    } else if (ol) {
+      if (inUL) {
+        html.push("</ul>");
+        inUL = false;
+      }
+      if (!inOL) {
+        html.push('<ol class="list-decimal pl-6 mb-4 space-y-1.5">');
+        inOL = true;
+      }
+      html.push(`<li>${mdInline(ol[1])}</li>`);
     } else if (line.trim() === "") {
-      closeList();
+      closeLists();
     } else {
-      closeList();
-      html.push(`<p class="mb-4 leading-relaxed">${inline(line)}</p>`);
+      closeLists();
+      html.push(`<p class="mb-4 leading-relaxed">${mdInline(line)}</p>`);
     }
+    i++;
   }
-  closeList();
+  closeLists();
   return html.join("\n");
 }
 
@@ -149,26 +329,29 @@ async function scratchPage(htmlEl) {
     let badge = "";
     let button;
     let accent = "border-slate-100";
-    let stepIcon = "🔒";
+    let stepIconName = "lock";
+    let stepBox = "bg-slate-100 text-slate-400";
     if (record.is_completed) {
       accent = "border-grass-200";
-      stepIcon = "✓";
-      badge = `<span class="gd-chip gd-chip-grass mb-3">✓ Completed</span>`;
+      stepIconName = "check";
+      stepBox = "bg-grass-100 text-grass-600";
+      badge = `<span class="gd-chip gd-chip-grass mb-3">${icon("check", "w-3.5 h-3.5")} Completed</span>`;
       button = `<button onclick="handleNotePage('${currentNote.title.replace(/'/g, "\\'")}')" class="gd-btn gd-btn-secondary gd-btn-block">Review lesson</button>`;
     } else if (currentNote.current) {
       accent = "border-brand-300 ring-2 ring-brand-200";
-      stepIcon = "▶";
+      stepIconName = "play";
+      stepBox = "bg-brand-100 text-brand-600";
       badge = `<span class="gd-chip gd-chip-brand mb-3">In Progress</span>`;
       button = `<button onclick="handleNotePage()" class="gd-btn gd-btn-grass gd-btn-block">Start lesson</button>`;
     } else {
-      badge = `<span class="gd-chip gd-chip-slate mb-3">🔒 Locked</span>`;
+      badge = `<span class="gd-chip gd-chip-slate mb-3">${icon("lock", "w-3.5 h-3.5")} Locked</span>`;
       button = `<button class="gd-btn gd-btn-secondary gd-btn-block" disabled>Locked</button>`;
     }
 
     scratchNotesArray.push(`
     <div class="gd-card !p-6 flex flex-col border-2 ${accent}">
       <div class="flex items-start justify-between gap-3 mb-1">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 text-lg font-extrabold">${stepIcon}</div>
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${stepBox}">${icon(stepIconName, "w-5 h-5")}</div>
         ${badge}
       </div>
       <div class="flex-1">
@@ -189,7 +372,7 @@ async function scratchPage(htmlEl) {
         <div class="gd-card">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <span class="gd-chip gd-chip-brand mb-2">📚 Your learning path</span>
+              <span class="gd-chip gd-chip-brand mb-2">${icon("book", "w-3.5 h-3.5")} Your learning path</span>
               <h1 class="text-2xl font-extrabold">Keep building, one lesson at a time</h1>
             </div>
             <div class="text-right">
@@ -255,7 +438,7 @@ async function notePage(htmlEl, requestedTitle) {
     htmlEl.innerHTML = `
       <div class="max-w-2xl mx-auto animate-fade-up">
         <div class="gd-card text-center">
-          <div class="text-4xl mb-2">🚧</div>
+          <div class="grid h-14 w-14 mx-auto mb-3 place-items-center rounded-2xl bg-slate-100 text-slate-400">${icon("book", "w-7 h-7")}</div>
           <p class="text-slate-600 mb-5">No lessons are available for this path yet.</p>
           <button id="back-to-modules" class="gd-btn gd-btn-primary">Back to Modules</button>
         </div>
@@ -276,12 +459,12 @@ async function notePage(htmlEl, requestedTitle) {
   const resources = Array.isArray(current.resources) ? current.resources : [];
   const resourcesHtml = resources.length
     ? `<div class="mt-8 border-t border-slate-200 pt-5">
-         <h3 class="text-lg font-extrabold mb-3">📎 Resources</h3>
+         <h3 class="flex items-center gap-2 text-lg font-extrabold mb-3">${icon("link", "w-5 h-5 text-brand-500")} Resources</h3>
          <ul class="space-y-2">
            ${resources
              .map(
                (r) =>
-                 `<li><a href="${esc(r.url)}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 font-bold text-brand-700 hover:bg-brand-100 transition-colors"><span>🔗</span>${esc(r.title)}</a></li>`
+                 `<li><a href="${esc(r.url)}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 font-bold text-brand-700 hover:bg-brand-100 transition-colors">${icon("link", "w-4 h-4 shrink-0")}${esc(r.title)}</a></li>`
              )
              .join("")}
          </ul>
@@ -297,22 +480,35 @@ async function notePage(htmlEl, requestedTitle) {
 
   htmlEl.innerHTML = `
     <article class="max-w-3xl mx-auto gd-card animate-fade-up">
-      ${isReview ? '<span class="gd-chip gd-chip-grass mb-4">✓ Completed lesson</span>' : '<span class="gd-chip gd-chip-brand mb-4">📖 Lesson</span>'}
+      ${
+        isReview
+          ? `<span class="gd-chip gd-chip-grass mb-4">${icon("check", "w-3.5 h-3.5")} Completed lesson</span>`
+          : `<span class="gd-chip gd-chip-brand mb-4">${icon("book", "w-3.5 h-3.5")} Lesson</span>`
+      }
       ${body}
       ${resourcesHtml}
       <div class="mt-8 flex flex-wrap justify-between gap-3 border-t border-slate-200 pt-6">
-        <button id="back-to-modules" class="gd-btn gd-btn-secondary">← Back to Modules</button>
+        <button id="back-to-modules" class="gd-btn gd-btn-secondary">${icon("arrowLeft", "w-4 h-4")} Back to Modules</button>
         ${
           isReview
             ? ""
             : `<button id="complete-continue" class="gd-btn gd-btn-grass">
-          ${hasQuiz ? "Take the Quiz →" : hasNext ? "Mark Complete & Continue →" : "Finish Path 🎉"}
+          ${
+            hasQuiz
+              ? `Take the Quiz ${icon("arrowRight", "w-4 h-4")}`
+              : hasNext
+              ? `Mark Complete & Continue ${icon("arrowRight", "w-4 h-4")}`
+              : `Finish Path ${icon("trophy", "w-4 h-4")}`
+          }
         </button>`
         }
       </div>
     </article>`;
 
   document.querySelector("#back-to-modules").addEventListener("click", backToModules);
+
+  // Activate any inline check-for-understanding quizzes embedded in the lesson.
+  htmlEl.querySelectorAll(".lesson-quiz").forEach(initLessonQuiz);
 
   if (isReview) return;
 
@@ -379,7 +575,7 @@ async function lessonQuizPage(htmlEl, module, pathName, category) {
   htmlEl.innerHTML = `
     <div class="max-w-3xl mx-auto animate-fade-up">
       <div class="text-center mb-6">
-        <span class="gd-chip gd-chip-brand mb-3">🧩 Lesson Quiz</span>
+        <span class="gd-chip gd-chip-brand mb-3">${icon("puzzle", "w-3.5 h-3.5")} Lesson Quiz</span>
         <h1 class="text-2xl font-extrabold">${escapeHTMLToEntities(module.title)}</h1>
         <p class="text-slate-500 mt-1">Answer these ${quizQuestions.length} questions to check your understanding.</p>
       </div>
@@ -435,7 +631,9 @@ function lessonQuizResult(htmlEl, module, pathName, result) {
     <div class="max-w-3xl mx-auto animate-fade-up">
       <div class="gd-card">
         <div class="text-center mb-6">
-          <div class="text-5xl mb-2">${passed ? "🎉" : "💪"}</div>
+          <div class="grid h-16 w-16 mx-auto mb-3 place-items-center rounded-2xl animate-pop-in ${
+            passed ? "bg-grass-50 text-grass-500" : "bg-amber-50 text-amber-500"
+          }">${icon(passed ? "trophy" : "target", "w-8 h-8")}</div>
           <h1 class="text-2xl font-extrabold mb-2">${escapeHTMLToEntities(module.title)}</h1>
           <p class="text-slate-600">
             You scored
@@ -446,9 +644,9 @@ function lessonQuizResult(htmlEl, module, pathName, result) {
         </div>
         <div id="lq-review" class="mb-6">${buildTysReview(reviewData)}</div>
         <div class="flex gap-3">
-          <button id="lq-retry" class="gd-btn gd-btn-secondary flex-1">Retake Quiz</button>
+          <button id="lq-retry" class="gd-btn gd-btn-secondary flex-1">${icon("refresh", "w-4 h-4")} Retake Quiz</button>
           <button id="lq-continue" class="gd-btn gd-btn-grass flex-1">
-            ${module.next ? "Continue →" : "Finish Path 🎉"}
+            ${module.next ? `Continue ${icon("arrowRight", "w-4 h-4")}` : `Finish Path ${icon("trophy", "w-4 h-4")}`}
           </button>
         </div>
       </div>

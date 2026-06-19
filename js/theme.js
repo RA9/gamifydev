@@ -9,10 +9,14 @@ function isDarkMode() {
 }
 
 function updateThemeToggleIcons() {
-  const icon = isDarkMode() ? "☀️" : "🌙";
+  // Show a sun in dark mode (tap to go light) and a moon in light mode.
+  const svg =
+    typeof icon === "function"
+      ? icon(isDarkMode() ? "sun" : "moon", "w-5 h-5")
+      : "";
   document
     .querySelectorAll(".theme-toggle-icon")
-    .forEach((el) => (el.textContent = icon));
+    .forEach((el) => (el.innerHTML = svg));
 }
 
 function toggleTheme() {

@@ -78,21 +78,21 @@
               class="hidden items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur"
               aria-label="Your stats"
             >
-              <span class="flex items-center gap-1 text-white font-extrabold text-sm">
-                <span aria-hidden="true">🔥</span><span id="gd-hud-streak">0</span>
+              <span class="flex items-center gap-1.5 text-white font-extrabold text-sm">
+                <svg class="w-4 h-4 text-orange-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg><span id="gd-hud-streak">0</span>
               </span>
               <span class="h-4 w-px bg-white/30"></span>
-              <span class="flex items-center gap-1 text-white font-extrabold text-sm">
-                <span aria-hidden="true">💎</span><span id="gd-hud-xp">0</span>
+              <span class="flex items-center gap-1.5 text-white font-extrabold text-sm">
+                <svg class="w-4 h-4 text-grass-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3 8 9l4 13 4-13-3-6M2 9h20"/></svg><span id="gd-hud-xp">0</span>
               </span>
             </div>
 
             <button
               onclick="toggleTheme()"
               aria-label="Toggle dark mode"
-              class="grid h-10 w-10 place-items-center rounded-full bg-white/15 hover:bg-white/25 text-lg leading-none transition-colors"
+              class="grid h-10 w-10 place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white leading-none transition-colors"
             >
-              <span class="theme-toggle-icon">🌙</span>
+              <span class="theme-toggle-icon"></span>
             </button>
 
             <button
@@ -126,7 +126,9 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden p-4"
     >
       <div class="gd-card max-w-md w-full text-center animate-pop-in">
-        <div class="text-4xl mb-2">✨</div>
+        <div class="grid h-14 w-14 mx-auto mb-3 place-items-center rounded-2xl bg-brand-100 text-brand-600">
+          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/></svg>
+        </div>
         <h2 class="text-2xl font-extrabold mb-2">New Update Available</h2>
         <p class="text-slate-600 mb-6">
           A fresh version of GamifyDev is ready. Update now to get the latest?
@@ -156,6 +158,7 @@
     </footer>
     <script src="./js/external/dexie.js"></script>
     <script src="./js/utils.js"></script>
+    <script src="./js/icons.js"></script>
     <script src="./js/storage.js"></script>
     <script src="./js/theme.js"></script>
     <script src="./js/tys.js"></script>

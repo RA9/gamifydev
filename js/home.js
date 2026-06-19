@@ -25,7 +25,7 @@ async function HomePage(htmlEl) {
       <div class="absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
       <div class="relative grid gap-8 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
         <div>
-          <span class="gd-chip bg-white/15 text-white mb-4">🎮 Learn by playing</span>
+          <span class="gd-chip bg-white/15 text-white mb-4">${icon("gamepad", "w-4 h-4")} Learn by playing</span>
           <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
             Level up your<br/>coding skills.
           </h1>
@@ -37,15 +37,15 @@ async function HomePage(htmlEl) {
             <button id="get-started" class="gd-btn gd-btn-amber">Get Started — it's free</button>
             <a href="#test" class="gd-btn gd-btn-secondary">Take a quick quiz</a>
           </div>
-          <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/80 font-bold">
-            <span>⚡ XP & Levels</span>
-            <span>🔥 Daily Streaks</span>
-            <span>🏆 Badges</span>
-            <span>📚 Guided Lessons</span>
+          <div class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/85 font-bold">
+            <span class="flex items-center gap-1.5">${icon("zap", "w-4 h-4")} XP & Levels</span>
+            <span class="flex items-center gap-1.5">${icon("flame", "w-4 h-4")} Daily Streaks</span>
+            <span class="flex items-center gap-1.5">${icon("trophy", "w-4 h-4")} Badges</span>
+            <span class="flex items-center gap-1.5">${icon("book", "w-4 h-4")} Guided Lessons</span>
           </div>
         </div>
-        <div class="hidden lg:flex justify-center">
-          <div class="animate-float text-[10rem] leading-none select-none">👩‍💻</div>
+        <div class="hidden lg:flex justify-center items-center">
+          <div class="animate-float w-full max-w-sm">${illustration("hero")}</div>
         </div>
       </div>
     </section>
@@ -53,21 +53,21 @@ async function HomePage(htmlEl) {
     <!-- How it works -->
     <section class="grid gap-4 sm:grid-cols-3">
       <div class="gd-card-sm flex items-start gap-4">
-        <div class="text-3xl">🎯</div>
+        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("target", "w-6 h-6")}</div>
         <div>
           <h3 class="font-extrabold text-lg">Pick a path</h3>
           <p class="text-slate-600 text-sm mt-1">Frontend, backend, or fullstack — start where you are.</p>
         </div>
       </div>
       <div class="gd-card-sm flex items-start gap-4">
-        <div class="text-3xl">🧩</div>
+        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-grass-100 text-grass-600">${icon("puzzle", "w-6 h-6")}</div>
         <div>
           <h3 class="font-extrabold text-lg">Learn & practice</h3>
           <p class="text-slate-600 text-sm mt-1">Bite-size lessons and quizzes that actually stick.</p>
         </div>
       </div>
       <div class="gd-card-sm flex items-start gap-4">
-        <div class="text-3xl">🚀</div>
+        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-100 text-amber-600">${icon("rocket", "w-6 h-6")}</div>
         <div>
           <h3 class="font-extrabold text-lg">Build for real</h3>
           <p class="text-slate-600 text-sm mt-1">Apply the fundamentals to real-world projects.</p>
@@ -78,7 +78,7 @@ async function HomePage(htmlEl) {
     <!-- Creator note -->
     <section class="gd-card">
       <div class="flex items-center gap-3 mb-3">
-        <div class="grid h-11 w-11 place-items-center rounded-full bg-brand-100 text-2xl">💬</div>
+        <div class="grid h-11 w-11 place-items-center rounded-full bg-brand-100 text-brand-600">${icon("chat", "w-6 h-6")}</div>
         <h2 class="text-xl font-extrabold">A message from the creator</h2>
       </div>
       <p class="text-slate-600 leading-relaxed">
@@ -138,7 +138,7 @@ async function UserInfoSection(htmlEl) {
   <div class="max-w-lg mx-auto animate-fade-up">
     <div class="gd-card">
       <div class="text-center mb-6">
-        <div class="text-4xl mb-2">👋</div>
+        <div class="grid h-14 w-14 mx-auto mb-3 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("rocket", "w-7 h-7")}</div>
         <h1 class="text-2xl font-extrabold">Let's get you set up</h1>
         <p class="text-slate-500 mt-1">Tell us your name and what you'd like to focus on.</p>
       </div>
@@ -203,20 +203,20 @@ async function PreferenceSection(htmlEl) {
   <div class="max-w-3xl mx-auto animate-fade-up">
     <div class="text-center mb-6">
       <span class="gd-chip gd-chip-brand mb-3">${user.preference.toUpperCase()} PATH</span>
-      <h1 class="text-2xl sm:text-3xl font-extrabold">Welcome aboard, ${user.name}! 🎉</h1>
+      <h1 class="text-2xl sm:text-3xl font-extrabold">Welcome aboard, ${user.name}!</h1>
       <p class="text-slate-500 mt-2 max-w-xl mx-auto">
         You're all set on the <b>${user.preference.toUpperCase()}</b> path. How would you like to begin?
       </p>
     </div>
     <div class="grid gap-4 sm:grid-cols-2">
       <button id="scratch" class="gd-card text-left hover:shadow-soft hover:-translate-y-0.5 transition-all">
-        <div class="text-4xl mb-3">📚</div>
+        <div class="grid h-14 w-14 mb-3 place-items-center rounded-2xl bg-grass-100 text-grass-600">${icon("book", "w-7 h-7")}</div>
         <h2 class="text-xl font-extrabold">Start from scratch</h2>
         <p class="text-slate-600 mt-1 text-sm">Follow guided lessons step by step and build up from the basics.</p>
-        <span class="gd-chip gd-chip-grass mt-4">Recommended</span>
+        <span class="gd-chip gd-chip-grass mt-4">${icon("check", "w-3.5 h-3.5")} Recommended</span>
       </button>
       <button id="get-started" class="gd-card text-left hover:shadow-soft hover:-translate-y-0.5 transition-all">
-        <div class="text-4xl mb-3">⚡</div>
+        <div class="grid h-14 w-14 mb-3 place-items-center rounded-2xl bg-amber-100 text-amber-600">${icon("zap", "w-7 h-7")}</div>
         <h2 class="text-xl font-extrabold">Test yourself</h2>
         <p class="text-slate-600 mt-1 text-sm">Already know some things? Jump into a timed quiz and earn XP now.</p>
         <span class="gd-chip gd-chip-slate mt-4">Quick challenge</span>

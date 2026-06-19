@@ -1,16 +1,22 @@
 function AboutPage(htmlEl) {
   const features = [
-    { icon: "⚡", title: "XP & Levels", desc: "Earn points for every correct answer and watch your level climb." },
-    { icon: "🔥", title: "Daily Streaks", desc: "Build a habit — keep your streak alive by practicing each day." },
-    { icon: "🏆", title: "Badges", desc: "Unlock achievements as you hit milestones and master new skills." },
-    { icon: "📚", title: "Guided Lessons", desc: "Bite-size, project-based lessons that take you from zero to building." },
+    { icon: "zap", tint: "brand", title: "XP & Levels", desc: "Earn points for every correct answer and watch your level climb." },
+    { icon: "flame", tint: "amber", title: "Daily Streaks", desc: "Build a habit — keep your streak alive by practicing each day." },
+    { icon: "trophy", tint: "grass", title: "Badges", desc: "Unlock achievements as you hit milestones and master new skills." },
+    { icon: "book", tint: "brand", title: "Guided Lessons", desc: "Bite-size, project-based lessons that take you from zero to building." },
   ];
 
   const steps = [
-    { n: "1", icon: "🎯", title: "Pick a path", desc: "Frontend, backend, or fullstack — start where you are." },
-    { n: "2", icon: "🧩", title: "Learn & practice", desc: "Work through lessons and quizzes that actually stick." },
-    { n: "3", icon: "🚀", title: "Build for real", desc: "Apply the fundamentals to real-world projects." },
+    { n: "1", icon: "target", title: "Pick a path", desc: "Frontend, backend, or fullstack — start where you are." },
+    { n: "2", icon: "puzzle", title: "Learn & practice", desc: "Work through lessons and quizzes that actually stick." },
+    { n: "3", icon: "rocket", title: "Build for real", desc: "Apply the fundamentals to real-world projects." },
   ];
+
+  const tints = {
+    brand: "bg-brand-100 text-brand-600",
+    grass: "bg-grass-100 text-grass-600",
+    amber: "bg-amber-100 text-amber-600",
+  };
 
   htmlEl.innerHTML = `
   <div class="max-w-5xl mx-auto space-y-6 animate-fade-up">
@@ -18,7 +24,7 @@ function AboutPage(htmlEl) {
     <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-500 text-white shadow-soft p-8 sm:p-10 text-center">
       <div class="absolute -top-10 -right-8 h-40 w-40 rounded-full bg-grass-400/30 blur-2xl"></div>
       <div class="relative">
-        <span class="gd-chip bg-white/15 text-white mb-3">About GamifyDev</span>
+        <span class="gd-chip bg-white/15 text-white mb-3">${icon("gamepad", "w-4 h-4")} About GamifyDev</span>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Learn to code, the fun way</h1>
         <p class="mt-3 text-white/90 max-w-2xl mx-auto">
           A project-based learning platform that turns the hardest part of coding — getting started — into a game you actually want to play.
@@ -30,7 +36,7 @@ function AboutPage(htmlEl) {
     <div class="grid gap-5 md:grid-cols-2">
       <div class="gd-card">
         <div class="flex items-center gap-3 mb-2">
-          <span class="grid h-11 w-11 place-items-center rounded-2xl bg-brand-100 text-2xl">🎮</span>
+          <span class="grid h-11 w-11 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("gamepad", "w-6 h-6")}</span>
           <h2 class="text-xl font-extrabold">What is GamifyDev?</h2>
         </div>
         <p class="text-slate-600 leading-relaxed">
@@ -41,7 +47,7 @@ function AboutPage(htmlEl) {
       </div>
       <div class="gd-card">
         <div class="flex items-center gap-3 mb-2">
-          <span class="grid h-11 w-11 place-items-center rounded-2xl bg-grass-100 text-2xl">🎯</span>
+          <span class="grid h-11 w-11 place-items-center rounded-2xl bg-grass-100 text-grass-600">${icon("target", "w-6 h-6")}</span>
           <h2 class="text-xl font-extrabold">Our Mission</h2>
         </div>
         <p class="text-slate-600 leading-relaxed">
@@ -60,7 +66,7 @@ function AboutPage(htmlEl) {
           .map(
             (f) => `
           <div class="rounded-2xl border-2 border-slate-100 bg-slate-50 p-5 text-center transition-transform hover:-translate-y-0.5">
-            <div class="text-3xl mb-2">${f.icon}</div>
+            <div class="grid h-12 w-12 mx-auto mb-3 place-items-center rounded-2xl ${tints[f.tint]}">${icon(f.icon, "w-6 h-6")}</div>
             <h3 class="font-extrabold">${f.title}</h3>
             <p class="text-sm text-slate-600 mt-1">${f.desc}</p>
           </div>`
@@ -78,7 +84,7 @@ function AboutPage(htmlEl) {
             (s) => `
           <div class="relative rounded-2xl border-2 border-slate-100 p-5">
             <span class="absolute -top-3 -left-2 grid h-8 w-8 place-items-center rounded-full bg-brand-500 text-white font-extrabold text-sm shadow-card">${s.n}</span>
-            <div class="text-3xl mb-2">${s.icon}</div>
+            <div class="grid h-12 w-12 mb-2 place-items-center rounded-2xl bg-brand-50 text-brand-600">${icon(s.icon, "w-6 h-6")}</div>
             <h3 class="font-extrabold">${s.title}</h3>
             <p class="text-sm text-slate-600 mt-1">${s.desc}</p>
           </div>`

@@ -17,19 +17,19 @@ async function TestPage(htmlEl) {
 
   if (state.current === "tys") {
     const languages = [
-      { value: "html", label: "HTML", icon: "🧱" },
-      { value: "css", label: "CSS", icon: "🎨" },
-      { value: "javascript", label: "JavaScript", icon: "⚡" },
-      { value: "c", label: "C", icon: "🔧" },
-      { value: "python", label: "Python", icon: "🐍" },
-      { value: "java", label: "Java", icon: "☕" },
-      { value: "sql", label: "SQL", icon: "🗄️" },
+      { value: "html", label: "HTML" },
+      { value: "css", label: "CSS" },
+      { value: "javascript", label: "JavaScript" },
+      { value: "c", label: "C" },
+      { value: "python", label: "Python" },
+      { value: "java", label: "Java" },
+      { value: "sql", label: "SQL" },
     ];
 
     htmlEl.innerHTML = `
       <div class="max-w-3xl mx-auto animate-fade-up">
         <div class="text-center mb-6">
-          <span class="gd-chip gd-chip-brand mb-3">⚡ Test Yourself</span>
+          <span class="gd-chip gd-chip-brand mb-3">${icon("zap", "w-3.5 h-3.5")} Test Yourself</span>
           <h1 class="text-2xl sm:text-3xl font-extrabold">Choose your challenge</h1>
           <p class="text-slate-500 mt-1">Pick a language and how many questions you want.</p>
         </div>
@@ -42,10 +42,10 @@ async function TestPage(htmlEl) {
                 .map(
                   (l, i) => `
                 <button type="button" data-lang="${l.value}"
-                  class="lang-tile gd-option justify-center flex-col gap-1 py-4 ${
+                  class="lang-tile gd-option justify-center flex-col gap-2 py-4 ${
                     i === 0 ? "gd-option-selected" : ""
                   }">
-                  <span class="text-2xl">${l.icon}</span>
+                  ${langBadge(l.value, "h-11 w-11 text-sm")}
                   <span class="text-sm font-extrabold">${l.label}</span>
                 </button>`
                 )
@@ -175,7 +175,10 @@ function tysCountDown(duration) {
       clearInterval(interval);
       document.querySelector(
         "#tys-duration"
-      ).innerHTML = `<span class="text-rose-500">⏰ Time's up!</span>`;
+      ).innerHTML = `<span class="flex items-center gap-1.5 text-rose-500">${icon(
+        "clock",
+        "w-4 h-4"
+      )} Time's up!</span>`;
       // Lock in the current answers and auto-submit when time runs out.
       document.querySelectorAll("input[type=radio]").forEach((el) => {
         el.classList.add("cursor-not-allowed");
@@ -186,9 +189,9 @@ function tysCountDown(duration) {
       const low = timer <= 10;
       document.querySelector(
         "#tys-duration"
-      ).innerHTML = `<span class="${
+      ).innerHTML = `<span class="flex items-center gap-1.5 ${
         low ? "text-rose-500" : "text-grass-600"
-      }">⏱ ${minutes}:${seconds}</span>`;
+      }">${icon("clock", "w-4 h-4")} ${minutes}:${seconds}</span>`;
       timer--;
     }
   }, 1000);
@@ -412,14 +415,20 @@ function buildTysReview(testDetails) {
           let tag = "";
           if (isCorrectOpt) {
             cls = "border-green-500 bg-green-50 text-green-800";
-            tag = ` <span class="font-extrabold">✓ correct answer</span>`;
+            tag = `<span class="inline-flex items-center gap-1 font-extrabold shrink-0">${icon(
+              "checkCircle",
+              "w-4 h-4"
+            )} correct answer</span>`;
           } else if (isChosenWrong) {
             cls = "border-red-500 bg-red-50 text-red-800";
-            tag = ` <span class="font-extrabold">✗ your answer</span>`;
+            tag = `<span class="inline-flex items-center gap-1 font-extrabold shrink-0">${icon(
+              "xCircle",
+              "w-4 h-4"
+            )} your answer</span>`;
           }
-          return `<li class="border-2 ${cls} rounded-xl px-3 py-2 mb-1.5 list-none font-semibold">${escapeHTMLToEntities(
+          return `<li class="flex items-center justify-between gap-2 border-2 ${cls} rounded-xl px-3 py-2 mb-1.5 list-none font-semibold"><span>${escapeHTMLToEntities(
             opt
-          )}${tag}</li>`;
+          )}</span>${tag}</li>`;
         })
         .join("");
 
@@ -467,17 +476,18 @@ async function TestResultPage(htmlEl) {
     const ringColor =
       tone === "grass" ? "#46a302" : tone === "amber" ? "#f59e0b" : "#f43f5e";
     const headline =
-      score >= 85
-        ? "Outstanding! 🎉"
-        : score >= 70
-        ? "Nice work! 👏"
-        : "Keep practicing! 💪";
+      score >= 85 ? "Outstanding!" : score >= 70 ? "Nice work!" : "Keep practicing!";
+    const resultIcon = score >= 85 ? "trophy" : score >= 70 ? "medal" : "target";
     const xpEarned = testDetails.numCorrect * 10;
 
     htmlEl.innerHTML = `
       <div class="max-w-2xl mx-auto animate-fade-up">
         <div class="gd-card text-center">
-          <p class="gd-chip gd-chip-brand mx-auto mb-4">${test.language.toUpperCase()} Results</p>
+          <div class="grid h-16 w-16 mx-auto mb-4 place-items-center rounded-2xl bg-${tone}-50 text-${tone}-500 animate-pop-in">${icon(
+      resultIcon,
+      "w-8 h-8"
+    )}</div>
+          <p class="gd-chip gd-chip-brand mx-auto mb-3">${test.language.toUpperCase()} Results</p>
           <h1 class="text-2xl sm:text-3xl font-extrabold mb-6">${headline}</h1>
 
           <div class="relative mx-auto h-40 w-40 mb-6">
@@ -502,7 +512,10 @@ async function TestResultPage(htmlEl) {
             </div>
             <div class="rounded-2xl bg-amber-50 border border-amber-200 py-3">
               <p class="text-2xl font-extrabold text-amber-500">+${xpEarned}</p>
-              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">XP 💎</p>
+              <p class="flex items-center justify-center gap-1 text-xs font-bold uppercase tracking-wide text-slate-500">${icon(
+                "gem",
+                "w-3.5 h-3.5"
+              )} XP</p>
             </div>
           </div>
 

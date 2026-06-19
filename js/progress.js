@@ -61,12 +61,12 @@ function computeProgress(scores, languageByTestId = {}) {
   const streak = computeStreak(scores.map((s) => s.created_at));
 
   const badges = [
-    { id: "first-steps", icon: "🚀", name: "First Steps", desc: "Complete your first test", earned: totalTests >= 1 },
-    { id: "scholar", icon: "🎓", name: "Scholar", desc: "Complete 10 tests", earned: totalTests >= 10 },
-    { id: "centurion", icon: "💯", name: "Centurion", desc: "Answer 100 questions", earned: totalQuestions >= 100 },
-    { id: "perfectionist", icon: "⭐", name: "Perfectionist", desc: "Score 100% on a test", earned: perfectCount >= 1 },
-    { id: "polyglot", icon: "🌐", name: "Polyglot", desc: "Test in 3 languages", earned: Object.keys(bestByLanguage).length >= 3 },
-    { id: "on-fire", icon: "🔥", name: "On Fire", desc: "Reach a 3-day streak", earned: streak >= 3 },
+    { id: "first-steps", icon: "rocket", name: "First Steps", desc: "Complete your first test", earned: totalTests >= 1 },
+    { id: "scholar", icon: "cap", name: "Scholar", desc: "Complete 10 tests", earned: totalTests >= 10 },
+    { id: "centurion", icon: "medal", name: "Centurion", desc: "Answer 100 questions", earned: totalQuestions >= 100 },
+    { id: "perfectionist", icon: "star", name: "Perfectionist", desc: "Score 100% on a test", earned: perfectCount >= 1 },
+    { id: "polyglot", icon: "globe", name: "Polyglot", desc: "Test in 3 languages", earned: Object.keys(bestByLanguage).length >= 3 },
+    { id: "on-fire", icon: "flame", name: "On Fire", desc: "Reach a 3-day streak", earned: streak >= 3 },
   ];
 
   return {
@@ -84,10 +84,13 @@ function computeProgress(scores, languageByTestId = {}) {
   };
 }
 
-function statCard(label, value, icon) {
+function statCard(label, value, iconName) {
   return `
     <div class="gd-card-sm text-center">
-      <div class="text-2xl mb-1">${icon}</div>
+      <div class="grid h-10 w-10 mx-auto mb-2 place-items-center rounded-xl bg-brand-50 text-brand-500">${icon(
+        iconName,
+        "w-5 h-5"
+      )}</div>
       <p class="text-3xl font-extrabold text-slate-800">${value}</p>
       <p class="text-xs font-bold uppercase tracking-wide text-slate-500">${label}</p>
     </div>`;
@@ -100,7 +103,7 @@ async function ProgressPage(htmlEl) {
     htmlEl.innerHTML = `
       <div class="max-w-xl mx-auto animate-fade-up">
         <div class="gd-card text-center">
-          <div class="text-5xl mb-3 animate-float">🏆</div>
+          <div class="w-44 mx-auto mb-2 animate-float">${illustration("trophy")}</div>
           <h1 class="text-2xl font-extrabold mb-2">Your Progress</h1>
           <p class="text-slate-600 mb-6">No quizzes yet! Complete one to start earning <b>XP</b>, build a <b>streak</b>, and unlock <b>badges</b>.</p>
           <a href="#test" class="gd-btn gd-btn-grass">Take your first quiz</a>
@@ -123,13 +126,15 @@ async function ProgressPage(htmlEl) {
           ? "border-brand-200 bg-brand-50 shadow-card"
           : "border-slate-200 bg-slate-50 opacity-60"
       }" title="${b.desc}">
-        <div class="text-3xl mb-1 ${b.earned ? "" : "grayscale opacity-70"}">${b.icon}</div>
+        <div class="grid h-12 w-12 mx-auto mb-2 place-items-center rounded-2xl ${
+          b.earned ? "bg-brand-100 text-brand-600" : "bg-slate-100 text-slate-400"
+        }">${icon(b.icon, "w-6 h-6")}</div>
         <p class="text-sm font-extrabold text-slate-800">${b.name}</p>
         <p class="text-xs text-slate-500">${b.desc}</p>
         ${
           b.earned
-            ? '<span class="gd-chip gd-chip-grass mt-2 text-[10px]">Unlocked</span>'
-            : '<span class="gd-chip gd-chip-slate mt-2 text-[10px]">🔒 Locked</span>'
+            ? `<span class="gd-chip gd-chip-grass mt-2 text-[10px]">${icon("check", "w-3 h-3")} Unlocked</span>`
+            : `<span class="gd-chip gd-chip-slate mt-2 text-[10px]">${icon("lock", "w-3 h-3")} Locked</span>`
         }
       </div>`
     )
@@ -198,16 +203,16 @@ async function ProgressPage(htmlEl) {
             <div class="grid h-16 w-16 place-items-center rounded-2xl bg-white/15 text-3xl font-extrabold">${p.level}</div>
             <div>
               <h1 class="text-2xl font-extrabold text-white">Level ${p.level}</h1>
-              <p class="text-white/80 font-bold">💎 ${p.xp} XP total</p>
+              <p class="flex items-center gap-1.5 text-white/80 font-bold">${icon("gem", "w-4 h-4 text-grass-300")} ${p.xp} XP total</p>
             </div>
           </div>
           <div class="flex gap-3">
             <div class="text-center rounded-2xl bg-white/15 px-4 py-2">
-              <p class="text-2xl font-extrabold">🔥 ${p.streak}</p>
+              <p class="flex items-center justify-center gap-1.5 text-2xl font-extrabold">${icon("flame", "w-6 h-6 text-orange-300")} ${p.streak}</p>
               <p class="text-xs font-bold uppercase tracking-wide text-white/80">Streak</p>
             </div>
             <div class="text-center rounded-2xl bg-white/15 px-4 py-2">
-              <p class="text-2xl font-extrabold">🏅 ${earnedBadges}</p>
+              <p class="flex items-center justify-center gap-1.5 text-2xl font-extrabold">${icon("medal", "w-6 h-6 text-amber-300")} ${earnedBadges}</p>
               <p class="text-xs font-bold uppercase tracking-wide text-white/80">Badges</p>
             </div>
           </div>
@@ -224,14 +229,14 @@ async function ProgressPage(htmlEl) {
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        ${statCard("Tests Taken", p.totalTests, "📝")}
-        ${statCard("Questions", p.totalQuestions, "❓")}
-        ${statCard("Accuracy", p.accuracy + "%", "🎯")}
-        ${statCard("Perfect Scores", p.perfectCount, "⭐")}
+        ${statCard("Tests Taken", p.totalTests, "file")}
+        ${statCard("Questions", p.totalQuestions, "help")}
+        ${statCard("Accuracy", p.accuracy + "%", "target")}
+        ${statCard("Perfect Scores", p.perfectCount, "star")}
       </div>
 
       <div class="gd-card">
-        <h2 class="text-xl font-extrabold mb-4">🏆 Badges</h2>
+        <h2 class="flex items-center gap-2 text-xl font-extrabold mb-4">${icon("trophy", "w-5 h-5 text-amber-500")} Badges</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">${badgesHTML}</div>
       </div>
 
