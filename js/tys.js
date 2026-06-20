@@ -68,7 +68,7 @@ async function TestPage(htmlEl) {
             </div>
           </div>
 
-          <button id="start-tys" class="gd-btn gd-btn-grass gd-btn-block">Start Quiz</button>
+          <button id="start-tys" class="gd-btn gd-btn-primary gd-btn-block">Start Quiz</button>
         </div>
       </div>
       `;
@@ -284,7 +284,7 @@ async function TestYourselfSection(htmlEl) {
 
         <div class="flex gap-3 mt-6">
           <button id="tys-cancel" class="gd-btn gd-btn-secondary flex-1">Cancel</button>
-          <button id="tys-submit" class="gd-btn gd-btn-grass flex-[2]">Submit Quiz</button>
+          <button id="tys-submit" class="gd-btn gd-btn-primary flex-[2]">Submit Quiz</button>
         </div>
       </div>
     `;

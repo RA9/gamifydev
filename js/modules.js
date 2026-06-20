@@ -343,7 +343,7 @@ async function scratchPage(htmlEl) {
       stepIconName = "play";
       stepBox = "bg-brand-100 text-brand-600";
       badge = `<span class="gd-chip gd-chip-brand mb-3">In Progress</span>`;
-      button = `<button onclick="handleNotePage()" class="gd-btn gd-btn-grass gd-btn-block">Start lesson</button>`;
+      button = `<button onclick="handleNotePage()" class="gd-btn gd-btn-primary gd-btn-block">Start lesson</button>`;
     } else {
       badge = `<span class="gd-chip gd-chip-slate mb-3">${icon("lock", "w-3.5 h-3.5")} Locked</span>`;
       button = `<button class="gd-btn gd-btn-secondary gd-btn-block" disabled>Locked</button>`;
@@ -493,7 +493,7 @@ async function notePage(htmlEl, requestedTitle) {
         ${
           isReview
             ? ""
-            : `<button id="complete-continue" class="gd-btn gd-btn-grass">
+            : `<button id="complete-continue" class="gd-btn gd-btn-primary">
           ${
             hasQuiz
               ? `Take the Quiz ${icon("arrowRight", "w-4 h-4")}`
@@ -586,7 +586,7 @@ async function lessonQuizPage(htmlEl, module, pathName, category) {
       ${questionsHtml}
       <div class="mt-5 flex gap-3">
         <button id="lq-skip" class="gd-btn gd-btn-secondary flex-1">Skip</button>
-        <button id="lq-submit" class="gd-btn gd-btn-grass flex-[2]">Submit Quiz</button>
+        <button id="lq-submit" class="gd-btn gd-btn-primary flex-[2]">Submit Quiz</button>
       </div>
     </div>`;
 
@@ -649,7 +649,7 @@ function lessonQuizResult(htmlEl, module, pathName, result) {
         <div id="lq-review" class="mb-6">${buildTysReview(reviewData)}</div>
         <div class="flex gap-3">
           <button id="lq-retry" class="gd-btn gd-btn-secondary flex-1">${icon("refresh", "w-4 h-4")} Retake Quiz</button>
-          <button id="lq-continue" class="gd-btn gd-btn-grass flex-1">
+          <button id="lq-continue" class="gd-btn gd-btn-primary flex-1">
             ${module.next ? `Continue ${icon("arrowRight", "w-4 h-4")}` : `Finish Path ${icon("trophy", "w-4 h-4")}`}
           </button>
         </div>

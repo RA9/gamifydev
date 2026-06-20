@@ -106,7 +106,7 @@ async function ProgressPage(htmlEl) {
           <div class="w-44 mx-auto mb-2 animate-float">${illustration("trophy")}</div>
           <h1 class="text-2xl font-extrabold mb-2">Your Progress</h1>
           <p class="text-slate-600 mb-6">No quizzes yet! Complete one to start earning <b>XP</b>, build a <b>streak</b>, and unlock <b>badges</b>.</p>
-          <a href="#test" class="gd-btn gd-btn-grass">Take your first quiz</a>
+          <a href="#test" class="gd-btn gd-btn-primary">Take your first quiz</a>
         </div>
       </div>`;
     return;
@@ -203,7 +203,7 @@ async function ProgressPage(htmlEl) {
             <div class="grid h-16 w-16 place-items-center rounded-2xl bg-white/15 text-3xl font-extrabold">${p.level}</div>
             <div>
               <h1 class="text-2xl font-extrabold text-white">Level ${p.level}</h1>
-              <p class="flex items-center gap-1.5 text-white/80 font-bold">${icon("gem", "w-4 h-4 text-grass-300")} ${p.xp} XP total</p>
+              <p class="flex items-center gap-1.5 text-white/80 font-bold">${icon("gem", "w-4 h-4 text-brand-200")} ${p.xp} XP total</p>
             </div>
           </div>
           <div class="flex gap-3">
