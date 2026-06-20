@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-label="GamifyDev">
+  <rect width="40" height="40" rx="11" fill="#ffffff"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.4">
+    <!-- < -->
+    <path d="M14.5 13 L8 20 L14.5 27" stroke="#6740e8"/>
+    <!-- > -->
+    <path d="M25.5 13 L32 20 L25.5 27" stroke="#6740e8"/>
+    <!-- / (the playful "gamify" accent) -->
+    <path d="M23 11 L17 29" stroke="#58cc02"/>
+  </g>
+</svg>
