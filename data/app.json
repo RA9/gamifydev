@@ -6,16 +6,9 @@
         "modules": [
           {
             "title": "History of the Web",
-            "description": "The web is a big place. Let's learn about how it got started and where it's going.",
+            "description": "The web is a big place. Let's learn how it got started and where it's going.",
             "resources": [
-              {
-                "title": "The History of the Web",
-                "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4"
-              },
-              {
-                "title": "The History of the Web",
-                "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4"
-              }
+              { "title": "The History of the Web", "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4" }
             ],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -25,7 +18,7 @@
           },
           {
             "title": "Intro to Programming",
-            "description": "Get started with programming by learning about what it is and how it works.",
+            "description": "Get started with programming by learning what it is and how it works.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -35,7 +28,7 @@
           },
           {
             "title": "HTML Basics",
-            "description": "Let's learn about what HTML is and how it works.",
+            "description": "Let's learn what HTML is and how it structures every web page.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -60,18 +53,28 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "JavaScript Basics",
+            "next": "Project: Build a Profile Card",
             "previous": "CSS Basics"
           },
           {
+            "title": "Project: Build a Profile Card",
+            "description": "Your first real build — a polished profile card with HTML and CSS.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "JavaScript Basics",
+            "previous": "Building a Website with HTML and CSS"
+          },
+          {
             "title": "JavaScript Basics",
-            "description": "Let's learn about what JavaScript is and how it works.",
+            "description": "Let's learn what JavaScript is and how it works.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Building Interactive JavaScript Websites",
-            "previous": "Building a Website with HTML and CSS"
+            "previous": "Project: Build a Profile Card"
           },
           {
             "title": "Building Interactive JavaScript Websites",
@@ -80,18 +83,28 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "Git and GitHub",
+            "next": "Project: Build a Quiz Game",
             "previous": "JavaScript Basics"
           },
           {
+            "title": "Project: Build a Quiz Game",
+            "description": "Build a working multiple-choice quiz game with JavaScript.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Git and GitHub",
+            "previous": "Building Interactive JavaScript Websites"
+          },
+          {
             "title": "Git and GitHub",
-            "description": "Let's learn about what Git and GitHub are and how they work.",
+            "description": "Let's learn what Git and GitHub are and how to save and share your work.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Building your portfolio website",
-            "previous": "Building Interactive JavaScript Websites"
+            "previous": "Project: Build a Quiz Game"
           },
           {
             "title": "Building your portfolio website",
@@ -112,6 +125,116 @@
             "current": false,
             "next": null,
             "previous": "Building your portfolio website"
+          }
+        ]
+      },
+      {
+        "name": "Backend",
+        "modules": [
+          {
+            "title": "What is the Backend?",
+            "description": "Servers, requests, and responses — what happens behind the scenes.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Programming with Python",
+            "previous": null
+          },
+          {
+            "title": "Programming with Python",
+            "description": "Learn the language most beginners use to build backends.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Working with Data and Databases",
+            "previous": "What is the Backend?"
+          },
+          {
+            "title": "Working with Data and Databases",
+            "description": "Store and retrieve data with databases and SQL.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building a REST API",
+            "previous": "Programming with Python"
+          },
+          {
+            "title": "Building a REST API",
+            "description": "Expose your data to the world through a clean API.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a To-Do API",
+            "previous": "Working with Data and Databases"
+          },
+          {
+            "title": "Project: Build a To-Do API",
+            "description": "Build a real REST API for a to-do app, endpoint by endpoint.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Deploying and Next Steps",
+            "previous": "Building a REST API"
+          },
+          {
+            "title": "Deploying and Next Steps",
+            "description": "Put your backend online and chart your path forward.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Project: Build a To-Do API"
+          }
+        ]
+      },
+      {
+        "name": "Fullstack",
+        "modules": [
+          {
+            "title": "What is Full-Stack Development?",
+            "description": "The big picture: frontend, backend, and how they fit together.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "How the Frontend and Backend Talk",
+            "previous": null
+          },
+          {
+            "title": "How the Frontend and Backend Talk",
+            "description": "Connect the two halves with HTTP, fetch, and JSON.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a Notes App",
+            "previous": "What is Full-Stack Development?"
+          },
+          {
+            "title": "Project: Build a Notes App",
+            "description": "Build a full-stack notes app: a frontend talking to a backend.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Becoming a Full-Stack Developer",
+            "previous": "How the Frontend and Backend Talk"
+          },
+          {
+            "title": "Becoming a Full-Stack Developer",
+            "description": "Habits, stacks, and the road to shipping full-stack apps.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Project: Build a Notes App"
           }
         ]
       }

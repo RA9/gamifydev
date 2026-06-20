@@ -192,6 +192,9 @@
   .gd-callout-example {
     @apply bg-slate-50 border-slate-400;
   }
+  .gd-callout-project {
+    @apply bg-brand-50 border-brand-500;
+  }
 
   /* Lesson content: inline quiz reveal states ----------------------- */
   .lesson-quiz-correct {

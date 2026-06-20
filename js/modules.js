@@ -101,6 +101,7 @@ const MD_CALLOUTS = {
   warning: { cls: "gd-callout-warning", icon: "alert", label: "Watch out" },
   key: { cls: "gd-callout-key", icon: "key", label: "Key idea" },
   example: { cls: "gd-callout-example", icon: "flask", label: "Example" },
+  project: { cls: "gd-callout-project", icon: "rocket", label: "What you'll build" },
 };
 
 function renderCallout(type, inner) {
@@ -525,7 +526,10 @@ async function notePage(htmlEl, requestedTitle) {
 // quiz. Returns null when no category fits (e.g. history or soft-skill modules).
 function moduleQuizCategory(title) {
   const t = title.toLowerCase();
+  if (t.startsWith("project")) return null; // projects end by building, not a quiz
   if (t.includes("javascript")) return "javascript";
+  if (t.includes("python")) return "python";
+  if (t.includes("sql") || t.includes("database")) return "sql";
   if (t.includes("css")) return "css";
   if (t.includes("html")) return "html";
   return null;

@@ -47,35 +47,49 @@ async function createQuestions() {
 
 async function createPaths() {
   try {
-    const path = await db.paths.toArray();
     const paths = await fetch("./data/app.json");
     const data = (await paths.json()).config.paths;
 
-    // console.log({ data });
+    // Upsert modules keyed by (path_name, title). app.json is the source of
+    // truth for STRUCTURE (description, resources, next/previous) so the path
+    // can grow over time, but a learner's PROGRESS (is_completed, current) is
+    // preserved on modules they already have. This adds new paths (Backend,
+    // Fullstack) and new modules to existing users without duplicating or
+    // resetting anything.
+    for (const path of data) {
+      const pathName = path.name.toLowerCase();
+      for (const mod of path.modules) {
+        const existing = await db.paths
+          .where("path_name")
+          .equals(pathName)
+          .and((p) => p.title === mod.title)
+          .first();
 
-    if (path.length > 0 && data.length <= path.length) return;
-
-    // join all properties
-    const pathsData = data;
-
-    pathsData.forEach(async (path) => {
-      path.modules.forEach(async (mod) => {
-        // console.log({ mod });
-        await db.paths.add({
-          id: randomID(),
-          path_name: path.name.toLowerCase(),
-          title: mod.title,
-          description: mod.description,
-          resources: mod.resources,
-          author_name: mod.author,
-          created_at: new Date(),
-          current: mod.current,
-          previous: mod.previous,
-          next: mod.next,
-          is_completed: mod.is_completed,
-        });
-      });
-    });
+        if (existing) {
+          await db.paths.update(existing.id, {
+            description: mod.description,
+            resources: mod.resources,
+            author_name: mod.author,
+            previous: mod.previous,
+            next: mod.next,
+          });
+        } else {
+          await db.paths.add({
+            id: randomID(),
+            path_name: pathName,
+            title: mod.title,
+            description: mod.description,
+            resources: mod.resources,
+            author_name: mod.author,
+            created_at: new Date(),
+            current: mod.current,
+            previous: mod.previous,
+            next: mod.next,
+            is_completed: mod.is_completed,
+          });
+        }
+      }
+    }
   } catch (error) {
     console.log(error);
     return null;

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300" role="img" aria-label="How the backend works: the browser sends a request to the server, the server queries the database and sends a response back.">
+  <defs>
+    <style>
+      .lbl  { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+      .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; }
+    </style>
+  </defs>
+  <rect x="2" y="2" width="716" height="296" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="360" y="42" text-anchor="middle" class="lbl" font-size="22" fill="#475569">How the backend works</text>
+
+  <!-- Browser -->
+  <rect x="40" y="110" width="170" height="120" rx="18" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+  <text x="125" y="158" text-anchor="middle" font-size="34">🖥️</text>
+  <text x="125" y="190" text-anchor="middle" class="lbl" font-size="17" fill="#4c1d95">Browser</text>
+  <text x="125" y="210" text-anchor="middle" class="lbl" font-size="12" fill="#6d28d9">(the client)</text>
+
+  <!-- Server -->
+  <rect x="275" y="110" width="170" height="120" rx="18" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+  <text x="360" y="158" text-anchor="middle" font-size="34">⚙️</text>
+  <text x="360" y="190" text-anchor="middle" class="lbl" font-size="17" fill="#14532d">Server</text>
+  <text x="360" y="210" text-anchor="middle" class="lbl" font-size="12" fill="#15803d">(your code)</text>
+
+  <!-- Database -->
+  <rect x="510" y="110" width="170" height="120" rx="18" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/>
+  <text x="595" y="158" text-anchor="middle" font-size="34">🗄️</text>
+  <text x="595" y="190" text-anchor="middle" class="lbl" font-size="17" fill="#7c2d12">Database</text>
+  <text x="595" y="210" text-anchor="middle" class="lbl" font-size="12" fill="#c2410c">(the data)</text>
+
+  <!-- arrows browser<->server -->
+  <text x="242" y="150" text-anchor="middle" class="mono" font-size="20" fill="#94a3b8">→</text>
+  <text x="242" y="95"  text-anchor="middle" class="mono" font-size="12" fill="#6d28d9">request</text>
+  <text x="242" y="200" text-anchor="middle" class="mono" font-size="20" fill="#94a3b8">←</text>
+  <text x="242" y="258" text-anchor="middle" class="mono" font-size="12" fill="#15803d">response</text>
+
+  <!-- arrows server<->database -->
+  <text x="477" y="150" text-anchor="middle" class="mono" font-size="20" fill="#94a3b8">→</text>
+  <text x="477" y="95"  text-anchor="middle" class="mono" font-size="12" fill="#15803d">query</text>
+  <text x="477" y="200" text-anchor="middle" class="mono" font-size="20" fill="#94a3b8">←</text>
+  <text x="477" y="258" text-anchor="middle" class="mono" font-size="12" fill="#c2410c">data</text>
+</svg>
