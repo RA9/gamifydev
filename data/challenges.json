@@ -1,0 +1,134 @@
+[
+  {
+    "prompt": "What does this print?",
+    "lang": "js",
+    "code": "let x = 2;\nx = x * 3;\nx = x + 1;\nconsole.log(x);",
+    "options": [
+      { "text": "7", "correct": true },
+      { "text": "9", "correct": false },
+      { "text": "6", "correct": false },
+      { "text": "231", "correct": false }
+    ],
+    "explanation": "2 × 3 = 6, then 6 + 1 = 7."
+  },
+  {
+    "prompt": "What does this print?",
+    "lang": "js",
+    "code": "console.log(\"3\" + 2);",
+    "options": [
+      { "text": "\"32\"", "correct": true },
+      { "text": "5", "correct": false },
+      { "text": "\"5\"", "correct": false },
+      { "text": "Error", "correct": false }
+    ],
+    "explanation": "A string plus a number concatenates: \"3\" + 2 becomes \"32\"."
+  },
+  {
+    "prompt": "Which CSS centers text inside an element?",
+    "options": [
+      { "text": "text-align: center;", "correct": true },
+      { "text": "align: center;", "correct": false },
+      { "text": "center: text;", "correct": false },
+      { "text": "font-align: center;", "correct": false }
+    ],
+    "explanation": "text-align: center centers inline content like text."
+  },
+  {
+    "prompt": "Which HTML element creates a link?",
+    "options": [
+      { "text": "<a>", "correct": true },
+      { "text": "<link>", "correct": false },
+      { "text": "<href>", "correct": false },
+      { "text": "<url>", "correct": false }
+    ],
+    "explanation": "The <a> (anchor) element creates a hyperlink via its href attribute."
+  },
+  {
+    "prompt": "What does this print?",
+    "lang": "js",
+    "code": "const arr = [1, 2, 3];\nconsole.log(arr.length);",
+    "options": [
+      { "text": "3", "correct": true },
+      { "text": "2", "correct": false },
+      { "text": "[1, 2, 3]", "correct": false },
+      { "text": "undefined", "correct": false }
+    ],
+    "explanation": ".length is the number of items in the array — here, 3."
+  },
+  {
+    "prompt": "Which keyword declares a value that won't be reassigned?",
+    "options": [
+      { "text": "const", "correct": true },
+      { "text": "let", "correct": false },
+      { "text": "var", "correct": false },
+      { "text": "fixed", "correct": false }
+    ],
+    "explanation": "const declares a binding you won't reassign; reach for it by default."
+  },
+  {
+    "prompt": "What does this print?",
+    "lang": "js",
+    "code": "console.log(10 % 3);",
+    "options": [
+      { "text": "1", "correct": true },
+      { "text": "3", "correct": false },
+      { "text": "0", "correct": false },
+      { "text": "3.33", "correct": false }
+    ],
+    "explanation": "% is the remainder: 10 divided by 3 is 3 remainder 1."
+  },
+  {
+    "prompt": "Which CSS property adds space inside an element, around its content?",
+    "options": [
+      { "text": "padding", "correct": true },
+      { "text": "margin", "correct": false },
+      { "text": "border", "correct": false },
+      { "text": "gap", "correct": false }
+    ],
+    "explanation": "Padding is space inside the box; margin is space outside it."
+  },
+  {
+    "prompt": "What does this print?",
+    "lang": "js",
+    "code": "let a = true;\nlet b = false;\nconsole.log(a && b);",
+    "options": [
+      { "text": "false", "correct": true },
+      { "text": "true", "correct": false },
+      { "text": "undefined", "correct": false },
+      { "text": "Error", "correct": false }
+    ],
+    "explanation": "&& is true only when both sides are true; here one is false."
+  },
+  {
+    "prompt": "Which Git command uploads your commits to GitHub?",
+    "options": [
+      { "text": "git push", "correct": true },
+      { "text": "git commit", "correct": false },
+      { "text": "git add", "correct": false },
+      { "text": "git upload", "correct": false }
+    ],
+    "explanation": "add stages, commit snapshots locally, and push uploads to the remote."
+  },
+  {
+    "prompt": "What does this print?",
+    "lang": "js",
+    "code": "const name = \"Ada\";\nconsole.log(`Hi, ${name}!`);",
+    "options": [
+      { "text": "Hi, Ada!", "correct": true },
+      { "text": "Hi, ${name}!", "correct": false },
+      { "text": "Hi, name!", "correct": false },
+      { "text": "Error", "correct": false }
+    ],
+    "explanation": "Template literals insert variables with ${...}, so it logs \"Hi, Ada!\"."
+  },
+  {
+    "prompt": "Which HTTP method reads data from a REST API?",
+    "options": [
+      { "text": "GET", "correct": true },
+      { "text": "POST", "correct": false },
+      { "text": "DELETE", "correct": false },
+      { "text": "PUT", "correct": false }
+    ],
+    "explanation": "GET reads; POST creates, PUT updates, DELETE removes."
+  }
+]

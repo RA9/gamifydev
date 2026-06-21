@@ -440,6 +440,67 @@ function dailyGoalRing(pct) {
   </svg>`;
 }
 
+// --- Daily Challenge: one bite-sized puzzle per day --------------------------
+// A deterministic daily pick from a curated pool. Completing it records a score
+// (test_id "challenge-<day>"), so it feeds XP, streak and the sprint review and
+// can only be done once per day.
+async function getDailyChallenge() {
+  let pool = [];
+  try {
+    pool = await (await fetch("./data/challenges.json")).json();
+  } catch (e) {
+    return null;
+  }
+  if (!pool.length) return null;
+  const n = new Date();
+  const dayNum = Math.floor(
+    new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime() / 86400000
+  );
+  const challenge = pool[dayNum % pool.length];
+  const testId = "challenge-" + dayKey(n);
+  let done = null;
+  try {
+    done = await DB.scores.where("test_id").equals(testId).first();
+  } catch (e) {
+    /* ignore */
+  }
+  return { challenge, testId, done: !!done, doneCorrect: done ? (done.numCorrect || 0) > 0 : false };
+}
+
+function challengeCard(dc) {
+  if (!dc) return "";
+  if (dc.done) {
+    return `
+      <div class="gd-card">
+        <span class="gd-chip gd-chip-brand mb-2">${icon("zap", "w-3.5 h-3.5")} Daily challenge</span>
+        <p class="font-extrabold">${dc.doneCorrect ? "Nailed it! 🎉" : "Done for today"}</p>
+        <p class="text-slate-500 text-sm mt-1">Come back tomorrow for a fresh challenge.</p>
+      </div>`;
+  }
+  const c = dc.challenge;
+  const code = c.code
+    ? `<div class="gd-codeblock"><div class="gd-codeblock-head">${gdEsc(
+        (c.lang || "code").toUpperCase()
+      )}</div><pre><code>${gdEsc(c.code)}</code></pre></div>`
+    : "";
+  const opts = c.options
+    .map(
+      (o) =>
+        `<button type="button" class="challenge-option gd-option w-full text-left" data-correct="${!!o.correct}">${gdEsc(
+          o.text
+        )}</button>`
+    )
+    .join("");
+  return `
+    <div class="gd-card" id="daily-challenge">
+      <span class="gd-chip gd-chip-brand mb-2">${icon("zap", "w-3.5 h-3.5")} Daily challenge · +20 XP</span>
+      <p class="font-extrabold mb-3">${gdEsc(c.prompt)}</p>
+      ${code}
+      <div class="space-y-2 mt-3">${opts}</div>
+      <div class="challenge-feedback hidden mt-3 text-sm font-bold"></div>
+    </div>`;
+}
+
 // The Daily Standup landing for returning learners. First-time visitors fall
 // back to the marketing home.
 async function TodayPage(htmlEl) {
@@ -458,6 +519,7 @@ async function TodayPage(htmlEl) {
   const ticket = await getNextTicket(user);
   const launchWeek = await computeLaunchWeek();
   const weekReview = computeWeekReview(scores);
+  const dailyChallenge = await getDailyChallenge();
 
   htmlEl.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-fade-up">
@@ -494,6 +556,9 @@ async function TodayPage(htmlEl) {
 
       <!-- Launch Week -->
       ${launchWeekBanner(launchWeek)}
+
+      <!-- Daily challenge -->
+      ${challengeCard(dailyChallenge)}
 
       <!-- Streak -->
       ${streakCard(streakInfo)}
@@ -540,6 +605,59 @@ async function TodayPage(htmlEl) {
   if (cont) {
     cont.addEventListener("click", () => {
       if (typeof handleNotePage === "function") handleNotePage();
+    });
+  }
+
+  // Wire the daily challenge: answering records a score (feeding XP/streak),
+  // then refreshes the standup so the goal ring and "done" state update.
+  const challengeEl = document.querySelector("#daily-challenge");
+  if (challengeEl && dailyChallenge && !dailyChallenge.done) {
+    const opts = challengeEl.querySelectorAll(".challenge-option");
+    opts.forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if ([...opts].some((o) => o.disabled)) return;
+        const c = dailyChallenge.challenge;
+        const correct = btn.dataset.correct === "true";
+        const correctText = (c.options.find((o) => o.correct) || {}).text;
+        opts.forEach((o) => {
+          o.disabled = true;
+          if (o.dataset.correct === "true") o.classList.add("lesson-quiz-correct");
+        });
+        if (!correct) btn.classList.add("lesson-quiz-wrong");
+        const fb = challengeEl.querySelector(".challenge-feedback");
+        fb.classList.remove("hidden");
+        fb.className =
+          "challenge-feedback mt-3 text-sm font-bold " + (correct ? "text-grass-600" : "text-rose-500");
+        fb.innerHTML =
+          (correct ? "✅ Correct! +20 XP " : "❌ Not quite. ") +
+          `<span class="font-normal text-slate-600">${gdEsc(c.explanation || "")}</span>`;
+        try {
+          await createStorage("scores", {
+            id: randomID(),
+            test_id: dailyChallenge.testId,
+            score: correct ? 100 : 0,
+            numCorrect: correct ? 2 : 0,
+            numWrong: correct ? 0 : 1,
+            details: {
+              questions: [
+                {
+                  details: {
+                    question: c.prompt,
+                    options: c.options.map((o) => o.text),
+                    answer: correctText,
+                    explanation: c.explanation,
+                  },
+                },
+              ],
+              selectedOptions: [btn.textContent],
+            },
+            created_at: new Date(),
+          });
+        } catch (e) {
+          /* ignore */
+        }
+        setTimeout(() => TodayPage(document.querySelector("main")), 1500);
+      });
     });
   }
 }
