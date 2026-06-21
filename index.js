@@ -17,6 +17,9 @@ function displayContent() {
         case 'today':
             TodayPage(page);
             break;
+        case 'journey':
+            JourneyPage(page);
+            break;
         default:
             // Returning learners land on their Daily Standup; TodayPage falls
             // back to the marketing home for first-time visitors.

@@ -36,11 +36,23 @@ const createLinkedList = (notes) => {
 };
 
 async function handleNotePage(title) {
-  const state = await DB.states.where("name").equals("general").last();
-  state.current = "note";
-  state.previous = "scratch";
-  state.next = "note-quiz";
-  await updateStorage("states", state);
+  let state = await DB.states.where("name").equals("general").last();
+  if (!state) {
+    // Be resilient if the general nav state was never created (e.g. a learner
+    // who reached the Journey board directly).
+    await createStorage("states", {
+      id: randomID(),
+      name: "general",
+      previous: "scratch",
+      current: "note",
+      next: "note-quiz",
+    });
+  } else {
+    state.current = "note";
+    state.previous = "scratch";
+    state.next = "note-quiz";
+    await updateStorage("states", state);
+  }
   notePage(document.querySelector("main"), title);
 }
 
@@ -406,12 +418,109 @@ async function resolveLessonPath(preference) {
 }
 
 async function backToModules() {
-  const state = await DB.states.where("name").equals("general").last();
-  state.current = "scratch";
-  state.previous = "note";
-  state.next = null;
-  await updateStorage("states", state);
-  scratchPage(document.querySelector("main"));
+  // The Journey board is the canonical "see your whole path" view. Lessons are
+  // rendered into <main> without changing the hash, so re-render directly when
+  // we're already on #journey.
+  if (window.location.hash !== "#journey") {
+    window.location.hash = "journey";
+  } else {
+    JourneyPage(document.querySelector("main"));
+  }
+}
+
+// The Journey board — the learner's path as a vertical roadmap of "tickets",
+// with done / current / locked stops and overall progress.
+async function JourneyPage(htmlEl) {
+  const user = (await DB.users.toArray())[0];
+  if (!user) {
+    window.location.hash = "";
+    return;
+  }
+
+  const pathName = await resolveLessonPath(user.preference);
+  const notes = await DB.paths.where("path_name").equals(pathName).toArray();
+  if (!notes.length) {
+    htmlEl.innerHTML = `
+      <div class="max-w-2xl mx-auto animate-fade-up">
+        <div class="gd-card text-center">
+          <p class="text-slate-600 mb-5">No lessons are available for this path yet.</p>
+          <a href="#test" class="gd-btn gd-btn-primary">Take a quiz instead</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const recordByTitle = {};
+  notes.forEach((n) => (recordByTitle[n.title] = n));
+
+  // Order via the linked list.
+  const ordered = [];
+  let cursor = createLinkedList(notes);
+  while (cursor) {
+    ordered.push(cursor);
+    cursor = cursor.nextNote;
+  }
+
+  const completed = notes.filter((n) => n.is_completed).length;
+  const pct = Math.round((completed / notes.length) * 100);
+  const pathLabel = pathName.charAt(0).toUpperCase() + pathName.slice(1);
+
+  const stops = ordered
+    .map((note, i) => {
+      const rec = recordByTitle[note.title] || {};
+      const isProject = /^project/i.test(note.title);
+      const last = i === ordered.length - 1;
+      const titleEsc = note.title.replace(/'/g, "\\'");
+
+      let node, button, cardRing = "", titleCls = "";
+      if (rec.is_completed) {
+        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-grass-500 text-white">${icon("check", "w-5 h-5")}</div>`;
+        button = `<button onclick="handleNotePage('${titleEsc}')" class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0">Review</button>`;
+      } else if (note.current) {
+        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-brand-500 text-white ring-4 ring-brand-200">${icon("play", "w-5 h-5")}</div>`;
+        cardRing = "ring-2 ring-brand-300";
+        button = `<button onclick="handleNotePage()" class="gd-btn gd-btn-primary !py-2 !px-4 !text-sm shrink-0">${isProject ? "Build" : "Continue"}</button>`;
+      } else {
+        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-slate-400">${icon("lock", "w-4 h-4")}</div>`;
+        titleCls = "text-slate-500";
+        button = `<button class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0" disabled>Locked</button>`;
+      }
+
+      return `
+      <div class="relative pl-16 ${last ? "" : "pb-5"}">
+        ${last ? "" : '<span class="absolute left-[21px] top-11 -bottom-1 w-0.5 bg-slate-200"></span>'}
+        <div class="absolute left-0 top-1">${node}</div>
+        <div class="gd-card-sm ${cardRing} ${rec.is_completed || note.current ? "" : "opacity-75"}">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              ${isProject ? '<span class="gd-chip gd-chip-brand mb-1.5 !text-[10px]">🚀 Project</span>' : ""}
+              <h3 class="font-extrabold ${titleCls}">${note.title}</h3>
+              <p class="text-slate-500 text-sm mt-0.5">${note.description}</p>
+            </div>
+            ${button}
+          </div>
+        </div>
+      </div>`;
+    })
+    .join("");
+
+  htmlEl.innerHTML = `
+    <div class="max-w-3xl mx-auto animate-fade-up space-y-5">
+      <div class="gd-card">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="gd-chip gd-chip-brand mb-2">${icon("book", "w-3.5 h-3.5")} ${pathLabel} roadmap</span>
+            <h1 class="text-2xl font-extrabold">Your journey</h1>
+          </div>
+          <div class="text-right">
+            <p class="text-2xl font-extrabold text-brand-600">${completed}/${notes.length}</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Completed</p>
+          </div>
+        </div>
+        <div class="gd-progress h-3"><div class="gd-progress-fill" style="width: ${pct}%"></div></div>
+      </div>
+      <div class="pt-1">${stops}</div>
+    </div>`;
 }
 
 async function notePage(htmlEl, requestedTitle) {

@@ -234,16 +234,8 @@ async function PreferenceSection(htmlEl) {
     });
 
     START_FROM_SCRATCH_BUTTON.addEventListener("click", () => {
-      state.current = "scratch";
-      state.previous = "preference";
-      state.next = null;
-
-      console.log({ state });
-
-      // window.location.href = "scratch.html";
-      updateStorage("states", state);
-      const page = document.querySelector("main");
-      scratchPage(page);
+      // Head to the Journey board (the canonical path view).
+      window.location.hash = "journey";
     });
   } else if (state.current === "scratch" || state.current === "note") {
     const page = document.querySelector("main");
