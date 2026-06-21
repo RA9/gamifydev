@@ -284,6 +284,14 @@
   }
   .term-input {
     @apply flex-1 min-w-0 bg-transparent border-0 outline-none text-slate-100 font-mono p-0;
+    caret-color: #b4aaff;
+  }
+  /* No focus ring inside the terminal — the caret is the cursor. */
+  .term-input:focus,
+  .term-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+    border-radius: 0;
   }
 }
 
