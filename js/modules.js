@@ -929,6 +929,13 @@ const WORLDS = [
     tagline: "Robust, portable applications",
     blurb: "Object-oriented thinking that runs everywhere.",
   },
+  {
+    path: "linux",
+    name: "Linux & Bash",
+    emoji: "🐧",
+    tagline: "Command the machine directly",
+    blurb: "The shell, the filesystem & scripting — a developer superpower.",
+  },
 ];
 
 // Set the active world and jump straight to its quest map.
@@ -1197,9 +1204,10 @@ async function notePage(htmlEl, requestedTitle) {
 function moduleQuizCategory(title, pathName) {
   const t = title.toLowerCase();
   if (t.startsWith("project")) return null; // projects end by building, not a quiz
-  // Single-language paths map every lesson to their question bank.
+  // Single-topic paths map every lesson to their question bank.
   if (pathName === "c") return "c";
   if (pathName === "java") return "java";
+  if (pathName === "linux") return "linux";
   if (t.includes("javascript")) return "javascript";
   if (t.includes("python")) return "python";
   if (t.includes("sql") || t.includes("database")) return "sql";

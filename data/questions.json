@@ -4195,5 +4195,187 @@
       "difficulty": "medium",
       "duration": "1 minute"
     }
+  ],
+  "linux": [
+    {
+      "question": "Which command prints the current working directory?",
+      "category": "Linux & Bash",
+      "options": [
+        "pwd",
+        "cd",
+        "ls",
+        "dir"
+      ],
+      "answer": "pwd",
+      "duration": 30
+    },
+    {
+      "question": "Which command lists the files in a directory?",
+      "category": "Linux & Bash",
+      "options": [
+        "ls",
+        "list",
+        "show",
+        "cat"
+      ],
+      "answer": "ls",
+      "duration": 30
+    },
+    {
+      "question": "Which command changes your current directory?",
+      "category": "Linux & Bash",
+      "options": [
+        "cd",
+        "mv",
+        "go",
+        "chdir"
+      ],
+      "answer": "cd",
+      "duration": 30
+    },
+    {
+      "question": "What does the command \"mkdir reports\" do?",
+      "category": "Linux & Bash",
+      "options": [
+        "Creates a directory named reports",
+        "Deletes the reports directory",
+        "Lists files in reports",
+        "Renames a file to reports"
+      ],
+      "answer": "Creates a directory named reports",
+      "duration": 30
+    },
+    {
+      "question": "Which command displays the contents of a file?",
+      "category": "Linux & Bash",
+      "options": [
+        "cat",
+        "touch",
+        "echo",
+        "grep"
+      ],
+      "answer": "cat",
+      "duration": 30
+    },
+    {
+      "question": "What does \"touch notes.txt\" do if the file does not exist?",
+      "category": "Linux & Bash",
+      "options": [
+        "Creates an empty file named notes.txt",
+        "Deletes notes.txt",
+        "Opens notes.txt in an editor",
+        "Prints the file contents"
+      ],
+      "answer": "Creates an empty file named notes.txt",
+      "duration": 30
+    },
+    {
+      "question": "Which command removes (deletes) a file?",
+      "category": "Linux & Bash",
+      "options": [
+        "rm",
+        "del",
+        "remove",
+        "drop"
+      ],
+      "answer": "rm",
+      "duration": 30
+    },
+    {
+      "question": "In a path, what does \"..\" refer to?",
+      "category": "Linux & Bash",
+      "options": [
+        "The parent directory",
+        "The current directory",
+        "The home directory",
+        "The root directory"
+      ],
+      "answer": "The parent directory",
+      "duration": 30
+    },
+    {
+      "question": "What does the \"~\" symbol represent in a shell?",
+      "category": "Linux & Bash",
+      "options": [
+        "Your home directory",
+        "The root directory",
+        "The current directory",
+        "A hidden file"
+      ],
+      "answer": "Your home directory",
+      "duration": 30
+    },
+    {
+      "question": "What is the kernel in an operating system?",
+      "category": "Linux & Bash",
+      "options": [
+        "The core that manages hardware and resources",
+        "A text editor",
+        "A type of shell",
+        "A package manager"
+      ],
+      "answer": "The core that manages hardware and resources",
+      "duration": 30
+    },
+    {
+      "question": "Which line at the top of a script tells the system to run it with Bash?",
+      "category": "Linux & Bash",
+      "options": [
+        "#!/bin/bash",
+        "// bash",
+        "<bash>",
+        "run: bash"
+      ],
+      "answer": "#!/bin/bash",
+      "duration": 30
+    },
+    {
+      "question": "How do you read the value of a variable named NAME in Bash?",
+      "category": "Linux & Bash",
+      "options": [
+        "$NAME",
+        "&NAME",
+        "NAME()",
+        "@NAME"
+      ],
+      "answer": "$NAME",
+      "duration": 30
+    },
+    {
+      "question": "What does the pipe symbol \"|\" do in the shell?",
+      "category": "Linux & Bash",
+      "options": [
+        "Sends one command's output into another command",
+        "Comments out a line",
+        "Runs a command in the background",
+        "Deletes a file"
+      ],
+      "answer": "Sends one command's output into another command",
+      "duration": 30
+    },
+    {
+      "question": "Which command searches text for a pattern?",
+      "category": "Linux & Bash",
+      "options": [
+        "grep",
+        "find",
+        "cat",
+        "ls"
+      ],
+      "answer": "grep",
+      "duration": 30
+    },
+    {
+      "question": "What does \"chmod +x script.sh\" do?",
+      "category": "Linux & Bash",
+      "options": [
+        "Makes the script executable",
+        "Deletes the script",
+        "Prints the script",
+        "Renames the script"
+      ],
+      "answer": "Makes the script executable",
+      "duration": 30
+    }
   ]
 }
