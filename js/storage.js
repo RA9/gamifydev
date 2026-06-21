@@ -15,6 +15,16 @@ db.version(8).stores({
   scores: "id, test_id, score, numCorrect, numWrong, details, created_at, updated_at",
 });
 
+// v9: daily-loop state.
+//   daily — per-day record, used to mark days bridged by a streak freeze.
+//   meta  — small key/value app state (streak freezes, milestone tracking).
+// Dexie carries the v8 stores forward; existing users gain the new stores
+// without losing any data.
+db.version(9).stores({
+  daily: "date",
+  meta: "key",
+});
+
 async function createQuestions() {
   try {
     const questions = await fetch("./data/questions.json");

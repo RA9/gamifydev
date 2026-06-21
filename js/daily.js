@@ -26,6 +26,164 @@ function computeDailyXp(scores) {
   return today.reduce((a, s) => a + (s.numCorrect || 0), 0) * gdPerCorrect();
 }
 
+// --- Streaks that matter: freezes, milestones, calendar ---------------------
+// `dayKey(date)` (Y-M-D, 0-indexed month) comes from progress.js.
+
+const MAX_FREEZES = 2;
+const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
+
+async function getMeta(key, fallback) {
+  try {
+    const row = await DB.table("meta").get(key);
+    return row ? row.value : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+async function setMeta(key, value) {
+  try {
+    await DB.table("meta").put({ key, value });
+  } catch (e) {
+    /* ignore */
+  }
+}
+async function getFrozenDayKeys() {
+  try {
+    return (await DB.table("daily").toArray())
+      .filter((r) => r.frozen)
+      .map((r) => r.date);
+  } catch (e) {
+    return [];
+  }
+}
+
+// Streak counted from a set of "covered" day keys (active or frozen).
+function computeStreakFromKeys(keys) {
+  const set = keys instanceof Set ? keys : new Set(keys);
+  if (!set.size) return 0;
+  const n = new Date();
+  const cursor = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  if (!set.has(dayKey(cursor))) {
+    cursor.setDate(cursor.getDate() - 1);
+    if (!set.has(dayKey(cursor))) return 0;
+  }
+  let streak = 0;
+  while (set.has(dayKey(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+// The canonical, freeze-aware streak info used across the app.
+async function getStreakInfo() {
+  const scores = await DB.scores.toArray();
+  const active = new Set(scores.map((s) => dayKey(s.created_at)));
+  const frozen = new Set(await getFrozenDayKeys());
+  const covered = new Set([...active, ...frozen]);
+  return {
+    streak: computeStreakFromKeys(covered),
+    freezes: await getMeta("freezes", MAX_FREEZES),
+    active,
+    frozen,
+    covered,
+  };
+}
+
+// Run once on load: auto-spend a freeze to bridge a single missed day, and
+// grant a freeze at each new 7-day milestone (capped at MAX_FREEZES).
+async function maintainStreak() {
+  const scores = await DB.scores.toArray();
+  if (!scores.length) return;
+
+  const active = new Set(scores.map((s) => dayKey(s.created_at)));
+  const frozen = new Set(await getFrozenDayKeys());
+  let freezes = await getMeta("freezes", MAX_FREEZES);
+
+  const n = new Date();
+  const today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  const yest = new Date(today);
+  yest.setDate(today.getDate() - 1);
+  const dby = new Date(today);
+  dby.setDate(today.getDate() - 2);
+  const covered = (d) => active.has(dayKey(d)) || frozen.has(dayKey(d));
+
+  // Missed yesterday but active the day before -> spend a freeze to bridge it.
+  if (!covered(today) && !covered(yest) && covered(dby) && freezes > 0) {
+    await DB.table("daily").put({ date: dayKey(yest), frozen: true });
+    frozen.add(dayKey(yest));
+    freezes -= 1;
+    await setMeta("freezes", freezes);
+  }
+
+  // Grant a freeze for each new 7-day milestone (capped).
+  const streak = computeStreakFromKeys(new Set([...active, ...frozen]));
+  const milestone = Math.floor(streak / 7);
+  const lastMilestone = await getMeta("lastFreezeMilestone", 0);
+  if (milestone > lastMilestone) {
+    freezes = Math.min(MAX_FREEZES, freezes + (milestone - lastMilestone));
+    await setMeta("freezes", freezes);
+    await setMeta("lastFreezeMilestone", milestone);
+  }
+}
+
+function nextMilestone(streak) {
+  return STREAK_MILESTONES.find((m) => m > streak) || null;
+}
+
+// A 14-day activity calendar: active (filled), frozen (snowflake), missed.
+function streakCalendar(covered, frozen) {
+  const n = new Date();
+  const cells = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(n.getFullYear(), n.getMonth(), n.getDate() - i);
+    const k = dayKey(d);
+    const isToday = i === 0;
+    let cls = "bg-slate-100 text-slate-400";
+    let inner = String(d.getDate());
+    if (frozen.has(k)) {
+      cls = "bg-brand-100 text-brand-600";
+      inner = "❄";
+    } else if (covered.has(k)) {
+      cls = "bg-brand-500 text-white";
+    }
+    cells.push(
+      `<div class="grid place-items-center h-7 w-7 rounded-lg text-[11px] font-extrabold ${cls} ${
+        isToday ? "ring-2 ring-brand-400 ring-offset-1 ring-offset-white" : ""
+      }">${inner}</div>`
+    );
+  }
+  return `<div class="flex flex-wrap gap-1.5">${cells.join("")}</div>`;
+}
+
+// The streak card shown on the Daily Standup.
+function streakCard(info) {
+  const next = nextMilestone(info.streak);
+  const freezeText =
+    info.freezes > 0
+      ? `<span class="inline-flex items-center gap-1 text-brand-600 font-bold">❄ ${info.freezes} streak freeze${info.freezes > 1 ? "s" : ""}</span>`
+      : `<span class="text-slate-400 font-bold">No freezes left</span>`;
+  return `
+    <div class="gd-card">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="text-3xl">🔥</div>
+          <div>
+            <p class="text-2xl font-extrabold leading-none">${info.streak} day${info.streak === 1 ? "" : "s"}</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Current streak</p>
+          </div>
+        </div>
+        <div class="text-right text-sm">${freezeText}</div>
+      </div>
+      ${streakCalendar(info.covered, info.frozen)}
+      <p class="text-sm text-slate-500 mt-3">${
+        next
+          ? `<b>${next - info.streak} day${next - info.streak === 1 ? "" : "s"}</b> to your ${next}-day milestone.`
+          : "You're a streak legend. 🏆"
+      } A freeze covers one missed day so a busy day won't break your run.</p>
+    </div>`;
+}
+
 // Playful startup job titles that level up with the learner.
 function roleForLevel(level) {
   if (level >= 8) return "Staff Engineer";
@@ -84,8 +242,8 @@ async function TodayPage(htmlEl) {
   const totalCorrect = scores.reduce((a, s) => a + (s.numCorrect || 0), 0);
   const xp = totalCorrect * gdPerCorrect();
   const level = Math.floor(xp / 100) + 1;
-  const streak =
-    typeof computeStreak === "function" ? computeStreak(scores.map((s) => s.created_at)) : 0;
+  const streakInfo = await getStreakInfo();
+  const streak = streakInfo.streak;
   const dailyXp = computeDailyXp(scores);
   const pct = Math.round((dailyXp / DAILY_GOAL_XP) * 100);
   const metGoal = dailyXp >= DAILY_GOAL_XP;
@@ -123,6 +281,9 @@ async function TodayPage(htmlEl) {
           }</p>
         </div>
       </div>
+
+      <!-- Streak -->
+      ${streakCard(streakInfo)}
 
       <!-- Next ticket -->
       <div class="gd-card">

@@ -48,9 +48,9 @@ async function updateHud() {
         }
         const totalCorrect = scores.reduce((a, s) => a + (s.numCorrect || 0), 0);
         const xp = totalCorrect * (typeof XP_PER_CORRECT !== 'undefined' ? XP_PER_CORRECT : 10);
-        const streak = typeof computeStreak === 'function'
-            ? computeStreak(scores.map((s) => s.created_at))
-            : 0;
+        const streak = typeof getStreakInfo === 'function'
+            ? (await getStreakInfo()).streak
+            : (typeof computeStreak === 'function' ? computeStreak(scores.map((s) => s.created_at)) : 0);
         const streakEl = document.getElementById('gd-hud-streak');
         const xpEl = document.getElementById('gd-hud-xp');
         if (streakEl) streakEl.textContent = streak;
@@ -62,6 +62,15 @@ async function updateHud() {
     }
 }
 
-displayContent();
+// Maintain the streak (auto-spend a freeze for a missed day, grant milestone
+// freezes) before the first render, then route.
+(async () => {
+    try {
+        if (typeof maintainStreak === 'function') await maintainStreak();
+    } catch (e) {
+        /* DB not ready / no data — render anyway */
+    }
+    displayContent();
+})();
 
 window.addEventListener('hashchange', displayContent);

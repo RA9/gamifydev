@@ -117,6 +117,15 @@ async function ProgressPage(htmlEl) {
   tests.forEach((t) => (languageByTestId[t.id] = t.language));
 
   const p = computeProgress(scores, languageByTestId);
+  // Use the freeze-aware streak (from daily.js) so the number matches the HUD
+  // and the Daily Standup.
+  if (typeof getStreakInfo === "function") {
+    try {
+      p.streak = (await getStreakInfo()).streak;
+    } catch (e) {
+      /* keep scores-only streak */
+    }
+  }
 
   const badgesHTML = p.badges
     .map(
