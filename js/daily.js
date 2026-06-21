@@ -184,6 +184,150 @@ function streakCard(info) {
     </div>`;
 }
 
+// --- Launch Week: the guided 7-day "first week on the job" -------------------
+// A curated Frontend arc that ends each "ship" day with a real artifact, so a
+// learner has built something tangible within their first week.
+
+const LAUNCH_WEEK_FRONTEND = [
+  { theme: "Orientation", subtitle: "Get your bearings in web dev", modules: ["History of the Web", "Intro to Programming"] },
+  { theme: "Structure", subtitle: "Build the skeleton of a page", modules: ["HTML Basics"] },
+  { theme: "Style", subtitle: "Make it beautiful", modules: ["CSS Basics"] },
+  { theme: "Build day", subtitle: "Put structure and style together", modules: ["Building a Website with HTML and CSS"] },
+  { theme: "Ship it 🚀", subtitle: "Build & ship your first real component", modules: ["Project: Build a Profile Card"] },
+  { theme: "Interactivity", subtitle: "Make pages respond to people", modules: ["JavaScript Basics", "Building Interactive JavaScript Websites"] },
+  { theme: "Ship again 🚀", subtitle: "Build a working mini-app", modules: ["Project: Build a Quiz Game"] },
+];
+
+// Launch Week currently guides the Frontend path (the onboarding default).
+async function computeLaunchWeek() {
+  const user = (await DB.users.toArray())[0];
+  if (!user) return null;
+  const pathName = await resolveLessonPath(user.preference);
+  if (pathName !== "frontend") return null;
+
+  const notes = await DB.paths.where("path_name").equals("frontend").toArray();
+  const rec = {};
+  notes.forEach((n) => (rec[n.title] = n));
+  const currentTitle = (notes.find((n) => n.current) || {}).title;
+
+  const days = LAUNCH_WEEK_FRONTEND.map((d, i) => {
+    const modules = d.modules.map((t) => ({
+      title: t,
+      done: !!(rec[t] && rec[t].is_completed),
+      current: t === currentTitle,
+    }));
+    return { n: i + 1, theme: d.theme, subtitle: d.subtitle, modules, complete: modules.every((m) => m.done) };
+  });
+
+  const firstIncomplete = days.findIndex((d) => !d.complete);
+  return {
+    days,
+    completedDays: days.filter((d) => d.complete).length,
+    total: days.length,
+    currentDay: firstIncomplete === -1 ? days.length : firstIncomplete + 1,
+    allDone: firstIncomplete === -1,
+  };
+}
+
+// A banner for the Daily Standup linking into Launch Week.
+function launchWeekBanner(lw) {
+  if (!lw || lw.allDone) return "";
+  const day = lw.days[lw.currentDay - 1];
+  return `
+    <a href="#launch" class="block rounded-3xl bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-soft p-5 hover:brightness-110 transition">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <span class="gd-chip bg-white/15 text-white mb-1">🚀 Launch Week</span>
+          <p class="font-extrabold text-lg">Day ${lw.currentDay}: ${day.theme}</p>
+          <p class="text-white/85 text-sm">${day.subtitle}</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-2xl font-extrabold">${lw.completedDays}/${lw.total}</p>
+          <p class="text-xs text-white/80 font-bold uppercase tracking-wide">days</p>
+        </div>
+      </div>
+    </a>`;
+}
+
+async function LaunchWeekPage(htmlEl) {
+  const lw = await computeLaunchWeek();
+  if (!lw) {
+    htmlEl.innerHTML = `
+      <div class="max-w-2xl mx-auto animate-fade-up">
+        <div class="gd-card text-center">
+          <div class="text-4xl mb-2">🚀</div>
+          <h1 class="text-2xl font-extrabold mb-2">Launch Week</h1>
+          <p class="text-slate-600 mb-5">Launch Week is the guided first-week plan for the <b>Frontend</b> path. Switch to Frontend to follow it, or keep going on your current journey.</p>
+          <a href="#journey" class="gd-btn gd-btn-primary">Go to your journey</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const pct = Math.round((lw.completedDays / lw.total) * 100);
+  const daysHtml = lw.days
+    .map((d) => {
+      const isCurrent = d.n === lw.currentDay && !lw.allDone;
+      if (d.complete) {
+        return `
+        <div class="gd-card-sm flex items-center gap-3">
+          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grass-500 text-white">${icon("check", "w-5 h-5")}</div>
+          <div><p class="font-extrabold">Day ${d.n}: ${d.theme}</p><p class="text-xs text-slate-500">Complete</p></div>
+        </div>`;
+      }
+      if (isCurrent) {
+        const tasks = d.modules
+          .map((m) => {
+            const node = m.done
+              ? icon("check", "w-4 h-4 text-grass-600")
+              : m.current
+              ? icon("play", "w-4 h-4 text-brand-600")
+              : icon("lock", "w-4 h-4 text-slate-300");
+            return `<li class="flex items-center gap-2 py-1"><span class="shrink-0">${node}</span><span class="${m.done ? "line-through text-slate-400" : ""}">${gdEsc(m.title)}</span></li>`;
+          })
+          .join("");
+        return `
+        <div class="gd-card ring-2 ring-brand-300">
+          <span class="gd-chip gd-chip-brand mb-2">Today's focus · Day ${d.n}</span>
+          <h2 class="text-xl font-extrabold">${d.theme}</h2>
+          <p class="text-slate-500 text-sm mb-3">${d.subtitle}</p>
+          <ul class="mb-4 text-sm font-bold text-slate-700">${tasks}</ul>
+          <button id="lw-continue" class="gd-btn gd-btn-primary">Continue Day ${d.n} ${icon("arrowRight", "w-4 h-4")}</button>
+        </div>`;
+      }
+      return `
+        <div class="gd-card-sm flex items-center gap-3 opacity-70">
+          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-400">${icon("lock", "w-4 h-4")}</div>
+          <div><p class="font-extrabold text-slate-500">Day ${d.n}: ${d.theme}</p><p class="text-xs text-slate-400">${d.subtitle}</p></div>
+        </div>`;
+    })
+    .join("");
+
+  htmlEl.innerHTML = `
+    <div class="max-w-3xl mx-auto animate-fade-up space-y-4">
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-500 text-white shadow-soft p-6 sm:p-8">
+        <div class="absolute -top-8 -right-6 h-36 w-36 rounded-full bg-white/10 blur-2xl"></div>
+        <div class="relative">
+          <span class="gd-chip bg-white/15 text-white mb-2">🚀 Launch Week</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold">${lw.allDone ? "Launch Week complete! 🎉" : "Your first week as a dev"}</h1>
+          <p class="text-white/85 mt-1">${lw.allDone ? "You built and shipped real projects in 7 days. This is just the start." : "Seven focused days. By the end you'll have built and shipped real things."}</p>
+          <div class="mt-4">
+            <div class="flex justify-between text-sm font-bold text-white/90 mb-1"><span>${lw.completedDays} of ${lw.total} days</span><span>${pct}%</span></div>
+            <div class="w-full bg-white/20 rounded-full h-3"><div class="h-full rounded-full bg-white" style="width: ${pct}%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-3">${daysHtml}</div>
+    </div>`;
+
+  const cont = document.querySelector("#lw-continue");
+  if (cont) {
+    cont.addEventListener("click", () => {
+      if (typeof handleNotePage === "function") handleNotePage();
+    });
+  }
+}
+
 // Playful startup job titles that level up with the learner.
 function roleForLevel(level) {
   if (level >= 8) return "Staff Engineer";
@@ -248,6 +392,7 @@ async function TodayPage(htmlEl) {
   const pct = Math.round((dailyXp / DAILY_GOAL_XP) * 100);
   const metGoal = dailyXp >= DAILY_GOAL_XP;
   const ticket = await getNextTicket(user);
+  const launchWeek = await computeLaunchWeek();
 
   htmlEl.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-fade-up">
@@ -281,6 +426,9 @@ async function TodayPage(htmlEl) {
           }</p>
         </div>
       </div>
+
+      <!-- Launch Week -->
+      ${launchWeekBanner(launchWeek)}
 
       <!-- Streak -->
       ${streakCard(streakInfo)}
