@@ -57,6 +57,15 @@ Q: What does the `return` keyword do in a function?
 E: `return` hands a value back to the caller. Here `add(3, 4)` returns `7`, which is stored in `total`.
 :::
 
+:::reorder
+Arrange these lines to define a `greet` function and then call it.
+- function greet(name) {
+-   return "Hi, " + name;
+- }
+- greet("Ada");
+E: Define the function first — header, body, then the closing brace — and call it afterwards.
+:::
+
 ## Reacting to events
 
 This is where JavaScript comes alive. You pick an element on the page, listen for an event, and run a function when it happens.

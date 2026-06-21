@@ -199,6 +199,97 @@ function initLessonQuiz(quizEl) {
   });
 }
 
+// Parses a `:::reorder` block into a tap-to-sequence exercise. The lines are
+// authored in the CORRECT order; the widget shuffles them for the learner.
+//   <prompt> / - line (in order) / E: explanation
+function renderReorder(buf) {
+  let prompt = "";
+  let explanation = "";
+  const lines = [];
+  buf.forEach((l) => {
+    const t = l.trim();
+    if (/^E:/i.test(t)) explanation = t.replace(/^E:\s*/i, "");
+    else if (/^[-*]\s/.test(l.trimStart())) lines.push(l.replace(/^\s*[-*]\s/, ""));
+    else if (t && !prompt) prompt = t.replace(/^Q:\s*/i, "");
+  });
+
+  const items = lines.map((text, index) => ({ text, index }));
+  const chips = shuffle(items)
+    .map(
+      (it) =>
+        `<button type="button" class="reorder-chip" data-index="${it.index}">${mdEscHtml(it.text)}</button>`
+    )
+    .join("");
+
+  return `<div class="lesson-reorder gd-card-sm my-6"${
+    explanation ? ` data-explanation="${mdEscAttr(explanation)}"` : ""
+  }>
+    <p class="gd-label mb-2"><span aria-hidden="true">🔀</span> Put the code in order</p>
+    <p class="font-extrabold mb-1">${mdInline(prompt)}</p>
+    <p class="text-xs text-slate-500 mb-3">Tap the lines in the right order. Tap a placed line to send it back.</p>
+    <div class="reorder-answer space-y-1.5 mb-2 min-h-[2.75rem] rounded-xl border-2 border-dashed border-slate-200 p-2"></div>
+    <div class="reorder-source space-y-1.5">${chips}</div>
+    <div class="flex gap-2 mt-3">
+      <button type="button" class="reorder-check gd-btn gd-btn-primary !py-2 !px-4 !text-sm">Check</button>
+      <button type="button" class="reorder-reset gd-btn gd-btn-secondary !py-2 !px-4 !text-sm">Reset</button>
+    </div>
+    <div class="reorder-feedback hidden mt-3 text-sm font-bold"></div>
+  </div>`;
+}
+
+// Wires a reorder widget: tap to move chips between source and answer, then
+// Check validates the order against the original sequence.
+function initReorder(el) {
+  const source = el.querySelector(".reorder-source");
+  const answer = el.querySelector(".reorder-answer");
+  const feedback = el.querySelector(".reorder-feedback");
+  const explanation = el.getAttribute("data-explanation");
+  const clearMarks = () =>
+    el
+      .querySelectorAll(".reorder-chip")
+      .forEach((c) => c.classList.remove("reorder-correct", "reorder-wrong"));
+
+  el.addEventListener("click", (e) => {
+    const chip = e.target.closest(".reorder-chip");
+    if (chip) {
+      (chip.parentElement === source ? answer : source).appendChild(chip);
+      clearMarks();
+      feedback.classList.add("hidden");
+      return;
+    }
+    if (e.target.closest(".reorder-reset")) {
+      el.querySelectorAll(".reorder-answer .reorder-chip").forEach((c) => source.appendChild(c));
+      clearMarks();
+      feedback.classList.add("hidden");
+      return;
+    }
+    if (e.target.closest(".reorder-check")) {
+      const placed = [...answer.querySelectorAll(".reorder-chip")];
+      const total = el.querySelectorAll(".reorder-chip").length;
+      clearMarks();
+      let correct = placed.length === total;
+      placed.forEach((c, i) => {
+        const ok = Number(c.dataset.index) === i;
+        c.classList.add(ok ? "reorder-correct" : "reorder-wrong");
+        if (!ok) correct = false;
+      });
+      feedback.classList.remove("hidden");
+      feedback.className =
+        "reorder-feedback mt-3 text-sm font-bold " + (correct ? "text-grass-600" : "text-rose-500");
+      const msg = correct
+        ? "✅ Perfect order!"
+        : placed.length < total
+        ? "Place all the lines first."
+        : "❌ Not quite — try again.";
+      feedback.innerHTML =
+        msg +
+        (correct && explanation
+          ? ` <span class="font-normal text-slate-600">${explanation}</span>`
+          : "");
+    }
+  });
+}
+
 // Lightweight Markdown -> HTML for lessons. Supports headings, ordered &
 // unordered lists, bold/italic/inline-code, links, block images (figures),
 // fenced code blocks (```lang), callout boxes (:::tip/analogy/warning/key/
@@ -251,9 +342,11 @@ function markdownToHtml(md) {
         i++;
       }
       i++; // skip closing :::
-      html.push(
-        type === "quiz" ? renderInlineQuiz(buf) : renderCallout(type, buf.join("\n"))
-      );
+      let block;
+      if (type === "quiz") block = renderInlineQuiz(buf);
+      else if (type === "reorder") block = renderReorder(buf);
+      else block = renderCallout(type, buf.join("\n"));
+      html.push(block);
       continue;
     }
 
@@ -619,6 +712,7 @@ async function notePage(htmlEl, requestedTitle) {
 
   // Activate any inline check-for-understanding quizzes embedded in the lesson.
   htmlEl.querySelectorAll(".lesson-quiz").forEach(initLessonQuiz);
+  htmlEl.querySelectorAll(".lesson-reorder").forEach(initReorder);
 
   if (isReview) return;
 
