@@ -14,8 +14,13 @@ function displayContent() {
         case 'progress':
             ProgressPage(page);
             break;
+        case 'today':
+            TodayPage(page);
+            break;
         default:
-            HomePage(page);
+            // Returning learners land on their Daily Standup; TodayPage falls
+            // back to the marketing home for first-time visitors.
+            TodayPage(page);
     }
     updateActiveNav(currentURL);
     updateHud();
