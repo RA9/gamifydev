@@ -8,7 +8,10 @@
             "title": "History of the Web",
             "description": "The web is a big place. Let's learn how it got started and where it's going.",
             "resources": [
-              { "title": "The History of the Web", "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4" }
+              {
+                "title": "The History of the Web",
+                "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4"
+              }
             ],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -235,6 +238,136 @@
             "current": false,
             "next": null,
             "previous": "Project: Build a Notes App"
+          }
+        ]
+      },
+      {
+        "name": "C",
+        "modules": [
+          {
+            "title": "What is C?",
+            "description": "A fast, compiled language that powers operating systems and more.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "C Basics",
+            "previous": null
+          },
+          {
+            "title": "C Basics",
+            "description": "Variables, types, and printing output in C.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Control Flow in C",
+            "previous": "What is C?"
+          },
+          {
+            "title": "Control Flow in C",
+            "description": "Make decisions and repeat work with if and loops.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Functions in C",
+            "previous": "C Basics"
+          },
+          {
+            "title": "Functions in C",
+            "description": "Package and reuse logic with functions.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Pointers and Memory",
+            "previous": "Control Flow in C"
+          },
+          {
+            "title": "Pointers and Memory",
+            "description": "C’s signature feature: working with memory addresses.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with C",
+            "previous": "Functions in C"
+          },
+          {
+            "title": "Next Steps with C",
+            "description": "Where to go after the fundamentals.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Pointers and Memory"
+          }
+        ]
+      },
+      {
+        "name": "Java",
+        "modules": [
+          {
+            "title": "What is Java?",
+            "description": "A portable, object-oriented language that runs everywhere.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Java Basics",
+            "previous": null
+          },
+          {
+            "title": "Java Basics",
+            "description": "Variables, types, and printing output in Java.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Control Flow in Java",
+            "previous": "What is Java?"
+          },
+          {
+            "title": "Control Flow in Java",
+            "description": "Decisions and loops in Java.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Methods in Java",
+            "previous": "Java Basics"
+          },
+          {
+            "title": "Methods in Java",
+            "description": "Reusable blocks of behaviour.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Objects and Classes",
+            "previous": "Control Flow in Java"
+          },
+          {
+            "title": "Objects and Classes",
+            "description": "The heart of object-oriented programming.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with Java",
+            "previous": "Methods in Java"
+          },
+          {
+            "title": "Next Steps with Java",
+            "description": "Frameworks and where to go next.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Objects and Classes"
           }
         ]
       }

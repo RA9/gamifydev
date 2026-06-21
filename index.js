@@ -22,6 +22,9 @@ function displayContent() {
         case 'journey':
             JourneyPage(page);
             break;
+        case 'worlds':
+            WorldsPage(page);
+            break;
         case 'review':
             ReviewPage(page);
             break;

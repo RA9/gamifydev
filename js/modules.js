@@ -655,7 +655,7 @@ function markdownToHtml(md) {
 async function scratchPage(htmlEl) {
   const state = await DB.states.where("name").equals("general").last();
   const user = (await DB.users.toArray())[0];
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName = await getActivePath();
   const notes = await DB.paths
     .where("path_name")
     .equals(pathName)
@@ -747,6 +747,25 @@ async function resolveLessonPath(preference) {
     .equals((preference || "").toLowerCase())
     .count();
   return count > 0 ? preference.toLowerCase() : "frontend";
+}
+
+// The world the learner is currently playing: the one chosen on the Worlds
+// page (persisted in meta), falling back to their onboarding preference.
+async function getActivePath() {
+  let selected = null;
+  if (typeof getMeta === "function") {
+    try {
+      selected = await getMeta("active-path", null);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  if (selected) {
+    const count = await DB.paths.where("path_name").equals(selected).count();
+    if (count > 0) return selected;
+  }
+  const user = (await DB.users.toArray())[0];
+  return resolveLessonPath(user ? user.preference : "frontend");
 }
 
 async function backToModules() {
@@ -873,6 +892,120 @@ function renderQuestMap(ordered, recordByTitle) {
   </svg>`;
 }
 
+// Each path is presented as a selectable "world". Order here drives the grid.
+const WORLDS = [
+  {
+    path: "frontend",
+    name: "Frontend",
+    emoji: "🎨",
+    tagline: "Build what users see and touch",
+    blurb: "HTML, CSS & JavaScript — ship real, interactive web pages.",
+  },
+  {
+    path: "backend",
+    name: "Backend",
+    emoji: "🗄️",
+    tagline: "Power apps from behind the scenes",
+    blurb: "Servers, databases & APIs — the engine room of every app.",
+  },
+  {
+    path: "fullstack",
+    name: "Fullstack",
+    emoji: "🔗",
+    tagline: "Connect front and back into apps",
+    blurb: "Tie it all together into complete, shippable products.",
+  },
+  {
+    path: "c",
+    name: "C",
+    emoji: "⚙️",
+    tagline: "Program close to the metal",
+    blurb: "Pointers, memory & control flow — the roots of computing.",
+  },
+  {
+    path: "java",
+    name: "Java",
+    emoji: "☕",
+    tagline: "Robust, portable applications",
+    blurb: "Object-oriented thinking that runs everywhere.",
+  },
+];
+
+// Set the active world and jump straight to its quest map.
+async function selectWorld(pathName) {
+  if (typeof setMeta === "function") {
+    try {
+      await setMeta("active-path", pathName);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  window.location.hash = "journey";
+}
+
+async function WorldsPage(htmlEl) {
+  const user = (await DB.users.toArray())[0];
+  if (!user) {
+    window.location.hash = "";
+    return;
+  }
+
+  const allPaths = await DB.paths.toArray();
+  const stats = {};
+  allPaths.forEach((p) => {
+    const s = (stats[p.path_name] = stats[p.path_name] || { total: 0, done: 0 });
+    s.total += 1;
+    if (p.is_completed) s.done += 1;
+  });
+
+  let active = "frontend";
+  try {
+    active = await getActivePath();
+  } catch (e) {
+    /* default */
+  }
+
+  const cards = WORLDS.map((w) => {
+    const s = stats[w.path] || { total: 0, done: 0 };
+    const pct = s.total ? Math.round((s.done / s.total) * 100) : 0;
+    const isActive = w.path === active;
+    const label = s.done === 0 ? "Start" : pct === 100 ? "Replay" : "Continue";
+    return `
+      <button type="button" onclick="selectWorld('${w.path}')"
+        class="gd-card group text-left flex flex-col gap-3 transition-transform hover:-translate-y-1 ${
+          isActive ? "ring-2 ring-brand-400" : ""
+        }">
+        <div class="flex items-start justify-between">
+          <div class="grid h-14 w-14 place-items-center rounded-2xl bg-brand-100 text-3xl">${w.emoji}</div>
+          ${
+            isActive
+              ? '<span class="gd-chip gd-chip-brand !text-[10px] !py-0.5">▶ Playing</span>'
+              : ""
+          }
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold">${w.name}</h3>
+          <p class="text-sm text-slate-500">${w.blurb}</p>
+        </div>
+        <div class="gd-progress h-2 mt-auto"><div class="gd-progress-fill" style="width:${pct}%"></div></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500">${s.done}/${s.total} complete</span>
+          <span class="gd-btn gd-btn-primary !py-1.5 !px-4 !text-xs group-hover:brightness-105">${label}</span>
+        </div>
+      </button>`;
+  }).join("");
+
+  htmlEl.innerHTML = `
+    <div class="max-w-5xl mx-auto animate-fade-up">
+      <div class="text-center mb-7">
+        <span class="gd-chip gd-chip-brand mb-2">${icon("map", "w-3.5 h-3.5")} Choose your world</span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold">Worlds</h1>
+        <p class="text-slate-500 mt-1 max-w-md mx-auto">Each world is a full adventure with its own quest map. Pick one to play — your progress is saved, so switch anytime.</p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">${cards}</div>
+    </div>`;
+}
+
 async function JourneyPage(htmlEl) {
   const user = (await DB.users.toArray())[0];
   if (!user) {
@@ -880,7 +1013,7 @@ async function JourneyPage(htmlEl) {
     return;
   }
 
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName = await getActivePath();
   const notes = await DB.paths.where("path_name").equals(pathName).toArray();
   if (!notes.length) {
     htmlEl.innerHTML = `
@@ -915,6 +1048,7 @@ async function JourneyPage(htmlEl) {
           <div>
             <span class="gd-chip gd-chip-brand mb-2">${icon("book", "w-3.5 h-3.5")} ${pathLabel} adventure</span>
             <h1 class="text-2xl font-extrabold">Your quest map</h1>
+            <a href="#worlds" class="inline-flex items-center gap-1 mt-1 text-sm font-bold text-brand-600 hover:text-brand-700">${icon("map", "w-3.5 h-3.5")} Switch world</a>
           </div>
           <div class="text-right">
             <p class="text-2xl font-extrabold text-brand-600">${completed}/${notes.length}</p>
@@ -952,7 +1086,7 @@ async function notePage(htmlEl, requestedTitle) {
   if (state.current !== "note") return;
 
   const user = (await DB.users.toArray())[0];
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName = await getActivePath();
   const current = requestedTitle
     ? await DB.paths
         .where("path_name")
@@ -1006,7 +1140,7 @@ async function notePage(htmlEl, requestedTitle) {
     : "";
 
   const hasNext = !!current.next;
-  const quizCategory = moduleQuizCategory(current.title);
+  const quizCategory = moduleQuizCategory(current.title, pathName);
   const quizCount = quizCategory
     ? await DB.questions.where("category").equals(quizCategory).count()
     : 0;
@@ -1060,9 +1194,12 @@ async function notePage(htmlEl, requestedTitle) {
 
 // Maps a lesson title to a question-bank category for its check-for-understanding
 // quiz. Returns null when no category fits (e.g. history or soft-skill modules).
-function moduleQuizCategory(title) {
+function moduleQuizCategory(title, pathName) {
   const t = title.toLowerCase();
   if (t.startsWith("project")) return null; // projects end by building, not a quiz
+  // Single-language paths map every lesson to their question bank.
+  if (pathName === "c") return "c";
+  if (pathName === "java") return "java";
   if (t.includes("javascript")) return "javascript";
   if (t.includes("python")) return "python";
   if (t.includes("sql") || t.includes("database")) return "sql";
