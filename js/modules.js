@@ -237,6 +237,83 @@ function renderReorder(buf) {
   </div>`;
 }
 
+// Parses a `:::fill` block into a fill-in-the-blank exercise: a code snippet
+// containing `___`, and option chips for the missing token.
+//   Q: prompt / `code with ___` / - option (correct marked " *") / E: explanation
+function renderFill(buf) {
+  let prompt = "";
+  let explanation = "";
+  let code = "";
+  const options = [];
+  buf.forEach((l) => {
+    const t = l.trim();
+    if (/^E:/i.test(t)) explanation = t.replace(/^E:\s*/i, "");
+    else if (/^[-*]\s/.test(t)) {
+      let txt = t.replace(/^[-*]\s+/, "");
+      const correct = /\*\s*$/.test(txt);
+      txt = txt.replace(/\s*\*\s*$/, "");
+      options.push({ txt, correct });
+    } else if (t.includes("___")) code = t.replace(/^`/, "").replace(/`$/, "");
+    else if (t && !prompt) prompt = t.replace(/^Q:\s*/i, "");
+  });
+
+  const codeHtml = code
+    .split("___")
+    .map((p) => mdEscHtml(p))
+    .join('<span class="fill-slot" data-state="empty">______</span>');
+
+  const optsHtml = options
+    .map(
+      (o) =>
+        `<button type="button" class="fill-option" data-correct="${o.correct}" data-text="${mdEscAttr(
+          o.txt
+        )}">${mdEscHtml(o.txt)}</button>`
+    )
+    .join("");
+
+  return `<div class="lesson-fill gd-card-sm my-6"${
+    explanation ? ` data-explanation="${mdEscAttr(explanation)}"` : ""
+  }>
+    <p class="gd-label mb-2"><span aria-hidden="true">✏️</span> Fill in the blank</p>
+    <p class="font-extrabold mb-3">${mdInline(prompt)}</p>
+    <div class="gd-codeblock"><div class="gd-codeblock-head">CODE</div><pre><code>${codeHtml}</code></pre></div>
+    <div class="flex flex-wrap gap-2 mt-3">${optsHtml}</div>
+    <div class="lesson-fill-feedback hidden mt-3 text-sm font-bold"></div>
+  </div>`;
+}
+
+// Wires a fill-in-the-blank: clicking an option fills the slot and reveals
+// whether it was right, with the explanation.
+function initFill(el) {
+  const slot = el.querySelector(".fill-slot");
+  const options = el.querySelectorAll(".fill-option");
+  const feedback = el.querySelector(".lesson-fill-feedback");
+  const explanation = el.getAttribute("data-explanation");
+  let answered = false;
+
+  options.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (answered) return;
+      answered = true;
+      const correct = btn.dataset.correct === "true";
+      if (slot) {
+        slot.textContent = btn.dataset.text;
+        slot.dataset.state = correct ? "correct" : "wrong";
+      }
+      options.forEach((o) => {
+        o.disabled = true;
+        if (o.dataset.correct === "true") o.classList.add("fill-option-correct");
+      });
+      if (!correct) btn.classList.add("fill-option-wrong");
+      feedback.classList.remove("hidden");
+      feedback.classList.add(correct ? "text-grass-600" : "text-rose-500");
+      feedback.innerHTML =
+        (correct ? "✅ Correct! " : "❌ Not quite. ") +
+        (explanation ? `<span class="font-normal text-slate-600">${explanation}</span>` : "");
+    });
+  });
+}
+
 // Wires a reorder widget: tap to move chips between source and answer, then
 // Check validates the order against the original sequence.
 function initReorder(el) {
@@ -345,6 +422,7 @@ function markdownToHtml(md) {
       let block;
       if (type === "quiz") block = renderInlineQuiz(buf);
       else if (type === "reorder") block = renderReorder(buf);
+      else if (type === "fill") block = renderFill(buf);
       else block = renderCallout(type, buf.join("\n"));
       html.push(block);
       continue;
@@ -713,6 +791,7 @@ async function notePage(htmlEl, requestedTitle) {
   // Activate any inline check-for-understanding quizzes embedded in the lesson.
   htmlEl.querySelectorAll(".lesson-quiz").forEach(initLessonQuiz);
   htmlEl.querySelectorAll(".lesson-reorder").forEach(initReorder);
+  htmlEl.querySelectorAll(".lesson-fill").forEach(initFill);
 
   if (isReview) return;
 

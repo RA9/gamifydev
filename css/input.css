@@ -203,6 +203,48 @@
   .lesson-quiz-wrong {
     @apply border-rose-500 bg-rose-50 text-rose-700;
   }
+
+  /* Lesson content: reorder exercise -------------------------------- */
+  .reorder-chip {
+    @apply block w-full text-left font-mono text-xs sm:text-sm rounded-xl border-2 border-slate-200 bg-white px-3 py-2 cursor-pointer transition-colors hover:border-brand-300;
+    white-space: pre-wrap;
+  }
+  .reorder-answer .reorder-chip {
+    @apply border-brand-300 bg-brand-50;
+  }
+  .reorder-correct {
+    @apply !border-grass-500 !bg-grass-50;
+  }
+  .reorder-wrong {
+    @apply !border-rose-500 !bg-rose-50;
+  }
+
+  /* Lesson content: fill-in-the-blank exercise --------------------- */
+  .fill-option {
+    @apply font-mono text-sm rounded-lg border-2 border-slate-200 bg-white px-3 py-1.5 cursor-pointer transition-colors hover:border-brand-300 disabled:cursor-not-allowed;
+  }
+  .fill-option-correct {
+    @apply !border-grass-500 !bg-grass-50 text-grass-800;
+  }
+  .fill-option-wrong {
+    @apply !border-rose-500 !bg-rose-50 text-rose-700;
+  }
+  /* The blank slot lives inside the dark code block. */
+  .fill-slot {
+    border-radius: 0.25rem;
+    padding: 0 0.35rem;
+    font-weight: 800;
+    background: rgba(120, 87, 247, 0.35);
+    color: #c7b8ff;
+  }
+  .fill-slot[data-state="correct"] {
+    background: rgba(88, 204, 2, 0.28);
+    color: #bbf7d0;
+  }
+  .fill-slot[data-state="wrong"] {
+    background: rgba(244, 63, 94, 0.28);
+    color: #fecdd3;
+  }
 }
 
 /* ------------------------------------------------------------------ *

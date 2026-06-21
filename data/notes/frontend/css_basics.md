@@ -25,6 +25,15 @@ p {
 
 Read it as: "find every `<p>` element, and make its text blue and 18 pixels tall." `color` and `font-size` are *properties*; `blue` and `18px` are their *values*.
 
+:::fill
+Q: Complete the rule so every heading is centered.
+`h1 { ___: center; }`
+- text-align *
+- align
+- center
+E: `text-align: center` centers the text inside the element.
+:::
+
 ## Three ways to apply CSS
 
 ```html
