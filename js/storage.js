@@ -30,23 +30,37 @@ async function createQuestions() {
     const questions = await fetch("./data/questions.json");
     const data = await questions.json();
 
-    // Seed per category and add only questions not already present (matched by
-    // question text). This imports newly added categories (e.g. Java) and
-    // expands existing ones (e.g. more SQL) for existing users, without
-    // creating duplicates.
+    // Sync each category from the source, keyed by question text:
+    //  - add questions not present yet (new categories like Java, more SQL),
+    //  - update existing questions whose content changed (e.g. a corrected
+    //    answer), so content fixes reach existing users,
+    // without creating duplicates.
     for (const key of Object.keys(data)) {
       const existingRows = await db.questions.where("category").equals(key).toArray();
-      const existingQuestions = new Set(existingRows.map((r) => r.details?.question));
+      const byText = {};
+      existingRows.forEach((r) => {
+        if (r.details && r.details.question) byText[r.details.question] = r;
+      });
 
       for (const question of data[key]) {
-        if (existingQuestions.has(question.question)) continue;
-        await db.questions.add({
-          id: randomID(),
-          title: question.title || question.question,
-          category: key,
-          details: { ...question, category: key },
-          created_at: new Date(),
-        });
+        const details = { ...question, category: key };
+        const existing = byText[question.question];
+        if (existing) {
+          if (JSON.stringify(existing.details) !== JSON.stringify(details)) {
+            await db.questions.update(existing.id, {
+              details,
+              title: question.title || question.question,
+            });
+          }
+        } else {
+          await db.questions.add({
+            id: randomID(),
+            title: question.title || question.question,
+            category: key,
+            details,
+            created_at: new Date(),
+          });
+        }
       }
     }
   } catch (error) {

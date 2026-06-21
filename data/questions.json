@@ -1259,7 +1259,7 @@
         "To extract a section of an array and return a new array",
         "To modify elements in an array"
       ],
-      "answer": "To remove elements from an array and, if necessary, insert new elements in their place",
+      "answer": "To remove elements from an array",
       "duration": 25
     },
     {
