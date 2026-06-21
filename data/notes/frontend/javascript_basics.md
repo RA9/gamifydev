@@ -31,6 +31,20 @@ score = score + 10;   // now 10
 
 The everyday types are the same as any language: **numbers**, **strings** (text in quotes), and **booleans** (`true` / `false`).
 
+:::predict
+```js
+let score = 0;
+score = score + 10;
+score = score + 5;
+console.log(score);
+```
+- 15 *
+- 105
+- 0
+- "105"
+E: Each line adds to `score`: 0 → 10 → 15, so it logs the number 15.
+:::
+
 :::tip
 Reach for `const` by default and only switch to `let` when you know the value needs to change. It makes your intent clear and prevents accidental reassignment bugs.
 :::

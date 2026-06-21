@@ -282,6 +282,63 @@ function renderFill(buf) {
   </div>`;
 }
 
+// Parses a `:::predict` block: a fenced code snippet plus multiple-choice
+// options for its output. It reuses the inline-quiz markup/interaction
+// (initLessonQuiz), so no extra wiring is needed.
+//   ```lang ... ``` / Q: prompt (optional) / - option (correct " *") / E: ...
+function renderPredict(buf) {
+  let prompt = "What does this code print?";
+  let explanation = "";
+  let lang = "";
+  const codeLines = [];
+  const options = [];
+  let inCode = false;
+  buf.forEach((l) => {
+    const t = l.trim();
+    if (/^```/.test(t)) {
+      if (!inCode) {
+        inCode = true;
+        lang = t.slice(3).trim();
+      } else {
+        inCode = false;
+      }
+      return;
+    }
+    if (inCode) {
+      codeLines.push(l);
+      return;
+    }
+    if (/^E:/i.test(t)) explanation = t.replace(/^E:\s*/i, "");
+    else if (/^[-*]\s/.test(t)) {
+      let txt = t.replace(/^[-*]\s+/, "");
+      const correct = /\*\s*$/.test(txt);
+      txt = txt.replace(/\s*\*\s*$/, "");
+      options.push({ txt, correct });
+    } else if (/^Q:/i.test(t)) prompt = t.replace(/^Q:\s*/i, "");
+  });
+
+  const optsHtml = options
+    .map(
+      (o) =>
+        `<button type="button" class="lesson-quiz-option gd-option w-full text-left" data-correct="${o.correct}">${mdInline(
+          o.txt
+        )}</button>`
+    )
+    .join("");
+
+  return `<div class="lesson-quiz gd-card-sm my-6"${
+    explanation ? ` data-explanation="${mdEscAttr(explanation)}"` : ""
+  }>
+    <p class="gd-label mb-2"><span aria-hidden="true">🔮</span> Predict the output</p>
+    <p class="font-extrabold mb-3">${mdInline(prompt)}</p>
+    <div class="gd-codeblock"><div class="gd-codeblock-head">${
+      lang ? mdEscHtml(lang.toUpperCase()) : "CODE"
+    }</div><pre><code>${mdEscHtml(codeLines.join("\n"))}</code></pre></div>
+    <div class="space-y-2 mt-3">${optsHtml}</div>
+    <div class="lesson-quiz-feedback hidden mt-3 text-sm font-bold"></div>
+  </div>`;
+}
+
 // Wires a fill-in-the-blank: clicking an option fills the slot and reveals
 // whether it was right, with the explanation.
 function initFill(el) {
@@ -423,6 +480,7 @@ function markdownToHtml(md) {
       if (type === "quiz") block = renderInlineQuiz(buf);
       else if (type === "reorder") block = renderReorder(buf);
       else if (type === "fill") block = renderFill(buf);
+      else if (type === "predict") block = renderPredict(buf);
       else block = renderCallout(type, buf.join("\n"));
       html.push(block);
       continue;
