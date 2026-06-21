@@ -23,6 +23,16 @@ const PATH_STORY = {
     mission:
       "Welcome to the Fullstack crew — you'll work across the whole stack. Your mission: connect front and back into complete, working apps you can actually ship.",
   },
+  c: {
+    crew: "Systems crew",
+    mission:
+      "Welcome to the Systems crew — we work close to the metal. C is the language behind operating systems, databases, and game engines. Your mission: master the fundamentals that everything else is built on.",
+  },
+  java: {
+    crew: "Java crew",
+    mission:
+      "Welcome to the Java crew — builders of robust, portable software that runs everywhere. Your mission: learn the object-oriented thinking that powers banks, Android apps, and huge enterprise systems.",
+  },
 };
 
 function pathMission(pathName) {

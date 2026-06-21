@@ -266,7 +266,10 @@ const LAUNCH_WEEK_FRONTEND = [
 async function computeLaunchWeek() {
   const user = (await DB.users.toArray())[0];
   if (!user) return null;
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName =
+    typeof getActivePath === "function"
+      ? await getActivePath()
+      : await resolveLessonPath(user.preference);
   if (pathName !== "frontend") return null;
 
   const notes = await DB.paths.where("path_name").equals("frontend").toArray();
@@ -408,7 +411,10 @@ function gdEsc(s) {
 // The learner's next actionable: continue their current lesson/project, or, if
 // the path is finished, nudge a quiz.
 async function getNextTicket(user) {
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName =
+    typeof getActivePath === "function"
+      ? await getActivePath()
+      : await resolveLessonPath(user.preference);
   const current = await DB.paths
     .where("path_name")
     .equals(pathName)
@@ -628,6 +634,18 @@ async function TodayPage(htmlEl) {
           }
         </div>
       </div>
+
+      <!-- Worlds selector -->
+      <a href="#worlds" class="gd-card flex items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform">
+        <div class="flex items-center gap-3">
+          <div class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-100 text-2xl">🗺️</div>
+          <div>
+            <p class="font-extrabold leading-tight">Explore Worlds</p>
+            <p class="text-sm text-slate-500">Frontend, Backend, Fullstack, C & Java — pick your adventure</p>
+          </div>
+        </div>
+        <span class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0">Browse</span>
+      </a>
 
       <!-- Terminal Trainer -->
       <a href="#terminal" class="gd-card flex items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform">

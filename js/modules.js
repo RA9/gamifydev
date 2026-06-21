@@ -655,7 +655,7 @@ function markdownToHtml(md) {
 async function scratchPage(htmlEl) {
   const state = await DB.states.where("name").equals("general").last();
   const user = (await DB.users.toArray())[0];
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName = await getActivePath();
   const notes = await DB.paths
     .where("path_name")
     .equals(pathName)
@@ -749,6 +749,25 @@ async function resolveLessonPath(preference) {
   return count > 0 ? preference.toLowerCase() : "frontend";
 }
 
+// The world the learner is currently playing: the one chosen on the Worlds
+// page (persisted in meta), falling back to their onboarding preference.
+async function getActivePath() {
+  let selected = null;
+  if (typeof getMeta === "function") {
+    try {
+      selected = await getMeta("active-path", null);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  if (selected) {
+    const count = await DB.paths.where("path_name").equals(selected).count();
+    if (count > 0) return selected;
+  }
+  const user = (await DB.users.toArray())[0];
+  return resolveLessonPath(user ? user.preference : "frontend");
+}
+
 async function backToModules() {
   // The Journey board is the canonical "see your whole path" view. Lessons are
   // rendered into <main> without changing the hash, so re-render directly when
@@ -762,6 +781,231 @@ async function backToModules() {
 
 // The Journey board — the learner's path as a vertical roadmap of "tickets",
 // with done / current / locked stops and overall progress.
+// Renders the path as a game-style world map: a winding road that snakes
+// through a themed landscape, with level nodes along it and the travelled
+// portion of the road filled in to show progress.
+function renderQuestMap(ordered, recordByTitle) {
+  const n = ordered.length;
+  const W = 400;
+  const spacing = 132;
+  const topPad = 84;
+  const bottomPad = 110;
+  const H = topPad + (n - 1) * spacing + bottomPad;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  const pts = ordered.map((_, i) => ({
+    x: clamp(200 + 120 * Math.sin(i * 0.9 + 0.3), 86, 314),
+    y: topPad + i * spacing,
+  }));
+
+  // How far the learner has travelled (last completed, or the current node).
+  let reachedIndex = -1;
+  ordered.forEach((no, i) => {
+    const rec = recordByTitle[no.title] || {};
+    if (rec.is_completed || no.current) reachedIndex = i;
+  });
+
+  const pathThrough = (slice) => {
+    if (slice.length < 2) return slice.length ? `M ${slice[0].x} ${slice[0].y}` : "";
+    let d = `M ${slice[0].x} ${slice[0].y}`;
+    for (let i = 1; i < slice.length; i++) {
+      const p = slice[i - 1];
+      const c = slice[i];
+      const my = (p.y + c.y) / 2;
+      d += ` C ${p.x} ${my}, ${c.x} ${my}, ${c.x} ${c.y}`;
+    }
+    return d;
+  };
+  const fullD = pathThrough(pts);
+  const traveledD = pathThrough(pts.slice(0, Math.max(1, reachedIndex + 1)));
+
+  // Decorative scenery.
+  const clouds = `<g fill="#ffffff" opacity="0.9">
+      <ellipse cx="86" cy="46" rx="32" ry="15"/><ellipse cx="114" cy="40" rx="24" ry="13"/>
+      <ellipse cx="318" cy="86" rx="28" ry="13"/><ellipse cx="342" cy="80" rx="20" ry="11"/>
+      <ellipse cx="70" cy="${topPad + (n - 1) * spacing - 30}" rx="26" ry="12"/>
+    </g>`;
+  const bush = (x, y, s) =>
+    `<g transform="translate(${x} ${y}) scale(${s})"><circle r="15" fill="#7ad23e"/><circle cx="13" cy="3" r="11" fill="#9ce26a"/><circle cx="-13" cy="3" r="11" fill="#9ce26a"/></g>`;
+  const decorations = pts
+    .map((p, i) => (i % 2 ? bush(p.x < 200 ? 350 : 50, p.y + 36, 1) : ""))
+    .join("");
+
+  const nodes = ordered
+    .map((no, i) => {
+      const p = pts[i];
+      const rec = recordByTitle[no.title] || {};
+      const isProject = /^project/i.test(no.title);
+      const done = rec.is_completed;
+      const current = no.current;
+      const titleEsc = no.title.replace(/'/g, "\\'");
+
+      let badge, glyph, onclick, dis = "", labelCls;
+      if (done) {
+        badge = "qm-node qm-done";
+        glyph = icon("check", "w-6 h-6");
+        onclick = `onclick="handleNotePage('${titleEsc}')"`;
+        labelCls = "text-slate-700";
+      } else if (current) {
+        badge = "qm-node qm-current";
+        glyph = isProject ? icon("rocket", "w-6 h-6") : icon("play", "w-6 h-6");
+        onclick = `onclick="handleNotePage()"`;
+        labelCls = "text-brand-700";
+      } else {
+        badge = "qm-node qm-locked";
+        glyph = icon("lock", "w-5 h-5");
+        onclick = "";
+        dis = "disabled";
+        labelCls = "text-slate-400";
+      }
+
+      return `<foreignObject x="${p.x - 64}" y="${p.y - 30}" width="128" height="124">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="relative flex flex-col items-center">
+          <button ${onclick} ${dis} class="${badge}" aria-label="${no.title}">
+            ${current ? '<span class="absolute inset-0 rounded-full bg-brand-400/40 animate-ping"></span>' : ""}
+            <span class="relative grid h-full w-full place-items-center text-white">${glyph}</span>
+          </button>
+          <span class="mt-1.5 text-center text-[11px] font-bold leading-tight ${labelCls}">${no.title}${
+        isProject ? ' <span aria-hidden="true">🚀</span>' : ""
+      }</span>
+        </div>
+      </foreignObject>`;
+    })
+    .join("");
+
+  const goalY = topPad + (n - 1) * spacing + 64;
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your quest map">
+    <defs>
+      <linearGradient id="qm-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ede9ff"/><stop offset="0.55" stop-color="#f5f3ff"/><stop offset="1" stop-color="#e9fbe1"/>
+      </linearGradient>
+    </defs>
+    <rect width="${W}" height="${H}" rx="28" fill="url(#qm-sky)"/>
+    ${clouds}
+    ${decorations}
+    <path d="${fullD}" fill="none" stroke="#e2ddff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${traveledD}" fill="none" stroke="#7ad23e" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${fullD}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="1 14" stroke-linecap="round" opacity="0.8"/>
+    <text x="200" y="${goalY}" text-anchor="middle" font-size="34">🏁</text>
+    ${nodes}
+  </svg>`;
+}
+
+// Each path is presented as a selectable "world". Order here drives the grid.
+const WORLDS = [
+  {
+    path: "frontend",
+    name: "Frontend",
+    emoji: "🎨",
+    tagline: "Build what users see and touch",
+    blurb: "HTML, CSS & JavaScript — ship real, interactive web pages.",
+  },
+  {
+    path: "backend",
+    name: "Backend",
+    emoji: "🗄️",
+    tagline: "Power apps from behind the scenes",
+    blurb: "Servers, databases & APIs — the engine room of every app.",
+  },
+  {
+    path: "fullstack",
+    name: "Fullstack",
+    emoji: "🔗",
+    tagline: "Connect front and back into apps",
+    blurb: "Tie it all together into complete, shippable products.",
+  },
+  {
+    path: "c",
+    name: "C",
+    emoji: "⚙️",
+    tagline: "Program close to the metal",
+    blurb: "Pointers, memory & control flow — the roots of computing.",
+  },
+  {
+    path: "java",
+    name: "Java",
+    emoji: "☕",
+    tagline: "Robust, portable applications",
+    blurb: "Object-oriented thinking that runs everywhere.",
+  },
+];
+
+// Set the active world and jump straight to its quest map.
+async function selectWorld(pathName) {
+  if (typeof setMeta === "function") {
+    try {
+      await setMeta("active-path", pathName);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  window.location.hash = "journey";
+}
+
+async function WorldsPage(htmlEl) {
+  const user = (await DB.users.toArray())[0];
+  if (!user) {
+    window.location.hash = "";
+    return;
+  }
+
+  const allPaths = await DB.paths.toArray();
+  const stats = {};
+  allPaths.forEach((p) => {
+    const s = (stats[p.path_name] = stats[p.path_name] || { total: 0, done: 0 });
+    s.total += 1;
+    if (p.is_completed) s.done += 1;
+  });
+
+  let active = "frontend";
+  try {
+    active = await getActivePath();
+  } catch (e) {
+    /* default */
+  }
+
+  const cards = WORLDS.map((w) => {
+    const s = stats[w.path] || { total: 0, done: 0 };
+    const pct = s.total ? Math.round((s.done / s.total) * 100) : 0;
+    const isActive = w.path === active;
+    const label = s.done === 0 ? "Start" : pct === 100 ? "Replay" : "Continue";
+    return `
+      <button type="button" onclick="selectWorld('${w.path}')"
+        class="gd-card group text-left flex flex-col gap-3 transition-transform hover:-translate-y-1 ${
+          isActive ? "ring-2 ring-brand-400" : ""
+        }">
+        <div class="flex items-start justify-between">
+          <div class="grid h-14 w-14 place-items-center rounded-2xl bg-brand-100 text-3xl">${w.emoji}</div>
+          ${
+            isActive
+              ? '<span class="gd-chip gd-chip-brand !text-[10px] !py-0.5">▶ Playing</span>'
+              : ""
+          }
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold">${w.name}</h3>
+          <p class="text-sm text-slate-500">${w.blurb}</p>
+        </div>
+        <div class="gd-progress h-2 mt-auto"><div class="gd-progress-fill" style="width:${pct}%"></div></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500">${s.done}/${s.total} complete</span>
+          <span class="gd-btn gd-btn-primary !py-1.5 !px-4 !text-xs group-hover:brightness-105">${label}</span>
+        </div>
+      </button>`;
+  }).join("");
+
+  htmlEl.innerHTML = `
+    <div class="max-w-5xl mx-auto animate-fade-up">
+      <div class="text-center mb-7">
+        <span class="gd-chip gd-chip-brand mb-2">${icon("map", "w-3.5 h-3.5")} Choose your world</span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold">Worlds</h1>
+        <p class="text-slate-500 mt-1 max-w-md mx-auto">Each world is a full adventure with its own quest map. Pick one to play — your progress is saved, so switch anytime.</p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">${cards}</div>
+    </div>`;
+}
+
 async function JourneyPage(htmlEl) {
   const user = (await DB.users.toArray())[0];
   if (!user) {
@@ -769,7 +1013,7 @@ async function JourneyPage(htmlEl) {
     return;
   }
 
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName = await getActivePath();
   const notes = await DB.paths.where("path_name").equals(pathName).toArray();
   if (!notes.length) {
     htmlEl.innerHTML = `
@@ -797,52 +1041,14 @@ async function JourneyPage(htmlEl) {
   const pct = Math.round((completed / notes.length) * 100);
   const pathLabel = pathName.charAt(0).toUpperCase() + pathName.slice(1);
 
-  const stops = ordered
-    .map((note, i) => {
-      const rec = recordByTitle[note.title] || {};
-      const isProject = /^project/i.test(note.title);
-      const last = i === ordered.length - 1;
-      const titleEsc = note.title.replace(/'/g, "\\'");
-
-      let node, button, cardRing = "", titleCls = "";
-      if (rec.is_completed) {
-        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-grass-500 text-white">${icon("check", "w-5 h-5")}</div>`;
-        button = `<button onclick="handleNotePage('${titleEsc}')" class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0">Review</button>`;
-      } else if (note.current) {
-        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-brand-500 text-white ring-4 ring-brand-200">${icon("play", "w-5 h-5")}</div>`;
-        cardRing = "ring-2 ring-brand-300";
-        button = `<button onclick="handleNotePage()" class="gd-btn gd-btn-primary !py-2 !px-4 !text-sm shrink-0">${isProject ? "Build" : "Continue"}</button>`;
-      } else {
-        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-slate-400">${icon("lock", "w-4 h-4")}</div>`;
-        titleCls = "text-slate-500";
-        button = `<button class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0" disabled>Locked</button>`;
-      }
-
-      return `
-      <div class="relative pl-16 ${last ? "" : "pb-5"}">
-        ${last ? "" : '<span class="absolute left-[21px] top-11 -bottom-1 w-0.5 bg-slate-200"></span>'}
-        <div class="absolute left-0 top-1">${node}</div>
-        <div class="gd-card-sm ${cardRing} ${rec.is_completed || note.current ? "" : "opacity-75"}">
-          <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0">
-              ${isProject ? '<span class="gd-chip gd-chip-brand mb-1.5 !text-[10px]">🚀 Project</span>' : ""}
-              <h3 class="font-extrabold ${titleCls}">${note.title}</h3>
-              <p class="text-slate-500 text-sm mt-0.5">${note.description}</p>
-            </div>
-            ${button}
-          </div>
-        </div>
-      </div>`;
-    })
-    .join("");
-
   htmlEl.innerHTML = `
-    <div class="max-w-3xl mx-auto animate-fade-up space-y-5">
+    <div class="max-w-3xl mx-auto animate-fade-up space-y-6">
       <div class="gd-card">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div>
-            <span class="gd-chip gd-chip-brand mb-2">${icon("book", "w-3.5 h-3.5")} ${pathLabel} roadmap</span>
-            <h1 class="text-2xl font-extrabold">Your journey</h1>
+            <span class="gd-chip gd-chip-brand mb-2">${icon("book", "w-3.5 h-3.5")} ${pathLabel} adventure</span>
+            <h1 class="text-2xl font-extrabold">Your quest map</h1>
+            <a href="#worlds" class="inline-flex items-center gap-1 mt-1 text-sm font-bold text-brand-600 hover:text-brand-700">${icon("map", "w-3.5 h-3.5")} Switch world</a>
           </div>
           <div class="text-right">
             <p class="text-2xl font-extrabold text-brand-600">${completed}/${notes.length}</p>
@@ -851,7 +1057,7 @@ async function JourneyPage(htmlEl) {
         </div>
         <div class="gd-progress h-3"><div class="gd-progress-fill" style="width: ${pct}%"></div></div>
       </div>
-      <div class="pt-1">${stops}</div>
+      <div class="max-w-md mx-auto">${renderQuestMap(ordered, recordByTitle)}</div>
     </div>`;
 
   // First time on this path's board: Pixel briefs the mission (once per path).
@@ -880,7 +1086,7 @@ async function notePage(htmlEl, requestedTitle) {
   if (state.current !== "note") return;
 
   const user = (await DB.users.toArray())[0];
-  const pathName = await resolveLessonPath(user.preference);
+  const pathName = await getActivePath();
   const current = requestedTitle
     ? await DB.paths
         .where("path_name")
@@ -934,7 +1140,7 @@ async function notePage(htmlEl, requestedTitle) {
     : "";
 
   const hasNext = !!current.next;
-  const quizCategory = moduleQuizCategory(current.title);
+  const quizCategory = moduleQuizCategory(current.title, pathName);
   const quizCount = quizCategory
     ? await DB.questions.where("category").equals(quizCategory).count()
     : 0;
@@ -988,9 +1194,12 @@ async function notePage(htmlEl, requestedTitle) {
 
 // Maps a lesson title to a question-bank category for its check-for-understanding
 // quiz. Returns null when no category fits (e.g. history or soft-skill modules).
-function moduleQuizCategory(title) {
+function moduleQuizCategory(title, pathName) {
   const t = title.toLowerCase();
   if (t.startsWith("project")) return null; // projects end by building, not a quiz
+  // Single-language paths map every lesson to their question bank.
+  if (pathName === "c") return "c";
+  if (pathName === "java") return "java";
   if (t.includes("javascript")) return "javascript";
   if (t.includes("python")) return "python";
   if (t.includes("sql") || t.includes("database")) return "sql";
