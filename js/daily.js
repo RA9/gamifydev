@@ -131,6 +131,70 @@ function nextMilestone(streak) {
   return STREAK_MILESTONES.find((m) => m > streak) || null;
 }
 
+// --- Sprint review: a weekly recap of the last 7 days ------------------------
+const GD_WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
+
+function computeWeekReview(scores) {
+  const perCorrect = gdPerCorrect();
+  const now = new Date();
+  const days = [];
+  const idx = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    idx[dayKey(d)] = days.length;
+    days.push({ label: GD_WEEKDAY[d.getDay()], xp: 0 });
+  }
+  let total = 0;
+  let quizzes = 0;
+  scores.forEach((s) => {
+    const k = dayKey(s.created_at);
+    if (k in idx) {
+      const x = (s.numCorrect || 0) * perCorrect;
+      days[idx[k]].xp += x;
+      total += x;
+      quizzes++;
+    }
+  });
+  return {
+    days,
+    total,
+    quizzes,
+    activeDays: days.filter((d) => d.xp > 0).length,
+    maxXp: Math.max(1, ...days.map((d) => d.xp)),
+  };
+}
+
+function weekReviewCard(wr) {
+  const bars = wr.days
+    .map((d, i) => {
+      const h = Math.round((d.xp / wr.maxXp) * 100);
+      const isToday = i === wr.days.length - 1;
+      const filled = d.xp > 0;
+      return `
+      <div class="flex flex-col items-center gap-1 flex-1">
+        <div class="w-full flex items-end h-20">
+          <div class="w-full rounded-t-md ${filled ? "bg-brand-500" : "bg-slate-200"} ${
+        isToday ? "ring-2 ring-brand-300" : ""
+      }" style="height: ${Math.max(filled ? 8 : 3, h)}%" title="${d.xp} XP"></div>
+        </div>
+        <span class="text-[10px] font-extrabold text-slate-400">${d.label}</span>
+      </div>`;
+    })
+    .join("");
+  return `
+    <div class="gd-card">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-extrabold">This week's sprint</h2>
+        <span class="text-xs font-bold uppercase tracking-wide text-slate-500">${wr.activeDays}/7 active days</span>
+      </div>
+      <div class="flex items-end gap-2 mb-4">${bars}</div>
+      <div class="flex gap-5 text-sm">
+        <div><span class="font-extrabold text-brand-600">${wr.total}</span> <span class="text-slate-500">XP this week</span></div>
+        <div><span class="font-extrabold text-brand-600">${wr.quizzes}</span> <span class="text-slate-500">quiz${wr.quizzes === 1 ? "" : "zes"}</span></div>
+      </div>
+    </div>`;
+}
+
 // A 14-day activity calendar: active (filled), frozen (snowflake), missed.
 function streakCalendar(covered, frozen) {
   const n = new Date();
@@ -393,6 +457,7 @@ async function TodayPage(htmlEl) {
   const metGoal = dailyXp >= DAILY_GOAL_XP;
   const ticket = await getNextTicket(user);
   const launchWeek = await computeLaunchWeek();
+  const weekReview = computeWeekReview(scores);
 
   htmlEl.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-fade-up">
@@ -466,6 +531,9 @@ async function TodayPage(htmlEl) {
           <div><p class="font-extrabold leading-tight">Quiz</p><p class="text-xs text-slate-500">Test yourself</p></div>
         </a>
       </div>
+
+      <!-- Sprint review -->
+      ${weekReviewCard(weekReview)}
     </div>`;
 
   const cont = document.querySelector("#today-continue");
