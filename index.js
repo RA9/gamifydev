@@ -25,6 +25,9 @@ function displayContent() {
         case 'review':
             ReviewPage(page);
             break;
+        case 'terminal':
+            TerminalPage(page);
+            break;
         case 'launch':
             LaunchWeekPage(page);
             break;

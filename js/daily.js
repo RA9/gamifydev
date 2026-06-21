@@ -629,6 +629,18 @@ async function TodayPage(htmlEl) {
         </div>
       </div>
 
+      <!-- Terminal Trainer -->
+      <a href="#terminal" class="gd-card flex items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform">
+        <div class="flex items-center gap-3">
+          <div class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-900 text-brand-300 font-mono font-extrabold">$_</div>
+          <div>
+            <p class="font-extrabold leading-tight">Terminal Trainer</p>
+            <p class="text-sm text-slate-500">Practise real Bash commands — mission by mission</p>
+          </div>
+        </div>
+        <span class="gd-btn gd-btn-primary !py-2 !px-4 !text-sm shrink-0">Open</span>
+      </a>
+
       <!-- Quick links -->
       <div class="grid grid-cols-2 gap-4">
         <a href="#progress" class="gd-card-sm flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
