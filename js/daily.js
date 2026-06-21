@@ -521,15 +521,42 @@ async function TodayPage(htmlEl) {
   const weekReview = computeWeekReview(scores);
   const dailyChallenge = await getDailyChallenge();
 
+  // The mentor's contextual greeting. "New" = no quiz history and nothing
+  // completed yet.
+  let completedCount = 0;
+  try {
+    completedCount = (await DB.paths.toArray()).filter((p) => p.is_completed).length;
+  } catch (e) {
+    /* ignore */
+  }
+  const greeting =
+    typeof mentorLine === "function"
+      ? mentorLine({
+          name: user.name,
+          isNew: scores.length === 0 && completedCount === 0,
+          streak,
+          metGoal,
+          dailyXp,
+          goal: DAILY_GOAL_XP,
+        })
+      : `Welcome back, ${user.name}!`;
+
   htmlEl.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-fade-up">
-      <!-- Standup header -->
+      <!-- Standup header: your mentor greets you -->
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-500 text-white shadow-soft p-6 sm:p-8">
         <div class="absolute -top-8 -right-6 h-36 w-36 rounded-full bg-white/10 blur-2xl"></div>
-        <div class="relative">
-          <span class="gd-chip bg-white/15 text-white mb-3">${icon("zap", "w-3.5 h-3.5")} Daily standup</span>
-          <h1 class="text-2xl sm:text-3xl font-extrabold">Welcome back, ${gdEsc(user.name)}!</h1>
-          <p class="text-white/85 font-bold mt-1">${roleForLevel(level)} · Level ${level} · 🔥 ${streak}-day streak</p>
+        <div class="relative flex items-start gap-4">
+          <div class="shrink-0 grid place-items-center h-14 w-14 rounded-2xl bg-white/95 shadow-soft animate-pop-in">${
+            typeof mascotSvg === "function" ? mascotSvg("w-11 h-11") : ""
+          }</div>
+          <div class="min-w-0">
+            <span class="gd-chip bg-white/15 text-white mb-2">${
+              typeof MASCOT_NAME !== "undefined" ? MASCOT_NAME : "Pixel"
+            } · your guide</span>
+            <p class="text-xl sm:text-2xl font-extrabold leading-snug">${gdEsc(greeting)}</p>
+            <p class="text-white/70 text-sm font-bold mt-2">${roleForLevel(level)} · Level ${level} · 🔥 ${streak}-day streak</p>
+          </div>
         </div>
       </div>
 
