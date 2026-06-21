@@ -14,15 +14,15 @@ function AboutPage(htmlEl) {
 
   const tints = {
     brand: "bg-brand-100 text-brand-600",
-    grass: "bg-grass-100 text-grass-600",
-    amber: "bg-amber-100 text-amber-600",
+    grass: "bg-brand-100 text-brand-600",
+    amber: "bg-brand-100 text-brand-600",
   };
 
   htmlEl.innerHTML = `
   <div class="max-w-5xl mx-auto space-y-6 animate-fade-up">
     <!-- Hero -->
     <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-500 text-white shadow-soft p-8 sm:p-10 text-center">
-      <div class="absolute -top-10 -right-8 h-40 w-40 rounded-full bg-grass-400/30 blur-2xl"></div>
+      <div class="absolute -top-10 -right-8 h-40 w-40 rounded-full bg-brand-300/30 blur-2xl"></div>
       <div class="relative">
         <span class="gd-chip bg-white/15 text-white mb-3">${icon("gamepad", "w-4 h-4")} About GamifyDev</span>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Learn to code, the fun way</h1>
@@ -47,7 +47,7 @@ function AboutPage(htmlEl) {
       </div>
       <div class="gd-card">
         <div class="flex items-center gap-3 mb-2">
-          <span class="grid h-11 w-11 place-items-center rounded-2xl bg-grass-100 text-grass-600">${icon("target", "w-6 h-6")}</span>
+          <span class="grid h-11 w-11 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("target", "w-6 h-6")}</span>
           <h2 class="text-xl font-extrabold">Our Mission</h2>
         </div>
         <p class="text-slate-600 leading-relaxed">
@@ -114,7 +114,7 @@ function AboutPage(htmlEl) {
       <h2 class="text-2xl font-extrabold text-white">Ready to level up?</h2>
       <p class="text-white/90 mt-1 mb-5">Jump into a quick quiz or start a guided lesson — it's free.</p>
       <div class="flex flex-wrap justify-center gap-3">
-        <a href="#test" class="gd-btn gd-btn-amber">Take a quiz</a>
+        <a href="#test" class="gd-btn gd-btn-primary">Take a quiz</a>
         <a href="#" class="gd-btn gd-btn-secondary">Start learning</a>
       </div>
     </section>

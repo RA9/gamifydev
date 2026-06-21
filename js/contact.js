@@ -45,7 +45,7 @@ function ContactPage(htmlEl) {
       <!-- Info sidebar -->
       <div class="lg:col-span-2 space-y-4">
         <a href="mailto:cnah27@gmail.com" class="gd-card-sm flex items-center gap-4 hover:shadow-soft hover:-translate-y-0.5 transition-all">
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-grass-100 text-grass-600">${icon("mail", "w-6 h-6")}</div>
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("mail", "w-6 h-6")}</div>
           <div>
             <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Email</p>
             <p class="font-bold text-brand-600 break-all">cnah27@gmail.com</p>
@@ -59,7 +59,7 @@ function ContactPage(htmlEl) {
           </div>
         </div>
         <div class="gd-card-sm flex items-center gap-4">
-          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-100 text-amber-600">${icon("clock", "w-6 h-6")}</div>
+          <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("clock", "w-6 h-6")}</div>
           <div>
             <p class="text-xs font-extrabold uppercase tracking-wide text-slate-500">Response time</p>
             <p class="font-bold text-slate-700">Usually within 1–2 days</p>

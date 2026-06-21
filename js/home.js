@@ -21,7 +21,7 @@ async function HomePage(htmlEl) {
   <div class="space-y-8 animate-fade-up">
     <!-- Hero -->
     <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 text-white shadow-soft">
-      <div class="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-grass-400/30 blur-2xl"></div>
+      <div class="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-brand-300/30 blur-2xl"></div>
       <div class="absolute -bottom-12 -left-8 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
       <div class="relative grid gap-8 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
         <div>
@@ -34,8 +34,8 @@ async function HomePage(htmlEl) {
             unlock badges, and build real projects from scratch.
           </p>
           <div class="mt-7 flex flex-wrap gap-3">
-            <button id="get-started" class="gd-btn gd-btn-amber">Get Started — it's free</button>
-            <a href="#test" class="gd-btn gd-btn-secondary">Take a quick quiz</a>
+            <button id="get-started" class="gd-btn bg-white text-brand-700 border-brand-200 hover:bg-brand-50">Get Started — it's free</button>
+            <a href="#test" class="gd-btn bg-white/10 text-white border-white/25 hover:bg-white/20">Take a quick quiz</a>
           </div>
           <div class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/85 font-bold">
             <span class="flex items-center gap-1.5">${icon("zap", "w-4 h-4")} XP & Levels</span>
@@ -60,14 +60,14 @@ async function HomePage(htmlEl) {
         </div>
       </div>
       <div class="gd-card-sm flex items-start gap-4">
-        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-grass-100 text-grass-600">${icon("puzzle", "w-6 h-6")}</div>
+        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("puzzle", "w-6 h-6")}</div>
         <div>
           <h3 class="font-extrabold text-lg">Learn & practice</h3>
           <p class="text-slate-600 text-sm mt-1">Bite-size lessons and quizzes that actually stick.</p>
         </div>
       </div>
       <div class="gd-card-sm flex items-start gap-4">
-        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-100 text-amber-600">${icon("rocket", "w-6 h-6")}</div>
+        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("rocket", "w-6 h-6")}</div>
         <div>
           <h3 class="font-extrabold text-lg">Build for real</h3>
           <p class="text-slate-600 text-sm mt-1">Apply the fundamentals to real-world projects.</p>
@@ -210,13 +210,13 @@ async function PreferenceSection(htmlEl) {
     </div>
     <div class="grid gap-4 sm:grid-cols-2">
       <button id="scratch" class="gd-card text-left hover:shadow-soft hover:-translate-y-0.5 transition-all">
-        <div class="grid h-14 w-14 mb-3 place-items-center rounded-2xl bg-grass-100 text-grass-600">${icon("book", "w-7 h-7")}</div>
+        <div class="grid h-14 w-14 mb-3 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("book", "w-7 h-7")}</div>
         <h2 class="text-xl font-extrabold">Start from scratch</h2>
         <p class="text-slate-600 mt-1 text-sm">Follow guided lessons step by step and build up from the basics.</p>
         <span class="gd-chip gd-chip-grass mt-4">${icon("check", "w-3.5 h-3.5")} Recommended</span>
       </button>
       <button id="get-started" class="gd-card text-left hover:shadow-soft hover:-translate-y-0.5 transition-all">
-        <div class="grid h-14 w-14 mb-3 place-items-center rounded-2xl bg-amber-100 text-amber-600">${icon("zap", "w-7 h-7")}</div>
+        <div class="grid h-14 w-14 mb-3 place-items-center rounded-2xl bg-brand-100 text-brand-600">${icon("zap", "w-7 h-7")}</div>
         <h2 class="text-xl font-extrabold">Test yourself</h2>
         <p class="text-slate-600 mt-1 text-sm">Already know some things? Jump into a timed quiz and earn XP now.</p>
         <span class="gd-chip gd-chip-slate mt-4">Quick challenge</span>

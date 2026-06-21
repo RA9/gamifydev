@@ -90,12 +90,14 @@ const GD_LANG = {
   sql: { abbr: "SQL", fg: "#0E7490" },
 };
 
-// A square monogram chip for a programming language.
+// A square monogram chip for a programming language. Uses the brand colour for
+// every language (the monogram itself distinguishes them) so the palette stays
+// on-brand instead of a rainbow of per-language colours.
 function langBadge(key, cls = "h-12 w-12 text-base") {
-  const m = GD_LANG[key] || { abbr: (key || "?").slice(0, 2).toUpperCase(), fg: "#64748b" };
-  const bg = m.bg || m.fg;
+  const m = GD_LANG[key] || { abbr: (key || "?").slice(0, 2).toUpperCase() };
+  const brand = "#6740e8"; // brand-600
   return `<span class="grid place-items-center rounded-2xl font-extrabold leading-none ${cls}"
-    style="background:${bg}1f;color:${m.fg}">${m.abbr}</span>`;
+    style="background:${brand}1f;color:${brand}">${m.abbr}</span>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -108,27 +110,27 @@ function illustration(name, cls = "w-full h-auto") {
     hero: `
       <svg class="${cls}" viewBox="0 0 420 320" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="210" cy="160" r="150" fill="#ffffff" opacity="0.10"/>
-        <circle cx="330" cy="80" r="46" fill="#7ad23e" opacity="0.55"/>
-        <circle cx="80" cy="250" r="30" fill="#fbbf24" opacity="0.45"/>
+        <circle cx="330" cy="80" r="46" fill="#b4aaff" opacity="0.55"/>
+        <circle cx="80" cy="250" r="30" fill="#b4aaff" opacity="0.45"/>
         <g filter="url(#s)">
           <rect x="78" y="86" width="244" height="168" rx="20" fill="#ffffff"/>
         </g>
         <rect x="78" y="86" width="244" height="40" rx="20" fill="#f1f0ff"/>
         <rect x="78" y="106" width="244" height="20" fill="#f1f0ff"/>
-        <circle cx="100" cy="106" r="5" fill="#f43f5e"/>
-        <circle cx="118" cy="106" r="5" fill="#fbbf24"/>
-        <circle cx="136" cy="106" r="5" fill="#58cc02"/>
+        <circle cx="100" cy="106" r="5" fill="#937dff"/>
+        <circle cx="118" cy="106" r="5" fill="#b4aaff"/>
+        <circle cx="136" cy="106" r="5" fill="#937dff"/>
         <rect x="100" y="146" width="70" height="10" rx="5" fill="#c7cbff"/>
         <rect x="100" y="166" width="120" height="10" rx="5" fill="#e2e8f0"/>
         <rect x="100" y="186" width="96" height="10" rx="5" fill="#e2e8f0"/>
-        <rect x="100" y="212" width="150" height="12" rx="6" fill="#dff7d2"/>
-        <rect x="100" y="212" width="96" height="12" rx="6" fill="#58cc02"/>
+        <rect x="100" y="212" width="150" height="12" rx="6" fill="#e7e5ff"/>
+        <rect x="100" y="212" width="96" height="12" rx="6" fill="#937dff"/>
         <g transform="translate(250 150)">
           <circle r="40" fill="#f2f1ff"/>
           <path d="M0 -40 A40 40 0 1 1 -34 20" stroke="#6740e8" stroke-width="10" stroke-linecap="round" fill="none"/>
           <path d="M-14 0 l9 9 l19 -19" stroke="#6740e8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </g>
-        <path d="M348 150 l7 14 16 2 -12 11 3 16 -14 -8 -14 8 3 -16 -12 -11 16 -2z" fill="#fbbf24"/>
+        <path d="M348 150 l7 14 16 2 -12 11 3 16 -14 -8 -14 8 3 -16 -12 -11 16 -2z" fill="#b4aaff"/>
         <path d="M52 110 l5 10 11 1 -8 8 2 11 -10 -5 -10 5 2 -11 -8 -8 11 -1z" fill="#7857f7" opacity="0.85"/>
         <defs>
           <filter id="s" x="58" y="76" width="284" height="208" filterUnits="userSpaceOnUse">
@@ -140,14 +142,14 @@ function illustration(name, cls = "w-full h-auto") {
     trophy: `
       <svg class="${cls}" viewBox="0 0 240 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="120" cy="100" r="84" fill="#f1f0ff"/>
-        <path d="M84 56h72v22a36 36 0 0 1-72 0z" fill="#fbbf24"/>
-        <path d="M84 56H66a18 18 0 0 0 18 18M156 56h18a18 18 0 0 1-18 18" stroke="#f59e0b" stroke-width="8" fill="none" stroke-linecap="round"/>
-        <rect x="112" y="112" width="16" height="20" fill="#f59e0b"/>
+        <path d="M84 56h72v22a36 36 0 0 1-72 0z" fill="#b4aaff"/>
+        <path d="M84 56H66a18 18 0 0 0 18 18M156 56h18a18 18 0 0 1-18 18" stroke="#6740e8" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <rect x="112" y="112" width="16" height="20" fill="#6740e8"/>
         <rect x="96" y="132" width="48" height="14" rx="6" fill="#6740e8"/>
         <rect x="88" y="146" width="64" height="12" rx="6" fill="#7857f7"/>
         <path d="M120 64l4 8 9 1-6 6 1 9-8-4-8 4 1-9-6-6 9-1z" fill="#ffffff"/>
-        <path d="M188 60l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#7ad23e"/>
-        <path d="M44 96l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#fbbf24"/>
+        <path d="M188 60l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#b4aaff"/>
+        <path d="M44 96l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#b4aaff"/>
       </svg>`,
   };
   return scenes[name] || "";

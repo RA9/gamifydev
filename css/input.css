@@ -181,13 +181,13 @@
     @apply bg-brand-50 border-brand-400;
   }
   .gd-callout-analogy {
-    @apply bg-amber-50 border-amber-400;
+    @apply bg-brand-50 border-brand-400;
   }
   .gd-callout-warning {
-    @apply bg-rose-50 border-rose-400;
+    @apply bg-amber-50 border-amber-400;
   }
   .gd-callout-key {
-    @apply bg-grass-50 border-grass-500;
+    @apply bg-brand-50 border-brand-400;
   }
   .gd-callout-example {
     @apply bg-slate-50 border-slate-400;
