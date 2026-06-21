@@ -91,21 +91,6 @@
       "duration": "15"
     },
     {
-      "id": "Q395",
-      "question": "What does CSS stand for?",
-      "options": [
-        "Cascading Style Sheets",
-        "Computer Style Sheets",
-        "Creative Style Sheets",
-        "Colorful Style Sheets"
-      ],
-      "answer": "Cascading Style Sheets",
-      "explanation": "CSS stands for Cascading Style Sheets, used for styling the presentation of a web page.",
-      "difficulty": "Easy",
-      "category": "Frontend",
-      "duration": 25
-    },
-    {
       "id": "Q624",
       "question": "What is the purpose of the 'viewport' meta tag in HTML?",
       "options": [
@@ -1035,18 +1020,6 @@
       "duration": 25
     },
     {
-      "question": "What is the purpose of the 'let' keyword in JavaScript?",
-      "category": "JavaScript",
-      "options": [
-        "To declare a block-scoped variable",
-        "To declare a global variable",
-        "To declare a constant variable",
-        "To declare a function-scoped variable"
-      ],
-      "answer": "To declare a block-scoped variable",
-      "duration": 30
-    },
-    {
       "question": "What is the difference between 'null' and 'undefined' in JavaScript?",
       "category": "JavaScript",
       "options": [
@@ -1323,30 +1296,6 @@
       "duration": 30
     },
     {
-      "question": "What is the purpose of the 'some' method in JavaScript arrays?",
-      "category": "JavaScript",
-      "options": [
-        "To check if at least one element in the array satisfies the provided testing function",
-        "To check if all elements in the array satisfy the provided testing function",
-        "To check if the array is empty",
-        "To check if the array contains a specific value"
-      ],
-      "answer": "To check if at least one element in the array satisfies the provided testing function",
-      "duration": 30
-    },
-    {
-      "question": "What is the purpose of the 'every' method in JavaScript arrays?",
-      "category": "JavaScript",
-      "options": [
-        "To check if all elements in the array satisfy the provided testing function",
-        "To check if at least one element in the array satisfies the provided testing function",
-        "To check if the array is empty",
-        "To check if the array contains a specific value"
-      ],
-      "answer": "To check if all elements in the array satisfy the provided testing function",
-      "duration": 25
-    },
-    {
       "question": "What is the purpose of the 'filter' method in JavaScript arrays?",
       "category": "JavaScript",
       "options": [
@@ -1357,18 +1306,6 @@
       ],
       "answer": "To create a new array with all elements that pass the test implemented by the provided function",
       "duration": 30
-    },
-    {
-      "question": "What is the purpose of the 'find' method in JavaScript arrays?",
-      "category": "JavaScript",
-      "options": [
-        "To create a new array with all elements that pass the test implemented by the provided function",
-        "To find the first element in the array that satisfies the provided testing function",
-        "To check if the array is empty",
-        "To check if the array contains a specific value"
-      ],
-      "answer": "To find the first element in the array that satisfies the provided testing function",
-      "duration": 25
     },
     {
       "question": "What is the purpose of the 'isArray' method in JavaScript arrays?",
@@ -2035,102 +1972,6 @@
       "duration": 25
     },
     {
-      "question": "What is the correct HTML for creating a hyperlink?",
-      "category": "HTML",
-      "options": [
-        "<a href='http://www.example.com'>Example</a>",
-        "<link>http://www.example.com</link>",
-        "<a>http://www.example.com</a>",
-        "<hyperlink>http://www.example.com</hyperlink>"
-      ],
-      "answer": "<a href='http://www.example.com'>Example</a>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for inserting an image?",
-      "category": "HTML",
-      "options": [
-        "<img src='image.jpg' alt='MyImage'>",
-        "<image src='image.jpg' alt='MyImage'>",
-        "<img href='image.jpg' alt='MyImage'>",
-        "<image href='image.jpg' alt='MyImage'>"
-      ],
-      "answer": "<img src='image.jpg' alt='MyImage'>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a checkbox?",
-      "category": "HTML",
-      "options": [
-        "<input type='checkbox'>",
-        "<checkbox>",
-        "<check>",
-        "<input type='check'>"
-      ],
-      "answer": "<input type='checkbox'>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a drop-down list?",
-      "category": "HTML",
-      "options": [
-        "<select>",
-        "<input type='dropdown'>",
-        "<list>",
-        "<input type='list'>"
-      ],
-      "answer": "<select>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for making a text input field?",
-      "category": "HTML",
-      "options": [
-        "<input type='text'>",
-        "<textfield>",
-        "<textinput>",
-        "<input type='textfield'>"
-      ],
-      "answer": "<input type='text'>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a button?",
-      "category": "HTML",
-      "options": [
-        "<button>",
-        "<input type='button'>",
-        "<input type='submit'>",
-        "<submit>"
-      ],
-      "answer": "<button>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a line break?",
-      "category": "HTML",
-      "options": [
-        "<br>",
-        "<break>",
-        "<lb>",
-        "<linebreak>"
-      ],
-      "answer": "<br>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for adding a background color?",
-      "category": "HTML",
-      "options": [
-        "<background>",
-        "<color>",
-        "<bgcolor>",
-        "<style>"
-      ],
-      "answer": "<style>",
-      "duration": 25
-    },
-    {
       "question": "What is the correct HTML for creating a table?",
       "category": "HTML",
       "options": [
@@ -2263,18 +2104,6 @@
       "duration": 30
     },
     {
-      "question": "What is the correct HTML for creating a hyperlink?",
-      "category": "HTML",
-      "options": [
-        "<a href='http://www.example.com'>Example</a>",
-        "<link>http://www.example.com</link>",
-        "<a>http://www.example.com</a>",
-        "<hyperlink>http://www.example.com</hyperlink>"
-      ],
-      "answer": "<a href='http://www.example.com'>Example</a>",
-      "duration": 25
-    },
-    {
       "question": "What is the correct HTML for creating a division or a section in HTML5?",
       "category": "HTML",
       "options": [
@@ -2320,198 +2149,6 @@
         "<heading>"
       ],
       "answer": "<header>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a bold text?",
-      "category": "HTML",
-      "options": [
-        "<bold>",
-        "<b>",
-        "<strong>",
-        "<important>"
-      ],
-      "answer": "<b>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating italicized text?",
-      "category": "HTML",
-      "options": [
-        "<i>",
-        "<italic>",
-        "<em>",
-        "<italics>"
-      ],
-      "answer": "<i>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a subscripted text?",
-      "category": "HTML",
-      "options": [
-        "<sub>",
-        "<subscript>",
-        "<s>",
-        "<subtext>"
-      ],
-      "answer": "<sub>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a superscripted text?",
-      "category": "HTML",
-      "options": [
-        "<sup>",
-        "<superscript>",
-        "<s>",
-        "<super>"
-      ],
-      "answer": "<sup>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a numbered list?",
-      "category": "HTML",
-      "options": [
-        "<ol>",
-        "<ul>",
-        "<list>",
-        "<li>"
-      ],
-      "answer": "<ol>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating an unordered list?",
-      "category": "HTML",
-      "options": [
-        "<ul>",
-        "<ol>",
-        "<list>",
-        "<li>"
-      ],
-      "answer": "<ul>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a paragraph?",
-      "category": "HTML",
-      "options": [
-        "<p>",
-        "<para>",
-        "<paragraph>",
-        "<pg>"
-      ],
-      "answer": "<p>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a horizontal rule?",
-      "category": "HTML",
-      "options": [
-        "<hr>",
-        "<line>",
-        "<rule>",
-        "<horizontal>"
-      ],
-      "answer": "<hr>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a comment?",
-      "category": "HTML",
-      "options": [
-        "<!--This is a comment-->",
-        "/*This is a comment*/",
-        "//This is a comment",
-        "<comment>This is a comment</comment>"
-      ],
-      "answer": "<!--This is a comment-->",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a bold text?",
-      "category": "HTML",
-      "options": [
-        "<bold>",
-        "<b>",
-        "<strong>",
-        "<important>"
-      ],
-      "answer": "<b>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating italicized text?",
-      "category": "HTML",
-      "options": [
-        "<i>",
-        "<italic>",
-        "<em>",
-        "<italics>"
-      ],
-      "answer": "<i>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a subscripted text?",
-      "category": "HTML",
-      "options": [
-        "<sub>",
-        "<subscript>",
-        "<s>",
-        "<subtext>"
-      ],
-      "answer": "<sub>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating a superscripted text?",
-      "category": "HTML",
-      "options": [
-        "<sup>",
-        "<superscript>",
-        "<s>",
-        "<super>"
-      ],
-      "answer": "<sup>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a numbered list?",
-      "category": "HTML",
-      "options": [
-        "<ol>",
-        "<ul>",
-        "<list>",
-        "<li>"
-      ],
-      "answer": "<ol>",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct HTML for creating an unordered list?",
-      "category": "HTML",
-      "options": [
-        "<ul>",
-        "<ol>",
-        "<list>",
-        "<li>"
-      ],
-      "answer": "<ul>",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct HTML for creating a hyperlink?",
-      "category": "HTML",
-      "options": [
-        "<a href='http://www.example.com'>Example</a>",
-        "<link>http://www.example.com</link>",
-        "<a>http://www.example.com</a>",
-        "<hyperlink>http://www.example.com</hyperlink>"
-      ],
-      "answer": "<a href='http://www.example.com'>Example</a>",
       "duration": 25
     }
   ],
@@ -2997,30 +2634,6 @@
       "duration": 25
     },
     {
-      "question": "What is the correct CSS property to set the z-index of an element?",
-      "category": "CSS",
-      "options": [
-        "z-index",
-        "element-index",
-        "z-order",
-        "index"
-      ],
-      "answer": "z-index",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct CSS property to set the position of an element?",
-      "category": "CSS",
-      "options": [
-        "position",
-        "element-position",
-        "pos",
-        "place"
-      ],
-      "answer": "position",
-      "duration": 25
-    },
-    {
       "question": "What is the correct CSS property to set the top position of an element?",
       "category": "CSS",
       "options": [
@@ -3069,18 +2682,6 @@
       "duration": 25
     },
     {
-      "question": "What is the correct CSS property to set the overflow behavior of an element?",
-      "category": "CSS",
-      "options": [
-        "overflow",
-        "element-overflow",
-        "flow",
-        "hide"
-      ],
-      "answer": "overflow",
-      "duration": 30
-    },
-    {
       "question": "What is the correct CSS property to set the clip behavior of an element?",
       "category": "CSS",
       "options": [
@@ -3103,66 +2704,6 @@
       ],
       "answer": "clip-path",
       "duration": 30
-    },
-    {
-      "question": "What is the correct CSS property to set the visibility of an element?",
-      "category": "CSS",
-      "options": [
-        "visibility",
-        "element-visibility",
-        "vis",
-        "show"
-      ],
-      "answer": "visibility",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct CSS property to set the opacity of an element?",
-      "category": "CSS",
-      "options": [
-        "opacity",
-        "element-opacity",
-        "opac",
-        "transparency"
-      ],
-      "answer": "opacity",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct CSS property to set the box shadow of an element?",
-      "category": "CSS",
-      "options": [
-        "box-shadow",
-        "element-shadow",
-        "shadow",
-        "box-effect"
-      ],
-      "answer": "box-shadow",
-      "duration": 25
-    },
-    {
-      "question": "What is the correct CSS property to set the text shadow of an element?",
-      "category": "CSS",
-      "options": [
-        "text-shadow",
-        "element-text-shadow",
-        "shadow",
-        "text-effect"
-      ],
-      "answer": "text-shadow",
-      "duration": 30
-    },
-    {
-      "question": "What is the correct CSS property to set the border radius of an element?",
-      "category": "CSS",
-      "options": [
-        "border-radius",
-        "element-radius",
-        "radius",
-        "round"
-      ],
-      "answer": "border-radius",
-      "duration": 25
     },
     {
       "question": "What is the correct CSS property to set the outline of an element?",
@@ -3503,18 +3044,6 @@
       "duration": 25
     },
     {
-      "question": "What is the purpose of the 'sizeof' operator in C?",
-      "category": "C Programming",
-      "options": [
-        "To return the size of a variable",
-        "To allocate memory",
-        "To declare a structure",
-        "To initialize a pointer"
-      ],
-      "answer": "To return the size of a variable",
-      "duration": 30
-    },
-    {
       "question": "What is the correct way to declare a structure in C?",
       "category": "C Programming",
       "options": [
@@ -3524,54 +3053,6 @@
         "define struct MyStruct { int x; float y; };"
       ],
       "answer": "struct MyStruct { int x; float y; };",
-      "duration": 25
-    },
-    {
-      "question": "What is the purpose of the 'break' statement in C?",
-      "category": "C Programming",
-      "options": [
-        "To exit the loop",
-        "To skip the current iteration",
-        "To continue to the next iteration",
-        "To print a message"
-      ],
-      "answer": "To exit the loop",
-      "duration": 30
-    },
-    {
-      "question": "What is the purpose of the 'static' keyword in C?",
-      "category": "C Programming",
-      "options": [
-        "To declare a variable",
-        "To define a function",
-        "To specify internal linkage",
-        "To allocate memory"
-      ],
-      "answer": "To specify internal linkage",
-      "duration": 25
-    },
-    {
-      "question": "What is the purpose of the 'const' keyword in C?",
-      "category": "C Programming",
-      "options": [
-        "To declare a constant",
-        "To define a function",
-        "To specify external linkage",
-        "To allocate memory"
-      ],
-      "answer": "To declare a constant",
-      "duration": 30
-    },
-    {
-      "question": "What is the purpose of the 'typedef' keyword in C?",
-      "category": "C Programming",
-      "options": [
-        "To declare a variable",
-        "To define a function",
-        "To create a new type name",
-        "To allocate memory"
-      ],
-      "answer": "To create a new type name",
       "duration": 25
     },
     {
@@ -3647,18 +3128,6 @@
       "duration": 25
     },
     {
-      "question": "What is the purpose of the 'malloc' function in C?",
-      "category": "C Programming",
-      "options": [
-        "To allocate memory",
-        "To free memory",
-        "To copy a string",
-        "To read a string from the console"
-      ],
-      "answer": "To allocate memory",
-      "duration": 30
-    },
-    {
       "question": "What is the purpose of the 'free' function in C?",
       "category": "C Programming",
       "options": [
@@ -3668,30 +3137,6 @@
         "To read a string from the console"
       ],
       "answer": "To free memory",
-      "duration": 25
-    },
-    {
-      "question": "What is the purpose of the 'sizeof' operator in C?",
-      "category": "C Programming",
-      "options": [
-        "To return the size of a variable",
-        "To allocate memory",
-        "To declare a structure",
-        "To initialize a pointer"
-      ],
-      "answer": "To return the size of a variable",
-      "duration": 30
-    },
-    {
-      "question": "What is the purpose of the 'typedef' keyword in C?",
-      "category": "C Programming",
-      "options": [
-        "To declare a variable",
-        "To define a function",
-        "To create a new type name",
-        "To allocate memory"
-      ],
-      "answer": "To create a new type name",
       "duration": 25
     },
     {
@@ -3716,30 +3161,6 @@
         "To print a string to a file"
       ],
       "answer": "To close a file",
-      "duration": 25
-    },
-    {
-      "question": "What is the purpose of the 'fgets' function in C?",
-      "category": "C Programming",
-      "options": [
-        "To read a string from the console",
-        "To print a string to the console",
-        "To concatenate two strings",
-        "To compare two strings"
-      ],
-      "answer": "To read a string from the console",
-      "duration": 30
-    },
-    {
-      "question": "What is the purpose of the 'fprintf' function in C?",
-      "category": "C Programming",
-      "options": [
-        "To read a string from a file",
-        "To print a string to a file",
-        "To concatenate two strings",
-        "To compare two strings"
-      ],
-      "answer": "To print a string to a file",
       "duration": 25
     },
     {
@@ -4225,18 +3646,6 @@
       "answer": "Using the 'venv' module."
     },
     {
-      "question": "What is the purpose of the 'map' function in Python?",
-      "options": [
-        "To apply a function to each item in an iterable.",
-        "To create a new list by filtering elements.",
-        "To sort elements in a list.",
-        "To combine two iterables into a single iterable."
-      ],
-      "category": "Functional Programming",
-      "duration": "1.5 minutes",
-      "answer": "To apply a function to each item in an iterable."
-    },
-    {
       "question": "How do you check the Python version currently installed on your system?",
       "options": [
         "Using 'version()' function.",
@@ -4247,18 +3656,6 @@
       "category": "Python Basics",
       "duration": "1 minute",
       "answer": "By running 'python --version' in the terminal."
-    },
-    {
-      "question": "What is the purpose of the 'zip' function in Python?",
-      "options": [
-        "To create a compressed file.",
-        "To zip two lists into a list of tuples.",
-        "To merge two dictionaries.",
-        "To unzip a file."
-      ],
-      "category": "Data Manipulation",
-      "duration": "2 minutes",
-      "answer": "To zip two lists into a list of tuples."
     },
     {
       "question": "How can you remove duplicates from a list in Python?",
@@ -4273,18 +3670,6 @@
       "answer": "By applying 'list(set(my_list))'."
     },
     {
-      "question": "What is the purpose of the 'global' keyword in Python?",
-      "options": [
-        "To declare a variable with global scope.",
-        "To define a global function.",
-        "To import global modules.",
-        "To create a global object."
-      ],
-      "category": "Variables and Scope",
-      "duration": "1.5 minutes",
-      "answer": "To declare a variable with global scope."
-    },
-    {
       "question": "How can you handle file reading errors in Python?",
       "options": [
         "By using 'try' and 'except' blocks.",
@@ -4295,138 +3680,6 @@
       "category": "Error Handling",
       "duration": "1 minute",
       "answer": "By using 'try' and 'except' blocks."
-    },
-    {
-      "question": "What is the purpose of the 'lambda' function in Python?",
-      "options": [
-        "To define anonymous functions.",
-        "To create a list comprehension.",
-        "To represent infinity.",
-        "To filter elements in a list."
-      ],
-      "category": "Functional Programming",
-      "duration": "2 minutes",
-      "answer": "To define anonymous functions."
-    },
-    {
-      "question": "How can you install external packages in Python?",
-      "options": [
-        "By downloading and extracting the source code.",
-        "By using the 'install' command in the Python interpreter.",
-        "By copying the package files to the 'Lib' directory.",
-        "By manually compiling the package from source."
-      ],
-      "category": "Package Management",
-      "duration": "1.5 minutes",
-      "answer": "By using the 'install' command in the Python interpreter."
-    },
-    {
-      "question": "What is the purpose of the 'if __name__ == '__main__':' statement in Python?",
-      "options": [
-        "To check if a module is imported or run directly.",
-        "To define a main function.",
-        "To initialize global variables.",
-        "To handle command-line arguments."
-      ],
-      "category": "Modules and Scripts",
-      "duration": "2 minutes",
-      "answer": "To check if a module is imported or run directly."
-    },
-    {
-      "question": "How can you create a virtual environment in Python?",
-      "options": [
-        "Using the 'venv' module.",
-        "By installing 'virtualenv' package globally.",
-        "By creating a new folder.",
-        "By using the 'pipenv' package."
-      ],
-      "category": "Development Environment",
-      "duration": "3 minutes",
-      "answer": "Using the 'venv' module."
-    },
-    {
-      "question": "What is the purpose of the 'map' function in Python?",
-      "options": [
-        "To apply a function to each item in an iterable.",
-        "To create a new list by filtering elements.",
-        "To sort elements in a list.",
-        "To combine two iterables into a single iterable."
-      ],
-      "category": "Functional Programming",
-      "duration": "1.5 minutes",
-      "answer": "To apply a function to each item in an iterable."
-    },
-    {
-      "question": "How do you check the Python version currently installed on your system?",
-      "options": [
-        "Using 'version()' function.",
-        "By checking 'sys.version' attribute.",
-        "By running 'python --version' in the terminal.",
-        "By checking 'python_version' module."
-      ],
-      "category": "Python Basics",
-      "duration": "1 minute",
-      "answer": "By running 'python --version' in the terminal."
-    },
-    {
-      "question": "What is the purpose of the 'zip' function in Python?",
-      "options": [
-        "To create a compressed file.",
-        "To zip two lists into a list of tuples.",
-        "To merge two dictionaries.",
-        "To unzip a file."
-      ],
-      "category": "Data Manipulation",
-      "duration": "2 minutes",
-      "answer": "To zip two lists into a list of tuples."
-    },
-    {
-      "question": "How can you remove duplicates from a list in Python?",
-      "options": [
-        "Using the 'distinct' method.",
-        "By applying 'list(set(my_list))'.",
-        "By using the 'unique' function.",
-        "By iterating through the list and manually removing duplicates."
-      ],
-      "category": "Data Manipulation",
-      "duration": "2.5 minutes",
-      "answer": "By applying 'list(set(my_list))'."
-    },
-    {
-      "question": "What is the purpose of the 'global' keyword in Python?",
-      "options": [
-        "To declare a variable with global scope.",
-        "To define a global function.",
-        "To import global modules.",
-        "To create a global object."
-      ],
-      "category": "Variables and Scope",
-      "duration": "1.5 minutes",
-      "answer": "To declare a variable with global scope."
-    },
-    {
-      "question": "How can you handle file reading errors in Python?",
-      "options": [
-        "By using 'try' and 'except' blocks.",
-        "By ignoring errors.",
-        "By using 'read_errors()' function.",
-        "By using 'file.read().handle_errors()'."
-      ],
-      "category": "Error Handling",
-      "duration": "1 minute",
-      "answer": "By using 'try' and 'except' blocks."
-    },
-    {
-      "question": "What is the purpose of the 'lambda' function in Python?",
-      "options": [
-        "To define anonymous functions.",
-        "To create a list comprehension.",
-        "To represent infinity.",
-        "To filter elements in a list."
-      ],
-      "category": "Functional Programming",
-      "duration": "2 minutes",
-      "answer": "To define anonymous functions."
     },
     {
       "question": "How can you install external packages in Python?",

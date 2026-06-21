@@ -31,16 +31,23 @@ async function createQuestions() {
     const data = await questions.json();
 
     // Sync each category from the source, keyed by question text:
-    //  - add questions not present yet (new categories like Java, more SQL),
+    //  - de-duplicate: keep one row per question text, delete extra rows that
+    //    earlier seeding may have created,
     //  - update existing questions whose content changed (e.g. a corrected
     //    answer), so content fixes reach existing users,
-    // without creating duplicates.
+    //  - add questions not present yet (new categories, expanded banks).
     for (const key of Object.keys(data)) {
       const existingRows = await db.questions.where("category").equals(key).toArray();
       const byText = {};
-      existingRows.forEach((r) => {
-        if (r.details && r.details.question) byText[r.details.question] = r;
-      });
+      for (const r of existingRows) {
+        const qt = r.details && r.details.question;
+        if (!qt) continue;
+        if (byText[qt]) {
+          await db.questions.delete(r.id); // duplicate row — remove it
+        } else {
+          byText[qt] = r;
+        }
+      }
 
       for (const question of data[key]) {
         const details = { ...question, category: key };
@@ -53,13 +60,15 @@ async function createQuestions() {
             });
           }
         } else {
-          await db.questions.add({
+          const row = {
             id: randomID(),
             title: question.title || question.question,
             category: key,
             details,
             created_at: new Date(),
-          });
+          };
+          await db.questions.add(row);
+          byText[question.question] = row; // guard against re-adding within run
         }
       }
     }
