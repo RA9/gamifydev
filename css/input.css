@@ -260,6 +260,27 @@
     @apply !border-rose-500 !bg-rose-50;
   }
 
+  /* Adventure map: glossy orb nodes --------------------------------- */
+  .orb-stop {
+    @apply relative grid place-items-center h-20 w-20 rounded-full border-0 bg-transparent p-0;
+  }
+  .orb {
+    @apply rounded-full;
+    box-shadow: 0 12px 22px -8px rgba(40, 28, 90, 0.45),
+      inset 0 -6px 12px rgba(0, 0, 0, 0.28), inset 0 7px 12px rgba(255, 255, 255, 0.5);
+  }
+  .orb-done {
+    background: radial-gradient(circle at 35% 28%, #b6f09c, #46a302);
+  }
+  .orb-current {
+    background: radial-gradient(circle at 35% 28%, #c4b8ff, #6740e8);
+  }
+  .orb-locked {
+    background: radial-gradient(circle at 35% 28%, #eef2f7, #94a3b8);
+    box-shadow: 0 8px 16px -8px rgba(40, 28, 90, 0.25),
+      inset 0 -5px 10px rgba(0, 0, 0, 0.18), inset 0 6px 10px rgba(255, 255, 255, 0.5);
+  }
+
   /* Terminal Trainer ------------------------------------------------ */
   .gd-terminal {
     @apply rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-card;

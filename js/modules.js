@@ -797,52 +797,60 @@ async function JourneyPage(htmlEl) {
   const pct = Math.round((completed / notes.length) * 100);
   const pathLabel = pathName.charAt(0).toUpperCase() + pathName.slice(1);
 
+  // An adventure trail of glossy "orb" nodes that winds down the page.
   const stops = ordered
     .map((note, i) => {
       const rec = recordByTitle[note.title] || {};
       const isProject = /^project/i.test(note.title);
-      const last = i === ordered.length - 1;
+      const done = rec.is_completed;
+      const current = note.current;
       const titleEsc = note.title.replace(/'/g, "\\'");
+      const offset = i % 2 === 0 ? -34 : 34; // gentle zigzag
 
-      let node, button, cardRing = "", titleCls = "";
-      if (rec.is_completed) {
-        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-grass-500 text-white">${icon("check", "w-5 h-5")}</div>`;
-        button = `<button onclick="handleNotePage('${titleEsc}')" class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0">Review</button>`;
-      } else if (note.current) {
-        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-brand-500 text-white ring-4 ring-brand-200">${icon("play", "w-5 h-5")}</div>`;
-        cardRing = "ring-2 ring-brand-300";
-        button = `<button onclick="handleNotePage()" class="gd-btn gd-btn-primary !py-2 !px-4 !text-sm shrink-0">${isProject ? "Build" : "Continue"}</button>`;
+      let variant, glyph, onclick, attrs, labelCls, chip = "";
+      if (done) {
+        variant = "orb-done";
+        glyph = icon("check", "w-7 h-7");
+        onclick = `onclick="handleNotePage('${titleEsc}')"`;
+        attrs = 'class="orb-stop group cursor-pointer"';
+        labelCls = "text-slate-700";
+      } else if (current) {
+        variant = "orb-current";
+        glyph = isProject ? icon("rocket", "w-7 h-7") : icon("play", "w-7 h-7");
+        onclick = `onclick="handleNotePage()"`;
+        attrs = 'class="orb-stop group cursor-pointer"';
+        labelCls = "text-brand-700";
+        chip = `<span class="gd-chip gd-chip-brand mt-1.5 !text-[10px]">${isProject ? "Build" : "Continue"} ▶</span>`;
       } else {
-        node = `<div class="grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-slate-400">${icon("lock", "w-4 h-4")}</div>`;
-        titleCls = "text-slate-500";
-        button = `<button class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0" disabled>Locked</button>`;
+        variant = "orb-locked";
+        glyph = icon("lock", "w-6 h-6");
+        onclick = "";
+        attrs = 'class="orb-stop cursor-not-allowed" disabled';
+        labelCls = "text-slate-400";
       }
 
       return `
-      <div class="relative pl-16 ${last ? "" : "pb-5"}">
-        ${last ? "" : '<span class="absolute left-[21px] top-11 -bottom-1 w-0.5 bg-slate-200"></span>'}
-        <div class="absolute left-0 top-1">${node}</div>
-        <div class="gd-card-sm ${cardRing} ${rec.is_completed || note.current ? "" : "opacity-75"}">
-          <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0">
-              ${isProject ? '<span class="gd-chip gd-chip-brand mb-1.5 !text-[10px]">🚀 Project</span>' : ""}
-              <h3 class="font-extrabold ${titleCls}">${note.title}</h3>
-              <p class="text-slate-500 text-sm mt-0.5">${note.description}</p>
-            </div>
-            ${button}
-          </div>
-        </div>
+      <div class="relative flex flex-col items-center" style="transform: translateX(${offset}px)">
+        <button ${onclick} ${attrs} aria-label="${note.title}">
+          ${current ? '<span class="absolute inset-0 rounded-full bg-brand-400/40 animate-ping"></span>' : ""}
+          <span class="orb ${variant} relative grid place-items-center h-16 w-16 text-white ${
+        current ? "animate-float" : "transition-transform group-hover:scale-105"
+      }">${glyph}</span>
+        </button>
+        <span class="mt-2 max-w-[11rem] text-center text-xs font-extrabold leading-tight ${labelCls}">${note.title}</span>
+        ${isProject ? '<span class="text-[10px] font-bold text-brand-500">🚀 Project</span>' : ""}
+        ${chip}
       </div>`;
     })
     .join("");
 
   htmlEl.innerHTML = `
-    <div class="max-w-3xl mx-auto animate-fade-up space-y-5">
+    <div class="max-w-3xl mx-auto animate-fade-up space-y-6">
       <div class="gd-card">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div>
-            <span class="gd-chip gd-chip-brand mb-2">${icon("book", "w-3.5 h-3.5")} ${pathLabel} roadmap</span>
-            <h1 class="text-2xl font-extrabold">Your journey</h1>
+            <span class="gd-chip gd-chip-brand mb-2">${icon("book", "w-3.5 h-3.5")} ${pathLabel} adventure</span>
+            <h1 class="text-2xl font-extrabold">Your quest map</h1>
           </div>
           <div class="text-right">
             <p class="text-2xl font-extrabold text-brand-600">${completed}/${notes.length}</p>
@@ -851,7 +859,10 @@ async function JourneyPage(htmlEl) {
         </div>
         <div class="gd-progress h-3"><div class="gd-progress-fill" style="width: ${pct}%"></div></div>
       </div>
-      <div class="pt-1">${stops}</div>
+      <div class="relative max-w-md mx-auto pt-2 pb-6">
+        <div class="absolute left-1/2 top-8 bottom-10 -translate-x-1/2 w-1.5 rounded-full bg-gradient-to-b from-brand-200 via-slate-200 to-slate-100"></div>
+        <div class="relative flex flex-col items-center gap-9">${stops}</div>
+      </div>
     </div>`;
 
   // First time on this path's board: Pixel briefs the mission (once per path).
