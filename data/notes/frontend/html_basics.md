@@ -128,6 +128,15 @@ You'll reach for these constantly:
 - **Image**: `<img>`
 - **Generic containers**: `<div>` (block) and `<span>` (inline) for grouping
 
+:::match
+Q: Match each element to its job.
+- `<h1>` | Main heading
+- `<a>` | A link
+- `<img>` | An image
+- `<ul>` | A bulleted list
+E: Choose elements for their meaning — that's semantic HTML.
+:::
+
 :::quiz
 Q: You want a bulleted list of three hobbies. Which element wraps the whole list?
 - `<ol>`

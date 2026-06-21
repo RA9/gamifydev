@@ -339,6 +339,108 @@ function renderPredict(buf) {
   </div>`;
 }
 
+// Parses a `:::match` block into a tap-to-match pairs exercise.
+//   Q: prompt / - left | right / E: explanation
+function renderMatch(buf) {
+  let prompt = "Match the pairs.";
+  let explanation = "";
+  const pairs = [];
+  buf.forEach((l) => {
+    const t = l.trim();
+    if (/^E:/i.test(t)) explanation = t.replace(/^E:\s*/i, "");
+    else if (/^[-*]\s/.test(t) && t.includes("|")) {
+      const body = t.replace(/^[-*]\s+/, "");
+      const idx = body.indexOf("|");
+      pairs.push({ left: body.slice(0, idx).trim(), right: body.slice(idx + 1).trim() });
+    } else if (/^Q:/i.test(t)) prompt = t.replace(/^Q:\s*/i, "");
+    else if (t && prompt === "Match the pairs.") prompt = t;
+  });
+
+  const lefts = pairs
+    .map(
+      (p, i) =>
+        `<button type="button" class="match-item match-left" data-pair="${i}">${mdInline(p.left)}</button>`
+    )
+    .join("");
+  const rights = shuffle(pairs.map((p, i) => ({ i, right: p.right })))
+    .map(
+      (r) =>
+        `<button type="button" class="match-item match-right" data-pair="${r.i}">${mdInline(r.right)}</button>`
+    )
+    .join("");
+
+  return `<div class="lesson-match gd-card-sm my-6"${
+    explanation ? ` data-explanation="${mdEscAttr(explanation)}"` : ""
+  }>
+    <p class="gd-label mb-2"><span aria-hidden="true">🔗</span> Match the pairs</p>
+    <p class="font-extrabold mb-3">${mdInline(prompt)}</p>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="space-y-2">${lefts}</div>
+      <div class="space-y-2">${rights}</div>
+    </div>
+    <div class="lesson-match-feedback hidden mt-3 text-sm font-bold"></div>
+  </div>`;
+}
+
+// Wires a match exercise: select a left, then a right; a correct pair locks
+// green, a wrong pair flashes red.
+function initMatch(el) {
+  const feedback = el.querySelector(".lesson-match-feedback");
+  const explanation = el.getAttribute("data-explanation");
+  const total = el.querySelectorAll(".match-left").length;
+  let selLeft = null;
+  let selRight = null;
+  let matched = 0;
+
+  const tryMatch = () => {
+    if (!selLeft || !selRight) return;
+    const a = selLeft;
+    const b = selRight;
+    selLeft = null;
+    selRight = null;
+    if (a.dataset.pair === b.dataset.pair) {
+      [a, b].forEach((x) => {
+        x.classList.remove("match-selected");
+        x.classList.add("match-correct");
+        x.disabled = true;
+      });
+      matched++;
+      if (matched === total) {
+        feedback.classList.remove("hidden");
+        feedback.className = "lesson-match-feedback mt-3 text-sm font-bold text-grass-600";
+        feedback.innerHTML =
+          "✅ All matched! " +
+          (explanation ? `<span class="font-normal text-slate-600">${explanation}</span>` : "");
+      }
+    } else {
+      [a, b].forEach((x) => {
+        x.classList.remove("match-selected");
+        x.classList.add("match-wrong");
+      });
+      setTimeout(() => [a, b].forEach((x) => x.classList.remove("match-wrong")), 500);
+    }
+  };
+
+  el.addEventListener("click", (e) => {
+    const item = e.target.closest(".match-item");
+    if (!item || item.disabled) return;
+    const isLeft = item.classList.contains("match-left");
+    const sel = isLeft ? selLeft : selRight;
+    // toggle off if re-tapping the current selection
+    if (sel === item) {
+      item.classList.remove("match-selected");
+      if (isLeft) selLeft = null;
+      else selRight = null;
+      return;
+    }
+    if (sel) sel.classList.remove("match-selected");
+    item.classList.add("match-selected");
+    if (isLeft) selLeft = item;
+    else selRight = item;
+    tryMatch();
+  });
+}
+
 // Wires a fill-in-the-blank: clicking an option fills the slot and reveals
 // whether it was right, with the explanation.
 function initFill(el) {
@@ -481,6 +583,7 @@ function markdownToHtml(md) {
       else if (type === "reorder") block = renderReorder(buf);
       else if (type === "fill") block = renderFill(buf);
       else if (type === "predict") block = renderPredict(buf);
+      else if (type === "match") block = renderMatch(buf);
       else block = renderCallout(type, buf.join("\n"));
       html.push(block);
       continue;
@@ -850,6 +953,7 @@ async function notePage(htmlEl, requestedTitle) {
   htmlEl.querySelectorAll(".lesson-quiz").forEach(initLessonQuiz);
   htmlEl.querySelectorAll(".lesson-reorder").forEach(initReorder);
   htmlEl.querySelectorAll(".lesson-fill").forEach(initFill);
+  htmlEl.querySelectorAll(".lesson-match").forEach(initMatch);
 
   if (isReview) return;
 
