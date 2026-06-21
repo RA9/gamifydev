@@ -260,25 +260,23 @@
     @apply !border-rose-500 !bg-rose-50;
   }
 
-  /* Adventure map: glossy orb nodes --------------------------------- */
-  .orb-stop {
-    @apply relative grid place-items-center h-20 w-20 rounded-full border-0 bg-transparent p-0;
+  /* Quest map: level-badge nodes ------------------------------------ */
+  .qm-node {
+    @apply relative grid place-items-center h-12 w-12 rounded-full border-2 border-white p-0;
+    box-shadow: 0 6px 12px -4px rgba(40, 28, 90, 0.35);
   }
-  .orb {
-    @apply rounded-full;
-    box-shadow: 0 12px 22px -8px rgba(40, 28, 90, 0.45),
-      inset 0 -6px 12px rgba(0, 0, 0, 0.28), inset 0 7px 12px rgba(255, 255, 255, 0.5);
+  .qm-done {
+    @apply bg-grass-500;
   }
-  .orb-done {
-    background: radial-gradient(circle at 35% 28%, #b6f09c, #46a302);
+  .qm-current {
+    @apply bg-brand-500 cursor-pointer;
+    box-shadow: 0 0 0 4px rgba(120, 87, 247, 0.25), 0 8px 16px -4px rgba(40, 28, 90, 0.45);
   }
-  .orb-current {
-    background: radial-gradient(circle at 35% 28%, #c4b8ff, #6740e8);
+  .qm-done {
+    @apply cursor-pointer;
   }
-  .orb-locked {
-    background: radial-gradient(circle at 35% 28%, #eef2f7, #94a3b8);
-    box-shadow: 0 8px 16px -8px rgba(40, 28, 90, 0.25),
-      inset 0 -5px 10px rgba(0, 0, 0, 0.18), inset 0 6px 10px rgba(255, 255, 255, 0.5);
+  .qm-locked {
+    @apply bg-slate-300 cursor-not-allowed;
   }
 
   /* Terminal Trainer ------------------------------------------------ */

@@ -762,6 +762,117 @@ async function backToModules() {
 
 // The Journey board — the learner's path as a vertical roadmap of "tickets",
 // with done / current / locked stops and overall progress.
+// Renders the path as a game-style world map: a winding road that snakes
+// through a themed landscape, with level nodes along it and the travelled
+// portion of the road filled in to show progress.
+function renderQuestMap(ordered, recordByTitle) {
+  const n = ordered.length;
+  const W = 400;
+  const spacing = 132;
+  const topPad = 84;
+  const bottomPad = 110;
+  const H = topPad + (n - 1) * spacing + bottomPad;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  const pts = ordered.map((_, i) => ({
+    x: clamp(200 + 120 * Math.sin(i * 0.9 + 0.3), 86, 314),
+    y: topPad + i * spacing,
+  }));
+
+  // How far the learner has travelled (last completed, or the current node).
+  let reachedIndex = -1;
+  ordered.forEach((no, i) => {
+    const rec = recordByTitle[no.title] || {};
+    if (rec.is_completed || no.current) reachedIndex = i;
+  });
+
+  const pathThrough = (slice) => {
+    if (slice.length < 2) return slice.length ? `M ${slice[0].x} ${slice[0].y}` : "";
+    let d = `M ${slice[0].x} ${slice[0].y}`;
+    for (let i = 1; i < slice.length; i++) {
+      const p = slice[i - 1];
+      const c = slice[i];
+      const my = (p.y + c.y) / 2;
+      d += ` C ${p.x} ${my}, ${c.x} ${my}, ${c.x} ${c.y}`;
+    }
+    return d;
+  };
+  const fullD = pathThrough(pts);
+  const traveledD = pathThrough(pts.slice(0, Math.max(1, reachedIndex + 1)));
+
+  // Decorative scenery.
+  const clouds = `<g fill="#ffffff" opacity="0.9">
+      <ellipse cx="86" cy="46" rx="32" ry="15"/><ellipse cx="114" cy="40" rx="24" ry="13"/>
+      <ellipse cx="318" cy="86" rx="28" ry="13"/><ellipse cx="342" cy="80" rx="20" ry="11"/>
+      <ellipse cx="70" cy="${topPad + (n - 1) * spacing - 30}" rx="26" ry="12"/>
+    </g>`;
+  const bush = (x, y, s) =>
+    `<g transform="translate(${x} ${y}) scale(${s})"><circle r="15" fill="#7ad23e"/><circle cx="13" cy="3" r="11" fill="#9ce26a"/><circle cx="-13" cy="3" r="11" fill="#9ce26a"/></g>`;
+  const decorations = pts
+    .map((p, i) => (i % 2 ? bush(p.x < 200 ? 350 : 50, p.y + 36, 1) : ""))
+    .join("");
+
+  const nodes = ordered
+    .map((no, i) => {
+      const p = pts[i];
+      const rec = recordByTitle[no.title] || {};
+      const isProject = /^project/i.test(no.title);
+      const done = rec.is_completed;
+      const current = no.current;
+      const titleEsc = no.title.replace(/'/g, "\\'");
+
+      let badge, glyph, onclick, dis = "", labelCls;
+      if (done) {
+        badge = "qm-node qm-done";
+        glyph = icon("check", "w-6 h-6");
+        onclick = `onclick="handleNotePage('${titleEsc}')"`;
+        labelCls = "text-slate-700";
+      } else if (current) {
+        badge = "qm-node qm-current";
+        glyph = isProject ? icon("rocket", "w-6 h-6") : icon("play", "w-6 h-6");
+        onclick = `onclick="handleNotePage()"`;
+        labelCls = "text-brand-700";
+      } else {
+        badge = "qm-node qm-locked";
+        glyph = icon("lock", "w-5 h-5");
+        onclick = "";
+        dis = "disabled";
+        labelCls = "text-slate-400";
+      }
+
+      return `<foreignObject x="${p.x - 64}" y="${p.y - 30}" width="128" height="124">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="relative flex flex-col items-center">
+          <button ${onclick} ${dis} class="${badge}" aria-label="${no.title}">
+            ${current ? '<span class="absolute inset-0 rounded-full bg-brand-400/40 animate-ping"></span>' : ""}
+            <span class="relative grid h-full w-full place-items-center text-white">${glyph}</span>
+          </button>
+          <span class="mt-1.5 text-center text-[11px] font-bold leading-tight ${labelCls}">${no.title}${
+        isProject ? ' <span aria-hidden="true">🚀</span>' : ""
+      }</span>
+        </div>
+      </foreignObject>`;
+    })
+    .join("");
+
+  const goalY = topPad + (n - 1) * spacing + 64;
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your quest map">
+    <defs>
+      <linearGradient id="qm-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ede9ff"/><stop offset="0.55" stop-color="#f5f3ff"/><stop offset="1" stop-color="#e9fbe1"/>
+      </linearGradient>
+    </defs>
+    <rect width="${W}" height="${H}" rx="28" fill="url(#qm-sky)"/>
+    ${clouds}
+    ${decorations}
+    <path d="${fullD}" fill="none" stroke="#e2ddff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${traveledD}" fill="none" stroke="#7ad23e" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${fullD}" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="1 14" stroke-linecap="round" opacity="0.8"/>
+    <text x="200" y="${goalY}" text-anchor="middle" font-size="34">🏁</text>
+    ${nodes}
+  </svg>`;
+}
+
 async function JourneyPage(htmlEl) {
   const user = (await DB.users.toArray())[0];
   if (!user) {
@@ -797,53 +908,6 @@ async function JourneyPage(htmlEl) {
   const pct = Math.round((completed / notes.length) * 100);
   const pathLabel = pathName.charAt(0).toUpperCase() + pathName.slice(1);
 
-  // An adventure trail of glossy "orb" nodes that winds down the page.
-  const stops = ordered
-    .map((note, i) => {
-      const rec = recordByTitle[note.title] || {};
-      const isProject = /^project/i.test(note.title);
-      const done = rec.is_completed;
-      const current = note.current;
-      const titleEsc = note.title.replace(/'/g, "\\'");
-      const offset = i % 2 === 0 ? -34 : 34; // gentle zigzag
-
-      let variant, glyph, onclick, attrs, labelCls, chip = "";
-      if (done) {
-        variant = "orb-done";
-        glyph = icon("check", "w-7 h-7");
-        onclick = `onclick="handleNotePage('${titleEsc}')"`;
-        attrs = 'class="orb-stop group cursor-pointer"';
-        labelCls = "text-slate-700";
-      } else if (current) {
-        variant = "orb-current";
-        glyph = isProject ? icon("rocket", "w-7 h-7") : icon("play", "w-7 h-7");
-        onclick = `onclick="handleNotePage()"`;
-        attrs = 'class="orb-stop group cursor-pointer"';
-        labelCls = "text-brand-700";
-        chip = `<span class="gd-chip gd-chip-brand mt-1.5 !text-[10px]">${isProject ? "Build" : "Continue"} ▶</span>`;
-      } else {
-        variant = "orb-locked";
-        glyph = icon("lock", "w-6 h-6");
-        onclick = "";
-        attrs = 'class="orb-stop cursor-not-allowed" disabled';
-        labelCls = "text-slate-400";
-      }
-
-      return `
-      <div class="relative flex flex-col items-center" style="transform: translateX(${offset}px)">
-        <button ${onclick} ${attrs} aria-label="${note.title}">
-          ${current ? '<span class="absolute inset-0 rounded-full bg-brand-400/40 animate-ping"></span>' : ""}
-          <span class="orb ${variant} relative grid place-items-center h-16 w-16 text-white ${
-        current ? "animate-float" : "transition-transform group-hover:scale-105"
-      }">${glyph}</span>
-        </button>
-        <span class="mt-2 max-w-[11rem] text-center text-xs font-extrabold leading-tight ${labelCls}">${note.title}</span>
-        ${isProject ? '<span class="text-[10px] font-bold text-brand-500">🚀 Project</span>' : ""}
-        ${chip}
-      </div>`;
-    })
-    .join("");
-
   htmlEl.innerHTML = `
     <div class="max-w-3xl mx-auto animate-fade-up space-y-6">
       <div class="gd-card">
@@ -859,10 +923,7 @@ async function JourneyPage(htmlEl) {
         </div>
         <div class="gd-progress h-3"><div class="gd-progress-fill" style="width: ${pct}%"></div></div>
       </div>
-      <div class="relative max-w-md mx-auto pt-2 pb-6">
-        <div class="absolute left-1/2 top-8 bottom-10 -translate-x-1/2 w-1.5 rounded-full bg-gradient-to-b from-brand-200 via-slate-200 to-slate-100"></div>
-        <div class="relative flex flex-col items-center gap-9">${stops}</div>
-      </div>
+      <div class="max-w-md mx-auto">${renderQuestMap(ordered, recordByTitle)}</div>
     </div>`;
 
   // First time on this path's board: Pixel briefs the mission (once per path).
