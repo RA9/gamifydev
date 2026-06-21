@@ -34,6 +34,36 @@ function gdPick(arr) {
   return arr[Math.floor(Math.random() * arr.length)] || arr[0];
 }
 
+// A celebratory overlay where Pixel pops up — used at "ship it"/level-up
+// moments. Returns a promise that resolves when dismissed, so callers can
+// await it before continuing.
+function pixelCelebrate({ title, message, mood = "celebrate", cta = "Keep going" }) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className =
+      "fixed inset-0 z-50 grid place-items-center bg-slate-900/60 backdrop-blur-sm p-4";
+    overlay.innerHTML = `
+      <div class="gd-card max-w-sm w-full text-center animate-pop-in">
+        <div class="w-20 h-20 mx-auto mb-3 animate-float">${
+          typeof mascotSvg === "function" ? mascotSvg("w-20 h-20", mood) : ""
+        }</div>
+        <h2 class="text-2xl font-extrabold mb-1">${title}</h2>
+        <p class="text-slate-600 mb-5">${message}</p>
+        <button class="gd-btn gd-btn-primary gd-btn-block">${cta}</button>
+      </div>`;
+    const close = () => {
+      overlay.remove();
+      resolve();
+    };
+    overlay.querySelector("button").addEventListener("click", close);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+    document.body.appendChild(overlay);
+    overlay.querySelector("button").focus();
+  });
+}
+
 // A contextual one-liner from the mentor, based on the learner's state.
 // ctx: { name, isNew, streak, metGoal, dailyXp, goal }
 function mentorLine(ctx) {

@@ -990,12 +990,50 @@ async function advanceFromModule(current, pathName, htmlEl) {
         .first()
     : null;
 
+  // Pixel pops up to celebrate the milestone.
+  if (typeof pixelCelebrate === "function") {
+    const isProject = /^project/i.test(current.title);
+    if (!next) {
+      await pixelCelebrate({
+        title: "Path complete! 🎉",
+        message:
+          "You finished the whole path — that's a serious milestone. Take a victory lap, then pick your next adventure.",
+        cta: "See my journey",
+      });
+    } else if (isProject) {
+      await pixelCelebrate({
+        title: "🚀 You shipped it!",
+        message: gdPickSafe([
+          "That's a real, working thing you built — exactly what devs do all day. On to the next!",
+          "Shipped! Founders everywhere just shed a happy tear. Keep that momentum.",
+          "You didn't just learn it — you built it. That's the whole game.",
+        ]),
+        cta: "Keep building",
+      });
+    } else {
+      await pixelCelebrate({
+        title: "Lesson complete!",
+        message: gdPickSafe([
+          "Nice — one step closer. Onward!",
+          "Locked in. Let's keep the streak alive.",
+          "That's progress. Pixel approves. 👍",
+        ]),
+        cta: "Continue",
+      });
+    }
+  }
+
   if (next) {
     await DB.paths.update(next.id, { current: true });
     notePage(htmlEl); // render the next lesson
   } else {
     backToModules(); // path finished — return to the module list
   }
+}
+
+// gdPick lives in mascot.js; fall back gracefully if it isn't loaded.
+function gdPickSafe(arr) {
+  return typeof gdPick === "function" ? gdPick(arr) : arr[0];
 }
 
 const LESSON_QUIZ_SIZE = 5;
