@@ -370,6 +370,71 @@
             "previous": "Objects and Classes"
           }
         ]
+      },
+      {
+        "name": "Linux",
+        "modules": [
+          {
+            "title": "What is Linux?",
+            "description": "The open-source OS that runs servers, phones, and the cloud.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "The Command Line",
+            "previous": null
+          },
+          {
+            "title": "The Command Line",
+            "description": "Talk to your computer with typed commands.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Navigating the Filesystem",
+            "previous": "What is Linux?"
+          },
+          {
+            "title": "Navigating the Filesystem",
+            "description": "Move around directories with pwd, ls, and cd.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Working with Files",
+            "previous": "The Command Line"
+          },
+          {
+            "title": "Working with Files",
+            "description": "Create, read, copy, move, and delete files.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Bash Scripting Basics",
+            "previous": "Navigating the Filesystem"
+          },
+          {
+            "title": "Bash Scripting Basics",
+            "description": "Automate work by writing your first shell scripts.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with Linux",
+            "previous": "Working with Files"
+          },
+          {
+            "title": "Next Steps with Linux",
+            "description": "Permissions, pipes, and where to go next.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Bash Scripting Basics"
+          }
+        ]
       }
     ]
   }

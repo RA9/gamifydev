@@ -33,6 +33,11 @@ const PATH_STORY = {
     mission:
       "Welcome to the Java crew — builders of robust, portable software that runs everywhere. Your mission: learn the object-oriented thinking that powers banks, Android apps, and huge enterprise systems.",
   },
+  linux: {
+    crew: "Ops crew",
+    mission:
+      "Welcome to the Ops crew — the people who run the machines. Linux and the command line are where real developers live. Your mission: get fluent at the shell, move around the filesystem blindfolded, and write your first scripts. Tip: try things live in the Terminal Trainer as you go!",
+  },
 };
 
 function pathMission(pathName) {
