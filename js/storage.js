@@ -25,6 +25,12 @@ db.version(9).stores({
   meta: "key",
 });
 
+// v10: spaced-repetition review items. One row per answered question, keyed by
+// "<category>::<question text>", with a Leitner box and a due day-number.
+db.version(10).stores({
+  reviews: "key, category, due, box",
+});
+
 async function createQuestions() {
   try {
     const questions = await fetch("./data/questions.json");

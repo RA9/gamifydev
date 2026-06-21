@@ -369,6 +369,11 @@ async function TestYourselfSection(htmlEl) {
       await updateStorage("tests", { ...test, is_completed: true });
       await createStorage("scores", scoreDetails);
 
+      // Feed the spaced-repetition system so these questions resurface later.
+      if (typeof recordReviewBatch === "function") {
+        await recordReviewBatch(testQuestions.questions, selectedOptions);
+      }
+
       // QuizPage(page);
       TestResultPage(document.querySelector("main"));
     });

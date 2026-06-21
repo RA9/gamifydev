@@ -1,5 +1,7 @@
 function displayContent() {
     const page = document.querySelector('main');
+    // Clear any lingering celebration/briefing overlay when navigating.
+    document.querySelectorAll('.gd-overlay').forEach((o) => o.remove());
     const currentURL = (window.location.href).split('#')[1];
     switch (currentURL) {
         case 'about':
@@ -19,6 +21,9 @@ function displayContent() {
             break;
         case 'journey':
             JourneyPage(page);
+            break;
+        case 'review':
+            ReviewPage(page);
             break;
         case 'launch':
             LaunchWeekPage(page);

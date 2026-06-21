@@ -65,7 +65,7 @@ function pixelCelebrate({ title, message, mood = "celebrate", cta = "Keep going"
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.className =
-      "fixed inset-0 z-50 grid place-items-center bg-slate-900/60 backdrop-blur-sm p-4";
+      "gd-overlay fixed inset-0 z-50 grid place-items-center bg-slate-900/60 backdrop-blur-sm p-4";
     overlay.innerHTML = `
       <div class="gd-card max-w-sm w-full text-center animate-pop-in">
         <div class="w-20 h-20 mx-auto mb-3 animate-float">${
