@@ -5,6 +5,30 @@
 
 const MASCOT_NAME = "Pixel";
 
+// Each path's startup "mission" — Pixel briefs this the first time a learner
+// opens that path's Journey board.
+const PATH_STORY = {
+  frontend: {
+    crew: "Frontend crew",
+    mission:
+      "You're on the Frontend crew — the team that builds everything users see and touch. Your mission: go from zero to shipping real, interactive web pages. I'll be right here the whole way.",
+  },
+  backend: {
+    crew: "Backend crew",
+    mission:
+      "Welcome to the Backend crew — the engine room. Your mission: store data, build APIs, and power apps from behind the scenes. Let's make the machine run.",
+  },
+  fullstack: {
+    crew: "Fullstack crew",
+    mission:
+      "Welcome to the Fullstack crew — you'll work across the whole stack. Your mission: connect front and back into complete, working apps you can actually ship.",
+  },
+};
+
+function pathMission(pathName) {
+  return PATH_STORY[pathName] || PATH_STORY.frontend;
+}
+
 // The mascot avatar as inline SVG, sized via the class string.
 function mascotSvg(cls = "w-12 h-12", mood = "happy") {
   const smile =

@@ -853,6 +853,26 @@ async function JourneyPage(htmlEl) {
       </div>
       <div class="pt-1">${stops}</div>
     </div>`;
+
+  // First time on this path's board: Pixel briefs the mission (once per path).
+  if (
+    typeof getMeta === "function" &&
+    typeof pixelCelebrate === "function" &&
+    typeof pathMission === "function"
+  ) {
+    const key = "mission-" + pathName;
+    const seen = await getMeta(key, false);
+    if (!seen) {
+      await setMeta(key, true);
+      const m = pathMission(pathName);
+      pixelCelebrate({
+        title: `Welcome to the ${m.crew}! 🎉`,
+        message: m.mission,
+        mood: "happy",
+        cta: "Let's get to work",
+      });
+    }
+  }
 }
 
 async function notePage(htmlEl, requestedTitle) {
