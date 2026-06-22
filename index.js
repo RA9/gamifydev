@@ -51,6 +51,11 @@ function displayContent() {
     }
     updateActiveNav(currentURL);
     updateHud();
+    // Celebrate any newly-earned cross-world achievements (guards against
+    // stacking on another overlay; silently baselines on first ever run).
+    if (typeof maybeCelebrateAchievements === 'function') {
+        setTimeout(() => maybeCelebrateAchievements(), 400);
+    }
 }
 
 // Highlight the nav link matching the current route.
