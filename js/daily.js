@@ -647,6 +647,18 @@ async function TodayPage(htmlEl) {
         <span class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0">Browse</span>
       </a>
 
+      <!-- Build a project -->
+      <a href="#projects" class="gd-card flex items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform">
+        <div class="flex items-center gap-3">
+          <div class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-100 text-2xl">🛠️</div>
+          <div>
+            <p class="font-extrabold leading-tight">Build a project</p>
+            <p class="text-sm text-slate-500">Guided, step-by-step builds — ship something real</p>
+          </div>
+        </div>
+        <span class="gd-btn gd-btn-secondary !py-2 !px-4 !text-sm shrink-0">Build</span>
+      </a>
+
       <!-- Terminal Trainer -->
       <a href="#terminal" class="gd-card flex items-center justify-between gap-4 hover:-translate-y-0.5 transition-transform">
         <div class="flex items-center gap-3">

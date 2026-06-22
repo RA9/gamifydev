@@ -3,6 +3,13 @@ function displayContent() {
     // Clear any lingering celebration/briefing overlay when navigating.
     document.querySelectorAll('.gd-overlay').forEach((o) => o.remove());
     const currentURL = (window.location.href).split('#')[1];
+    // Parameterised route: #project/<id> opens the build-along player.
+    if (currentURL && currentURL.indexOf('project/') === 0) {
+        ProjectPlayerPage(page, currentURL.slice('project/'.length));
+        updateActiveNav('projects');
+        updateHud();
+        return;
+    }
     switch (currentURL) {
         case 'about':
             AboutPage(page);
@@ -24,6 +31,9 @@ function displayContent() {
             break;
         case 'worlds':
             WorldsPage(page);
+            break;
+        case 'projects':
+            ProjectsPage(page);
             break;
         case 'review':
             ReviewPage(page);
