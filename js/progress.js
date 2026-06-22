@@ -99,14 +99,30 @@ function statCard(label, value, iconName) {
 async function ProgressPage(htmlEl) {
   const scores = await DB.scores.orderBy("created_at").reverse().toArray();
 
-  if (scores.length === 0) {
+  // Cross-world achievements span lessons, projects, terminal and streaks — so
+  // the dashboard is worth showing even before the first quiz.
+  const ach =
+    typeof getAchievements === "function"
+      ? await getAchievements()
+      : { list: [], earnedCount: 0, metrics: {} };
+  const hasActivity =
+    scores.length > 0 ||
+    (ach.metrics.lessonsCompleted || 0) > 0 ||
+    (ach.metrics.projectsCompleted || 0) > 0 ||
+    (ach.metrics.terminalPassed || 0) > 0 ||
+    (ach.metrics.reviewsTracked || 0) > 0;
+
+  if (!hasActivity) {
     htmlEl.innerHTML = `
       <div class="max-w-xl mx-auto animate-fade-up">
         <div class="gd-card text-center">
           <div class="w-44 mx-auto mb-2 animate-float">${illustration("trophy")}</div>
           <h1 class="text-2xl font-extrabold mb-2">Your Progress</h1>
-          <p class="text-slate-600 mb-6">No quizzes yet! Complete one to start earning <b>XP</b>, build a <b>streak</b>, and unlock <b>badges</b>.</p>
-          <a href="#test" class="gd-btn gd-btn-primary">Take your first quiz</a>
+          <p class="text-slate-600 mb-6">Nothing here yet! Finish a lesson, ship a project, or take a quiz to start earning <b>XP</b>, build a <b>streak</b>, and unlock <b>achievements</b>.</p>
+          <div class="flex flex-wrap justify-center gap-3">
+            <a href="#worlds" class="gd-btn gd-btn-primary">Start a lesson</a>
+            <a href="#test" class="gd-btn gd-btn-secondary">Take a quiz</a>
+          </div>
         </div>
       </div>`;
     return;
@@ -200,7 +216,7 @@ async function ProgressPage(htmlEl) {
     })
     .join("");
 
-  const earnedBadges = p.badges.filter((b) => b.earned).length;
+  const earnedBadges = ach.earnedCount;
 
   htmlEl.innerHTML = `
     <div class="max-w-5xl mx-auto space-y-5 animate-fade-up">
@@ -237,19 +253,28 @@ async function ProgressPage(htmlEl) {
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      ${
+        scores.length > 0
+          ? `<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         ${statCard("Tests Taken", p.totalTests, "file")}
         ${statCard("Questions", p.totalQuestions, "help")}
         ${statCard("Accuracy", p.accuracy + "%", "target")}
         ${statCard("Perfect Scores", p.perfectCount, "star")}
-      </div>
+      </div>`
+          : ""
+      }
 
       <div class="gd-card">
-        <h2 class="flex items-center gap-2 text-xl font-extrabold mb-4">${icon("trophy", "w-5 h-5 text-amber-500")} Badges</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">${badgesHTML}</div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="flex items-center gap-2 text-xl font-extrabold">${icon("trophy", "w-5 h-5 text-amber-500")} Achievements</h2>
+          <span class="text-sm font-extrabold text-slate-500">${ach.earnedCount} / ${ach.total} unlocked</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">${achievementsGridHTML(ach)}</div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      ${
+        scores.length > 0
+          ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="gd-card">
           <h2 class="text-xl font-extrabold mb-3">Best Score by Language</h2>
           ${languagesHTML}
@@ -258,7 +283,9 @@ async function ProgressPage(htmlEl) {
           <h2 class="text-xl font-extrabold mb-3">Recent Tests</h2>
           ${recentHTML}
         </div>
-      </div>
+      </div>`
+          : ""
+      }
     </div>`;
 
   // Expand/collapse per-attempt answer review, reusing buildTysReview from tys.js.
