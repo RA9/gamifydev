@@ -37,6 +37,8 @@ The **prompt** is the shell signaling it's ready for input. You type your comman
 
 ## Anatomy of a command
 
+![In ls -l /home, ls is the command (what to do), -l is the option or flag (how to do it), and /home is the argument (what to do it to)](/images/lessons/linux-command-anatomy.svg)
+
 Almost every command follows the same simple shape. Once you see the pattern, every new command becomes easier to learn:
 
 ```bash

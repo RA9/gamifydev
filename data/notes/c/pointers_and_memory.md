@@ -18,6 +18,8 @@ Imagine a street of houses. Each house holds something (a value) and has a uniqu
 
 ## The two key operators: & and *
 
+![The variable x holds 42 at address 0x1A4; the pointer p holds that address, so *p reaches the value 42](/images/lessons/c-pointer-memory.svg)
+
 C gives you two operators to work with addresses.
 
 The **address-of** operator `&` asks, "Where does this variable live?" It gives you the address.

@@ -31,6 +31,8 @@ The `-rwxr-xr--` column from `ls -l` shows permissions for three groups — owne
 
 ## Pipes: connecting commands together
 
+![cat log.txt produces all the lines; the pipe feeds them into grep error, which keeps only the lines containing error](/images/lessons/bash-pipe.svg)
+
 Here's one of the most beautiful ideas in all of Linux. The vertical bar `|`, called a **pipe**, takes the output of one command and feeds it straight into the next as input. Small commands snap together like building blocks into something bigger.
 
 A perfect partner for pipes is `grep`, which filters text, keeping only the lines that contain a pattern you name. Combine them:

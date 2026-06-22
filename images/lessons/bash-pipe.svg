@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="240" viewBox="0 0 720 240" role="img" aria-label="A pipe sends one command's output into the next. cat log.txt produces all the lines, the pipe feeds them into grep error, which keeps only the lines containing error.">
+  <defs>
+    <style>
+      .lbl  { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
+    </style>
+    <marker id="ahpipe" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6740e8"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="716" height="236" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="360" y="44" text-anchor="middle" class="lbl" font-size="21" fill="#475569">A pipe feeds one command's output into the next</text>
+
+  <!-- first command -->
+  <rect x="44" y="92" width="200" height="92" rx="16" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+  <text x="144" y="130" text-anchor="middle" class="mono" font-size="19" fill="#4c1d95">cat log.txt</text>
+  <text x="144" y="158" text-anchor="middle" class="lbl" font-size="13" fill="#7c6fb0">all the lines</text>
+
+  <!-- pipe -->
+  <text x="300" y="124" text-anchor="middle" class="mono" font-size="40" fill="#6740e8">|</text>
+  <text x="300" y="158" text-anchor="middle" class="lbl" font-size="13" fill="#6740e8">pipe</text>
+  <line x1="246" y1="138" x2="284" y2="138" stroke="#6740e8" stroke-width="3" marker-end="url(#ahpipe)"/>
+  <line x1="316" y1="138" x2="356" y2="138" stroke="#6740e8" stroke-width="3" marker-end="url(#ahpipe)"/>
+
+  <!-- second command -->
+  <rect x="362" y="92" width="200" height="92" rx="16" fill="#6740e8"/>
+  <text x="462" y="130" text-anchor="middle" class="mono" font-size="19" fill="#ffffff">grep error</text>
+  <text x="462" y="158" text-anchor="middle" class="lbl" font-size="13" fill="#d8ccff">filters the lines</text>
+
+  <line x1="564" y1="138" x2="604" y2="138" stroke="#6740e8" stroke-width="3" marker-end="url(#ahpipe)"/>
+
+  <!-- result -->
+  <rect x="610" y="92" width="74" height="92" rx="16" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+  <text x="647" y="132" text-anchor="middle" class="lbl" font-size="13" fill="#14532d">only</text>
+  <text x="647" y="152" text-anchor="middle" class="lbl" font-size="13" fill="#14532d">errors</text>
+</svg>
