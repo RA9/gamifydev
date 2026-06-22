@@ -35,6 +35,8 @@ The tradeoff: you must compile before you can run, and the compiler is strict. I
 
 ## The compile-then-run model
 
+![C is compiled ahead of time: gcc turns your hello.c source into a standalone executable you then run](/images/lessons/c-compile.svg)
+
 Let's make this concrete. When you build a C program, two stages happen:
 
 1. **Compile** — turn your `.c` source file into an executable program.

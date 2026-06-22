@@ -20,6 +20,8 @@ So how does this magic actually work? The secret is a clever middle layer called
 
 When you write Java code, your computer doesn't run that text directly. Instead, a tool called the **compiler** translates your human-readable code into something called **bytecode**. Bytecode isn't English, and it isn't the raw machine language your specific processor speaks either. It's an in-between language that the JVM understands.
 
+![App.java is compiled by javac into App.class bytecode, which the same JVM runs on Windows, macOS, or Linux](/images/lessons/java-bytecode.svg)
+
 Here's the journey your code takes:
 
 1. You write `.java` source files (readable text).

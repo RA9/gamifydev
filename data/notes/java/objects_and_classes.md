@@ -10,6 +10,8 @@ A **class** is a blueprint. An **object** is a thing built from that blueprint.
 
 Think of an architect's blueprint for a house. The blueprint isn't a house, you can't live in it. But from that one blueprint you can build many actual houses, each with its own address, its own color, its own family inside. The blueprint defines the *structure* (every house has rooms, a door, windows); each real house is a specific *instance* with its own details.
 
+![The Dog class is a blueprint defining name and bark(); from it you create individual Dog objects Rex, Bella, and Max, each with its own name](/images/lessons/java-class-object.svg)
+
 :::analogy
 A class is a cookie cutter; objects are the cookies. The cutter (class) defines the shape every cookie shares. Each cookie (object) is a separate, real thing you can decorate differently, one with sprinkles, one with icing, but all the same fundamental shape.
 :::

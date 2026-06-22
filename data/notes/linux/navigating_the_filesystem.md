@@ -4,6 +4,8 @@ You can now run commands — but a command always runs *somewhere*. Every shell 
 
 ## The filesystem is a tree
 
+![The Linux filesystem is one tree starting at root /, with home, etc, and usr branching off; your home folder holds files like notes.txt and a projects folder](/images/lessons/linux-filesystem-tree.svg)
+
 On Linux, every file and folder lives in one big upside-down tree. At the very top sits a single starting point called the **root**, written as a lone forward slash: `/`. Everything branches out from there — folders inside folders inside folders, all the way down to your files.
 
 A few common branches you'll see:
