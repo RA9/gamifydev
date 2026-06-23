@@ -6,12 +6,22 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:css": "tailwindcss -c tailwind.config.js -i css/input.css -o css/tailwind.css --minify",
-    "watch:css": "tailwindcss -c tailwind.config.js -i css/input.css -o css/tailwind.css --watch"
+    "watch:css": "tailwindcss -c tailwind.config.js -i css/input.css -o css/tailwind.css --watch",
+    "build:editor": "esbuild vendor/cm-entry.js --bundle --format=iife --minify --legal-comments=none --outfile=js/external/codemirror.bundle.js"
   },
   "dependencies": {
     "@vercel/edge": "^0.1.2"
   },
   "devDependencies": {
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-cpp": "^6.0.3",
+    "@codemirror/lang-java": "^6.0.2",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.1",
+    "codemirror": "^6.0.2",
+    "esbuild": "^0.28.1",
     "tailwindcss": "^3.4.17"
   },
   "engines": {

@@ -10,6 +10,13 @@ function displayContent() {
         updateHud();
         return;
     }
+    // Parameterised route: #code/<id> opens a coding challenge.
+    if (currentURL && currentURL.indexOf('code/') === 0) {
+        ChallengePage(page, currentURL.slice('code/'.length));
+        updateActiveNav('code');
+        updateHud();
+        return;
+    }
     switch (currentURL) {
         case 'about':
             AboutPage(page);
@@ -34,6 +41,9 @@ function displayContent() {
             break;
         case 'projects':
             ProjectsPage(page);
+            break;
+        case 'code':
+            CodeLabPage(page);
             break;
         case 'review':
             ReviewPage(page);
