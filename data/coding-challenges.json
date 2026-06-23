@@ -1,0 +1,104 @@
+{
+  "challenges": [
+    {
+      "id": "js-sum-array",
+      "title": "Sum an Array",
+      "language": "javascript",
+      "difficulty": "Warm-up",
+      "entry": "sumArray",
+      "prompt": "Write a function `sumArray(nums)` that returns the **sum** of all numbers in the array `nums`. An empty array should return `0`.",
+      "starter": "function sumArray(nums) {\n  // your code here\n}\n",
+      "tests": [
+        { "name": "[1, 2, 3] -> 6", "args": [[1, 2, 3]], "expected": 6 },
+        { "name": "[] -> 0", "args": [[]], "expected": 0 },
+        { "name": "negatives", "args": [[-5, 5, 10]], "expected": 10, "hidden": true },
+        { "name": "single", "args": [[42]], "expected": 42, "hidden": true }
+      ]
+    },
+    {
+      "id": "js-reverse-string",
+      "title": "Reverse a String",
+      "language": "javascript",
+      "difficulty": "Warm-up",
+      "entry": "reverse",
+      "prompt": "Write `reverse(str)` that returns the characters of `str` in reverse order. `reverse(\"abc\")` should return `\"cba\"`.",
+      "starter": "function reverse(str) {\n  // your code here\n}\n",
+      "tests": [
+        { "name": "\"abc\" -> \"cba\"", "args": ["abc"], "expected": "cba" },
+        { "name": "\"\" -> \"\"", "args": [""], "expected": "" },
+        { "name": "palindrome", "args": ["level"], "expected": "level", "hidden": true },
+        { "name": "spaces", "args": ["a b"], "expected": "b a", "hidden": true }
+      ]
+    },
+    {
+      "id": "js-fizzbuzz",
+      "title": "FizzBuzz",
+      "language": "javascript",
+      "difficulty": "Easy",
+      "entry": "fizzbuzz",
+      "prompt": "Write `fizzbuzz(n)` that returns an **array** of length `n`. For each number `1..n`: use `\"Fizz\"` if divisible by 3, `\"Buzz\"` if divisible by 5, `\"FizzBuzz\"` if divisible by both, otherwise the number itself (as a number, not a string).",
+      "starter": "function fizzbuzz(n) {\n  // your code here\n}\n",
+      "tests": [
+        { "name": "n = 5", "args": [5], "expected": [1, 2, "Fizz", 4, "Buzz"] },
+        { "name": "n = 15 ends FizzBuzz", "args": [15], "expected": [1, 2, "Fizz", 4, "Buzz", "Fizz", 7, 8, "Fizz", "Buzz", 11, "Fizz", 13, 14, "FizzBuzz"], "hidden": true },
+        { "name": "n = 1", "args": [1], "expected": [1], "hidden": true }
+      ]
+    },
+    {
+      "id": "js-count-vowels",
+      "title": "Count the Vowels",
+      "language": "javascript",
+      "difficulty": "Easy",
+      "entry": "countVowels",
+      "prompt": "Write `countVowels(str)` that returns how many vowels (`a`, `e`, `i`, `o`, `u`, case-insensitive) appear in `str`.",
+      "starter": "function countVowels(str) {\n  // your code here\n}\n",
+      "tests": [
+        { "name": "\"hello\" -> 2", "args": ["hello"], "expected": 2 },
+        { "name": "\"SKY\" -> 0", "args": ["SKY"], "expected": 0 },
+        { "name": "mixed case", "args": ["EdUcAtIoN"], "expected": 5, "hidden": true },
+        { "name": "empty", "args": [""], "expected": 0, "hidden": true }
+      ]
+    },
+    {
+      "id": "js-is-palindrome",
+      "title": "Palindrome Check",
+      "language": "javascript",
+      "difficulty": "Medium",
+      "entry": "isPalindrome",
+      "prompt": "Write `isPalindrome(str)` that returns `true` if `str` reads the same forwards and backwards, ignoring case and spaces. `\"Race car\"` is a palindrome.",
+      "starter": "function isPalindrome(str) {\n  // your code here\n}\n",
+      "tests": [
+        { "name": "\"racecar\"", "args": ["racecar"], "expected": true },
+        { "name": "\"hello\"", "args": ["hello"], "expected": false },
+        { "name": "\"Race car\"", "args": ["Race car"], "expected": true, "hidden": true },
+        { "name": "\"\" -> true", "args": [""], "expected": true, "hidden": true }
+      ]
+    },
+    {
+      "id": "js-two-sum",
+      "title": "Two Sum",
+      "language": "javascript",
+      "difficulty": "Medium",
+      "entry": "twoSum",
+      "prompt": "Write `twoSum(nums, target)` that returns the **indices** of the two numbers in `nums` that add up to `target`, as an array `[i, j]` with `i < j`. Exactly one solution exists, and you may not use the same element twice. `twoSum([2, 7, 11, 15], 9)` returns `[0, 1]`.",
+      "starter": "function twoSum(nums, target) {\n  // your code here\n}\n",
+      "tests": [
+        { "name": "[2,7,11,15], 9", "args": [[2, 7, 11, 15], 9], "expected": [0, 1] },
+        { "name": "[3,2,4], 6", "args": [[3, 2, 4], 6], "expected": [1, 2], "hidden": true },
+        { "name": "[3,3], 6", "args": [[3, 3], 6], "expected": [0, 1], "hidden": true }
+      ]
+    },
+    {
+      "id": "py-greet",
+      "title": "Greet by Name",
+      "language": "python",
+      "difficulty": "Warm-up",
+      "entry": "greet",
+      "prompt": "Write a function `greet(name)` that returns the string `\"Hello, <name>!\"`. *(Python execution is being added in an upcoming update — the editor already speaks Python.)*",
+      "starter": "def greet(name):\n    # your code here\n    pass\n",
+      "tests": [
+        { "name": "greet(\"Ada\")", "args": ["Ada"], "expected": "Hello, Ada!" }
+      ]
+    }
+  ]
+}
