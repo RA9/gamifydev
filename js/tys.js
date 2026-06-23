@@ -24,7 +24,11 @@ async function TestPage(htmlEl) {
       { value: "python", label: "Python" },
       { value: "java", label: "Java" },
       { value: "sql", label: "SQL" },
+      { value: "linux", label: "Linux" },
     ];
+
+    // Languages that have a pool of logical "challenge" questions.
+    const challengeLangs = ["javascript", "python", "c", "java"];
 
     htmlEl.innerHTML = `
       <div class="max-w-3xl mx-auto animate-fade-up">
@@ -51,6 +55,20 @@ async function TestPage(htmlEl) {
                 )
                 .join("")}
             </div>
+          </div>
+
+          <div>
+            <span class="gd-label">Difficulty</span>
+            <input type="hidden" id="difficulty" value="all" />
+            <div id="diff-grid" class="grid grid-cols-2 gap-3">
+              <button type="button" data-diff="all" class="diff-tile gd-option justify-center py-3 gd-option-selected">
+                <span class="text-sm font-extrabold">Standard</span>
+              </button>
+              <button type="button" data-diff="challenge" class="diff-tile gd-option justify-center py-3">
+                <span class="text-sm font-extrabold">🔥 Challenge</span>
+              </button>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Challenge mode is all logical-reasoning questions — predict the output, find the bug, trace execution. Available for JavaScript, Python, C &amp; Java.</p>
           </div>
 
           <div>
@@ -84,6 +102,17 @@ async function TestPage(htmlEl) {
       });
     });
 
+    // Difficulty selection -> hidden input.
+    htmlEl.querySelectorAll(".diff-tile").forEach((tile) => {
+      tile.addEventListener("click", () => {
+        htmlEl
+          .querySelectorAll(".diff-tile")
+          .forEach((t) => t.classList.remove("gd-option-selected"));
+        tile.classList.add("gd-option-selected");
+        document.querySelector("#difficulty").value = tile.dataset.diff;
+      });
+    });
+
     // Quick presets for question count.
     htmlEl.querySelectorAll(".num-preset").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -96,6 +125,7 @@ async function TestPage(htmlEl) {
     START_TYS_BUTTON.addEventListener("click", async () => {
       const language = document.querySelector("#language").value;
       const numQuestions = document.querySelector("#numQuestions").value;
+      const difficulty = document.querySelector("#difficulty").value;
       state.current = "tys-quiz";
       state.previous = "tys";
       state.next = null;
@@ -106,6 +136,7 @@ async function TestPage(htmlEl) {
         is_completed: false,
         language: language,
         numQuestions,
+        difficulty,
         created_at: new Date(),
       });
 
@@ -209,14 +240,22 @@ async function TestYourselfSection(htmlEl) {
 
   if (testQuestions.length <= 0) {
     const questions = await DB.questions.toArray();
+    const inLanguage = questions.filter((q) => q.category === test.language);
+
+    // Challenge mode draws only logical-reasoning questions; if a bank has none,
+    // fall back to the full pool so the quiz is never empty.
+    let pool = inLanguage;
+    if (test.difficulty === "challenge") {
+      const challengeOnly = inLanguage.filter(
+        (q) => q.details && q.details.difficulty === "challenge"
+      );
+      if (challengeOnly.length > 0) pool = challengeOnly;
+    }
 
     await createStorage("test_questions", {
       test_id: test.id,
       id: randomID(),
-      questions: getQuestionsByLimit(
-        questions.filter((question) => question.category === test.language),
-        Number(test.numQuestions)
-      ),
+      questions: getQuestionsByLimit(pool, Number(test.numQuestions)),
     });
 
     testQuestions = (await DB.table("test_questions").toArray())[0];
@@ -237,9 +276,11 @@ async function TestYourselfSection(htmlEl) {
           <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-100 text-brand-700 font-extrabold text-sm">${
             index + 1
           }</span>
-          <p class="text-lg font-bold pt-0.5">${escapeHTMLToEntities(
-            question.details.question
-          )}</p>
+          <p class="text-lg font-bold pt-0.5 whitespace-pre-wrap">${
+            typeof mdInline === "function"
+              ? mdInline(question.details.question)
+              : escapeHTMLToEntities(question.details.question)
+          }</p>
         </div>
         <form class="space-y-2">
           ${tysRandomizeOptions(question.details.options).join("")}
@@ -439,9 +480,11 @@ function buildTysReview(testDetails) {
 
       return `
       <div class="border-b border-gray-200 py-4">
-        <p class="font-bold mb-2">${i + 1}. ${escapeHTMLToEntities(
-        q.details.question
-      )}
+        <p class="font-bold mb-2 whitespace-pre-wrap">${i + 1}. ${
+        typeof mdInline === "function"
+          ? mdInline(q.details.question)
+          : escapeHTMLToEntities(q.details.question)
+      }
           <span class="text-sm font-normal ${
             isRight ? "text-green-600" : "text-red-600"
           }">(${isRight ? "Correct" : "Incorrect"})</span>

@@ -89,6 +89,7 @@ const GD_LANG = {
   python: { abbr: "Py", fg: "#3776AB" },
   java: { abbr: "Jv", fg: "#E76F00" },
   sql: { abbr: "SQL", fg: "#0E7490" },
+  linux: { abbr: "Lx", fg: "#1f2937" },
 };
 
 // A square monogram chip for a programming language. Uses the brand colour for

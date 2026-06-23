@@ -1848,6 +1848,162 @@
       "category": "Promises",
       "duration": "2.5 minutes",
       "answer": "By using the 'Promise.resolve()' method."
+    },
+    {
+      "question": "What is the result of `[1, 2, 3] + [4, 5, 6]`?",
+      "category": "javascript",
+      "options": [
+        "\"1,2,34,5,6\"",
+        "[1,2,3,4,5,6]",
+        "\"6,15\"",
+        "21"
+      ],
+      "answer": "\"1,2,34,5,6\"",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What is logged?\n`for (var i = 0; i < 3; i++) setTimeout(() => console.log(i), 0)`",
+      "category": "javascript",
+      "options": [
+        "3 3 3",
+        "0 1 2",
+        "0 0 0",
+        "1 2 3"
+      ],
+      "answer": "3 3 3",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `console.log(0.1 + 0.2 === 0.3)` print?",
+      "category": "javascript",
+      "options": [
+        "false",
+        "true",
+        "NaN",
+        "0.3"
+      ],
+      "answer": "false",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `[10, 1, 2].sort()` return?",
+      "category": "javascript",
+      "options": [
+        "[1, 10, 2]",
+        "[1, 2, 10]",
+        "[10, 2, 1]",
+        "[2, 1, 10]"
+      ],
+      "answer": "[1, 10, 2]",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What is the output of `[1, 2, 3].map(parseInt)`?",
+      "category": "javascript",
+      "options": [
+        "[1, NaN, NaN]",
+        "[1, 2, 3]",
+        "[1, NaN, 3]",
+        "[NaN, NaN, NaN]"
+      ],
+      "answer": "[1, NaN, NaN]",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does this log?\n`console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);`",
+      "category": "javascript",
+      "options": [
+        "1 4 3 2",
+        "1 4 2 3",
+        "1 2 3 4",
+        "1 3 4 2"
+      ],
+      "answer": "1 4 3 2",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `console.log(typeof typeof 1)` print?",
+      "category": "javascript",
+      "options": [
+        "\"string\"",
+        "\"number\"",
+        "\"object\"",
+        "\"undefined\""
+      ],
+      "answer": "\"string\"",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What is the result of `[] == ![]`?",
+      "category": "javascript",
+      "options": [
+        "true",
+        "false",
+        "TypeError",
+        "undefined"
+      ],
+      "answer": "true",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `console.log(\"b\" + \"a\" + + \"a\" + \"a\")` print?",
+      "category": "javascript",
+      "options": [
+        "\"baNaNa\"",
+        "\"baaa\"",
+        "\"ba0a\"",
+        "\"banana\""
+      ],
+      "answer": "\"baNaNa\"",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What is logged?\n`console.log(x);\nvar x = 5;`",
+      "category": "javascript",
+      "options": [
+        "undefined",
+        "5",
+        "ReferenceError",
+        "null"
+      ],
+      "answer": "undefined",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `[3, 2, 1].reduce((a, b) => a - b)` return?",
+      "category": "javascript",
+      "options": [
+        "0",
+        "6",
+        "-6",
+        "2"
+      ],
+      "answer": "0",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does this log?\n`let a = [1, 2, 3];\na.length = 0;\nconsole.log(a[0]);`",
+      "category": "javascript",
+      "options": [
+        "undefined",
+        "1",
+        "0",
+        "null"
+      ],
+      "answer": "undefined",
+      "duration": 45,
+      "difficulty": "challenge"
     }
   ],
   "html": [
@@ -3258,6 +3414,136 @@
       ],
       "answer": "To terminate the program",
       "duration": 25
+    },
+    {
+      "question": "What does `printf(\"%d\", 17 % 5);` print?",
+      "category": "c",
+      "options": [
+        "2",
+        "3",
+        "12",
+        "1"
+      ],
+      "answer": "2",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `printf(\"%d\", 2 + 3 * 4);` print?",
+      "category": "c",
+      "options": [
+        "14",
+        "20",
+        "24",
+        "11"
+      ],
+      "answer": "14",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `int x = 5; int y = x++; printf(\"%d\", x + y);` print?",
+      "category": "c",
+      "options": [
+        "11",
+        "10",
+        "12",
+        "13"
+      ],
+      "answer": "11",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `printf(\"%c\", 'A' + 1);` print?",
+      "category": "c",
+      "options": [
+        "B",
+        "66",
+        "A1",
+        "C"
+      ],
+      "answer": "B",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "If `int a[] = {2, 4, 6, 8};` what does `printf(\"%d\", *(a + 2));` print?",
+      "category": "c",
+      "options": [
+        "6",
+        "4",
+        "8",
+        "2"
+      ],
+      "answer": "6",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `printf(\"%d\", 1 << 5);` print?",
+      "category": "c",
+      "options": [
+        "32",
+        "16",
+        "64",
+        "10"
+      ],
+      "answer": "32",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `printf(\"%d\", 6 & 3);` print?",
+      "category": "c",
+      "options": [
+        "2",
+        "7",
+        "3",
+        "6"
+      ],
+      "answer": "2",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `int s = 0; for (int i = 1; i <= 4; i++) s += i; printf(\"%d\", s);` print?",
+      "category": "c",
+      "options": [
+        "10",
+        "6",
+        "15",
+        "4"
+      ],
+      "answer": "10",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `printf(\"%d\", 5 | 2);` print?",
+      "category": "c",
+      "options": [
+        "7",
+        "5",
+        "0",
+        "10"
+      ],
+      "answer": "7",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `printf(\"%d\", 'Z' - 'A');` print?",
+      "category": "c",
+      "options": [
+        "25",
+        "26",
+        "1",
+        "65"
+      ],
+      "answer": "25",
+      "duration": 45,
+      "difficulty": "challenge"
     }
   ],
   "python": [
@@ -3692,6 +3978,136 @@
       "category": "Package Management",
       "duration": "1.5 minutes",
       "answer": "By using the 'install' command in the Python interpreter."
+    },
+    {
+      "question": "What does `print(2 ** 3 ** 2)` output? (`**` is right-associative)",
+      "category": "python",
+      "options": [
+        "512",
+        "64",
+        "81",
+        "256"
+      ],
+      "answer": "512",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `print([1, 2, 3, 4, 5][::-2])` output?",
+      "category": "python",
+      "options": [
+        "[5, 3, 1]",
+        "[1, 3, 5]",
+        "[4, 2]",
+        "[5, 4, 3, 2, 1]"
+      ],
+      "answer": "[5, 3, 1]",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "Given `def f(x, acc=[]):\\n    acc.append(x)\\n    return acc`, what does `f(1); print(f(2))` output? (mutable default)",
+      "category": "python",
+      "options": [
+        "[1, 2]",
+        "[2]",
+        "[1]",
+        "[1, 1, 2]"
+      ],
+      "answer": "[1, 2]",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `print(7 // 2 - -7 // 2)` output? (floor division rounds toward negative infinity)",
+      "category": "python",
+      "options": [
+        "7",
+        "6",
+        "0",
+        "-1"
+      ],
+      "answer": "7",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `print({x: x * x for x in range(3)})` output?",
+      "category": "python",
+      "options": [
+        "{0: 0, 1: 1, 2: 4}",
+        "{1: 1, 2: 4, 3: 9}",
+        "{0: 0, 1: 1, 2: 2}",
+        "[0, 1, 4]"
+      ],
+      "answer": "{0: 0, 1: 1, 2: 4}",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `print([i for i in range(5) if i % 2][::-1])` output?",
+      "category": "python",
+      "options": [
+        "[3, 1]",
+        "[1, 3]",
+        "[4, 2, 0]",
+        "[0, 2, 4]"
+      ],
+      "answer": "[3, 1]",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `print((lambda x: x)(0) or 'a' and 'b')` output? (`and`/`or` return operands)",
+      "category": "python",
+      "options": [
+        "b",
+        "a",
+        "0",
+        "True"
+      ],
+      "answer": "b",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `print(0.1 + 0.2 == 0.3)` output? (floating-point representation)",
+      "category": "python",
+      "options": [
+        "False",
+        "True",
+        "0.3",
+        "0.30000000000000004"
+      ],
+      "answer": "False",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "Given `grid = [[0] * 2] * 2; grid[0][0] = 1`, what does `print(grid)` output? (shared inner list)",
+      "category": "python",
+      "options": [
+        "[[1, 0], [1, 0]]",
+        "[[1, 0], [0, 0]]",
+        "[[1, 1], [0, 0]]",
+        "[[1, 0], [0, 1]]"
+      ],
+      "answer": "[[1, 0], [1, 0]]",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "For a Python `list`, what is the average time complexity of checking `x in my_list`?",
+      "category": "python",
+      "options": [
+        "O(n)",
+        "O(1)",
+        "O(log n)",
+        "O(n log n)"
+      ],
+      "answer": "O(n)",
+      "duration": 45,
+      "difficulty": "challenge"
     }
   ],
   "java": [
@@ -3904,6 +4320,136 @@
       "category": "Java",
       "difficulty": "medium",
       "duration": "30 seconds"
+    },
+    {
+      "question": "What does `System.out.println(\"5\" + 3 + 2)` print in Java?",
+      "category": "java",
+      "options": [
+        "532",
+        "55",
+        "10",
+        "552"
+      ],
+      "answer": "532",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `System.out.println(3 + 2 + \"5\")` print in Java?",
+      "category": "java",
+      "options": [
+        "55",
+        "325",
+        "535",
+        "10"
+      ],
+      "answer": "55",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `System.out.println('A' + 1)` print in Java? (`'A'` is `65`)",
+      "category": "java",
+      "options": [
+        "66",
+        "A1",
+        "B",
+        "65"
+      ],
+      "answer": "66",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `System.out.println(7 / 2)` print in Java?",
+      "category": "java",
+      "options": [
+        "3",
+        "3.5",
+        "4",
+        "3.0"
+      ],
+      "answer": "3",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `System.out.println(10 % -3)` print in Java?",
+      "category": "java",
+      "options": [
+        "1",
+        "-1",
+        "-3",
+        "0"
+      ],
+      "answer": "1",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does this print?\n```\nInteger a = 128, b = 128;\nSystem.out.println(a == b);\n```",
+      "category": "java",
+      "options": [
+        "false",
+        "true",
+        "128",
+        "compile error"
+      ],
+      "answer": "false",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does this print?\n```\nint[] arr = new int[3];\nSystem.out.println(arr[0]);\n```",
+      "category": "java",
+      "options": [
+        "0",
+        "null",
+        "garbage value",
+        "compile error"
+      ],
+      "answer": "0",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `System.out.println(5 + 3 * 2)` print in Java?",
+      "category": "java",
+      "options": [
+        "11",
+        "16",
+        "13",
+        "10"
+      ],
+      "answer": "11",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does `System.out.println(true ? 1 : 2.0)` print in Java?",
+      "category": "java",
+      "options": [
+        "1.0",
+        "1",
+        "2.0",
+        "true"
+      ],
+      "answer": "1.0",
+      "duration": 45,
+      "difficulty": "challenge"
+    },
+    {
+      "question": "What does this print?\n```\nString s = new String(\"hi\");\nSystem.out.println(s == \"hi\");\n```",
+      "category": "java",
+      "options": [
+        "false",
+        "true",
+        "hi",
+        "null"
+      ],
+      "answer": "false",
+      "duration": 45,
+      "difficulty": "challenge"
     }
   ],
   "sql": [
