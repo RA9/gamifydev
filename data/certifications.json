@@ -1,0 +1,24 @@
+{
+  "certifications": [
+    {
+      "id": "frontend",
+      "title": "Frontend Developer",
+      "world": "frontend",
+      "emoji": "🎓",
+      "blurb": "Prove you can build real, interactive web pages — from the fundamentals through a shipped app and a graded exam.",
+      "passThreshold": 80,
+      "requirements": {
+        "lessons": true,
+        "codingSessions": 3,
+        "capstone": "todo-app",
+        "assessment": true
+      },
+      "assessment": {
+        "durationMin": 20,
+        "mcqCategory": "javascript",
+        "mcqCount": 8,
+        "codeIds": ["js-fizzbuzz", "js-two-sum"]
+      }
+    }
+  ]
+}

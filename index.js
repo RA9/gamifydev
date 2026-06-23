@@ -17,6 +17,20 @@ function displayContent() {
         updateHud();
         return;
     }
+    // Parameterised route: #assess/<id> runs a final assessment.
+    if (currentURL && currentURL.indexOf('assess/') === 0) {
+        AssessmentPage(page, currentURL.slice('assess/'.length));
+        updateActiveNav('certify');
+        updateHud();
+        return;
+    }
+    // Parameterised route: #certificate/<id> shows an earned certificate.
+    if (currentURL && currentURL.indexOf('certificate/') === 0) {
+        CertificatePage(page, currentURL.slice('certificate/'.length));
+        updateActiveNav('certify');
+        updateHud();
+        return;
+    }
     switch (currentURL) {
         case 'about':
             AboutPage(page);
@@ -44,6 +58,9 @@ function displayContent() {
             break;
         case 'code':
             CodeLabPage(page);
+            break;
+        case 'certify':
+            CertifyPage(page);
             break;
         case 'review':
             ReviewPage(page);
