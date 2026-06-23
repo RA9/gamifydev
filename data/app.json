@@ -372,6 +372,71 @@
         ]
       },
       {
+        "name": "Python",
+        "modules": [
+          {
+            "title": "What is Python?",
+            "description": "A clear, friendly language used everywhere from web to AI.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Python Basics",
+            "previous": null
+          },
+          {
+            "title": "Python Basics",
+            "description": "Variables, types, and printing output in Python.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Control Flow in Python",
+            "previous": "What is Python?"
+          },
+          {
+            "title": "Control Flow in Python",
+            "description": "Make decisions and repeat work with if and loops.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Functions in Python",
+            "previous": "Python Basics"
+          },
+          {
+            "title": "Functions in Python",
+            "description": "Package and reuse logic with functions.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Lists and Dictionaries",
+            "previous": "Control Flow in Python"
+          },
+          {
+            "title": "Lists and Dictionaries",
+            "description": "Python’s workhorse data structures.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with Python",
+            "previous": "Functions in Python"
+          },
+          {
+            "title": "Next Steps with Python",
+            "description": "Where to go after the fundamentals.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Lists and Dictionaries"
+          }
+        ]
+      },
+      {
         "name": "Linux",
         "modules": [
           {

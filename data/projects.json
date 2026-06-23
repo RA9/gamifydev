@@ -82,6 +82,19 @@
       "tagline": "An OOP bank account with deposits and withdrawals.",
       "outcome": "A BankAccount class with deposit, withdraw, and balance — your first real object-oriented program.",
       "steps": 5
+    },
+    {
+      "id": "todo-cli-py",
+      "title": "To-Do List (CLI)",
+      "emoji": "🐍",
+      "world": "python",
+      "difficulty": "Intermediate",
+      "tech": [
+        "Python"
+      ],
+      "tagline": "A command-line task manager that saves your tasks.",
+      "outcome": "A Python CLI to add, list, complete, and delete tasks — saved to a file so they persist between runs.",
+      "steps": 7
     }
   ]
 }

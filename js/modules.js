@@ -930,6 +930,13 @@ const WORLDS = [
     blurb: "Object-oriented thinking that runs everywhere.",
   },
   {
+    path: "python",
+    name: "Python",
+    emoji: "🐍",
+    tagline: "Clear, friendly, everywhere",
+    blurb: "From first script to data & AI — the language that reads like English.",
+  },
+  {
     path: "linux",
     name: "Linux & Bash",
     emoji: "🐧",
@@ -1207,6 +1214,7 @@ function moduleQuizCategory(title, pathName) {
   // Single-topic paths map every lesson to their question bank.
   if (pathName === "c") return "c";
   if (pathName === "java") return "java";
+  if (pathName === "python") return "python";
   if (pathName === "linux") return "linux";
   if (t.includes("javascript")) return "javascript";
   if (t.includes("python")) return "python";
