@@ -154,7 +154,13 @@ async function ChallengePage(htmlEl, id) {
     const resultsEl = htmlEl.querySelector("#code-results");
     runBtn.disabled = true;
     runBtn.classList.add("opacity-60");
-    resultsEl.innerHTML = `<p class="text-sm font-bold text-slate-400">Running…</p>`;
+    const loadingPy =
+      (c.language || "").toLowerCase().startsWith("py") &&
+      typeof isPyReady === "function" &&
+      !isPyReady();
+    resultsEl.innerHTML = `<p class="text-sm font-bold text-slate-400">${
+      loadingPy ? "Loading Python… (one-time ~10s download)" : "Running…"
+    }</p>`;
 
     const code = editor.getValue();
     const res = await runChallenge(c, code);
