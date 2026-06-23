@@ -17,7 +17,33 @@
         "durationMin": 20,
         "mcqCategory": "javascript",
         "mcqCount": 8,
-        "codeIds": ["js-fizzbuzz", "js-two-sum"]
+        "codeIds": [
+          "js-fizzbuzz",
+          "js-two-sum"
+        ]
+      }
+    },
+    {
+      "id": "python",
+      "title": "Python Developer",
+      "world": "python",
+      "emoji": "🐍",
+      "blurb": "Prove you can think and build in Python — fundamentals, real code, a CLI app, and a graded exam.",
+      "passThreshold": 80,
+      "requirements": {
+        "lessons": true,
+        "codingSessions": 3,
+        "capstone": "todo-cli-py",
+        "assessment": true
+      },
+      "assessment": {
+        "durationMin": 20,
+        "mcqCategory": "python",
+        "mcqCount": 8,
+        "codeIds": [
+          "py-count-evens",
+          "py-fizzbuzz"
+        ]
       }
     }
   ]

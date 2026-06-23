@@ -33,6 +33,11 @@ const PATH_STORY = {
     mission:
       "Welcome to the Java crew — builders of robust, portable software that runs everywhere. Your mission: learn the object-oriented thinking that powers banks, Android apps, and huge enterprise systems.",
   },
+  python: {
+    crew: "Python crew",
+    mission:
+      "Welcome to the Python crew — the most-loved language for beginners and experts alike. Python reads almost like English and powers websites, data science, automation, and AI. Your mission: go from your first line to writing real, useful programs.",
+  },
   linux: {
     crew: "Ops crew",
     mission:
