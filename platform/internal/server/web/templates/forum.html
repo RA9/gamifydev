@@ -1,0 +1,34 @@
+{{ define "content" }}
+<div class="page-head forum-head">
+  <div>
+    <span class="chip">Community</span>
+    <h1>Forum</h1>
+    <p class="muted">Ask questions, share what you've built, and help each other grow.</p>
+  </div>
+  {{ if .User }}<a href="/forum/new" class="btn btn-primary">{{ icon "chat" }} New discussion</a>{{ end }}
+</div>
+
+<div class="card table-card">
+  <ul class="thread-list">
+    {{ range index .Data "threads" }}
+    <li class="thread-row">
+      <a class="thread-main" href="/forum/{{ .ID }}">
+        <div class="thread-title">
+          {{ if .Pinned }}<span class="pin" title="Pinned">📌</span>{{ end }}{{ .Title }}{{ if .Locked }} <span class="lock" title="Locked">🔒</span>{{ end }}
+        </div>
+        <div class="thread-meta">
+          <span class="cat-chip">{{ .Category }}</span>
+          <span class="muted">by {{ .AuthorName }} · {{ reltime .LastActivity }}</span>
+        </div>
+      </a>
+      <div class="thread-replies">
+        <span class="count-pill">{{ .ReplyCount }}</span>
+        <span class="muted">repl{{ if eq .ReplyCount 1 }}y{{ else }}ies{{ end }}</span>
+      </div>
+    </li>
+    {{ else }}
+    <li class="empty-row muted">No discussions yet. {{ if .User }}<a href="/forum/new">Start the first one →</a>{{ else }}<a href="/login">Sign in</a> to start one.{{ end }}</li>
+    {{ end }}
+  </ul>
+</div>
+{{ end }}

@@ -17,10 +17,25 @@ import (
 	ghtml "github.com/yuin/goldmark/renderer/html"
 )
 
+// md renders trusted, team-authored lesson content (raw HTML allowed).
 var md = goldmark.New(
 	goldmark.WithExtensions(extension.GFM),
 	goldmark.WithRendererOptions(ghtml.WithUnsafe()),
 )
+
+// mdSafe renders untrusted, user-generated content (forum posts): raw HTML is
+// escaped, not passed through — no WithUnsafe.
+var mdSafe = goldmark.New(goldmark.WithExtensions(extension.GFM))
+
+// RenderSafe converts user-submitted markdown to HTML, escaping any raw HTML to
+// prevent XSS. Use this for anything a learner can type.
+func RenderSafe(source string) template.HTML {
+	var buf bytes.Buffer
+	if err := mdSafe.Convert([]byte(source), &buf); err != nil {
+		return template.HTML(template.HTMLEscapeString(source))
+	}
+	return template.HTML(buf.String())
+}
 
 var fenceOpen = regexp.MustCompile(`^:::([a-zA-Z]+)\s*$`)
 

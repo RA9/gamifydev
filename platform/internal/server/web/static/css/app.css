@@ -429,3 +429,43 @@ body.admin { background:var(--slate-100); }
   border:2px solid var(--slate-200); border-radius:12px; resize:vertical; }
 .grade-panel textarea:focus { outline:none; border-color:var(--brand-400); }
 @media (max-width:820px){ .grade-grid { grid-template-columns:1fr; } .grade-panel { position:static; } }
+
+/* ===== Forum ===== */
+.forum-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.form textarea { font-family:inherit; font-size:1rem; width:100%; padding:11px 14px;
+  border:2px solid var(--slate-200); border-radius:12px; resize:vertical; line-height:1.5; }
+.form textarea:focus { outline:none; border-color:var(--brand-400); }
+
+.thread-list { list-style:none; margin:0; padding:6px; }
+.thread-row { display:flex; align-items:center; gap:16px; padding:14px 12px; border-radius:12px; }
+.thread-row + .thread-row { border-top:1px solid var(--slate-100); }
+.thread-row:hover { background:var(--brand-50); }
+.thread-main { flex:1; min-width:0; color:inherit; }
+.thread-title { font-weight:800; color:var(--slate-900); font-size:1.05rem; }
+.thread-meta { display:flex; align-items:center; gap:10px; margin-top:4px; font-size:.85rem; }
+.cat-chip { background:var(--brand-100); color:var(--brand-700); font-weight:800; font-size:.72rem;
+  padding:2px 9px; border-radius:999px; }
+.thread-replies { text-align:center; flex-shrink:0; min-width:60px; }
+.thread-replies .count-pill { display:block; margin:0 auto 2px; }
+.thread-replies .muted { font-size:.72rem; }
+.pin, .lock { margin-right:4px; }
+.empty-row { padding:18px !important; }
+
+.thread { max-width:760px; margin:0 auto; }
+.thread-head { display:flex; align-items:center; gap:8px; margin-top:6px; }
+.thread-h1 { font-size:1.8rem; color:var(--slate-900); margin:.3em 0 .6em; }
+.post { padding:4px 0; }
+.post-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.post-head .member-meta { flex:1; }
+.post-body { color:var(--slate-700); }
+.post-body > :first-child { margin-top:0; }
+.replies-h { font-size:1rem; color:var(--slate-500); margin:26px 0 12px; padding-top:18px;
+  border-top:1px solid var(--slate-200); }
+.reply-list { display:flex; flex-direction:column; gap:18px; }
+.reply { padding:16px; background:var(--slate-50); border:1px solid var(--slate-200); border-radius:14px; }
+.reply-form { margin-top:24px; padding-top:20px; border-top:1px solid var(--slate-200); }
+.locked-note { margin-top:24px; padding-top:20px; border-top:1px solid var(--slate-200); }
+
+.mod-actions { display:flex; gap:6px; justify-content:flex-end; }
+.btn-danger { color:var(--rose-500); border-color:#fecdd3; }
+.btn-danger:hover { background:#fff1f2; }
