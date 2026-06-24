@@ -1,0 +1,18 @@
+{{ define "content" }}
+<div class="auth-card card">
+  <h1>Welcome back</h1>
+  <p class="muted">Sign in to keep building.</p>
+  <form method="post" action="/login" class="form">
+    <label class="field">
+      <span>Email</span>
+      <input type="email" name="email" value="{{ index .Data "email" }}" required autofocus />
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" required />
+    </label>
+    <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+  </form>
+  <p class="auth-alt">New here? <a href="/register">Create an account</a></p>
+</div>
+{{ end }}

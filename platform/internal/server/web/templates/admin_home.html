@@ -1,0 +1,17 @@
+{{ define "content" }}
+<div class="page-head">
+  <h1>Admin portal</h1>
+  <p class="muted">Manage the platform, its people, and its content.</p>
+</div>
+
+<div class="grid-cards">
+  <a class="card linkcard" href="/admin/users">
+    <div class="feature-emoji">👥</div>
+    <h3>User management</h3>
+    <p class="muted">{{ index .Data "userCount" }} registered · roles &amp; access</p>
+  </a>
+  <a class="card linkcard" href="#"><div class="feature-emoji">📚</div><h3>Courses</h3><p class="muted">Author lessons &amp; media.</p></a>
+  <a class="card linkcard" href="#"><div class="feature-emoji">📝</div><h3>Grading queue</h3><p class="muted">Review assignment submissions.</p></a>
+  <a class="card linkcard" href="#"><div class="feature-emoji">🏆</div><h3>Competitions</h3><p class="muted">Create &amp; run contests.</p></a>
+</div>
+{{ end }}

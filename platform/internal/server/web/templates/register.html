@@ -1,0 +1,23 @@
+{{ define "content" }}
+<div class="auth-card card">
+  <h1>Create your account</h1>
+  <p class="muted">Join GamifyDev and start your first lesson today.</p>
+  <form method="post" action="/register" class="form">
+    <label class="field">
+      <span>Name</span>
+      <input type="text" name="name" value="{{ index .Data "name" }}" required autofocus />
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input type="email" name="email" value="{{ index .Data "email" }}" required />
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" minlength="8" required />
+      <small class="muted">At least 8 characters.</small>
+    </label>
+    <button type="submit" class="btn btn-primary btn-block">Create account</button>
+  </form>
+  <p class="auth-alt">Already have an account? <a href="/login">Sign in</a></p>
+</div>
+{{ end }}

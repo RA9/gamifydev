@@ -1,0 +1,41 @@
+{{ define "content" }}
+<section class="hero">
+  <span class="chip">A complete coding academy</span>
+  <h1>Learn to code by <em>building</em>.</h1>
+  <p class="lead">
+    Guided courses with video and audio, hands-on coding assignments graded by real
+    mentors, live competitions, and a community forum — all in one place.
+  </p>
+  <div class="hero-cta">
+    {{ if .User }}
+      <a href="/dashboard" class="btn btn-primary btn-lg">Go to your dashboard</a>
+    {{ else }}
+      <a href="/register" class="btn btn-primary btn-lg">Start learning free</a>
+      <a href="/login" class="btn btn-secondary btn-lg">Sign in</a>
+    {{ end }}
+  </div>
+</section>
+
+<section class="features">
+  <div class="card feature">
+    <div class="feature-emoji">📚</div>
+    <h3>Rich courses</h3>
+    <p>Lessons with images, video, and audio — depth you can actually talk about.</p>
+  </div>
+  <div class="card feature">
+    <div class="feature-emoji">⌨️</div>
+    <h3>Mentor-graded code</h3>
+    <p>Real assignments reviewed by a human on the team, with feedback that pushes you.</p>
+  </div>
+  <div class="card feature">
+    <div class="feature-emoji">🏆</div>
+    <h3>Competitions</h3>
+    <p>Timed coding contests with leaderboards to test your edge against others.</p>
+  </div>
+  <div class="card feature">
+    <div class="feature-emoji">💬</div>
+    <h3>Community forum</h3>
+    <p>Ask, answer, and learn together. Nobody ships great code alone.</p>
+  </div>
+</section>
+{{ end }}
