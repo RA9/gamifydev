@@ -1,0 +1,41 @@
+{{ define "content" }}
+<div class="page-head">
+  <h1>Grading queue</h1>
+  <p class="muted">{{ index .Data "pending" }} submission{{ if ne (index .Data "pending") 1 }}s{{ end }} awaiting review.</p>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr><th>Learner</th><th>Assignment</th><th>Status</th><th class="ta-right">Submitted</th><th></th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "queue" }}
+      <tr>
+        <td>
+          <div class="member-cell">
+            <span class="avatar avatar-sm" aria-hidden="true">{{ initials .UserName }}</span>
+            <div class="member-meta">
+              <span class="member-name">{{ .UserName }}</span>
+              <span class="member-email">{{ .UserEmail }}</span>
+            </div>
+          </div>
+        </td>
+        <td>{{ .Assignment.Title }} <span class="muted">· {{ .Assignment.Language }}</span></td>
+        <td>
+          {{ if eq .Status "graded" }}<span class="badge badge-ok">Graded{{ if .Score.Valid }} · {{ .Score.Int64 }}{{ end }}</span>
+          {{ else if eq .Status "returned" }}<span class="badge badge-warn">Returned</span>
+          {{ else }}<span class="badge badge-warn">Pending</span>{{ end }}
+        </td>
+        <td class="ta-right muted">{{ reltime .CreatedAt }}</td>
+        <td class="ta-right">
+          <a class="btn btn-secondary btn-sm" href="/admin/grading/{{ .ID }}">{{ if eq .Status "graded" }}View{{ else }}Review{{ end }}</a>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">No submissions yet. Learners' work will appear here.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

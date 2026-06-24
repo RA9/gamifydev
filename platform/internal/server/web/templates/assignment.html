@@ -1,0 +1,46 @@
+{{ define "content" }}
+{{ $a := index .Data "assignment" }}
+<article class="lesson card">
+  <a class="back" href="/assignments">← Assignments</a>
+  <h1 class="lesson-h1">{{ $a.Title }}</h1>
+  <p class="muted">{{ if $a.CourseName }}{{ $a.CourseName }} · {{ end }}{{ $a.Language }} · {{ $a.MaxPoints }} pts</p>
+
+  {{ if index .Data "submitted" }}
+    <div class="flash flash-ok">Submitted! A mentor will review your code and leave feedback.</div>
+  {{ end }}
+
+  <div class="prose">{{ index .Data "prompt" }}</div>
+
+  {{ with index .Data "submission" }}
+    <div class="sub-status">
+      <div class="sub-status-head">
+        <strong>Your latest submission</strong>
+        {{ if eq .Status "graded" }}<span class="badge badge-ok">Graded</span>
+        {{ else if eq .Status "returned" }}<span class="badge badge-warn">Returned for rework</span>
+        {{ else }}<span class="badge badge-warn">In review</span>{{ end }}
+      </div>
+      {{ if .Score.Valid }}<p class="score">Score: <strong>{{ .Score.Int64 }}</strong> / {{ $a.MaxPoints }}</p>{{ end }}
+      {{ if .Feedback }}
+        <div class="feedback">
+          <p class="feedback-label">Mentor feedback</p>
+          <p>{{ .Feedback }}</p>
+        </div>
+      {{ else if ne .Status "graded" }}
+        <p class="muted">Waiting for a mentor to review it.</p>
+      {{ end }}
+    </div>
+  {{ end }}
+
+  <form method="post" action="/assignments/{{ $a.Slug }}/submit" class="submit-form">
+    <label class="field">
+      <span>Your solution</span>
+      <textarea name="code" class="code-area" rows="14" spellcheck="false" required>{{ with index .Data "submission" }}{{ .Code }}{{ else }}{{ $a.Starter }}{{ end }}</textarea>
+    </label>
+    <label class="field">
+      <span>Note to your mentor <span class="muted">(optional)</span></span>
+      <textarea name="note" rows="2" placeholder="Anything you'd like feedback on?"></textarea>
+    </label>
+    <button class="btn btn-primary" type="submit">Submit for review</button>
+  </form>
+</article>
+{{ end }}

@@ -1,0 +1,25 @@
+{{ define "content" }}
+<div class="page-head">
+  <span class="chip">Hands-on</span>
+  <h1>Assignments</h1>
+  <p class="muted">Write real code, submit it, and get feedback from a mentor on the team.</p>
+</div>
+
+<div class="grid-cards">
+  {{ range index .Data "rows" }}
+    <a class="card linkcard assign-card" href="/assignments/{{ .Slug }}">
+      <div class="assign-top">
+        <span class="lang-tag">{{ .Language }}</span>
+        {{ if eq .Status "graded" }}<span class="badge badge-ok">Graded</span>
+        {{ else if eq .Status "submitted" }}<span class="badge badge-warn">In review</span>
+        {{ else if eq .Status "returned" }}<span class="badge badge-warn">Returned</span>
+        {{ else }}<span class="badge">Not started</span>{{ end }}
+      </div>
+      <h3>{{ .Title }}</h3>
+      <p class="muted">{{ if .CourseName }}{{ .CourseName }} · {{ end }}{{ .MaxPoints }} pts</p>
+    </a>
+  {{ else }}
+    <p class="muted">No assignments are published yet.</p>
+  {{ end }}
+</div>
+{{ end }}

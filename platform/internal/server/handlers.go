@@ -93,6 +93,8 @@ func (s *Server) startSession(w http.ResponseWriter, r *http.Request, u *store.U
 	dest := "/dashboard"
 	if u.IsAdmin() {
 		dest = "/admin"
+	} else if u.CanGrade() {
+		dest = "/admin/grading"
 	}
 	http.Redirect(w, r, dest, http.StatusSeeOther)
 }

@@ -1,0 +1,48 @@
+{{ define "content" }}
+{{ $s := index .Data "sub" }}
+<div class="page-head">
+  <a class="back" href="/admin/grading">← Grading queue</a>
+  <h1>{{ $s.Assignment.Title }}</h1>
+  <p class="muted">by <strong>{{ $s.UserName }}</strong> ({{ $s.UserEmail }}) · {{ reltime $s.CreatedAt }}{{ if $s.GraderName }} · graded by {{ $s.GraderName }}{{ end }}</p>
+</div>
+
+<div class="grade-grid">
+  <div class="card">
+    <h3 class="card-h">Prompt</h3>
+    <div class="prose">{{ index .Data "prompt" }}</div>
+
+    {{ if $s.Note }}
+      <aside class="callout callout-tip">
+        <p class="callout-title">{{ icon "chat" }} Learner's note</p>
+        <div class="callout-body"><p>{{ $s.Note }}</p></div>
+      </aside>
+    {{ end }}
+
+    <h3 class="card-h">Submitted code</h3>
+    <pre class="code-block"><code>{{ $s.Code }}</code></pre>
+  </div>
+
+  <div class="card grade-panel">
+    <h3 class="card-h">Grade this submission</h3>
+    <form method="post" action="/admin/grading/{{ $s.ID }}" class="form">
+      <label class="field">
+        <span>Score (out of {{ $s.Assignment.MaxPoints }})</span>
+        <input type="number" name="score" min="0" max="{{ $s.Assignment.MaxPoints }}"
+               value="{{ if $s.Score.Valid }}{{ $s.Score.Int64 }}{{ end }}" required />
+      </label>
+      <label class="field">
+        <span>Feedback to the learner</span>
+        <textarea name="feedback" rows="9" placeholder="What's strong, what to improve, and why...">{{ $s.Feedback }}</textarea>
+      </label>
+      <label class="field">
+        <span>Decision</span>
+        <select name="status" class="role-select">
+          <option value="graded" {{ if eq $s.Status "graded" }}selected{{ end }}>✓ Mark graded (pass)</option>
+          <option value="returned" {{ if eq $s.Status "returned" }}selected{{ end }}>↩ Return for rework</option>
+        </select>
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">{{ icon "check" }} Save grade</button>
+    </form>
+  </div>
+</div>
+{{ end }}

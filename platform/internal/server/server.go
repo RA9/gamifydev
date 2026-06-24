@@ -42,7 +42,11 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /logout", s.handleLogout)
 
 	// Learner (auth required)
-	mux.Handle("GET /dashboard", s.requireAuth(http.HandlerFunc(s.handleDashboard)))
+	in := s.requireAuth
+	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
+	mux.Handle("GET /assignments", in(http.HandlerFunc(s.handleAssignments)))
+	mux.Handle("GET /assignments/{slug}", in(http.HandlerFunc(s.handleAssignment)))
+	mux.Handle("POST /assignments/{slug}/submit", in(http.HandlerFunc(s.handleSubmitAssignment)))
 
 	// Admin
 	admin := s.requireRole("admin")
@@ -50,9 +54,14 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /admin/users", admin(http.HandlerFunc(s.handleAdminUsers)))
 	mux.Handle("POST /admin/users/{id}/role", admin(http.HandlerFunc(s.handleAdminSetRole)))
 	mux.Handle("GET /admin/courses", admin(http.HandlerFunc(s.handleAdminCourses)))
-	mux.Handle("GET /admin/grading", admin(http.HandlerFunc(s.handleAdminSoon("Grading queue"))))
 	mux.Handle("GET /admin/competitions", admin(http.HandlerFunc(s.handleAdminSoon("Competitions"))))
 	mux.Handle("GET /admin/forum", admin(http.HandlerFunc(s.handleAdminSoon("Forum"))))
+
+	// Grading — admins and graders
+	staff := s.requireRole("admin", "grader")
+	mux.Handle("GET /admin/grading", staff(http.HandlerFunc(s.handleAdminGrading)))
+	mux.Handle("GET /admin/grading/{id}", staff(http.HandlerFunc(s.handleAdminGradeForm)))
+	mux.Handle("POST /admin/grading/{id}", staff(http.HandlerFunc(s.handleAdminGrade)))
 
 	// loadUser runs on every request so templates know who's logged in.
 	return s.loadUser(mux)
