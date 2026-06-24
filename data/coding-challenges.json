@@ -89,6 +89,71 @@
       ]
     },
     {
+      "id": "c-sum-two",
+      "title": "Sum Two Numbers",
+      "language": "c",
+      "difficulty": "Warm-up",
+      "prompt": "Read two integers from input (separated by a space) and `printf` their sum. For input `3 4`, print `7`.",
+      "starter": "#include <stdio.h>\n\nint main() {\n    int a, b;\n    scanf(\"%d %d\", &a, &b);\n    // print a + b\n    return 0;\n}\n",
+      "tests": [
+        { "name": "3 4 -> 7", "input": "3 4", "expected": "7" },
+        { "name": "10 -2 -> 8", "input": "10 -2", "expected": "8", "hidden": true },
+        { "name": "0 0 -> 0", "input": "0 0", "expected": "0", "hidden": true }
+      ]
+    },
+    {
+      "id": "c-print-range",
+      "title": "Count to N",
+      "language": "c",
+      "difficulty": "Easy",
+      "prompt": "Read an integer `n`, then print the numbers `1` to `n` separated by spaces. For `n = 5`, print `1 2 3 4 5` (a trailing space is fine).",
+      "starter": "#include <stdio.h>\n\nint main() {\n    int n;\n    scanf(\"%d\", &n);\n    // loop from 1 to n, printing each followed by a space\n    return 0;\n}\n",
+      "tests": [
+        { "name": "n = 5", "input": "5", "expected": "1 2 3 4 5" },
+        { "name": "n = 1", "input": "1", "expected": "1", "hidden": true },
+        { "name": "n = 3", "input": "3", "expected": "1 2 3", "hidden": true }
+      ]
+    },
+    {
+      "id": "c-factorial",
+      "title": "Factorial",
+      "language": "c",
+      "difficulty": "Easy",
+      "prompt": "Read an integer `n` (0 ≤ n ≤ 12) and print `n!` (n factorial). Recall `0! = 1` and `5! = 120`.",
+      "starter": "#include <stdio.h>\n\nint main() {\n    int n;\n    scanf(\"%d\", &n);\n    // compute and print n!\n    return 0;\n}\n",
+      "tests": [
+        { "name": "5! = 120", "input": "5", "expected": "120" },
+        { "name": "0! = 1", "input": "0", "expected": "1", "hidden": true },
+        { "name": "6! = 720", "input": "6", "expected": "720", "hidden": true }
+      ]
+    },
+    {
+      "id": "c-max-three",
+      "title": "Largest of Three",
+      "language": "c",
+      "difficulty": "Medium",
+      "prompt": "Read three integers separated by spaces and print the largest one.",
+      "starter": "#include <stdio.h>\n\nint main() {\n    int a, b, c;\n    scanf(\"%d %d %d\", &a, &b, &c);\n    // print the largest of a, b, c\n    return 0;\n}\n",
+      "tests": [
+        { "name": "3 7 5 -> 7", "input": "3 7 5", "expected": "7" },
+        { "name": "9 1 4 -> 9", "input": "9 1 4", "expected": "9", "hidden": true },
+        { "name": "all negative", "input": "-1 -5 -3", "expected": "-1", "hidden": true }
+      ]
+    },
+    {
+      "id": "c-digit-sum",
+      "title": "Sum of Digits",
+      "language": "c",
+      "difficulty": "Medium",
+      "prompt": "Read a non-negative integer and print the sum of its digits. For `1234`, print `10` (1+2+3+4).",
+      "starter": "#include <stdio.h>\n\nint main() {\n    int n;\n    scanf(\"%d\", &n);\n    // print the sum of n's digits\n    return 0;\n}\n",
+      "tests": [
+        { "name": "1234 -> 10", "input": "1234", "expected": "10" },
+        { "name": "9 -> 9", "input": "9", "expected": "9", "hidden": true },
+        { "name": "100 -> 1", "input": "100", "expected": "1", "hidden": true }
+      ]
+    },
+    {
       "id": "py-greet",
       "title": "Greet by Name",
       "language": "python",
