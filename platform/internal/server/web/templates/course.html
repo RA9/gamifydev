@@ -1,0 +1,30 @@
+{{ define "content" }}
+{{ $course := index .Data "course" }}
+<div class="page-head">
+  <a class="back" href="/courses">← All courses</a>
+  <div class="course-head">
+    <div class="course-emoji-lg">{{ if $course.Emoji }}{{ $course.Emoji }}{{ else }}📘{{ end }}</div>
+    <div>
+      <h1>{{ $course.Title }}</h1>
+      <p class="muted">{{ $course.Tagline }}</p>
+    </div>
+  </div>
+</div>
+
+<ol class="lesson-list card">
+  {{ range index .Data "lessons" }}
+    <li>
+      <a href="/courses/{{ $course.Slug }}/{{ .Slug }}">
+        <span class="lesson-no">{{ add .Sort 1 }}</span>
+        <span class="lesson-info">
+          <span class="lesson-title">{{ .Title }}</span>
+          {{ if .Summary }}<span class="lesson-sum muted">{{ .Summary }}</span>{{ end }}
+        </span>
+        <span class="lesson-go">→</span>
+      </a>
+    </li>
+  {{ else }}
+    <li class="muted">No lessons yet.</li>
+  {{ end }}
+</ol>
+{{ end }}

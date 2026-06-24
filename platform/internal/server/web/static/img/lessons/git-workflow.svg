@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="260" viewBox="0 0 760 260" role="img" aria-label="The Git workflow: working directory, then git add to staging, git commit to the local repository, and git push to GitHub.">
+  <defs>
+    <style>
+      .lbl { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+      .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; }
+    </style>
+  </defs>
+  <rect x="2" y="2" width="756" height="256" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="380" y="40" text-anchor="middle" class="lbl" font-size="22" fill="#475569">The Git workflow</text>
+
+  <!-- Boxes -->
+  <g class="lbl" font-size="16" text-anchor="middle">
+    <rect x="24"  y="110" width="150" height="90" rx="16" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+    <text x="99"  y="150" fill="#334155">Working</text>
+    <text x="99"  y="172" fill="#334155">Directory</text>
+
+    <rect x="218" y="110" width="150" height="90" rx="16" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/>
+    <text x="293" y="150" fill="#7c2d12">Staging</text>
+    <text x="293" y="172" fill="#7c2d12">Area</text>
+
+    <rect x="412" y="110" width="150" height="90" rx="16" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+    <text x="487" y="150" fill="#14532d">Local</text>
+    <text x="487" y="172" fill="#14532d">Repository</text>
+
+    <rect x="606" y="110" width="150" height="90" rx="16" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+    <text x="681" y="150" fill="#4c1d95">GitHub</text>
+    <text x="681" y="172" fill="#4c1d95">(remote)</text>
+  </g>
+
+  <!-- Arrows + commands -->
+  <g text-anchor="middle">
+    <text x="196" y="148" class="mono" font-size="18" fill="#94a3b8">→</text>
+    <text x="196" y="100" class="mono" font-size="15" fill="#c2410c">git add</text>
+
+    <text x="390" y="148" class="mono" font-size="18" fill="#94a3b8">→</text>
+    <text x="390" y="100" class="mono" font-size="15" fill="#15803d">git commit</text>
+
+    <text x="584" y="148" class="mono" font-size="18" fill="#94a3b8">→</text>
+    <text x="584" y="100" class="mono" font-size="15" fill="#6d28d9">git push</text>
+  </g>
+</svg>

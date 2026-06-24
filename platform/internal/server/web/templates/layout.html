@@ -13,6 +13,7 @@
       <nav class="container nav">
         <a href="/" class="brand">Gamify<span>Dev</span></a>
         <div class="nav-links">
+          <a href="/courses">Courses</a>
           {{ if .User }}
             <a href="/dashboard">Dashboard</a>
             {{ if .User.IsAdmin }}<a href="/admin">Admin</a>{{ end }}

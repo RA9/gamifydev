@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300" role="img" aria-label="A pointer stores a memory address. The variable x lives at address 0x1A4 holding the value 42. The pointer p, at address 0x2C0, holds 0x1A4 — the address of x — so following p (writing *p) reaches the value 42.">
+  <defs>
+    <style>
+      .lbl  { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
+    </style>
+    <marker id="ahp" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6740e8"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="716" height="296" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="360" y="44" text-anchor="middle" class="lbl" font-size="21" fill="#475569">A pointer stores the address of another variable</text>
+
+  <!-- variable x -->
+  <text x="150" y="96" text-anchor="middle" class="mono" font-size="16" fill="#6740e8">int x = 42;</text>
+  <rect x="70" y="112" width="160" height="120" rx="16" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+  <rect x="70" y="112" width="160" height="30" rx="0" fill="#a78bfa" opacity="0.25"/>
+  <text x="150" y="133" text-anchor="middle" class="mono" font-size="15" fill="#4c1d95">@ 0x1A4</text>
+  <text x="150" y="196" text-anchor="middle" class="mono" font-size="44" fill="#4c1d95">42</text>
+  <text x="150" y="256" text-anchor="middle" class="lbl" font-size="15" fill="#7c6fb0">the value</text>
+
+  <!-- pointer p -->
+  <text x="500" y="96" text-anchor="middle" class="mono" font-size="16" fill="#6740e8">int *p = &amp;x;</text>
+  <rect x="420" y="112" width="180" height="120" rx="16" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+  <rect x="420" y="112" width="180" height="30" rx="0" fill="#4ade80" opacity="0.25"/>
+  <text x="510" y="133" text-anchor="middle" class="mono" font-size="15" fill="#14532d">@ 0x2C0</text>
+  <text x="510" y="190" text-anchor="middle" class="mono" font-size="30" fill="#14532d">0x1A4</text>
+  <text x="510" y="256" text-anchor="middle" class="lbl" font-size="15" fill="#15803d">the address of x</text>
+
+  <!-- arrow p -> x -->
+  <path d="M 416 172 C 330 172, 320 172, 234 172" fill="none" stroke="#6740e8" stroke-width="3" marker-end="url(#ahp)"/>
+  <text x="325" y="160" text-anchor="middle" class="mono" font-size="14" fill="#6740e8">*p &#8594; 42</text>
+</svg>

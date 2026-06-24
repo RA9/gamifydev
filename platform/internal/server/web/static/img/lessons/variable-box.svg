@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="300" viewBox="0 0 720 300" role="img" aria-label="A variable is a labeled box that stores a value. Three boxes labeled age (25), name (Ada), and isStudent (true).">
+  <defs>
+    <style>
+      .lbl  { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
+    </style>
+  </defs>
+  <rect x="2" y="2" width="716" height="296" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="360" y="46" text-anchor="middle" class="lbl" font-size="22" fill="#475569">A variable is a labeled box that stores a value</text>
+
+  <!-- age = 25 -->
+  <g>
+    <rect x="70" y="120" width="160" height="120" rx="16" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+    <rect x="70" y="92" width="120" height="34" rx="10" fill="#6740e8"/>
+    <text x="130" y="115" text-anchor="middle" class="mono" font-size="20" fill="#ffffff">age</text>
+    <text x="150" y="195" text-anchor="middle" class="mono" font-size="40" fill="#4c1d95">25</text>
+  </g>
+
+  <!-- name = "Ada" -->
+  <g>
+    <rect x="280" y="120" width="160" height="120" rx="16" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+    <rect x="280" y="92" width="130" height="34" rx="10" fill="#377e06"/>
+    <text x="345" y="115" text-anchor="middle" class="mono" font-size="20" fill="#ffffff">name</text>
+    <text x="360" y="192" text-anchor="middle" class="mono" font-size="32" fill="#14532d">"Ada"</text>
+  </g>
+
+  <!-- isStudent = true -->
+  <g>
+    <rect x="490" y="120" width="160" height="120" rx="16" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/>
+    <rect x="490" y="92" width="160" height="34" rx="10" fill="#c2410c"/>
+    <text x="570" y="115" text-anchor="middle" class="mono" font-size="18" fill="#ffffff">isStudent</text>
+    <text x="570" y="192" text-anchor="middle" class="mono" font-size="30" fill="#7c2d12">true</text>
+  </g>
+</svg>

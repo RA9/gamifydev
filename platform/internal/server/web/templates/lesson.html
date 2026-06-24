@@ -1,0 +1,31 @@
+{{ define "content" }}
+{{ $course := index .Data "course" }}
+{{ $lesson := index .Data "lesson" }}
+<article class="lesson card">
+  <a class="back" href="/courses/{{ $course.Slug }}">← {{ $course.Title }}</a>
+  <h1 class="lesson-h1">{{ $lesson.Title }}</h1>
+  {{ if $lesson.Summary }}<p class="lead">{{ $lesson.Summary }}</p>{{ end }}
+
+  {{ if $lesson.VideoURL }}
+    <div class="media"><video controls preload="metadata" src="{{ $lesson.VideoURL }}"></video></div>
+  {{ end }}
+  {{ if $lesson.AudioURL }}
+    <div class="media"><audio controls preload="metadata" src="{{ $lesson.AudioURL }}"></audio></div>
+  {{ end }}
+
+  <div class="prose">
+    {{ index .Data "body" }}
+  </div>
+
+  <nav class="lesson-nav">
+    {{ with index .Data "prev" }}
+      <a class="btn btn-secondary" href="/courses/{{ $course.Slug }}/{{ .Slug }}">← {{ .Title }}</a>
+    {{ else }}<span></span>{{ end }}
+    {{ with index .Data "next" }}
+      <a class="btn btn-primary" href="/courses/{{ $course.Slug }}/{{ .Slug }}">{{ .Title }} →</a>
+    {{ else }}
+      <a class="btn btn-primary" href="/courses/{{ $course.Slug }}">Finish course ✓</a>
+    {{ end }}
+  </nav>
+</article>
+{{ end }}
