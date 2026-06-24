@@ -1,0 +1,57 @@
+{{ define "content" }}
+{{ $t := index .Data "thread" }}
+<article class="thread card">
+  <a class="back" href="/forum">← Forum</a>
+  <div class="thread-head">
+    <span class="cat-chip">{{ $t.Category }}</span>
+    {{ if $t.Pinned }}<span class="badge badge-info">Pinned</span>{{ end }}
+    {{ if $t.Locked }}<span class="badge badge-warn">Locked</span>{{ end }}
+  </div>
+  <h1 class="thread-h1">{{ $t.Title }}</h1>
+
+  <div class="post">
+    <div class="post-head">
+      <span class="avatar avatar-sm" aria-hidden="true">{{ initials $t.AuthorName }}</span>
+      <div class="member-meta">
+        <span class="member-name">{{ $t.AuthorName }}</span>
+        <span class="member-email">{{ reltime $t.CreatedAt }}</span>
+      </div>
+      <span class="role-pill role-{{ $t.AuthorRole }}">{{ titlecase $t.AuthorRole }}</span>
+    </div>
+    <div class="prose post-body">{{ index .Data "body" }}</div>
+  </div>
+
+  <h3 class="replies-h" id="replies">Replies ({{ len (index .Data "replies") }})</h3>
+  <div class="reply-list">
+    {{ range index .Data "replies" }}
+    <div class="post reply">
+      <div class="post-head">
+        <span class="avatar avatar-sm" aria-hidden="true">{{ initials .AuthorName }}</span>
+        <div class="member-meta">
+          <span class="member-name">{{ .AuthorName }}</span>
+          <span class="member-email">{{ reltime .CreatedAt }}</span>
+        </div>
+        <span class="role-pill role-{{ .AuthorRole }}">{{ titlecase .AuthorRole }}</span>
+      </div>
+      <div class="prose post-body">{{ .Body }}</div>
+    </div>
+    {{ else }}
+    <p class="muted">No replies yet — be the first to respond.</p>
+    {{ end }}
+  </div>
+
+  {{ if $t.Locked }}
+    <p class="muted locked-note">🔒 This discussion is locked. No new replies.</p>
+  {{ else if .User }}
+    <form method="post" action="/forum/{{ $t.ID }}/reply" class="reply-form">
+      <label class="field">
+        <span>Add a reply</span>
+        <textarea name="body" rows="4" required placeholder="Share your thoughts (markdown supported)"></textarea>
+      </label>
+      <button class="btn btn-primary" type="submit">Post reply</button>
+    </form>
+  {{ else }}
+    <p class="muted"><a href="/login">Sign in</a> to join the conversation.</p>
+  {{ end }}
+</article>
+{{ end }}

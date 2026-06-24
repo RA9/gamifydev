@@ -1,0 +1,41 @@
+{{ define "content" }}
+<div class="page-head">
+  <h1>Forum moderation</h1>
+  <p class="muted">Pin important threads, lock heated ones, or remove what doesn't belong.</p>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr><th>Discussion</th><th>Author</th><th class="ta-center">Replies</th><th class="ta-right">Actions</th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "threads" }}
+      <tr>
+        <td>
+          <a href="/forum/{{ .ID }}" class="member-name">{{ if .Pinned }}📌 {{ end }}{{ .Title }}{{ if .Locked }} 🔒{{ end }}</a>
+          <div class="muted"><code class="slug">{{ .Category }}</code></div>
+        </td>
+        <td class="muted">{{ .AuthorName }}</td>
+        <td class="ta-center"><span class="count-pill">{{ .ReplyCount }}</span></td>
+        <td class="ta-right mod-actions">
+          <form method="post" action="/admin/forum/{{ .ID }}/pin" class="inline">
+            <input type="hidden" name="on" value="{{ if .Pinned }}0{{ else }}1{{ end }}" />
+            <button class="btn btn-secondary btn-sm">{{ if .Pinned }}Unpin{{ else }}Pin{{ end }}</button>
+          </form>
+          <form method="post" action="/admin/forum/{{ .ID }}/lock" class="inline">
+            <input type="hidden" name="on" value="{{ if .Locked }}0{{ else }}1{{ end }}" />
+            <button class="btn btn-secondary btn-sm">{{ if .Locked }}Unlock{{ else }}Lock{{ end }}</button>
+          </form>
+          <form method="post" action="/admin/forum/{{ .ID }}/delete" class="inline" onsubmit="return confirm('Delete this discussion and all its replies?')">
+            <button class="btn btn-secondary btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="4" class="muted">No discussions yet.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}
