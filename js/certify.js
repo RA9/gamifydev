@@ -224,7 +224,7 @@ async function AssessmentPage(htmlEl, id) {
       <div class="gd-card sticky top-[72px] z-20 flex items-center justify-between">
         <div>
           <h1 class="text-lg font-extrabold">${cert.title} — Final Assessment</h1>
-          <p class="text-xs text-slate-500">${mcqs.length} questions + ${codes.length} coding tasks · pass at ${cert.passThreshold}%</p>
+          <p class="text-xs text-slate-500">${mcqs.length} questions${codes.length ? ` + ${codes.length} coding tasks` : ""} · pass at ${cert.passThreshold}%</p>
         </div>
         <div class="text-right">
           <p id="assess-timer" class="text-2xl font-extrabold text-brand-600 tabular-nums">${a.durationMin || 20}:00</p>
@@ -346,7 +346,7 @@ async function gradeAssessment(htmlEl, autoSubmitted = false) {
     resultEl.innerHTML = `
       <div class="rounded-2xl border-2 p-5 text-center ${passed ? "border-grass-300 bg-grass-50" : "border-rose-200 bg-rose-50"}">
         <p class="text-4xl font-extrabold ${passed ? "text-grass-600" : "text-rose-500"}">${score}%</p>
-        <p class="font-bold text-slate-700 mt-1">${mcqCorrect}/${mcqs.length} reasoning · ${codePass}/${codes.length} coding</p>
+        <p class="font-bold text-slate-700 mt-1">${mcqCorrect}/${mcqs.length} reasoning${codes.length ? ` · ${codePass}/${codes.length} coding` : ""}</p>
         <p class="mt-2 ${passed ? "text-grass-700" : "text-slate-600"} font-bold">
           ${
             passed
