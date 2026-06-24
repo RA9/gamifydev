@@ -65,6 +65,29 @@
         "mcqCount": 8,
         "codeIds": []
       }
+    },
+    {
+      "id": "c",
+      "title": "C Developer",
+      "world": "c",
+      "emoji": "⚙️",
+      "blurb": "Prove you can think in C — fundamentals, pointers & memory, a built program, and a graded exam with real code.",
+      "passThreshold": 80,
+      "requirements": {
+        "lessons": true,
+        "codingSessions": 3,
+        "capstone": "number-guess-c",
+        "assessment": true
+      },
+      "assessment": {
+        "durationMin": 25,
+        "mcqCategory": "c",
+        "mcqCount": 8,
+        "codeIds": [
+          "c-sum-two",
+          "c-digit-sum"
+        ]
+      }
     }
   ]
 }
