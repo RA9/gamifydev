@@ -1,0 +1,40 @@
+{{ define "content" }}
+<div class="page-head">
+  <a class="back" href="/admin/competitions">← Competitions</a>
+  <h1>New competition</h1>
+</div>
+
+<div class="card" style="max-width:720px;">
+  <form method="post" action="/admin/competitions" class="form">
+    <label class="field">
+      <span>Title</span>
+      <input type="text" name="title" value="{{ index .Data "title" }}" required autofocus />
+    </label>
+    <div class="form-row">
+      <label class="field">
+        <span>Language</span>
+        <input type="text" name="language" value="python" />
+      </label>
+      <label class="field">
+        <span>Points</span>
+        <input type="number" name="points" value="100" min="1" />
+      </label>
+    </div>
+    <div class="form-row">
+      <label class="field">
+        <span>Starts at</span>
+        <input type="datetime-local" name="starts_at" required />
+      </label>
+      <label class="field">
+        <span>Ends at</span>
+        <input type="datetime-local" name="ends_at" required />
+      </label>
+    </div>
+    <label class="field">
+      <span>Prompt <span class="muted">(markdown)</span></span>
+      <textarea name="prompt" rows="10" placeholder="Describe the challenge...">{{ index .Data "prompt" }}</textarea>
+    </label>
+    <button class="btn btn-primary" type="submit">Create competition</button>
+  </form>
+</div>
+{{ end }}

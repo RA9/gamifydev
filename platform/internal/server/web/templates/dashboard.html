@@ -1,16 +1,41 @@
 {{ define "content" }}
-<div class="page-head">
-  <h1>Welcome, {{ .User.Name }} 👋</h1>
-  <p class="muted">Your learning home. Courses, competitions, and the forum are coming online.</p>
-</div>
+<section class="portal-hero">
+  <div>
+    <h1>Welcome back, {{ .User.Name }} 👋</h1>
+    <p class="muted">Your learning home — keep the streak going.</p>
+  </div>
+</section>
 
-<div class="grid-cards">
-  <a class="card linkcard" href="/courses"><div class="feature-emoji">📚</div><h3>Courses</h3><p class="muted">Pick up where you left off.</p></a>
-  <a class="card linkcard" href="/assignments"><div class="feature-emoji">⌨️</div><h3>Assignments</h3><p class="muted">Submit work for mentor review.</p></a>
-  <a class="card linkcard" href="#"><div class="feature-emoji">🏆</div><h3>Competitions</h3><p class="muted">Join a timed contest.</p></a>
-  <a class="card linkcard" href="/forum"><div class="feature-emoji">💬</div><h3>Forum</h3><p class="muted">Ask and answer questions.</p></a>
-  {{ if .User.CanGrade }}
-    <a class="card linkcard" href="/admin/grading"><div class="feature-emoji">📝</div><h3>Grading queue</h3><p class="muted">Review learner submissions.</p></a>
-  {{ end }}
-</div>
+<section class="portal-tiles">
+  <a class="portal-tile tile-brand" href="/courses">
+    <span class="tile-ic">{{ icon "book" }}</span>
+    <span class="tile-name">Courses</span>
+    <span class="tile-sub">Guided learning paths</span>
+  </a>
+  <a class="portal-tile tile-grass" href="/assignments">
+    <span class="tile-ic">{{ icon "clipboard" }}</span>
+    <span class="tile-name">Assignments</span>
+    <span class="tile-sub">Submit for mentor review</span>
+  </a>
+  <a class="portal-tile tile-amber" href="/competitions">
+    <span class="tile-ic">{{ icon "trophy" }}</span>
+    <span class="tile-name">Competitions</span>
+    <span class="tile-sub">Compete on the leaderboard</span>
+  </a>
+  <a class="portal-tile tile-rose" href="/forum">
+    <span class="tile-ic">{{ icon "chat" }}</span>
+    <span class="tile-name">Forum</span>
+    <span class="tile-sub">Ask &amp; share with peers</span>
+  </a>
+</section>
+
+{{ if .User.CanGrade }}
+<section class="card staff-strip">
+  <div>
+    <strong>{{ icon "clipboard" }} Mentor tools</strong>
+    <p class="muted">You can review and grade learner submissions.</p>
+  </div>
+  <a href="/admin/grading" class="btn btn-primary btn-sm">Open grading queue</a>
+</section>
+{{ end }}
 {{ end }}
