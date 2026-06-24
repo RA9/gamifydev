@@ -34,7 +34,9 @@
   <form method="post" action="/assignments/{{ $a.Slug }}/submit" class="submit-form">
     <label class="field">
       <span>Your solution</span>
-      <textarea name="code" class="code-area" rows="14" spellcheck="false" required>{{ with index .Data "submission" }}{{ .Code }}{{ else }}{{ $a.Starter }}{{ end }}</textarea>
+      <gd-code-editor lang="{{ $a.Language }}">
+        <textarea name="code" class="gd-editor-ta" rows="14" spellcheck="false" required>{{ with index .Data "submission" }}{{ .Code }}{{ else }}{{ $a.Starter }}{{ end }}</textarea>
+      </gd-code-editor>
     </label>
     <label class="field">
       <span>Note to your mentor <span class="muted">(optional)</span></span>
