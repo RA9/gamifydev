@@ -1,0 +1,28 @@
+{{ define "content" }}
+<div class="page-head forum-head">
+  <div>
+    <h1>Assignments</h1>
+    <p class="muted">Author mentor-graded coding assignments.</p>
+  </div>
+  <a href="/admin/assignments/new" class="btn btn-primary">{{ icon "clipboard" }} New assignment</a>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>Assignment</th><th>Course</th><th>Language</th><th>Status</th><th class="ta-right"></th></tr></thead>
+    <tbody>
+      {{ range index .Data "assignments" }}
+      <tr>
+        <td class="member-name">{{ .Title }}</td>
+        <td class="muted">{{ if .CourseName }}{{ .CourseName }}{{ else }}—{{ end }}</td>
+        <td class="muted"><code class="slug">{{ .Language }}</code></td>
+        <td>{{ if .Published }}<span class="badge badge-ok">Published</span>{{ else }}<span class="badge">Draft</span>{{ end }}</td>
+        <td class="ta-right"><a class="btn btn-secondary btn-sm" href="/admin/assignments/{{ .ID }}">Edit</a></td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">No assignments yet. Create your first one.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

@@ -1,0 +1,51 @@
+{{ define "content" }}
+{{ $c := index .Data "course" }}
+<div class="page-head forum-head">
+  <div>
+    <a class="back" href="/admin/courses">← Courses</a>
+    <h1>{{ if $c.Emoji }}{{ $c.Emoji }} {{ end }}{{ $c.Title }}</h1>
+    <p class="muted"><a href="/courses/{{ $c.Slug }}" target="_blank">View public page ↗</a></p>
+  </div>
+  <a href="/admin/courses/{{ $c.ID }}/lessons/new" class="btn btn-primary">{{ icon "book" }} New lesson</a>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>#</th><th>Lesson</th><th class="ta-right">Actions</th></tr></thead>
+    <tbody>
+      {{ range index .Data "lessons" }}
+      <tr>
+        <td class="muted">{{ add .Sort 1 }}</td>
+        <td>
+          <span class="member-name">{{ .Title }}</span>
+          {{ if .Summary }}<div class="muted">{{ .Summary }}</div>{{ end }}
+        </td>
+        <td class="ta-right mod-actions">
+          <a class="btn btn-secondary btn-sm" href="/admin/lessons/{{ .ID }}">Edit</a>
+          <form method="post" action="/admin/lessons/{{ .ID }}/delete" class="inline" onsubmit="return confirm('Delete this lesson?')">
+            <button class="btn btn-secondary btn-sm btn-danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="3" class="muted">No lessons yet — add the first one.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<details class="card" style="margin-top:18px;">
+  <summary style="cursor:pointer;font-weight:800;color:var(--slate-700);">Course settings</summary>
+  <form method="post" action="/admin/courses/{{ $c.ID }}" class="form" style="margin-top:16px;">
+    <label class="field"><span>Title</span><input name="title" value="{{ $c.Title }}" required /></label>
+    <div class="form-row">
+      <label class="field"><span>Emoji</span><input name="emoji" value="{{ $c.Emoji }}" /></label>
+      <label class="field"><span>Slug</span><input name="slug" value="{{ $c.Slug }}" /></label>
+    </div>
+    <label class="field"><span>Tagline</span><input name="tagline" value="{{ $c.Tagline }}" /></label>
+    <label class="field"><span>Description</span><textarea name="description" rows="3">{{ $c.Description }}</textarea></label>
+    <label class="check"><input type="checkbox" name="published" value="1" {{ if $c.Published }}checked{{ end }} /> Published</label>
+    <button class="btn btn-primary" type="submit">Save changes</button>
+  </form>
+</details>
+{{ end }}
