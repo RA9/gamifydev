@@ -572,3 +572,21 @@ body.portal { background:var(--slate-100); overflow-x:hidden; }
   .site-header .nav { height:auto; flex-wrap:wrap; padding:10px 0; gap:10px 14px; }
   .site-header .nav-links { gap:14px; flex-wrap:wrap; font-size:.92rem; }
 }
+
+/* ===== Learner portal footer ===== */
+.app-footer { margin-top:auto; background:#fff; border-top:1px solid var(--slate-200); }
+.app-footer-inner { max-width:1180px; margin:0 auto; padding:32px 20px 20px;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+.app-footer-logo { font-size:1.2rem; color:var(--slate-900); }
+.app-footer-logo span { color:var(--brand-600); }
+.app-footer-brand p { margin:6px 0 0; font-size:.9rem; }
+.app-footer-links { display:flex; flex-wrap:wrap; gap:8px 22px; }
+.app-footer-links a { color:var(--slate-500); font-weight:700; font-size:.9rem; }
+.app-footer-links a:hover { color:var(--brand-600); }
+.app-footer-links a:focus-visible { outline:2px solid var(--brand-500); outline-offset:2px; border-radius:4px; }
+.app-footer-bottom { max-width:1180px; margin:0 auto; padding:14px 20px max(16px, env(safe-area-inset-bottom));
+  border-top:1px solid var(--slate-100); display:flex; align-items:center; justify-content:space-between;
+  gap:10px; flex-wrap:wrap; font-size:.82rem; color:var(--slate-400); }
+@media (max-width:560px){
+  .app-footer-inner { flex-direction:column; gap:16px; }
+}
