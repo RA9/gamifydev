@@ -1,0 +1,54 @@
+{{ define "content" }}
+{{ $c := index .Data "comp" }}
+{{ $st := index .Data "status" }}
+<div class="comp-grid">
+  <article class="card">
+    <a class="back" href="/competitions">← Competitions</a>
+    <div class="thread-head">
+      <span class="lang-tag">{{ $c.Language }}</span>
+      {{ if eq $st "live" }}<span class="badge badge-ok">● Live now</span>
+      {{ else if eq $st "upcoming" }}<span class="badge badge-info">Upcoming</span>
+      {{ else }}<span class="badge">Ended</span>{{ end }}
+      <span class="muted">{{ $c.Points }} pts</span>
+    </div>
+    <h1 class="lesson-h1">{{ $c.Title }}</h1>
+    <p class="muted">{{ $c.StartsAt.Format "Mon Jan 2, 3:04 PM" }} → {{ $c.EndsAt.Format "Mon Jan 2, 3:04 PM" }}</p>
+
+    {{ if index .Data "entered" }}<div class="flash flash-ok">Your entry is in! You can keep editing it while the contest is live.</div>{{ end }}
+
+    <div class="prose">{{ index .Data "prompt" }}</div>
+
+    {{ if eq $st "live" }}
+      {{ if .User }}
+        <form method="post" action="/competitions/{{ $c.Slug }}/submit" class="submit-form">
+          <label class="field">
+            <span>Your solution</span>
+            <textarea name="code" class="code-area" rows="14" spellcheck="false" required>{{ with index .Data "entry" }}{{ .Code }}{{ end }}</textarea>
+          </label>
+          <button class="btn btn-primary" type="submit">{{ with index .Data "entry" }}Update entry{{ else }}Submit entry{{ end }}</button>
+        </form>
+      {{ else }}
+        <p class="muted submit-form"><a href="/login">Sign in</a> to compete.</p>
+      {{ end }}
+    {{ else if eq $st "upcoming" }}
+      <p class="muted submit-form">⏳ This competition opens {{ $c.StartsAt.Format "Mon Jan 2 at 3:04 PM" }}.</p>
+    {{ else }}
+      <p class="muted submit-form">🏁 This competition has ended. Final standings are on the right.</p>
+    {{ end }}
+  </article>
+
+  <aside class="card leaderboard">
+    <h3 class="card-h">{{ icon "trophy" }} Leaderboard</h3>
+    {{ range $i, $e := index .Data "board" }}
+      <div class="lb-row {{ if and $.User (eq $e.UserID $.User.ID) }}lb-me{{ end }}">
+        <span class="lb-rank lb-rank-{{ add $i 1 }}">{{ add $i 1 }}</span>
+        <span class="avatar avatar-sm">{{ initials $e.UserName }}</span>
+        <span class="lb-name">{{ $e.UserName }}</span>
+        <span class="lb-score">{{ $e.Score }}</span>
+      </div>
+    {{ else }}
+      <p class="muted">No entries yet — be the first!</p>
+    {{ end }}
+  </aside>
+</div>
+{{ end }}

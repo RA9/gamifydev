@@ -1,0 +1,44 @@
+{{ define "content" }}
+{{ $c := index .Data "comp" }}
+<div class="page-head">
+  <a class="back" href="/admin/competitions">← Competitions</a>
+  <h1>{{ $c.Title }}</h1>
+  <p class="muted">
+    {{ if eq (index .Data "status") "live" }}<span class="badge badge-ok">Live</span>
+    {{ else if eq (index .Data "status") "upcoming" }}<span class="badge badge-info">Upcoming</span>
+    {{ else }}<span class="badge">Ended</span>{{ end }}
+    · {{ $c.Points }} pts ·
+    <a href="/competitions/{{ $c.Slug }}" target="_blank">view public page ↗</a>
+  </p>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr><th>Entrant</th><th>Submitted</th><th>Solution</th><th class="ta-right">Score</th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "entries" }}
+      <tr>
+        <td>
+          <div class="member-cell">
+            <span class="avatar avatar-sm">{{ initials .UserName }}</span>
+            <span class="member-name">{{ .UserName }}</span>
+          </div>
+        </td>
+        <td class="muted">{{ reltime .CreatedAt }}</td>
+        <td><details><summary class="code-summary">View code</summary><pre class="code-block"><code>{{ .Code }}</code></pre></details></td>
+        <td class="ta-right">
+          <form method="post" action="/admin/competitions/{{ $c.Slug }}/entries/{{ .ID }}/score" class="inline score-form">
+            <input type="number" name="score" value="{{ .Score }}" min="0" max="{{ $c.Points }}" class="score-input" />
+            <button class="btn btn-secondary btn-sm" type="submit">Save</button>
+          </form>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="4" class="muted">No entries yet.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

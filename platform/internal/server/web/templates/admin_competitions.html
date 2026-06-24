@@ -1,0 +1,35 @@
+{{ define "content" }}
+<div class="page-head forum-head">
+  <div>
+    <h1>Competitions</h1>
+    <p class="muted">Create and run timed coding contests.</p>
+  </div>
+  <a href="/admin/competitions/new" class="btn btn-primary">{{ icon "trophy" }} New competition</a>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr><th>Competition</th><th>Status</th><th>Window</th><th class="ta-center">Entries</th><th class="ta-right"></th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "comps" }}
+      {{ $st := .Status }}
+      <tr>
+        <td class="member-name">{{ .Title }} <span class="muted">· {{ .Language }}</span></td>
+        <td>
+          {{ if eq $st "live" }}<span class="badge badge-ok">Live</span>
+          {{ else if eq $st "upcoming" }}<span class="badge badge-info">Upcoming</span>
+          {{ else }}<span class="badge">Ended</span>{{ end }}
+        </td>
+        <td class="muted">{{ .StartsAt.Format "Jan 2, 3:04 PM" }} → {{ .EndsAt.Format "Jan 2, 3:04 PM" }}</td>
+        <td class="ta-center"><span class="count-pill">{{ .EntryCount }}</span></td>
+        <td class="ta-right"><a class="btn btn-secondary btn-sm" href="/admin/competitions/{{ .Slug }}">Manage</a></td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">No competitions yet. Create your first one.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

@@ -1,0 +1,26 @@
+{{ define "content" }}
+<div class="page-head">
+  <span class="chip">Compete</span>
+  <h1>Competitions</h1>
+  <p class="muted">Timed coding contests. Submit your best solution and climb the leaderboard.</p>
+</div>
+
+<div class="grid-cards">
+  {{ range index .Data "comps" }}
+    {{ $st := .Status }}
+    <a class="card linkcard comp-card" href="/competitions/{{ .Slug }}">
+      <div class="comp-top">
+        <span class="lang-tag">{{ .Language }}</span>
+        {{ if eq $st "live" }}<span class="badge badge-ok">● Live now</span>
+        {{ else if eq $st "upcoming" }}<span class="badge badge-info">Upcoming</span>
+        {{ else }}<span class="badge">Ended</span>{{ end }}
+      </div>
+      <h3>{{ .Title }}</h3>
+      <p class="muted">{{ .Points }} pts · {{ .EntryCount }} entr{{ if eq .EntryCount 1 }}y{{ else }}ies{{ end }}</p>
+      <p class="comp-when muted">{{ .StartsAt.Format "Jan 2, 3:04 PM" }} → {{ .EndsAt.Format "Jan 2, 3:04 PM" }}</p>
+    </a>
+  {{ else }}
+    <p class="muted">No competitions yet. Check back soon!</p>
+  {{ end }}
+</div>
+{{ end }}

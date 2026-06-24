@@ -37,6 +37,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /courses/{course}/{lesson}", s.handleLesson)
 	mux.HandleFunc("GET /forum", s.handleForum)
 	mux.HandleFunc("GET /forum/{id}", s.handleForumThread)
+	mux.HandleFunc("GET /competitions", s.handleCompetitions)
+	mux.HandleFunc("GET /competitions/{slug}", s.handleCompetition)
 	mux.HandleFunc("GET /login", s.handleLoginForm)
 	mux.HandleFunc("POST /login", s.handleLogin)
 	mux.HandleFunc("GET /register", s.handleRegisterForm)
@@ -52,6 +54,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /forum/new", in(http.HandlerFunc(s.handleForumNewForm)))
 	mux.Handle("POST /forum", in(http.HandlerFunc(s.handleForumCreate)))
 	mux.Handle("POST /forum/{id}/reply", in(http.HandlerFunc(s.handleForumReply)))
+	mux.Handle("POST /competitions/{slug}/submit", in(http.HandlerFunc(s.handleCompetitionSubmit)))
 
 	// Admin
 	admin := s.requireRole("admin")
@@ -59,7 +62,11 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /admin/users", admin(http.HandlerFunc(s.handleAdminUsers)))
 	mux.Handle("POST /admin/users/{id}/role", admin(http.HandlerFunc(s.handleAdminSetRole)))
 	mux.Handle("GET /admin/courses", admin(http.HandlerFunc(s.handleAdminCourses)))
-	mux.Handle("GET /admin/competitions", admin(http.HandlerFunc(s.handleAdminSoon("Competitions"))))
+	mux.Handle("GET /admin/competitions", admin(http.HandlerFunc(s.handleAdminCompetitions)))
+	mux.Handle("GET /admin/competitions/new", admin(http.HandlerFunc(s.handleAdminCompetitionNew)))
+	mux.Handle("POST /admin/competitions", admin(http.HandlerFunc(s.handleAdminCompetitionCreate)))
+	mux.Handle("GET /admin/competitions/{slug}", admin(http.HandlerFunc(s.handleAdminCompetitionManage)))
+	mux.Handle("POST /admin/competitions/{slug}/entries/{id}/score", admin(http.HandlerFunc(s.handleAdminScoreEntry)))
 	mux.Handle("GET /admin/forum", admin(http.HandlerFunc(s.handleAdminForum)))
 	mux.Handle("POST /admin/forum/{id}/{action}", admin(http.HandlerFunc(s.handleForumModerate)))
 

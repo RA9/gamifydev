@@ -33,40 +33,67 @@ type ViewData struct {
 	Data  map[string]any
 }
 
-type pageTmpl struct {
-	t      *template.Template
-	layout string // root template name to execute
+// The three shells. Pages are compiled against all of them and the right one
+// is chosen per request:
+//   - layout.html        : public / marketing (guests)
+//   - app_layout.html    : the learner portal (authenticated, app-style nav)
+//   - admin_layout.html  : the admin sidebar
+const (
+	layoutPublic = "layout.html"
+	layoutApp    = "app_layout.html"
+	layoutAdmin  = "admin_layout.html"
+)
+
+var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin}
+
+// alwaysPublic pages keep the marketing shell even when signed in.
+var alwaysPublic = map[string]bool{
+	"home.html": true, "login.html": true, "register.html": true, "notfound.html": true,
 }
 
 type renderer struct {
-	pages map[string]pageTmpl
+	pages map[string]*template.Template
 }
 
-// newRenderer compiles each page with its layout: admin_* pages use the sidebar
-// layout (admin_layout.html); everything else uses the top-nav layout.
+// newRenderer compiles each page together with all layout shells, so the layout
+// can be selected at render time (guest vs learner vs admin).
 func newRenderer() (*renderer, error) {
 	entries, err := templatesFS.ReadDir("web/templates")
 	if err != nil {
 		return nil, err
 	}
-	r := &renderer{pages: map[string]pageTmpl{}}
+	layoutPaths := make([]string, len(allLayouts))
+	for i, l := range allLayouts {
+		layoutPaths[i] = "web/templates/" + l
+	}
+	r := &renderer{pages: map[string]*template.Template{}}
 	for _, e := range entries {
 		name := e.Name()
-		if e.IsDir() || name == "layout.html" || name == "admin_layout.html" {
+		if e.IsDir() || name == layoutPublic || name == layoutApp || name == layoutAdmin {
 			continue
 		}
-		layout := "layout.html"
-		if strings.HasPrefix(name, "admin_") {
-			layout = "admin_layout.html"
-		}
-		t, err := template.New(layout).Funcs(funcMap).
-			ParseFS(templatesFS, "web/templates/"+layout, "web/templates/"+name)
+		files := append(append([]string{}, layoutPaths...), "web/templates/"+name)
+		t, err := template.New(name).Funcs(funcMap).ParseFS(templatesFS, files...)
 		if err != nil {
 			return nil, err
 		}
-		r.pages[name] = pageTmpl{t: t, layout: layout}
+		r.pages[name] = t
 	}
 	return r, nil
+}
+
+// chooseLayout decides which shell wraps a page for this request.
+func chooseLayout(page string, signedIn bool) string {
+	switch {
+	case strings.HasPrefix(page, "admin_"):
+		return layoutAdmin
+	case alwaysPublic[page]:
+		return layoutPublic
+	case signedIn:
+		return layoutApp
+	default:
+		return layoutPublic
+	}
 }
 
 var funcMap = template.FuncMap{
@@ -82,11 +109,12 @@ var funcMap = template.FuncMap{
 		}
 		return strings.ToUpper(s[:1]) + s[1:]
 	},
+	"hasprefix": strings.HasPrefix,
 }
 
 // render writes a full page (page template + layout) for the request.
 func (s *Server) render(w http.ResponseWriter, req *http.Request, page string, vd ViewData) {
-	p, ok := s.rnd.pages[page]
+	t, ok := s.rnd.pages[page]
 	if !ok {
 		http.Error(w, "template not found: "+page, http.StatusInternalServerError)
 		return
@@ -97,7 +125,7 @@ func (s *Server) render(w http.ResponseWriter, req *http.Request, page string, v
 		vd.Data = map[string]any{}
 	}
 	var buf bytes.Buffer
-	if err := p.t.ExecuteTemplate(&buf, p.layout, vd); err != nil {
+	if err := t.ExecuteTemplate(&buf, chooseLayout(page, vd.User != nil), vd); err != nil {
 		http.Error(w, "render error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -108,13 +136,13 @@ func (s *Server) render(w http.ResponseWriter, req *http.Request, page string, v
 // renderPartial renders a single named template (an htmx fragment) from a
 // page's template set — used to swap just part of the page.
 func (s *Server) renderPartial(w http.ResponseWriter, _ *http.Request, page, name string, data any) {
-	p, ok := s.rnd.pages[page]
+	t, ok := s.rnd.pages[page]
 	if !ok {
 		http.Error(w, "template not found: "+page, http.StatusInternalServerError)
 		return
 	}
 	var buf bytes.Buffer
-	if err := p.t.ExecuteTemplate(&buf, name, data); err != nil {
+	if err := t.ExecuteTemplate(&buf, name, data); err != nil {
 		http.Error(w, "render error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
