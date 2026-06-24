@@ -595,3 +595,10 @@ body.portal { background:var(--slate-100); overflow-x:hidden; }
 .check { display:inline-flex; align-items:center; gap:9px; font-weight:700; color:var(--slate-700);
   font-size:.95rem; cursor:pointer; user-select:none; }
 .check input { width:18px; height:18px; accent-color:var(--brand-600); }
+
+/* Code-editor textarea — fallback styling if the <gd-code-editor> component
+   hasn't upgraded yet; inside the component, ::slotted overrides this. */
+.gd-editor-ta { width:100%; box-sizing:border-box; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.9rem; line-height:1.65; padding:14px; border:2px solid var(--slate-200); border-radius:12px;
+  min-height:220px; resize:vertical; color:var(--slate-900); }
+.gd-editor-ta:focus { outline:none; border-color:var(--brand-400); }

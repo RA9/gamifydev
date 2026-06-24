@@ -23,7 +23,9 @@
         <form method="post" action="/competitions/{{ $c.Slug }}/submit" class="submit-form">
           <label class="field">
             <span>Your solution</span>
-            <textarea name="code" class="code-area" rows="14" spellcheck="false" required>{{ with index .Data "entry" }}{{ .Code }}{{ end }}</textarea>
+            <gd-code-editor lang="{{ $c.Language }}">
+              <textarea name="code" class="gd-editor-ta" rows="14" spellcheck="false" required>{{ with index .Data "entry" }}{{ .Code }}{{ end }}</textarea>
+            </gd-code-editor>
           </label>
           <button class="btn btn-primary" type="submit">{{ with index .Data "entry" }}Update entry{{ else }}Submit entry{{ end }}</button>
         </form>
