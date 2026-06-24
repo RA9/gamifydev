@@ -45,6 +45,26 @@
           "py-fizzbuzz"
         ]
       }
+    },
+    {
+      "id": "java",
+      "title": "Java Developer",
+      "world": "java",
+      "emoji": "☕",
+      "blurb": "Prove your Java fundamentals — lessons, object-oriented thinking, a built app, and a graded reasoning exam.",
+      "passThreshold": 80,
+      "requirements": {
+        "lessons": true,
+        "codingSessions": 3,
+        "capstone": "bank-account-java",
+        "assessment": true
+      },
+      "assessment": {
+        "durationMin": 18,
+        "mcqCategory": "java",
+        "mcqCount": 8,
+        "codeIds": []
+      }
     }
   ]
 }
