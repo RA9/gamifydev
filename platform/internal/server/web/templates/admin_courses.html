@@ -1,0 +1,26 @@
+{{ define "content" }}
+<div class="page-head">
+  <h1>Courses</h1>
+  <p class="muted">All courses on the platform. Authoring &amp; media uploads land here next.</p>
+</div>
+
+<div class="card table-card">
+  <table class="table">
+    <thead>
+      <tr><th>Course</th><th>Slug</th><th>Lessons</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "courses" }}
+        <tr>
+          <td class="strong">{{ .Emoji }} {{ .Title }}</td>
+          <td class="muted">{{ .Slug }}</td>
+          <td>{{ .LessonCount }}</td>
+          <td>{{ if .Published }}<span class="badge badge-ok">Published</span>{{ else }}<span class="badge">Draft</span>{{ end }}</td>
+        </tr>
+      {{ else }}
+        <tr><td colspan="4" class="muted">No courses yet. Run the content seeder.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

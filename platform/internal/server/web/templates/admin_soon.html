@@ -1,0 +1,10 @@
+{{ define "content" }}
+<div class="page-head">
+  <h1>{{ index .Data "section" }}</h1>
+</div>
+<div class="card empty-state">
+  <div class="feature-emoji">🛠️</div>
+  <h3>Coming together soon</h3>
+  <p class="muted">The {{ index .Data "section" }} area is part of the build-out in progress.</p>
+</div>
+{{ end }}

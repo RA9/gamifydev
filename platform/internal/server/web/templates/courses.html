@@ -1,0 +1,20 @@
+{{ define "content" }}
+<div class="page-head">
+  <span class="chip">Course catalog</span>
+  <h1>Courses</h1>
+  <p class="muted">Pick a track and start building. Each course is a guided path of lessons.</p>
+</div>
+
+<div class="grid-cards">
+  {{ range index .Data "courses" }}
+    <a class="card linkcard course-card" href="/courses/{{ .Slug }}">
+      <div class="course-emoji">{{ if .Emoji }}{{ .Emoji }}{{ else }}📘{{ end }}</div>
+      <h3>{{ .Title }}</h3>
+      <p class="muted">{{ .Tagline }}</p>
+      <span class="course-meta">{{ .LessonCount }} lesson{{ if ne .LessonCount 1 }}s{{ end }}</span>
+    </a>
+  {{ else }}
+    <p class="muted">No courses are published yet.</p>
+  {{ end }}
+</div>
+{{ end }}

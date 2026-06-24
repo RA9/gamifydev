@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="240" viewBox="0 0 720 240" role="img" aria-label="C is compiled: your source file hello.c is turned by the gcc compiler into a standalone executable program that the computer runs.">
+  <defs>
+    <style>
+      .lbl  { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
+    </style>
+    <marker id="ahc" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#6740e8"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="716" height="236" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="360" y="44" text-anchor="middle" class="lbl" font-size="21" fill="#475569">C is compiled: source code becomes a standalone program</text>
+
+  <!-- source -->
+  <rect x="44" y="92" width="164" height="92" rx="16" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+  <text x="126" y="134" text-anchor="middle" class="mono" font-size="22" fill="#4c1d95">hello.c</text>
+  <text x="126" y="162" text-anchor="middle" class="lbl" font-size="13" fill="#7c6fb0">your source code</text>
+
+  <text x="244" y="128" text-anchor="middle" class="lbl" font-size="13" fill="#6740e8">compile</text>
+  <line x1="212" y1="138" x2="276" y2="138" stroke="#6740e8" stroke-width="3" marker-end="url(#ahc)"/>
+
+  <!-- compiler -->
+  <rect x="282" y="92" width="156" height="92" rx="16" fill="#6740e8"/>
+  <text x="360" y="132" text-anchor="middle" class="mono" font-size="22" fill="#ffffff">gcc</text>
+  <text x="360" y="160" text-anchor="middle" class="lbl" font-size="13" fill="#d8ccff">the compiler</text>
+
+  <text x="472" y="128" text-anchor="middle" class="lbl" font-size="13" fill="#6740e8">run</text>
+  <line x1="442" y1="138" x2="506" y2="138" stroke="#6740e8" stroke-width="3" marker-end="url(#ahc)"/>
+
+  <!-- executable -->
+  <rect x="512" y="92" width="172" height="92" rx="16" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/>
+  <text x="598" y="132" text-anchor="middle" class="mono" font-size="22" fill="#14532d">./hello</text>
+  <text x="598" y="160" text-anchor="middle" class="lbl" font-size="13" fill="#15803d">runnable program</text>
+</svg>

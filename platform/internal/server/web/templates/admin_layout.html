@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ .Title }}{{ if .Title }} · {{ end }}GamifyDev Admin</title>
+    <link rel="stylesheet" href="/static/css/app.css" />
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  </head>
+  <body class="admin">
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <a href="/" class="brand sidebar-brand">Gamify<span>Dev</span></a>
+        <p class="sidebar-label">Admin</p>
+        <nav class="sidebar-nav">
+          {{ $p := .Path }}
+          <a href="/admin" class="{{ if eq $p "/admin" }}active{{ end }}">📊 Overview</a>
+          <a href="/admin/users" class="{{ if eq $p "/admin/users" }}active{{ end }}">👥 Users</a>
+          <a href="/admin/courses" class="{{ if eq $p "/admin/courses" }}active{{ end }}">📚 Courses</a>
+          <a href="/admin/grading" class="{{ if eq $p "/admin/grading" }}active{{ end }}">📝 Grading</a>
+          <a href="/admin/competitions" class="{{ if eq $p "/admin/competitions" }}active{{ end }}">🏆 Competitions</a>
+          <a href="/admin/forum" class="{{ if eq $p "/admin/forum" }}active{{ end }}">💬 Forum</a>
+        </nav>
+        <div class="sidebar-foot">
+          <a href="/dashboard">← Learner view</a>
+          <form method="post" action="/logout" class="inline">
+            <button class="btn btn-ghost btn-sm" type="submit">Sign out</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar">
+          <span class="muted">Signed in as <strong>{{ .User.Name }}</strong> · {{ .User.Role }}</span>
+        </header>
+        <main class="admin-content">
+          {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
+          {{ block "content" . }}{{ end }}
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

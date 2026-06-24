@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="240" viewBox="0 0 760 240" role="img" aria-label="A learning roadmap: you are here, then frameworks, then backend and APIs, then real projects, then job ready.">
+  <defs>
+    <style>
+      .lbl { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+    </style>
+  </defs>
+  <rect x="2" y="2" width="756" height="236" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="380" y="42" text-anchor="middle" class="lbl" font-size="22" fill="#475569">Where to go next</text>
+
+  <!-- path line -->
+  <path d="M70 140 H690" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round"/>
+
+  <!-- milestones -->
+  <g text-anchor="middle" class="lbl">
+    <circle cx="70"  cy="140" r="22" fill="#6740e8"/>
+    <text x="70"  y="147" font-size="20" fill="#ffffff">★</text>
+    <text x="70"  y="190" font-size="14" fill="#4c1d95">You are here</text>
+
+    <circle cx="225" cy="140" r="18" fill="#dcfce7" stroke="#4ade80" stroke-width="3"/>
+    <text x="225" y="146" font-size="18">🧩</text>
+    <text x="225" y="190" font-size="14" fill="#334155">Frameworks</text>
+    <text x="225" y="208" font-size="12" fill="#94a3b8">(React, Vue)</text>
+
+    <circle cx="380" cy="140" r="18" fill="#dcfce7" stroke="#4ade80" stroke-width="3"/>
+    <text x="380" y="146" font-size="18">🗄️</text>
+    <text x="380" y="190" font-size="14" fill="#334155">Backend &amp; APIs</text>
+
+    <circle cx="535" cy="140" r="18" fill="#dcfce7" stroke="#4ade80" stroke-width="3"/>
+    <text x="535" y="146" font-size="18">🚀</text>
+    <text x="535" y="190" font-size="14" fill="#334155">Real projects</text>
+
+    <circle cx="690" cy="140" r="22" fill="#58cc02"/>
+    <text x="690" y="147" font-size="20" fill="#ffffff">🏆</text>
+    <text x="690" y="190" font-size="14" fill="#377e06">Job-ready</text>
+  </g>
+</svg>

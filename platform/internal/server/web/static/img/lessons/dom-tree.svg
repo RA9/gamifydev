@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="380" viewBox="0 0 720 380" role="img" aria-label="The DOM tree: document contains html, which contains head and body. Head contains title; body contains h1 and p.">
+  <defs>
+    <style>
+      .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; }
+      .lbl  { font-family: Nunito, ui-rounded, "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+    </style>
+  </defs>
+  <rect x="2" y="2" width="716" height="376" rx="24" fill="#f7f7fd" stroke="#e7e5ff" stroke-width="2"/>
+  <text x="360" y="40" text-anchor="middle" class="lbl" font-size="22" fill="#475569">The page is a tree (the DOM)</text>
+
+  <!-- connectors first (drawn under nodes) -->
+  <g stroke="#cbd5e1" stroke-width="2" fill="none">
+    <path d="M360 86 L360 116"/>
+    <path d="M360 156 L220 196 M360 156 L500 196"/>
+    <path d="M220 236 L220 276"/>
+    <path d="M500 236 L430 276 M500 236 L570 276"/>
+  </g>
+
+  <!-- nodes -->
+  <g class="mono" font-size="17" text-anchor="middle">
+    <g><rect x="296" y="60" width="128" height="34" rx="10" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/><text x="360" y="83" fill="#4c1d95">document</text></g>
+    <g><rect x="306" y="122" width="108" height="34" rx="10" fill="#ddd6fe" stroke="#a78bfa" stroke-width="2"/><text x="360" y="145" fill="#4c1d95">&lt;html&gt;</text></g>
+
+    <g><rect x="164" y="202" width="112" height="34" rx="10" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/><text x="220" y="225" fill="#14532d">&lt;head&gt;</text></g>
+    <g><rect x="444" y="202" width="112" height="34" rx="10" fill="#dcfce7" stroke="#4ade80" stroke-width="2"/><text x="500" y="225" fill="#14532d">&lt;body&gt;</text></g>
+
+    <g><rect x="160" y="282" width="120" height="34" rx="10" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/><text x="220" y="305" fill="#7c2d12">&lt;title&gt;</text></g>
+    <g><rect x="382" y="282" width="96" height="34" rx="10" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/><text x="430" y="305" fill="#7c2d12">&lt;h1&gt;</text></g>
+    <g><rect x="528" y="282" width="84" height="34" rx="10" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/><text x="570" y="305" fill="#7c2d12">&lt;p&gt;</text></g>
+  </g>
+
+  <text x="360" y="356" text-anchor="middle" class="lbl" font-size="15" fill="#94a3b8">JavaScript reaches into this tree to read and change the page</text>
+</svg>
