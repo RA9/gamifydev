@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"flag"
 	"log"
@@ -113,7 +114,37 @@ func main() {
 			lessons++
 		}
 	}
-	log.Printf("seeded %d courses, %d lessons", courses, lessons)
+	// Sample mentor-graded assignments, linked to courses by slug.
+	type seedA struct {
+		slug, title, course, lang, prompt, starter string
+	}
+	samples := []seedA{
+		{"py-sum-list", "Sum a List", "python", "python",
+			"Write a function `sum_list(nums)` that returns the sum of all numbers in the list `nums`. An empty list should return `0`.\n\nExplain your approach in the note to your mentor.",
+			"def sum_list(nums):\n    # your code here\n    pass\n"},
+		{"js-reverse", "Reverse a String", "frontend", "javascript",
+			"Write a function `reverse(str)` that returns the characters of `str` in reverse order, **without** using the built-in `.reverse()`. Walk a loop yourself.",
+			"function reverse(str) {\n  // your code here\n}\n"},
+		{"c-max-three", "Largest of Three", "c", "c",
+			"Read three integers and print the largest. Handle negative numbers correctly.",
+			"#include <stdio.h>\n\nint main() {\n    int a, b, c;\n    scanf(\"%d %d %d\", &a, &b, &c);\n    // print the largest\n    return 0;\n}\n"},
+	}
+	assignments := 0
+	for i, a := range samples {
+		var courseID sql.NullInt64
+		if c, err := st.GetCourseBySlug(ctx, a.course); err == nil {
+			courseID = sql.NullInt64{Int64: c.ID, Valid: true}
+		}
+		if err := st.UpsertAssignment(ctx, store.Assignment{
+			CourseID: courseID, Slug: a.slug, Title: a.title, Language: a.lang,
+			Prompt: a.prompt, Starter: a.starter, MaxPoints: 100, Published: true, Sort: i,
+		}); err != nil {
+			log.Fatalf("assignment %s: %v", a.slug, err)
+		}
+		assignments++
+	}
+
+	log.Printf("seeded %d courses, %d lessons, %d assignments", courses, lessons, assignments)
 }
 
 // stripFirstH1 removes a leading "# Title" line (the page shows the title

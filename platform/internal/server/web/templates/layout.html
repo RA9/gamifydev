@@ -16,6 +16,8 @@
           <a href="/courses">Courses</a>
           {{ if .User }}
             <a href="/dashboard">Dashboard</a>
+            <a href="/assignments">Assignments</a>
+            {{ if .User.CanGrade }}<a href="/admin/grading">Grading</a>{{ end }}
             {{ if .User.IsAdmin }}<a href="/admin">Admin</a>{{ end }}
             <span class="nav-user">{{ .User.Name }}</span>
             <form method="post" action="/logout" class="inline">
