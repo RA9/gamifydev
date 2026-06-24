@@ -46,8 +46,23 @@
       {{ block "content" . }}{{ end }}
     </main>
 
-    <footer class="site-footer">
-      <div class="container">Learn to code by building. &copy; 2023–2026 GamifyDev.</div>
+    <footer class="app-footer">
+      <div class="app-footer-inner">
+        <div class="app-footer-brand">
+          <span class="brand app-footer-logo">Gamify<span>Dev</span></span>
+          <p class="muted">Learn to code by building.</p>
+        </div>
+        <nav class="app-footer-links" aria-label="Footer">
+          <a href="/courses">Courses</a>
+          <a href="/assignments">Assignments</a>
+          <a href="/competitions">Competitions</a>
+          <a href="/forum">Forum</a>
+        </nav>
+      </div>
+      <div class="app-footer-bottom">
+        <span>&copy; 2023–2026 GamifyDev</span>
+        <span class="muted">Built for builders 🚀</span>
+      </div>
     </footer>
   </body>
 </html>
