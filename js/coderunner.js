@@ -120,10 +120,13 @@ async function runChallenge(challenge, code) {
   if ((lang === "python" || lang === "py") && typeof runPythonChallenge === "function") {
     return runPythonChallenge(code, challenge.entry, challenge.tests || []);
   }
+  if ((lang === "c" || lang === "cpp" || lang === "c++") && typeof runCChallenge === "function") {
+    return runCChallenge(code, challenge.tests || []);
+  }
   return {
     ok: false,
     pending: true,
-    compileError: `The ${lang.toUpperCase()} runtime is being added in an upcoming update. JavaScript and Python challenges run fully today.`,
+    compileError: `The ${lang.toUpperCase()} runtime is being added in an upcoming update. JavaScript, Python, and C challenges run fully today.`,
     results: [],
     logs: [],
   };

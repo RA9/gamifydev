@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:css": "tailwindcss -c tailwind.config.js -i css/input.css -o css/tailwind.css --minify",
     "watch:css": "tailwindcss -c tailwind.config.js -i css/input.css -o css/tailwind.css --watch",
-    "build:editor": "esbuild vendor/cm-entry.js --bundle --format=iife --minify --legal-comments=none --outfile=js/external/codemirror.bundle.js"
+    "build:editor": "esbuild vendor/cm-entry.js --bundle --format=iife --minify --legal-comments=none --outfile=js/external/codemirror.bundle.js",
+    "build:cc": "esbuild vendor/cc-entry.js --bundle --format=iife --minify --legal-comments=none --alias:stream=./vendor/stream-stub.js --alias:fs=./vendor/empty.js --alias:path=./vendor/empty.js --alias:util=./vendor/empty.js --alias:os=./vendor/empty.js --alias:buffer=./vendor/empty.js --alias:events=./vendor/empty.js --alias:assert=./vendor/empty.js --alias:tty=./vendor/empty.js --outfile=js/external/jscpp.bundle.js"
   },
   "dependencies": {
     "@vercel/edge": "^0.1.2"
@@ -22,6 +23,7 @@
     "@codemirror/view": "^6.43.1",
     "codemirror": "^6.0.2",
     "esbuild": "^0.28.1",
+    "JSCPP": "^2.0.9",
     "tailwindcss": "^3.4.17"
   },
   "engines": {
