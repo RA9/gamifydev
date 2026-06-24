@@ -1,0 +1,13 @@
+# Local SQLite dev database (Turso is used in production via DATABASE_URL)
+*.db
+*.db-shm
+*.db-wal
+
+# Build output
+/gamifydev
+/platform
+/bin/
+*.out
+
+# Env
+.env

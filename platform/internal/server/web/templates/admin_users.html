@@ -1,0 +1,37 @@
+{{ define "content" }}
+<div class="page-head">
+  <a class="back" href="/admin">← Admin</a>
+  <h1>User management</h1>
+  <p class="muted">Change a member's role. Graders and admins can review assignment submissions.</p>
+</div>
+
+<div class="card table-card">
+  <table class="table">
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "users" }}
+        {{ template "userRow" . }}
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}
+
+{{ define "userRow" }}
+<tr id="user-{{ .ID }}">
+  <td class="strong">{{ .Name }}</td>
+  <td class="muted">{{ .Email }}</td>
+  <td>
+    <form hx-post="/admin/users/{{ .ID }}/role" hx-target="#user-{{ .ID }}" hx-swap="outerHTML">
+      <select name="role" class="role-select" onchange="this.form.requestSubmit()">
+        <option value="learner" {{ if eq .Role "learner" }}selected{{ end }}>Learner</option>
+        <option value="grader" {{ if eq .Role "grader" }}selected{{ end }}>Grader</option>
+        <option value="admin" {{ if eq .Role "admin" }}selected{{ end }}>Admin</option>
+      </select>
+    </form>
+  </td>
+  <td class="muted">{{ .CreatedAt }}</td>
+</tr>
+{{ end }}

@@ -4,3 +4,7 @@ node_modules/
 
 # scratch verification files
 _verify*.html
+
+# Go platform local dev DB (if run from repo root)
+gamifydev.db
+gamifydev.db-*
