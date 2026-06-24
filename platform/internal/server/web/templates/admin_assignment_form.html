@@ -1,0 +1,36 @@
+{{ define "content" }}
+{{ $a := index .Data "assignment" }}
+<div class="page-head">
+  <a class="back" href="/admin/assignments">← Assignments</a>
+  <h1>{{ if $a }}Edit assignment{{ else }}New assignment{{ end }}</h1>
+</div>
+<div class="card" style="max-width:840px;">
+  <form method="post" action="{{ index .Data "action" }}" class="form">
+    <div class="form-row">
+      <label class="field"><span>Title</span>
+        <input name="title" value="{{ if $a }}{{ $a.Title }}{{ end }}" required autofocus /></label>
+      <label class="field"><span>Slug <span class="muted">(optional)</span></span>
+        <input name="slug" value="{{ if $a }}{{ $a.Slug }}{{ end }}" placeholder="auto from title" /></label>
+    </div>
+    <div class="form-row">
+      <label class="field"><span>Course <span class="muted">(optional)</span></span>
+        <select name="course_id" class="role-select">
+          <option value="">— None —</option>
+          {{ range index .Data "courses" }}
+          <option value="{{ .ID }}" {{ if $a }}{{ if $a.CourseID.Valid }}{{ if eq $a.CourseID.Int64 .ID }}selected{{ end }}{{ end }}{{ end }}>{{ .Title }}</option>
+          {{ end }}
+        </select></label>
+      <label class="field"><span>Language</span>
+        <input name="language" value="{{ if $a }}{{ $a.Language }}{{ else }}python{{ end }}" /></label>
+      <label class="field"><span>Max points</span>
+        <input type="number" name="max_points" value="{{ if $a }}{{ $a.MaxPoints }}{{ else }}100{{ end }}" min="1" /></label>
+    </div>
+    <label class="field"><span>Prompt <span class="muted">(markdown)</span></span>
+      <textarea name="prompt" rows="8">{{ if $a }}{{ $a.Prompt }}{{ end }}</textarea></label>
+    <label class="field"><span>Starter code <span class="muted">(optional)</span></span>
+      <textarea name="starter" rows="6" class="code-area">{{ if $a }}{{ $a.Starter }}{{ end }}</textarea></label>
+    <label class="check"><input type="checkbox" name="published" value="1" {{ if not $a }}checked{{ else if $a.Published }}checked{{ end }} /> Published</label>
+    <button class="btn btn-primary" type="submit">{{ if $a }}Save changes{{ else }}Create assignment{{ end }}</button>
+  </form>
+</div>
+{{ end }}

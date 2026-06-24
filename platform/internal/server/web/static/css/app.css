@@ -590,3 +590,8 @@ body.portal { background:var(--slate-100); overflow-x:hidden; }
 @media (max-width:560px){
   .app-footer-inner { flex-direction:column; gap:16px; }
 }
+
+/* Checkbox field (admin authoring forms) */
+.check { display:inline-flex; align-items:center; gap:9px; font-weight:700; color:var(--slate-700);
+  font-size:.95rem; cursor:pointer; user-select:none; }
+.check input { width:18px; height:18px; accent-color:var(--brand-600); }

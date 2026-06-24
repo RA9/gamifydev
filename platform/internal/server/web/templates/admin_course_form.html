@@ -1,0 +1,25 @@
+{{ define "content" }}
+{{ $c := index .Data "course" }}
+<div class="page-head">
+  <a class="back" href="/admin/courses">← Courses</a>
+  <h1>New course</h1>
+</div>
+<div class="card" style="max-width:680px;">
+  <form method="post" action="/admin/courses" class="form">
+    <label class="field"><span>Title</span>
+      <input name="title" value="{{ if $c }}{{ $c.Title }}{{ end }}" required autofocus /></label>
+    <div class="form-row">
+      <label class="field"><span>Emoji</span>
+        <input name="emoji" value="{{ if $c }}{{ $c.Emoji }}{{ end }}" placeholder="🎨" /></label>
+      <label class="field"><span>Slug <span class="muted">(optional)</span></span>
+        <input name="slug" value="{{ if $c }}{{ $c.Slug }}{{ end }}" placeholder="auto from title" /></label>
+    </div>
+    <label class="field"><span>Tagline</span>
+      <input name="tagline" value="{{ if $c }}{{ $c.Tagline }}{{ end }}" /></label>
+    <label class="field"><span>Description</span>
+      <textarea name="description" rows="3">{{ if $c }}{{ $c.Description }}{{ end }}</textarea></label>
+    <label class="check"><input type="checkbox" name="published" value="1" {{ if not $c }}checked{{ else if $c.Published }}checked{{ end }} /> Published</label>
+    <button class="btn btn-primary" type="submit">Create course</button>
+  </form>
+</div>
+{{ end }}
