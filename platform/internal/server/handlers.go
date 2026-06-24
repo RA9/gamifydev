@@ -114,8 +114,44 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 // --- Admin ------------------------------------------------------------------
 
 func (s *Server) handleAdminHome(w http.ResponseWriter, r *http.Request) {
-	n, _ := s.st.CountUsers(r.Context())
-	s.render(w, r, "admin_home.html", ViewData{Title: "Admin", Data: map[string]any{"userCount": n}})
+	ctx := r.Context()
+	stats, _ := s.st.AdminStats(ctx)
+	series, _ := s.st.SignupSeries(ctx, 14)
+	recent, _ := s.st.RecentUsers(ctx, 6)
+	courses, _ := s.st.ListCourses(ctx, true)
+
+	// Period total for the chart card header.
+	periodTotal := 0
+	for _, d := range series {
+		periodTotal += d.Count
+	}
+
+	// Role donut segments (skip-zero handled by the renderer).
+	pct := func(n int) int {
+		if stats.TotalUsers == 0 {
+			return 0
+		}
+		return int(float64(n)/float64(stats.TotalUsers)*100 + 0.5)
+	}
+	segments := []DonutSegment{
+		{Label: "Learners", Count: stats.Learners, Class: "donut-learner", Pct: pct(stats.Learners)},
+		{Label: "Graders", Count: stats.Graders, Class: "donut-grader", Pct: pct(stats.Graders)},
+		{Label: "Admins", Count: stats.Admins, Class: "donut-admin", Pct: pct(stats.Admins)},
+	}
+
+	s.render(w, r, "admin_home.html", ViewData{
+		Title: "Overview",
+		Data: map[string]any{
+			"stats":       stats,
+			"chart":       areaChartSVG(series),
+			"donut":       donutSVG(stats.TotalUsers, segments),
+			"segments":    segments,
+			"recent":      recent,
+			"courses":     courses,
+			"periodTotal": periodTotal,
+			"today":       time.Now().Format("Monday, Jan 2"),
+		},
+	})
 }
 
 func (s *Server) handleAdminUsers(w http.ResponseWriter, r *http.Request) {

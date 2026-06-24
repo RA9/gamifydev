@@ -1,17 +1,156 @@
 {{ define "content" }}
-<div class="page-head">
-  <h1>Admin portal</h1>
-  <p class="muted">Manage the platform, its people, and its content.</p>
-</div>
+{{ $s := index .Data "stats" }}
+<div class="dash">
+  <div class="dash-head">
+    <div>
+      <h1>Welcome back, {{ .User.Name }}</h1>
+      <p class="muted">{{ index .Data "today" }} · here's how GamifyDev is doing.</p>
+    </div>
+    <div class="dash-head-actions">
+      <a href="/admin/users" class="btn btn-secondary btn-sm">{{ icon "users" }} Manage users</a>
+      <a href="/admin/courses" class="btn btn-primary btn-sm">{{ icon "book" }} Manage courses</a>
+    </div>
+  </div>
 
-<div class="grid-cards">
-  <a class="card linkcard" href="/admin/users">
-    <div class="feature-emoji">👥</div>
-    <h3>User management</h3>
-    <p class="muted">{{ index .Data "userCount" }} registered · roles &amp; access</p>
-  </a>
-  <a class="card linkcard" href="#"><div class="feature-emoji">📚</div><h3>Courses</h3><p class="muted">Author lessons &amp; media.</p></a>
-  <a class="card linkcard" href="#"><div class="feature-emoji">📝</div><h3>Grading queue</h3><p class="muted">Review assignment submissions.</p></a>
-  <a class="card linkcard" href="#"><div class="feature-emoji">🏆</div><h3>Competitions</h3><p class="muted">Create &amp; run contests.</p></a>
+  <!-- Stat cards -->
+  <section class="stat-grid" aria-label="Key metrics">
+    <article class="stat-card stagger">
+      <div class="stat-top">
+        <span class="stat-ic ic-brand">{{ icon "users" }}</span>
+        {{ if gt $s.NewUsers7d 0 }}<span class="trend trend-up">{{ icon "trendup" }} +{{ $s.NewUsers7d }}</span>{{ end }}
+      </div>
+      <p class="stat-value" data-numeric>{{ $s.TotalUsers }}</p>
+      <p class="stat-label">Total members</p>
+      <p class="stat-sub">{{ $s.NewUsers7d }} new in the last 7 days</p>
+    </article>
+
+    <article class="stat-card stagger">
+      <div class="stat-top">
+        <span class="stat-ic ic-grass">{{ icon "book" }}</span>
+        <span class="trend trend-flat">{{ $s.PublishedCourses }} live</span>
+      </div>
+      <p class="stat-value" data-numeric>{{ $s.TotalCourses }}</p>
+      <p class="stat-label">Courses</p>
+      <p class="stat-sub">{{ $s.PublishedCourses }} published · {{ $s.DraftCourses }} draft</p>
+    </article>
+
+    <article class="stat-card stagger">
+      <div class="stat-top">
+        <span class="stat-ic ic-amber">{{ icon "layers" }}</span>
+      </div>
+      <p class="stat-value" data-numeric>{{ $s.TotalLessons }}</p>
+      <p class="stat-label">Lessons</p>
+      <p class="stat-sub">across all courses</p>
+    </article>
+
+    <article class="stat-card stagger">
+      <div class="stat-top">
+        <span class="stat-ic ic-rose">{{ icon "activity" }}</span>
+        <span class="pulse-dot" aria-hidden="true"></span>
+      </div>
+      <p class="stat-value" data-numeric>{{ $s.ActiveSessions }}</p>
+      <p class="stat-label">Active now</p>
+      <p class="stat-sub">members with a live session</p>
+    </article>
+  </section>
+
+  <!-- Charts -->
+  <section class="dash-row dash-row-2-1">
+    <article class="card chart-card">
+      <header class="card-head">
+        <div>
+          <h3>New members</h3>
+          <p class="muted">Last 14 days</p>
+        </div>
+        <div class="card-head-metric">
+          <span class="metric-value" data-numeric>{{ index .Data "periodTotal" }}</span>
+          <span class="metric-label">sign-ups</span>
+        </div>
+      </header>
+      <div class="chart-wrap">{{ index .Data "chart" }}</div>
+    </article>
+
+    <article class="card chart-card">
+      <header class="card-head">
+        <div>
+          <h3>Members by role</h3>
+          <p class="muted">Access distribution</p>
+        </div>
+      </header>
+      <div class="donut-wrap">
+        {{ index .Data "donut" }}
+        <ul class="donut-legend">
+          {{ range index .Data "segments" }}
+          <li>
+            <span class="legend-swatch {{ .Class }}"></span>
+            <span class="legend-label">{{ .Label }}</span>
+            <span class="legend-val">{{ .Count }} · {{ .Pct }}%</span>
+          </li>
+          {{ end }}
+        </ul>
+      </div>
+    </article>
+  </section>
+
+  <!-- Activity + content -->
+  <section class="dash-row dash-row-2-1">
+    <article class="card table-card">
+      <header class="card-head card-head-pad">
+        <div>
+          <h3>Recent sign-ups</h3>
+          <p class="muted">Newest members on the platform</p>
+        </div>
+        <a href="/admin/users" class="card-link">View all {{ icon "chevright" }}</a>
+      </header>
+      <table class="table table-activity">
+        <thead>
+          <tr><th>Member</th><th>Role</th><th class="ta-right">Joined</th></tr>
+        </thead>
+        <tbody>
+          {{ range index .Data "recent" }}
+          <tr>
+            <td>
+              <div class="member-cell">
+                <span class="avatar avatar-sm" aria-hidden="true">{{ initials .Name }}</span>
+                <div class="member-meta">
+                  <span class="member-name">{{ .Name }}</span>
+                  <span class="member-email">{{ .Email }}</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-pill role-{{ .Role }}">{{ titlecase .Role }}</span></td>
+            <td class="ta-right muted">{{ reltime .CreatedAt }}</td>
+          </tr>
+          {{ else }}
+          <tr><td colspan="3" class="muted">No members yet.</td></tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </article>
+
+    <article class="card">
+      <header class="card-head">
+        <div>
+          <h3>Content</h3>
+          <p class="muted">Courses &amp; status</p>
+        </div>
+      </header>
+      <ul class="mini-list">
+        {{ range index .Data "courses" }}
+        <li>
+          <span class="mini-ic">{{ icon "book" }}</span>
+          <div class="mini-meta">
+            <span class="mini-name">{{ .Title }}</span>
+            <span class="mini-sub">{{ .LessonCount }} lesson{{ if ne .LessonCount 1 }}s{{ end }}</span>
+          </div>
+          {{ if .Published }}<span class="badge badge-ok">Live</span>{{ else }}<span class="badge">Draft</span>{{ end }}
+        </li>
+        {{ else }}
+        <li class="muted" style="padding:14px 4px">No courses yet — run the content seeder.</li>
+        {{ end }}
+      </ul>
+      <a href="/admin/courses" class="btn btn-secondary btn-sm btn-block" style="margin-top:8px">Open course manager</a>
+    </article>
+  </section>
 </div>
 {{ end }}

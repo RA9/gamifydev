@@ -4,36 +4,59 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ .Title }}{{ if .Title }} · {{ end }}GamifyDev Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/css/app.css" />
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   </head>
   <body class="admin">
+    <a href="#admin-main" class="skip-link">Skip to content</a>
+    <input type="checkbox" id="navToggle" class="nav-toggle-cb" hidden />
     <div class="admin-shell">
       <aside class="sidebar">
-        <a href="/" class="brand sidebar-brand">Gamify<span>Dev</span></a>
-        <p class="sidebar-label">Admin</p>
-        <nav class="sidebar-nav">
-          {{ $p := .Path }}
-          <a href="/admin" class="{{ if eq $p "/admin" }}active{{ end }}">📊 Overview</a>
-          <a href="/admin/users" class="{{ if eq $p "/admin/users" }}active{{ end }}">👥 Users</a>
-          <a href="/admin/courses" class="{{ if eq $p "/admin/courses" }}active{{ end }}">📚 Courses</a>
-          <a href="/admin/grading" class="{{ if eq $p "/admin/grading" }}active{{ end }}">📝 Grading</a>
-          <a href="/admin/competitions" class="{{ if eq $p "/admin/competitions" }}active{{ end }}">🏆 Competitions</a>
-          <a href="/admin/forum" class="{{ if eq $p "/admin/forum" }}active{{ end }}">💬 Forum</a>
+        <div class="sidebar-top">
+          <a href="/admin" class="brand sidebar-brand">Gamify<span>Dev</span></a>
+          <label for="navToggle" class="nav-toggle" aria-label="Toggle menu">{{ icon "grid" }}</label>
+        </div>
+        <p class="sidebar-label">Administration</p>
+        {{ $p := .Path }}
+        <nav class="sidebar-nav" aria-label="Admin">
+          <a href="/admin" class="{{ if eq $p "/admin" }}active{{ end }}">{{ icon "grid" }}<span>Overview</span></a>
+          <a href="/admin/users" class="{{ if eq $p "/admin/users" }}active{{ end }}">{{ icon "users" }}<span>Users</span></a>
+          <a href="/admin/courses" class="{{ if eq $p "/admin/courses" }}active{{ end }}">{{ icon "book" }}<span>Courses</span></a>
+          <a href="/admin/grading" class="{{ if eq $p "/admin/grading" }}active{{ end }}">{{ icon "clipboard" }}<span>Grading</span></a>
+          <a href="/admin/competitions" class="{{ if eq $p "/admin/competitions" }}active{{ end }}">{{ icon "trophy" }}<span>Competitions</span></a>
+          <a href="/admin/forum" class="{{ if eq $p "/admin/forum" }}active{{ end }}">{{ icon "chat" }}<span>Forum</span></a>
         </nav>
         <div class="sidebar-foot">
-          <a href="/dashboard">← Learner view</a>
+          <a href="/dashboard" class="sidebar-foot-link">{{ icon "arrowleft" }}<span>Learner view</span></a>
           <form method="post" action="/logout" class="inline">
-            <button class="btn btn-ghost btn-sm" type="submit">Sign out</button>
+            <button class="btn btn-ghost btn-sm btn-block" type="submit">{{ icon "logout" }} Sign out</button>
           </form>
         </div>
       </aside>
 
       <div class="admin-main">
         <header class="admin-topbar">
-          <span class="muted">Signed in as <strong>{{ .User.Name }}</strong> · {{ .User.Role }}</span>
+          <div class="topbar-title">
+            <h2>{{ if .Title }}{{ .Title }}{{ else }}Admin{{ end }}</h2>
+          </div>
+          <div class="topbar-actions">
+            <button class="topbar-icon-btn" type="button" aria-label="Notifications">{{ icon "bell" }}</button>
+            <div class="topbar-user">
+              <span class="avatar" aria-hidden="true">{{ initials .User.Name }}</span>
+              <span class="topbar-user-meta">
+                <strong>{{ .User.Name }}</strong>
+                <span class="role-pill role-{{ .User.Role }}">{{ titlecase .User.Role }}</span>
+              </span>
+            </div>
+          </div>
         </header>
-        <main class="admin-content">
+        <main class="admin-content" id="admin-main">
           {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
           {{ block "content" . }}{{ end }}
         </main>

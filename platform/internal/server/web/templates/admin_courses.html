@@ -5,17 +5,22 @@
 </div>
 
 <div class="card table-card">
-  <table class="table">
+  <table class="table table-activity">
     <thead>
-      <tr><th>Course</th><th>Slug</th><th>Lessons</th><th>Status</th></tr>
+      <tr><th>Course</th><th>Slug</th><th class="ta-center">Lessons</th><th class="ta-right">Status</th></tr>
     </thead>
     <tbody>
       {{ range index .Data "courses" }}
         <tr>
-          <td class="strong">{{ .Emoji }} {{ .Title }}</td>
-          <td class="muted">{{ .Slug }}</td>
-          <td>{{ .LessonCount }}</td>
-          <td>{{ if .Published }}<span class="badge badge-ok">Published</span>{{ else }}<span class="badge">Draft</span>{{ end }}</td>
+          <td>
+            <div class="member-cell">
+              <span class="mini-ic">{{ icon "book" }}</span>
+              <span class="member-name">{{ .Title }}</span>
+            </div>
+          </td>
+          <td class="muted"><code class="slug">{{ .Slug }}</code></td>
+          <td class="ta-center"><span class="count-pill">{{ .LessonCount }}</span></td>
+          <td class="ta-right">{{ if .Published }}<span class="badge badge-ok">Published</span>{{ else }}<span class="badge">Draft</span>{{ end }}</td>
         </tr>
       {{ else }}
         <tr><td colspan="4" class="muted">No courses yet. Run the content seeder.</td></tr>

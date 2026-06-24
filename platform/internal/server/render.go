@@ -70,7 +70,18 @@ func newRenderer() (*renderer, error) {
 }
 
 var funcMap = template.FuncMap{
-	"add": func(a, b int) int { return a + b },
+	"add":      func(a, b int) int { return a + b },
+	"sub":      func(a, b int) int { return a - b },
+	"icon":     icon,
+	"initials": initials,
+	"fmtdate":  fmtDate,
+	"reltime":  relTime,
+	"titlecase": func(s string) string {
+		if s == "" {
+			return s
+		}
+		return strings.ToUpper(s[:1]) + s[1:]
+	},
 }
 
 // render writes a full page (page template + layout) for the request.
