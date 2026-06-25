@@ -172,7 +172,9 @@ func (s *Server) handleAdminUsers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not load users", http.StatusInternalServerError)
 		return
 	}
-	s.render(w, r, "admin_users.html", ViewData{Title: "User management", Data: map[string]any{"users": users}})
+	pending, _ := s.st.ListPendingInvitations(r.Context())
+	s.render(w, r, "admin_users.html", ViewData{Title: "User management",
+		Data: map[string]any{"users": users, "pending": pending}})
 }
 
 func (s *Server) handleAdminSetRole(w http.ResponseWriter, r *http.Request) {

@@ -50,6 +50,7 @@ var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin, layoutLanding}
 // alwaysPublic pages keep the marketing shell even when signed in.
 var alwaysPublic = map[string]bool{
 	"login.html": true, "register.html": true, "notfound.html": true,
+	"invite.html": true, "invite_invalid.html": true,
 }
 
 type renderer struct {
