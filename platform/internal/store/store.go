@@ -9,6 +9,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 	"time"
@@ -52,6 +53,18 @@ func Open(dsn string) (*Store, error) {
 func (s *Store) Close() error { return s.db.Close() }
 
 // Migrate applies any embedded migrations not yet recorded, in filename order.
+// It runs on every server start and is safe to run repeatedly:
+//
+//   - applied migrations (tracked in schema_migrations) are skipped;
+//   - each migration runs inside a transaction — if a statement fails, the whole
+//     migration is rolled back and startup aborts;
+//   - benign "already exists" / "duplicate column" errors are skipped, so
+//     idempotent statements like ALTER TABLE ADD COLUMN can be re-run safely
+//     against databases that already have the column (SQLite has no
+//     "ADD COLUMN IF NOT EXISTS"). This is what keeps an older or shared
+//     database — e.g. a Turso DB whose users table predates the platform — in
+//     sync: a sync migration can ADD the missing columns and simply no-op on
+//     databases that already have them.
 func (s *Store) Migrate(ctx context.Context) error {
 	if _, err := s.db.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (datetime('now')))`); err != nil {
@@ -78,80 +91,82 @@ func (s *Store) Migrate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if _, err := s.db.ExecContext(ctx, string(body)); err != nil {
+		if err := s.applyMigration(ctx, name, string(body)); err != nil {
 			return fmt.Errorf("apply %s: %w", name, err)
 		}
 		if _, err := s.db.ExecContext(ctx, `INSERT INTO schema_migrations (name) VALUES (?)`, name); err != nil {
 			return err
 		}
-	}
-	return s.reconcileSchema(ctx)
-}
-
-// reconcileSchema brings older or shared databases in line with the current
-// schema by adding any missing columns. It's needed when a table predates the
-// platform (e.g. a `users` table left by an earlier app on the same Turso
-// database): a migration's CREATE TABLE IF NOT EXISTS is then a no-op, so the
-// table keeps its old, incomplete shape and inserts/selects fail with
-// "no such column". This runs on every boot, is idempotent (skips columns that
-// already exist), and is non-destructive (only ADD COLUMN, never drops data).
-//
-// Defaults must be constant — SQLite rejects ADD COLUMN with a non-constant
-// default like datetime('now') — so timestamp columns are backfilled with ''.
-func (s *Store) reconcileSchema(ctx context.Context) error {
-	type col struct{ name, ddl string }
-	want := map[string][]col{
-		"users": {
-			{"password_hash", "password_hash TEXT NOT NULL DEFAULT ''"},
-			{"name", "name TEXT NOT NULL DEFAULT ''"},
-			{"role", "role TEXT NOT NULL DEFAULT 'learner'"},
-			{"bio", "bio TEXT NOT NULL DEFAULT ''"},
-			{"avatar_url", "avatar_url TEXT NOT NULL DEFAULT ''"},
-			{"created_at", "created_at TEXT NOT NULL DEFAULT ''"},
-			{"updated_at", "updated_at TEXT NOT NULL DEFAULT ''"},
-		},
-	}
-	for table, cols := range want {
-		existing, err := s.tableColumns(ctx, table)
-		if err != nil {
-			return fmt.Errorf("reconcile %s: %w", table, err)
-		}
-		if len(existing) == 0 {
-			continue // table doesn't exist; the migrations create it correctly
-		}
-		for _, c := range cols {
-			if existing[c.name] {
-				continue
-			}
-			if _, err := s.db.ExecContext(ctx, "ALTER TABLE "+table+" ADD COLUMN "+c.ddl); err != nil {
-				return fmt.Errorf("reconcile %s.%s: %w", table, c.name, err)
-			}
-		}
+		log.Printf("migrate: applied %s", name)
 	}
 	return nil
 }
 
-// tableColumns returns the set of column names on a table (empty if it does not
-// exist). The table name is an internal constant, so it is safe to interpolate.
-func (s *Store) tableColumns(ctx context.Context, table string) (map[string]bool, error) {
-	rows, err := s.db.QueryContext(ctx, "PRAGMA table_info("+table+")")
+// applyMigration runs one migration's statements inside a single transaction.
+// "already exists" / "duplicate column" errors are treated as no-ops (the change
+// is already present) so idempotent migrations stay safe to re-run; any other
+// error rolls the whole migration back.
+func (s *Store) applyMigration(ctx context.Context, name, script string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer rows.Close()
-	cols := map[string]bool{}
-	for rows.Next() {
-		var (
-			cid, notnull, pk int
-			name, ctype      string
-			dflt             sql.NullString
-		)
-		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
-			return nil, err
+	defer tx.Rollback() //nolint:errcheck // no-op after a successful Commit
+
+	for _, stmt := range splitSQLStatements(script) {
+		if _, err := tx.ExecContext(ctx, stmt); err != nil {
+			if isBenignSchemaErr(err) {
+				log.Printf("migrate %s: skipping (%v)", name, err)
+				continue
+			}
+			return err
 		}
-		cols[name] = true
 	}
-	return cols, rows.Err()
+	return tx.Commit()
+}
+
+// isBenignSchemaErr reports whether a migration error just means the change is
+// already in place (so it can be skipped rather than failing the migration).
+func isBenignSchemaErr(err error) bool {
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "duplicate column") ||
+		strings.Contains(msg, "already exists")
+}
+
+// splitSQLStatements splits a SQL script into individual statements on
+// semicolons, ignoring semicolons inside single-quoted strings and stripping
+// "--" line comments. It is deliberately simple — sufficient for the DDL used in
+// these migrations (no stored procedures, no quoted identifiers with semicolons).
+func splitSQLStatements(script string) []string {
+	var (
+		stmts   []string
+		b       strings.Builder
+		inQuote bool
+	)
+	for i := 0; i < len(script); i++ {
+		c := script[i]
+		switch {
+		case c == '\'':
+			inQuote = !inQuote
+			b.WriteByte(c)
+		case !inQuote && c == '-' && i+1 < len(script) && script[i+1] == '-':
+			for i < len(script) && script[i] != '\n' { // skip to end of line
+				i++
+			}
+			b.WriteByte('\n')
+		case !inQuote && c == ';':
+			if stmt := strings.TrimSpace(b.String()); stmt != "" {
+				stmts = append(stmts, stmt)
+			}
+			b.Reset()
+		default:
+			b.WriteByte(c)
+		}
+	}
+	if stmt := strings.TrimSpace(b.String()); stmt != "" {
+		stmts = append(stmts, stmt)
+	}
+	return stmts
 }
 
 // --- Models -----------------------------------------------------------------
