@@ -15,10 +15,16 @@ import (
 
 func main() {
 	addr := envOr("ADDR", ":8080")
+	// Railway (and most PaaS) inject the port to bind via $PORT.
+	if port := os.Getenv("PORT"); port != "" {
+		addr = ":" + port
+	}
 	// Local dev: a SQLite file. Production: set DATABASE_URL to your Turso URL,
 	// e.g. libsql://<db>.turso.io?authToken=<token>
 	dsn := envOr("DATABASE_URL", "gamifydev.db")
-	secure := os.Getenv("SECURE_COOKIES") == "1"
+	// Secure cookies behind HTTPS. Railway always serves the public domain over
+	// HTTPS, so enable them automatically there.
+	secure := os.Getenv("SECURE_COOKIES") == "1" || os.Getenv("RAILWAY_ENVIRONMENT") != ""
 
 	st, err := store.Open(dsn)
 	if err != nil {

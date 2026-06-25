@@ -29,7 +29,34 @@ reachable); everyone after is a learner. Roles: `admin`, `grader`, `learner`.
 ## Configuration
 
 See `.env.example`. Key vars: `DATABASE_URL` (local file or `libsql://…` Turso
-URL), `ADDR`, `SECURE_COOKIES`.
+URL), `ADDR`, `SECURE_COOKIES`. In production the server also honours `PORT`
+(it binds `:$PORT` when set).
+
+## Deploy to Railway
+
+The app is containerised (`Dockerfile`) and reads `PORT` from Railway. Railway's
+filesystem is ephemeral, so production uses **Turso** for the database.
+
+1. **Create a Turso database** and grab its URL + token:
+   ```bash
+   curl -sSfL https://get.tur.so/install.sh | bash   # if you don't have the CLI
+   turso auth signup
+   turso db create gamifydev
+   turso db show gamifydev --url        # -> libsql://gamifydev-<org>.turso.io
+   turso db tokens create gamifydev     # -> the auth token
+   ```
+
+2. **Create the Railway service** from this GitHub repo. Because the app lives in
+   a subdirectory, set the service's **Root Directory** to `platform` — Railway
+   then uses `platform/Dockerfile` and `platform/railway.json` automatically.
+
+3. **Set the service variables** (Railway → Variables):
+   - `DATABASE_URL` = `libsql://<your-db>.turso.io?authToken=<token>`
+   - `PORT` is provided by Railway; `SECURE_COOKIES` is auto-enabled there.
+
+4. **Deploy.** Railway builds the image, runs migrations on boot, and serves on
+   the generated domain (health-checked at `/healthz`). The **first account you
+   register becomes the admin**.
 
 ## Layout
 
