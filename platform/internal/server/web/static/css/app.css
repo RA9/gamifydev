@@ -1778,6 +1778,10 @@ body.admin {
 body.portal {
     background: var(--slate-100);
     overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
 }
 .visually-hidden {
     position: absolute;
@@ -1961,6 +1965,10 @@ body.portal {
     .app-links a {
         padding: 12px 14px;
         font-size: 1rem;
+        border-radius: 10px;
+    }
+    .app-links a:hover {
+        background: var(--slate-50);
     }
     /* Swap burger glyph when open */
     .app-nav-cb:checked + .app-nav .app-burger-open {
@@ -1968,6 +1976,46 @@ body.portal {
     }
     .app-nav-cb:checked + .app-nav .app-burger-close {
         display: block;
+    }
+    /* Compact the right-side controls */
+    .app-right {
+        gap: 6px;
+    }
+    .app-staff,
+    .app-signout {
+        width: 34px;
+        height: 34px;
+    }
+    .avatar-sm {
+        width: 30px;
+        height: 30px;
+        font-size: 0.72rem;
+    }
+}
+@media (max-width: 480px) {
+    .app-nav {
+        gap: 10px;
+        height: 56px;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    .app-brand {
+        font-size: 1.1rem;
+    }
+    .app-links {
+        top: 56px;
+        max-height: calc(100vh - 56px);
+    }
+    .app-right {
+        gap: 4px;
+    }
+    .app-staff {
+        width: 32px;
+        height: 32px;
+    }
+    .app-burger {
+        width: 36px;
+        height: 36px;
     }
 }
 
@@ -2181,6 +2229,7 @@ body.portal {
     margin-top: auto;
     background: #fff;
     border-top: 1px solid var(--slate-200);
+    width: 100%;
 }
 .app-footer-inner {
     max-width: 1180px;
@@ -2234,10 +2283,31 @@ body.portal {
     font-size: 0.82rem;
     color: var(--slate-400);
 }
-@media (max-width: 560px) {
+@media (max-width: 720px) {
     .app-footer-inner {
         flex-direction: column;
+        align-items: center;
+        text-align: center;
         gap: 16px;
+        padding: 24px 16px 16px;
+    }
+    .app-footer-links {
+        justify-content: center;
+    }
+}
+@media (max-width: 480px) {
+    .app-footer-inner {
+        padding: 20px 14px 14px;
+    }
+    .app-footer-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .app-footer-bottom {
+        justify-content: center;
+        text-align: center;
+        padding: 12px 14px max(14px, env(safe-area-inset-bottom));
     }
 }
 
@@ -2739,15 +2809,54 @@ body.landing {
 }
 
 /* ===== Blog ===== */
-.blog-card { padding:0; overflow:hidden; display:flex; flex-direction:column; }
-.blog-cover { aspect-ratio:16/9; background-size:cover; background-position:center; background-color:var(--brand-100); }
-.blog-card-body { padding:18px 20px 20px; }
-.blog-card-body h3 { margin:0 0 .3em; color:var(--slate-900); font-size:1.15rem; }
-.blog-card-body p { margin:0; }
-.blog-meta { color:var(--slate-400); font-size:.82rem; font-weight:700; margin-top:10px !important; }
+.blog-card {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.blog-cover {
+    aspect-ratio: 16/9;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--brand-100);
+}
+.blog-card-body {
+    padding: 18px 20px 20px;
+}
+.blog-card-body h3 {
+    margin: 0 0 0.3em;
+    color: var(--slate-900);
+    font-size: 1.15rem;
+}
+.blog-card-body p {
+    margin: 0;
+}
+.blog-meta {
+    color: var(--slate-400);
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-top: 10px !important;
+}
 
-.blog-post { max-width:760px; margin:0 auto; }
-.blog-title { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:900; color:var(--slate-900);
-  letter-spacing:-.02em; margin:.3em 0 .2em; }
-.blog-post .blog-meta { font-size:.9rem; margin-bottom:20px !important; }
-.blog-hero { width:100%; border-radius:18px; margin:8px 0 24px; display:block; }
+.blog-post {
+    max-width: 760px;
+    margin: 0 auto;
+}
+.blog-title {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 900;
+    color: var(--slate-900);
+    letter-spacing: -0.02em;
+    margin: 0.3em 0 0.2em;
+}
+.blog-post .blog-meta {
+    font-size: 0.9rem;
+    margin-bottom: 20px !important;
+}
+.blog-hero {
+    width: 100%;
+    border-radius: 18px;
+    margin: 8px 0 24px;
+    display: block;
+}

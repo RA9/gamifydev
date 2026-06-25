@@ -35,9 +35,13 @@ func Open(dsn string) (*Store, error) {
 	if strings.HasPrefix(dsn, "libsql://") || strings.HasPrefix(dsn, "http://") || strings.HasPrefix(dsn, "https://") {
 		driver = "libsql"
 	} else {
-		// Local file: enable foreign keys + WAL for sane concurrent reads.
+		// Local file: WAL + a busy timeout for sane concurrent reads. Foreign-key
+		// enforcement is intentionally left OFF to match production: Turso/libSQL
+		// runs with foreign keys disabled by default, so enabling them only locally
+		// would create a dev/prod behaviour mismatch (and would break table
+		// rebuilds during migrations).
 		if !strings.Contains(conn, "?") {
-			conn += "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)"
+			conn += "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)"
 		}
 	}
 	db, err := sql.Open(driver, conn)
@@ -65,8 +69,27 @@ func (s *Store) Close() error { return s.db.Close() }
 //     database — e.g. a Turso DB whose users table predates the platform — in
 //     sync: a sync migration can ADD the missing columns and simply no-op on
 //     databases that already have them.
+//
+// All migrations run on a single dedicated connection with foreign-key
+// enforcement OFF and legacy_alter_table ON, both set *outside* any transaction
+// (SQLite ignores these pragmas mid-transaction). This lets a migration rebuild
+// a table (RENAME + recreate) without breaking it: legacy_alter_table keeps child
+// tables' "REFERENCES users" pointing at the rebuilt table instead of the
+// temporary one, and FK-off lets the old table be dropped cleanly.
 func (s *Store) Migrate(ctx context.Context) error {
-	if _, err := s.db.ExecContext(ctx,
+	conn, err := s.db.Conn(ctx)
+	if err != nil {
+		return fmt.Errorf("migrate: acquire connection: %w", err)
+	}
+	defer conn.Close()
+
+	for _, p := range []string{"PRAGMA foreign_keys=OFF", "PRAGMA legacy_alter_table=ON"} {
+		if _, err := conn.ExecContext(ctx, p); err != nil {
+			return fmt.Errorf("migrate: %s: %w", p, err)
+		}
+	}
+
+	if _, err := conn.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (datetime('now')))`); err != nil {
 		return fmt.Errorf("create migrations table: %w", err)
 	}
@@ -83,7 +106,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 	sort.Strings(names)
 	for _, name := range names {
 		var exists int
-		_ = s.db.QueryRowContext(ctx, `SELECT 1 FROM schema_migrations WHERE name = ?`, name).Scan(&exists)
+		_ = conn.QueryRowContext(ctx, `SELECT 1 FROM schema_migrations WHERE name = ?`, name).Scan(&exists)
 		if exists == 1 {
 			continue
 		}
@@ -91,10 +114,10 @@ func (s *Store) Migrate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := s.applyMigration(ctx, name, string(body)); err != nil {
+		if err := applyMigration(ctx, conn, name, string(body)); err != nil {
 			return fmt.Errorf("apply %s: %w", name, err)
 		}
-		if _, err := s.db.ExecContext(ctx, `INSERT INTO schema_migrations (name) VALUES (?)`, name); err != nil {
+		if _, err := conn.ExecContext(ctx, `INSERT INTO schema_migrations (name) VALUES (?)`, name); err != nil {
 			return err
 		}
 		log.Printf("migrate: applied %s", name)
@@ -102,12 +125,12 @@ func (s *Store) Migrate(ctx context.Context) error {
 	return nil
 }
 
-// applyMigration runs one migration's statements inside a single transaction.
-// "already exists" / "duplicate column" errors are treated as no-ops (the change
-// is already present) so idempotent migrations stay safe to re-run; any other
-// error rolls the whole migration back.
-func (s *Store) applyMigration(ctx context.Context, name, script string) error {
-	tx, err := s.db.BeginTx(ctx, nil)
+// applyMigration runs one migration's statements inside a single transaction on
+// the given connection. "already exists" / "duplicate column" errors are treated
+// as no-ops (the change is already present) so idempotent migrations stay safe to
+// re-run; any other error rolls the whole migration back.
+func applyMigration(ctx context.Context, conn *sql.Conn, name, script string) error {
+	tx, err := conn.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
