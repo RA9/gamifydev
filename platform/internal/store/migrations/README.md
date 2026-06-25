@@ -81,8 +81,22 @@ Examples:
 
 ## SQLite limitations
 
-SQLite can't drop or retype columns or relax a NOT NULL constraint in place. For
-those, use the rebuild pattern (see `0008_rebuild_users.sql` for a real example):
+SQLite can't drop or retype columns or relax a NOT NULL constraint in place. When
+the data is disposable, the simplest fix is to drop and recreate the table (see
+`0008_rebuild_users.sql`):
+
+```sql
+DROP TABLE IF EXISTS old_table;
+CREATE TABLE old_table ( ... new schema ... );
+```
+
+The runner applies migrations with `foreign_keys=OFF`, so the old table drops
+cleanly even while child tables reference it; after it is recreated, those
+`REFERENCES old_table` foreign keys resolve to the new table again.
+
+When the data must be preserved, copy it through a replacement table and rename
+that into place last (build under a temporary name so no child foreign key gets
+rewritten):
 
 ```sql
 CREATE TABLE old_table_new ( ... new schema ... );
@@ -91,13 +105,7 @@ DROP TABLE old_table;
 ALTER TABLE old_table_new RENAME TO old_table;
 ```
 
-Build the replacement under a temporary name and rename it last, rather than
-renaming the original out of the way. Child tables reference the table by its real
-name throughout and never reference the temporary name, so no foreign key gets
-rewritten — after the final rename they bind to the rebuilt table. The runner
-applies migrations with `foreign_keys=OFF`, so the old table drops cleanly even
-while children reference it. Note that foreign keys still cannot be *added* to an
-existing table.
+Note that foreign keys still cannot be *added* to an existing table.
 
 ## Checking status
 
