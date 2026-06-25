@@ -70,25 +70,12 @@ func (s *Store) Close() error { return s.db.Close() }
 //     sync: a sync migration can ADD the missing columns and simply no-op on
 //     databases that already have them.
 //
-// All migrations run on a single dedicated connection with foreign-key
-// enforcement OFF (set *outside* any transaction — SQLite ignores the pragma
-// mid-transaction). This lets a migration rebuild a table (create-new, copy,
-// drop-old, rename) and drop the old table even while child tables still
-// reference it. The pragma is best-effort: Turso/libSQL already runs with
-// foreign keys disabled by default and rejects some PRAGMAs over its remote
-// protocol, so a failure here is logged rather than fatal.
+// Foreign-key enforcement is OFF (the default on both Turso/libSQL and the local
+// SQLite file), so a migration can rebuild a table — create a replacement, copy
+// data, drop the old table, rename the new one in — even while child tables still
+// reference it.
 func (s *Store) Migrate(ctx context.Context) error {
-	conn, err := s.db.Conn(ctx)
-	if err != nil {
-		return fmt.Errorf("migrate: acquire connection: %w", err)
-	}
-	defer conn.Close()
-
-	if _, err := conn.ExecContext(ctx, "PRAGMA foreign_keys=OFF"); err != nil {
-		log.Printf("migrate: PRAGMA foreign_keys=OFF not applied (%v)", err)
-	}
-
-	if _, err := conn.ExecContext(ctx,
+	if _, err := s.db.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (datetime('now')))`); err != nil {
 		return fmt.Errorf("create migrations table: %w", err)
 	}
@@ -105,7 +92,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 	sort.Strings(names)
 	for _, name := range names {
 		var exists int
-		_ = conn.QueryRowContext(ctx, `SELECT 1 FROM schema_migrations WHERE name = ?`, name).Scan(&exists)
+		_ = s.db.QueryRowContext(ctx, `SELECT 1 FROM schema_migrations WHERE name = ?`, name).Scan(&exists)
 		if exists == 1 {
 			continue
 		}
@@ -113,10 +100,10 @@ func (s *Store) Migrate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := applyMigration(ctx, conn, name, string(body)); err != nil {
+		if err := s.applyMigration(ctx, name, string(body)); err != nil {
 			return fmt.Errorf("apply %s: %w", name, err)
 		}
-		if _, err := conn.ExecContext(ctx, `INSERT INTO schema_migrations (name) VALUES (?)`, name); err != nil {
+		if _, err := s.db.ExecContext(ctx, `INSERT INTO schema_migrations (name) VALUES (?)`, name); err != nil {
 			return err
 		}
 		log.Printf("migrate: applied %s", name)
@@ -124,12 +111,12 @@ func (s *Store) Migrate(ctx context.Context) error {
 	return nil
 }
 
-// applyMigration runs one migration's statements inside a single transaction on
-// the given connection. "already exists" / "duplicate column" errors are treated
-// as no-ops (the change is already present) so idempotent migrations stay safe to
-// re-run; any other error rolls the whole migration back.
-func applyMigration(ctx context.Context, conn *sql.Conn, name, script string) error {
-	tx, err := conn.BeginTx(ctx, nil)
+// applyMigration runs one migration's statements inside a single transaction.
+// "already exists" / "duplicate column" errors are treated as no-ops (the change
+// is already present) so idempotent migrations stay safe to re-run; any other
+// error rolls the whole migration back.
+func (s *Store) applyMigration(ctx context.Context, name, script string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
