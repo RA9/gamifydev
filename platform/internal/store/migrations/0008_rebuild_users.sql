@@ -7,18 +7,15 @@
 -- platform's columns, but SQLite cannot drop columns or relax a NOT NULL
 -- constraint in place, so the only fix is to recreate the table.
 --
--- This selects only the platform columns (which 0007 guarantees exist on every
--- database) into a fresh table and drops the old one along with any legacy
--- columns. id and email are preserved.
---
--- The migration runner applies this with foreign_keys=OFF and
--- legacy_alter_table=ON (set on the connection, outside the transaction), so the
--- RENAME leaves child tables' "REFERENCES users" pointing at the rebuilt table
--- and the old table can be dropped without tripping foreign keys.
+-- Strategy: build the canonical table under a temporary name, copy the platform
+-- columns (which 0007 guarantees exist on every database), drop the old table,
+-- then rename the new one into place. Child tables reference `users` by name the
+-- whole time and never reference the temporary name, so no foreign key is ever
+-- rewritten — after the final rename they bind to the rebuilt table. This needs
+-- only foreign_keys=OFF (the runner sets it), which Turso/libSQL allows, unlike
+-- PRAGMA legacy_alter_table. id and email are preserved.
 
-ALTER TABLE users RENAME TO users_rebuild_0008;
-
-CREATE TABLE users (
+CREATE TABLE users_new_0008 (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     email         TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL DEFAULT '',
@@ -30,8 +27,10 @@ CREATE TABLE users (
     updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-INSERT INTO users (id, email, password_hash, name, role, bio, avatar_url, created_at, updated_at)
+INSERT INTO users_new_0008 (id, email, password_hash, name, role, bio, avatar_url, created_at, updated_at)
 SELECT id, email, password_hash, name, role, bio, avatar_url, created_at, updated_at
-FROM users_rebuild_0008;
+FROM users;
 
-DROP TABLE users_rebuild_0008;
+DROP TABLE users;
+
+ALTER TABLE users_new_0008 RENAME TO users;
