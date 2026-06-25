@@ -1,0 +1,36 @@
+{{ define "content" }}
+<div class="page-head forum-head">
+  <div>
+    <h1>Blog</h1>
+    <p class="muted">Write, edit, and publish posts.</p>
+  </div>
+  <a href="/admin/blog/new" class="btn btn-primary">{{ icon "file" }} New post</a>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>Title</th><th>Author</th><th>Status</th><th class="ta-right">Created</th><th class="ta-right"></th></tr></thead>
+    <tbody>
+      {{ range index .Data "posts" }}
+      <tr>
+        <td>
+          <span class="member-name">{{ .Title }}</span>
+          <div class="muted"><code class="slug">/blog/{{ .Slug }}</code></div>
+        </td>
+        <td class="muted">{{ if .AuthorName }}{{ .AuthorName }}{{ else }}—{{ end }}</td>
+        <td>{{ if .Published }}<span class="badge badge-ok">Published</span>{{ else }}<span class="badge">Draft</span>{{ end }}</td>
+        <td class="ta-right muted">{{ reltime .CreatedAt }}</td>
+        <td class="ta-right mod-actions">
+          <a class="btn btn-secondary btn-sm" href="/admin/blog/{{ .ID }}">Edit</a>
+          <form method="post" action="/admin/blog/{{ .ID }}/delete" class="inline" onsubmit="return confirm('Delete this post?')">
+            <button class="btn btn-secondary btn-sm btn-danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">No posts yet. Write your first one.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

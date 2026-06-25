@@ -1,0 +1,22 @@
+{{ define "content" }}
+<div class="page-head">
+  <span class="chip">Blog</span>
+  <h1>From the GamifyDev blog</h1>
+  <p class="muted">Tutorials, tips, and stories from the team and community.</p>
+</div>
+
+<div class="grid-cards">
+  {{ range index .Data "posts" }}
+  <a class="card linkcard blog-card" href="/blog/{{ .Slug }}">
+    {{ if .CoverURL }}<div class="blog-cover" style="background-image:url('{{ .CoverURL }}')"></div>{{ end }}
+    <div class="blog-card-body">
+      <h3>{{ .Title }}</h3>
+      {{ if .Excerpt }}<p class="muted">{{ .Excerpt }}</p>{{ end }}
+      <p class="blog-meta">{{ if .AuthorName }}{{ .AuthorName }} · {{ end }}{{ fmtdate .PublishedAt }}</p>
+    </div>
+  </a>
+  {{ else }}
+  <p class="muted">No posts yet — check back soon.</p>
+  {{ end }}
+</div>
+{{ end }}

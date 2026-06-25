@@ -1,0 +1,25 @@
+{{ define "content" }}
+{{ $p := index .Data "post" }}
+<div class="page-head">
+  <a class="back" href="/admin/blog">← Blog</a>
+  <h1>{{ if $p }}Edit post{{ else }}New post{{ end }}</h1>
+</div>
+<div class="card" style="max-width:860px;">
+  <form method="post" action="{{ index .Data "action" }}" class="form">
+    <div class="form-row">
+      <label class="field"><span>Title</span>
+        <input name="title" value="{{ if $p }}{{ $p.Title }}{{ end }}" required autofocus /></label>
+      <label class="field"><span>Slug <span class="muted">(optional)</span></span>
+        <input name="slug" value="{{ if $p }}{{ $p.Slug }}{{ end }}" placeholder="auto from title" /></label>
+    </div>
+    <label class="field"><span>Cover image URL <span class="muted">(optional)</span></span>
+      <input name="cover_url" value="{{ if $p }}{{ $p.CoverURL }}{{ end }}" placeholder="https://..." /></label>
+    <label class="field"><span>Excerpt <span class="muted">(shown in the list)</span></span>
+      <textarea name="excerpt" rows="2">{{ if $p }}{{ $p.Excerpt }}{{ end }}</textarea></label>
+    <label class="field"><span>Body <span class="muted">— markdown; supports images, code, and :::tip / :::warning blocks</span></span>
+      <textarea name="body" rows="18" class="code-area">{{ if $p }}{{ $p.Body }}{{ end }}</textarea></label>
+    <label class="check"><input type="checkbox" name="published" value="1" {{ if $p }}{{ if $p.Published }}checked{{ end }}{{ end }} /> Published</label>
+    <button class="btn btn-primary" type="submit">{{ if $p }}Save changes{{ else }}Create post{{ end }}</button>
+  </form>
+</div>
+{{ end }}
