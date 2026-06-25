@@ -1,26 +1,35 @@
 {{ define "content" }}
 <section class="lp-hero">
-  <div class="lp-hero-inner">
-    <span class="lp-eyebrow">A complete coding academy</span>
-    <h1>Learn to code by <span>building</span>.</h1>
-    <p class="lp-sub">
-      Guided courses with video &amp; audio, hands-on coding graded by real mentors,
-      live competitions, and a community forum — all in one place.
-    </p>
-    <div class="lp-hero-cta">
-      {{ if .User }}
-        <a href="/dashboard" class="btn btn-lg lp-btn-primary">Go to your dashboard</a>
-      {{ else }}
-        <a href="/register" class="btn btn-lg lp-btn-primary">Start learning free</a>
-        <a href="/courses" class="btn btn-lg lp-btn-ghost">Browse courses</a>
-      {{ end }}
+  <div class="lp-hero-grid">
+    <div class="lp-hero-inner">
+      <h1>Learn to code by <span>building</span>.</h1>
+      <p class="lp-sub">
+        Guided courses with video &amp; audio, hands-on coding graded by real mentors,
+        live competitions, and a community forum — all in one place.
+      </p>
+      <div class="lp-hero-cta">
+        {{ if .User }}
+          <a href="/dashboard" class="btn btn-lg lp-btn-primary">Go to your dashboard</a>
+        {{ else }}
+          <a href="/register" class="btn btn-lg lp-btn-primary">Start learning free</a>
+          <a href="/courses" class="btn btn-lg lp-btn-ghost">Browse courses</a>
+        {{ end }}
+      </div>
+      <ul class="lp-hero-points">
+        <li>{{ icon "book" }} 7 learning tracks</li>
+        <li>{{ icon "clipboard" }} Mentor-graded code</li>
+        <li>{{ icon "trophy" }} Live competitions</li>
+        <li>{{ icon "shield" }} Earn certificates</li>
+      </ul>
     </div>
-    <ul class="lp-hero-points">
-      <li>{{ icon "book" }} 7 learning tracks</li>
-      <li>{{ icon "clipboard" }} Mentor-graded code</li>
-      <li>{{ icon "trophy" }} Live competitions</li>
-      <li>{{ icon "shield" }} Earn certificates</li>
-    </ul>
+    <div class="lp-hero-media">
+      <div class="lp-video-ph" role="img" aria-label="Intro video coming soon">
+        <span class="lp-video-play">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        <span class="lp-video-label">Intro video coming soon</span>
+      </div>
+    </div>
   </div>
 </section>
 
