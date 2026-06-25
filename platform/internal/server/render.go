@@ -39,16 +39,17 @@ type ViewData struct {
 //   - app_layout.html    : the learner portal (authenticated, app-style nav)
 //   - admin_layout.html  : the admin sidebar
 const (
-	layoutPublic = "layout.html"
-	layoutApp    = "app_layout.html"
-	layoutAdmin  = "admin_layout.html"
+	layoutPublic  = "layout.html"
+	layoutApp     = "app_layout.html"
+	layoutAdmin   = "admin_layout.html"
+	layoutLanding = "landing_layout.html"
 )
 
-var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin}
+var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin, layoutLanding}
 
 // alwaysPublic pages keep the marketing shell even when signed in.
 var alwaysPublic = map[string]bool{
-	"home.html": true, "login.html": true, "register.html": true, "notfound.html": true,
+	"login.html": true, "register.html": true, "notfound.html": true,
 }
 
 type renderer struct {
@@ -85,6 +86,8 @@ func newRenderer() (*renderer, error) {
 // chooseLayout decides which shell wraps a page for this request.
 func chooseLayout(page string, signedIn bool) string {
 	switch {
+	case page == "home.html":
+		return layoutLanding
 	case strings.HasPrefix(page, "admin_"):
 		return layoutAdmin
 	case alwaysPublic[page]:
