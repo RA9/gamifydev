@@ -1,6 +1,8 @@
 package server
 
 import (
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -60,6 +62,13 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 	if _, err := s.st.GetUserByEmail(r.Context(), email); err == nil {
 		fail("An account with that email already exists.")
 		return
+	} else if !errors.Is(err, store.ErrNotFound) {
+		// A non-"not found" error means the lookup itself failed (e.g. the
+		// users table is missing or the DB is unreachable). Don't pretend the
+		// email is just taken — log it so prod tells us the real cause.
+		log.Printf("register: lookup %q failed: %v", email, err)
+		fail("Could not create the account right now. Please try again.")
+		return
 	}
 	hash, err := auth.HashPassword(password)
 	if err != nil {
@@ -73,6 +82,7 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	u, err := s.st.CreateUser(r.Context(), email, hash, name, role)
 	if err != nil {
+		log.Printf("register: create user %q failed: %v", email, err)
 		fail("Could not create the account. Try a different email.")
 		return
 	}
