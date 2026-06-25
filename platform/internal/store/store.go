@@ -71,11 +71,12 @@ func (s *Store) Close() error { return s.db.Close() }
 //     databases that already have them.
 //
 // All migrations run on a single dedicated connection with foreign-key
-// enforcement OFF and legacy_alter_table ON, both set *outside* any transaction
-// (SQLite ignores these pragmas mid-transaction). This lets a migration rebuild
-// a table (RENAME + recreate) without breaking it: legacy_alter_table keeps child
-// tables' "REFERENCES users" pointing at the rebuilt table instead of the
-// temporary one, and FK-off lets the old table be dropped cleanly.
+// enforcement OFF (set *outside* any transaction — SQLite ignores the pragma
+// mid-transaction). This lets a migration rebuild a table (create-new, copy,
+// drop-old, rename) and drop the old table even while child tables still
+// reference it. The pragma is best-effort: Turso/libSQL already runs with
+// foreign keys disabled by default and rejects some PRAGMAs over its remote
+// protocol, so a failure here is logged rather than fatal.
 func (s *Store) Migrate(ctx context.Context) error {
 	conn, err := s.db.Conn(ctx)
 	if err != nil {
@@ -83,10 +84,8 @@ func (s *Store) Migrate(ctx context.Context) error {
 	}
 	defer conn.Close()
 
-	for _, p := range []string{"PRAGMA foreign_keys=OFF", "PRAGMA legacy_alter_table=ON"} {
-		if _, err := conn.ExecContext(ctx, p); err != nil {
-			return fmt.Errorf("migrate: %s: %w", p, err)
-		}
+	if _, err := conn.ExecContext(ctx, "PRAGMA foreign_keys=OFF"); err != nil {
+		log.Printf("migrate: PRAGMA foreign_keys=OFF not applied (%v)", err)
 	}
 
 	if _, err := conn.ExecContext(ctx,
