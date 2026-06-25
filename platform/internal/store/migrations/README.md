@@ -18,6 +18,15 @@ so there are no external files to ship. The runner:
   (notably `ALTER TABLE ADD COLUMN`) can run safely against a database that
   already has the change.
 
+All migrations run on a single dedicated connection with `foreign_keys=OFF` and
+`legacy_alter_table=ON`, set on the connection **outside** the transaction
+(SQLite ignores both pragmas mid-transaction). This makes table **rebuilds** safe:
+a migration can `RENAME` a table, recreate it, copy data, and drop the old one
+without tripping foreign keys, and child tables keep their `REFERENCES <table>`
+pointing at the rebuilt table instead of the temporary name. Foreign keys are off
+to match production — Turso/libSQL runs with foreign-key enforcement disabled by
+default — so the local SQLite file uses the same setting.
+
 That last point is what keeps an older or shared database in sync. SQLite has no
 `ADD COLUMN IF NOT EXISTS`, so a "sync" migration simply `ALTER TABLE ADD
 COLUMN`s the expected columns: it adds them where missing and no-ops where they
@@ -39,6 +48,7 @@ Examples:
 - `0001_init.sql`
 - `0006_blog.sql`
 - `0007_sync_auth_schema.sql`
+- `0008_rebuild_users.sql`
 
 ## Creating a migration
 
@@ -72,7 +82,8 @@ Examples:
 
 ## SQLite limitations
 
-SQLite can't drop or retype columns directly. For those, use the rebuild pattern:
+SQLite can't drop or retype columns or relax a NOT NULL constraint in place. For
+those, use the rebuild pattern (see `0008_rebuild_users.sql` for a real example):
 
 ```sql
 ALTER TABLE old_table RENAME TO old_table_backup;
@@ -81,8 +92,11 @@ INSERT INTO old_table (col_a, col_b) SELECT col_a, col_b FROM old_table_backup;
 DROP TABLE old_table_backup;
 ```
 
-Note: foreign keys cannot be added to an existing table, and `DROP TABLE` may
-need foreign-key enforcement disabled depending on the connection.
+The runner already applies migrations with `foreign_keys=OFF` and
+`legacy_alter_table=ON`, so a rebuild like this drops the old table cleanly and
+child foreign keys stay bound to the rebuilt table — no extra pragma statements
+needed inside the migration. Note that foreign keys still cannot be *added* to an
+existing table.
 
 ## Checking status
 
