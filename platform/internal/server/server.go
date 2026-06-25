@@ -6,20 +6,22 @@ import (
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/store"
+	"github.com/redis/go-redis/v9"
 )
 
 type Server struct {
 	st     *store.Store
+	rdb    *redis.Client // optional; nil when REDIS_URL is unset
 	rnd    *renderer
 	secure bool // set Secure cookies (true in production/HTTPS)
 }
 
-func New(st *store.Store, secure bool) (*Server, error) {
+func New(st *store.Store, rc *redis.Client, secure bool) (*Server, error) {
 	rnd, err := newRenderer()
 	if err != nil {
 		return nil, err
 	}
-	return &Server{st: st, rnd: rnd, secure: secure}, nil
+	return &Server{st: st, rdb: rc, rnd: rnd, secure: secure}, nil
 }
 
 func (s *Server) Routes() http.Handler {

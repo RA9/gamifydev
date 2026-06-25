@@ -9,8 +9,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/RA9/gamifydev/platform/internal/rdb"
 	"github.com/RA9/gamifydev/platform/internal/server"
 	"github.com/RA9/gamifydev/platform/internal/store"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -38,7 +40,22 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	srv, err := server.New(st, secure)
+	// Redis is optional — connect only if REDIS_URL is configured. Future
+	// features (caching, rate limiting, live competition pub/sub) will use it.
+	var rc *redis.Client
+	if url := os.Getenv("REDIS_URL"); url != "" {
+		rc, err = rdb.Open(ctx, url)
+		if err != nil {
+			log.Printf("redis: %v (continuing without it)", err)
+		} else {
+			log.Printf("redis: connected")
+			defer rc.Close()
+		}
+	} else {
+		log.Printf("redis: REDIS_URL not set, running without Redis")
+	}
+
+	srv, err := server.New(st, rc, secure)
 	if err != nil {
 		log.Fatalf("server: %v", err)
 	}
