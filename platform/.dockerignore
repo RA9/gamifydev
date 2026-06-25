@@ -1,0 +1,9 @@
+# Keep the build context small + never ship local dev artifacts.
+*.db
+*.db-shm
+*.db-wal
+.env
+server
+/bin/
+*.out
+README.md
