@@ -1,0 +1,506 @@
+{
+  "config": {
+    "paths": [
+      {
+        "name": "Frontend",
+        "modules": [
+          {
+            "title": "History of the Web",
+            "description": "The web is a big place. Let's learn how it got started and where it's going.",
+            "resources": [
+              {
+                "title": "The History of the Web",
+                "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4"
+              }
+            ],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Intro to Programming",
+            "previous": null
+          },
+          {
+            "title": "Intro to Programming",
+            "description": "Get started with programming by learning what it is and how it works.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "HTML Basics",
+            "previous": "History of the Web"
+          },
+          {
+            "title": "HTML Basics",
+            "description": "Let's learn what HTML is and how it structures every web page.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "CSS Basics",
+            "previous": "Intro to Programming"
+          },
+          {
+            "title": "CSS Basics",
+            "description": "Create beautiful webpages using CSS.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building a Website with HTML and CSS",
+            "previous": "HTML Basics"
+          },
+          {
+            "title": "Building a Website with HTML and CSS",
+            "description": "A hands-on approach to building stunning webpages.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a Profile Card",
+            "previous": "CSS Basics"
+          },
+          {
+            "title": "Project: Build a Profile Card",
+            "description": "Your first real build — a polished profile card with HTML and CSS.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "JavaScript Basics",
+            "previous": "Building a Website with HTML and CSS"
+          },
+          {
+            "title": "JavaScript Basics",
+            "description": "Let's learn what JavaScript is and how it works.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building Interactive JavaScript Websites",
+            "previous": "Project: Build a Profile Card"
+          },
+          {
+            "title": "Building Interactive JavaScript Websites",
+            "description": "Build interactive websites with lots of features using JavaScript.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a Quiz Game",
+            "previous": "JavaScript Basics"
+          },
+          {
+            "title": "Project: Build a Quiz Game",
+            "description": "Build a working multiple-choice quiz game with JavaScript.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Git and GitHub",
+            "previous": "Building Interactive JavaScript Websites"
+          },
+          {
+            "title": "Git and GitHub",
+            "description": "Let's learn what Git and GitHub are and how to save and share your work.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building your portfolio website",
+            "previous": "Project: Build a Quiz Game"
+          },
+          {
+            "title": "Building your portfolio website",
+            "description": "Build your own portfolio website to showcase your work.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps",
+            "previous": "Git and GitHub"
+          },
+          {
+            "title": "Next Steps",
+            "description": "A guide to what to do next after completing the Frontend path.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Building your portfolio website"
+          }
+        ]
+      },
+      {
+        "name": "Backend",
+        "modules": [
+          {
+            "title": "What is the Backend?",
+            "description": "Servers, requests, and responses — what happens behind the scenes.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Programming with Python",
+            "previous": null
+          },
+          {
+            "title": "Programming with Python",
+            "description": "Learn the language most beginners use to build backends.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Working with Data and Databases",
+            "previous": "What is the Backend?"
+          },
+          {
+            "title": "Working with Data and Databases",
+            "description": "Store and retrieve data with databases and SQL.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Building a REST API",
+            "previous": "Programming with Python"
+          },
+          {
+            "title": "Building a REST API",
+            "description": "Expose your data to the world through a clean API.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a To-Do API",
+            "previous": "Working with Data and Databases"
+          },
+          {
+            "title": "Project: Build a To-Do API",
+            "description": "Build a real REST API for a to-do app, endpoint by endpoint.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Deploying and Next Steps",
+            "previous": "Building a REST API"
+          },
+          {
+            "title": "Deploying and Next Steps",
+            "description": "Put your backend online and chart your path forward.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Project: Build a To-Do API"
+          }
+        ]
+      },
+      {
+        "name": "Fullstack",
+        "modules": [
+          {
+            "title": "What is Full-Stack Development?",
+            "description": "The big picture: frontend, backend, and how they fit together.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "How the Frontend and Backend Talk",
+            "previous": null
+          },
+          {
+            "title": "How the Frontend and Backend Talk",
+            "description": "Connect the two halves with HTTP, fetch, and JSON.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a Notes App",
+            "previous": "What is Full-Stack Development?"
+          },
+          {
+            "title": "Project: Build a Notes App",
+            "description": "Build a full-stack notes app: a frontend talking to a backend.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Becoming a Full-Stack Developer",
+            "previous": "How the Frontend and Backend Talk"
+          },
+          {
+            "title": "Becoming a Full-Stack Developer",
+            "description": "Habits, stacks, and the road to shipping full-stack apps.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Project: Build a Notes App"
+          }
+        ]
+      },
+      {
+        "name": "C",
+        "modules": [
+          {
+            "title": "What is C?",
+            "description": "A fast, compiled language that powers operating systems and more.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "C Basics",
+            "previous": null
+          },
+          {
+            "title": "C Basics",
+            "description": "Variables, types, and printing output in C.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Control Flow in C",
+            "previous": "What is C?"
+          },
+          {
+            "title": "Control Flow in C",
+            "description": "Make decisions and repeat work with if and loops.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Functions in C",
+            "previous": "C Basics"
+          },
+          {
+            "title": "Functions in C",
+            "description": "Package and reuse logic with functions.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Pointers and Memory",
+            "previous": "Control Flow in C"
+          },
+          {
+            "title": "Pointers and Memory",
+            "description": "C’s signature feature: working with memory addresses.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with C",
+            "previous": "Functions in C"
+          },
+          {
+            "title": "Next Steps with C",
+            "description": "Where to go after the fundamentals.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Pointers and Memory"
+          }
+        ]
+      },
+      {
+        "name": "Java",
+        "modules": [
+          {
+            "title": "What is Java?",
+            "description": "A portable, object-oriented language that runs everywhere.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Java Basics",
+            "previous": null
+          },
+          {
+            "title": "Java Basics",
+            "description": "Variables, types, and printing output in Java.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Control Flow in Java",
+            "previous": "What is Java?"
+          },
+          {
+            "title": "Control Flow in Java",
+            "description": "Decisions and loops in Java.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Methods in Java",
+            "previous": "Java Basics"
+          },
+          {
+            "title": "Methods in Java",
+            "description": "Reusable blocks of behaviour.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Objects and Classes",
+            "previous": "Control Flow in Java"
+          },
+          {
+            "title": "Objects and Classes",
+            "description": "The heart of object-oriented programming.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with Java",
+            "previous": "Methods in Java"
+          },
+          {
+            "title": "Next Steps with Java",
+            "description": "Frameworks and where to go next.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Objects and Classes"
+          }
+        ]
+      },
+      {
+        "name": "Python",
+        "modules": [
+          {
+            "title": "What is Python?",
+            "description": "A clear, friendly language used everywhere from web to AI.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Python Basics",
+            "previous": null
+          },
+          {
+            "title": "Python Basics",
+            "description": "Variables, types, and printing output in Python.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Control Flow in Python",
+            "previous": "What is Python?"
+          },
+          {
+            "title": "Control Flow in Python",
+            "description": "Make decisions and repeat work with if and loops.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Functions in Python",
+            "previous": "Python Basics"
+          },
+          {
+            "title": "Functions in Python",
+            "description": "Package and reuse logic with functions.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Lists and Dictionaries",
+            "previous": "Control Flow in Python"
+          },
+          {
+            "title": "Lists and Dictionaries",
+            "description": "Python’s workhorse data structures.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with Python",
+            "previous": "Functions in Python"
+          },
+          {
+            "title": "Next Steps with Python",
+            "description": "Where to go after the fundamentals.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Lists and Dictionaries"
+          }
+        ]
+      },
+      {
+        "name": "Linux",
+        "modules": [
+          {
+            "title": "What is Linux?",
+            "description": "The open-source OS that runs servers, phones, and the cloud.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "The Command Line",
+            "previous": null
+          },
+          {
+            "title": "The Command Line",
+            "description": "Talk to your computer with typed commands.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Navigating the Filesystem",
+            "previous": "What is Linux?"
+          },
+          {
+            "title": "Navigating the Filesystem",
+            "description": "Move around directories with pwd, ls, and cd.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Working with Files",
+            "previous": "The Command Line"
+          },
+          {
+            "title": "Working with Files",
+            "description": "Create, read, copy, move, and delete files.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Bash Scripting Basics",
+            "previous": "Navigating the Filesystem"
+          },
+          {
+            "title": "Bash Scripting Basics",
+            "description": "Automate work by writing your first shell scripts.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps with Linux",
+            "previous": "Working with Files"
+          },
+          {
+            "title": "Next Steps with Linux",
+            "description": "Permissions, pipes, and where to go next.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Bash Scripting Basics"
+          }
+        ]
+      }
+    ]
+  }
+}

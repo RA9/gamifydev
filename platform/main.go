@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/RA9/gamifydev/platform/internal/rdb"
+	"github.com/RA9/gamifydev/platform/internal/seed"
 	"github.com/RA9/gamifydev/platform/internal/server"
 	"github.com/RA9/gamifydev/platform/internal/store"
 	"github.com/redis/go-redis/v9"
@@ -38,6 +39,20 @@ func main() {
 	defer cancel()
 	if err := st.Migrate(ctx); err != nil {
 		log.Fatalf("migrate: %v", err)
+	}
+
+	// Seed the embedded course content on a fresh database (or when SEED=1 is
+	// set to force a re-seed). Non-fatal: a content issue shouldn't down the app.
+	if os.Getenv("SEED") == "1" {
+		if r, err := seed.Run(ctx, st); err != nil {
+			log.Printf("seed (forced): %v", err)
+		} else {
+			log.Printf("seed (forced): %d courses, %d lessons, %d assignments", r.Courses, r.Lessons, r.Assignments)
+		}
+	} else if r, seeded, err := seed.RunIfEmpty(ctx, st); err != nil {
+		log.Printf("seed: %v", err)
+	} else if seeded {
+		log.Printf("seed: fresh database — %d courses, %d lessons, %d assignments", r.Courses, r.Lessons, r.Assignments)
 	}
 
 	// Redis is optional — connect only if REDIS_URL is configured. Future
