@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{{ if .Title }}{{ .Title }} · {{ end }}GamifyDev — Learn to code by building</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/app.css" />
+  </head>
+  <body class="landing">
+    <input type="checkbox" id="lpNav" class="lp-nav-cb visually-hidden" />
+    <header class="lp-header">
+      <div class="lp-nav">
+        <a class="lp-brand" href="/">Gamify<span>Dev</span></a>
+        <nav class="lp-links" aria-label="Primary">
+          <a href="/courses">Courses</a>
+          <a href="/forum">Forum</a>
+          {{ if .User }}
+            <a href="/dashboard" class="lp-cta">Go to dashboard</a>
+          {{ else }}
+            <a href="/login">Sign in</a>
+            <a href="/register" class="lp-cta">Get started</a>
+          {{ end }}
+        </nav>
+        <label for="lpNav" class="lp-burger" aria-label="Toggle navigation menu">
+          <span class="lp-burger-open">☰</span><span class="lp-burger-close">✕</span>
+        </label>
+      </div>
+    </header>
+
+    <main class="lp-main">
+      {{ block "content" . }}{{ end }}
+    </main>
+
+    <footer class="lp-footer">
+      <div class="lp-footer-inner">
+        <div class="lp-foot-brand">
+          <a class="lp-brand" href="/">Gamify<span>Dev</span></a>
+          <p>Learn to code by building — courses, mentor-graded projects, live competitions, and a community of builders.</p>
+        </div>
+        <div class="lp-foot-col">
+          <h4>Learn</h4>
+          <a href="/courses">Courses</a>
+          <a href="/competitions">Competitions</a>
+        </div>
+        <div class="lp-foot-col">
+          <h4>Community</h4>
+          <a href="/forum">Forum</a>
+        </div>
+        <div class="lp-foot-col">
+          <h4>Account</h4>
+          <a href="/login">Sign in</a>
+          <a href="/register">Get started</a>
+        </div>
+      </div>
+      <div class="lp-footer-bottom">
+        <span>&copy; 2023–2026 GamifyDev</span>
+        <span>Built for builders 🚀</span>
+      </div>
+    </footer>
+  </body>
+</html>

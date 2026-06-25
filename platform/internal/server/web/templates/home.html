@@ -1,41 +1,66 @@
 {{ define "content" }}
-<section class="hero">
-  <span class="chip">A complete coding academy</span>
-  <h1>Learn to code by <em>building</em>.</h1>
-  <p class="lead">
-    Guided courses with video and audio, hands-on coding assignments graded by real
-    mentors, live competitions, and a community forum — all in one place.
-  </p>
-  <div class="hero-cta">
-    {{ if .User }}
-      <a href="/dashboard" class="btn btn-primary btn-lg">Go to your dashboard</a>
-    {{ else }}
-      <a href="/register" class="btn btn-primary btn-lg">Start learning free</a>
-      <a href="/login" class="btn btn-secondary btn-lg">Sign in</a>
-    {{ end }}
+<section class="lp-hero">
+  <div class="lp-hero-inner">
+    <span class="lp-eyebrow">A complete coding academy</span>
+    <h1>Learn to code by <span>building</span>.</h1>
+    <p class="lp-sub">
+      Guided courses with video &amp; audio, hands-on coding graded by real mentors,
+      live competitions, and a community forum — all in one place.
+    </p>
+    <div class="lp-hero-cta">
+      {{ if .User }}
+        <a href="/dashboard" class="btn btn-lg lp-btn-primary">Go to your dashboard</a>
+      {{ else }}
+        <a href="/register" class="btn btn-lg lp-btn-primary">Start learning free</a>
+        <a href="/courses" class="btn btn-lg lp-btn-ghost">Browse courses</a>
+      {{ end }}
+    </div>
+    <ul class="lp-hero-points">
+      <li>📚 7 learning tracks</li>
+      <li>⌨️ Mentor-graded code</li>
+      <li>🏆 Live competitions</li>
+      <li>🎓 Earn certificates</li>
+    </ul>
+  </div>
+  <div class="lp-hero-fade" aria-hidden="true"></div>
+</section>
+
+<section class="lp-section">
+  <div class="lp-section-inner">
+    <div class="lp-section-head">
+      <span class="chip">Why GamifyDev</span>
+      <h2 class="lp-h2">Everything you need to go from zero to job-ready</h2>
+    </div>
+    <div class="lp-features">
+      <article class="lp-feature">
+        <div class="lp-feature-ic ic-brand">📚</div>
+        <h3>Rich courses</h3>
+        <p>Lessons with images, video, and audio — depth you can actually talk about, not just skim.</p>
+      </article>
+      <article class="lp-feature">
+        <div class="lp-feature-ic ic-grass">⌨️</div>
+        <h3>Mentor-graded code</h3>
+        <p>Submit real coding assignments and get feedback from a human on the team that pushes you forward.</p>
+      </article>
+      <article class="lp-feature">
+        <div class="lp-feature-ic ic-amber">🏆</div>
+        <h3>Competitions</h3>
+        <p>Timed coding contests with live leaderboards to test your edge against other builders.</p>
+      </article>
+      <article class="lp-feature">
+        <div class="lp-feature-ic ic-rose">💬</div>
+        <h3>Community forum</h3>
+        <p>Ask questions, share what you built, and learn together. Nobody ships great code alone.</p>
+      </article>
+    </div>
   </div>
 </section>
 
-<section class="features">
-  <div class="card feature">
-    <div class="feature-emoji">📚</div>
-    <h3>Rich courses</h3>
-    <p>Lessons with images, video, and audio — depth you can actually talk about.</p>
-  </div>
-  <div class="card feature">
-    <div class="feature-emoji">⌨️</div>
-    <h3>Mentor-graded code</h3>
-    <p>Real assignments reviewed by a human on the team, with feedback that pushes you.</p>
-  </div>
-  <div class="card feature">
-    <div class="feature-emoji">🏆</div>
-    <h3>Competitions</h3>
-    <p>Timed coding contests with leaderboards to test your edge against others.</p>
-  </div>
-  <div class="card feature">
-    <div class="feature-emoji">💬</div>
-    <h3>Community forum</h3>
-    <p>Ask, answer, and learn together. Nobody ships great code alone.</p>
+<section class="lp-cta-band">
+  <div class="lp-cta-inner">
+    <h2>Ready to build something real?</h2>
+    <p>Create a free account and start your first lesson today.</p>
+    {{ if not .User }}<a href="/register" class="btn btn-lg lp-btn-light">Create your free account</a>{{ end }}
   </div>
 </section>
 {{ end }}
