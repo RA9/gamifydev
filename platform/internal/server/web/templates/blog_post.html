@@ -1,0 +1,10 @@
+{{ define "content" }}
+{{ $p := index .Data "post" }}
+<article class="blog-post">
+  <a class="back" href="/blog">← Blog</a>
+  <h1 class="blog-title">{{ $p.Title }}</h1>
+  <p class="blog-meta">{{ if $p.AuthorName }}By {{ $p.AuthorName }} · {{ end }}{{ fmtdate $p.PublishedAt }}</p>
+  {{ if $p.CoverURL }}<img class="blog-hero" src="{{ $p.CoverURL }}" alt="{{ $p.Title }}" loading="lazy" />{{ end }}
+  <div class="prose">{{ index .Data "body" }}</div>
+</article>
+{{ end }}

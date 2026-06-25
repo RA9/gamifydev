@@ -41,6 +41,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /forum/{id}", s.handleForumThread)
 	mux.HandleFunc("GET /competitions", s.handleCompetitions)
 	mux.HandleFunc("GET /competitions/{slug}", s.handleCompetition)
+	mux.HandleFunc("GET /blog", s.handleBlog)
+	mux.HandleFunc("GET /blog/{slug}", s.handleBlogPost)
 	mux.HandleFunc("GET /login", s.handleLoginForm)
 	mux.HandleFunc("POST /login", s.handleLogin)
 	mux.HandleFunc("GET /register", s.handleRegisterForm)
@@ -85,6 +87,12 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /admin/competitions/{slug}/entries/{id}/score", admin(http.HandlerFunc(s.handleAdminScoreEntry)))
 	mux.Handle("GET /admin/forum", admin(http.HandlerFunc(s.handleAdminForum)))
 	mux.Handle("POST /admin/forum/{id}/{action}", admin(http.HandlerFunc(s.handleForumModerate)))
+	mux.Handle("GET /admin/blog", admin(http.HandlerFunc(s.handleAdminBlog)))
+	mux.Handle("GET /admin/blog/new", admin(http.HandlerFunc(s.handleAdminBlogNew)))
+	mux.Handle("POST /admin/blog", admin(http.HandlerFunc(s.handleAdminBlogCreate)))
+	mux.Handle("GET /admin/blog/{id}", admin(http.HandlerFunc(s.handleAdminBlogEdit)))
+	mux.Handle("POST /admin/blog/{id}", admin(http.HandlerFunc(s.handleAdminBlogUpdate)))
+	mux.Handle("POST /admin/blog/{id}/delete", admin(http.HandlerFunc(s.handleAdminBlogDelete)))
 
 	// Grading — admins and graders
 	staff := s.requireRole("admin", "grader")
