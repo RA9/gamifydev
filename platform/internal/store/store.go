@@ -85,7 +85,73 @@ func (s *Store) Migrate(ctx context.Context) error {
 			return err
 		}
 	}
+	return s.reconcileSchema(ctx)
+}
+
+// reconcileSchema brings older or shared databases in line with the current
+// schema by adding any missing columns. It's needed when a table predates the
+// platform (e.g. a `users` table left by an earlier app on the same Turso
+// database): a migration's CREATE TABLE IF NOT EXISTS is then a no-op, so the
+// table keeps its old, incomplete shape and inserts/selects fail with
+// "no such column". This runs on every boot, is idempotent (skips columns that
+// already exist), and is non-destructive (only ADD COLUMN, never drops data).
+//
+// Defaults must be constant — SQLite rejects ADD COLUMN with a non-constant
+// default like datetime('now') — so timestamp columns are backfilled with ''.
+func (s *Store) reconcileSchema(ctx context.Context) error {
+	type col struct{ name, ddl string }
+	want := map[string][]col{
+		"users": {
+			{"password_hash", "password_hash TEXT NOT NULL DEFAULT ''"},
+			{"name", "name TEXT NOT NULL DEFAULT ''"},
+			{"role", "role TEXT NOT NULL DEFAULT 'learner'"},
+			{"bio", "bio TEXT NOT NULL DEFAULT ''"},
+			{"avatar_url", "avatar_url TEXT NOT NULL DEFAULT ''"},
+			{"created_at", "created_at TEXT NOT NULL DEFAULT ''"},
+			{"updated_at", "updated_at TEXT NOT NULL DEFAULT ''"},
+		},
+	}
+	for table, cols := range want {
+		existing, err := s.tableColumns(ctx, table)
+		if err != nil {
+			return fmt.Errorf("reconcile %s: %w", table, err)
+		}
+		if len(existing) == 0 {
+			continue // table doesn't exist; the migrations create it correctly
+		}
+		for _, c := range cols {
+			if existing[c.name] {
+				continue
+			}
+			if _, err := s.db.ExecContext(ctx, "ALTER TABLE "+table+" ADD COLUMN "+c.ddl); err != nil {
+				return fmt.Errorf("reconcile %s.%s: %w", table, c.name, err)
+			}
+		}
+	}
 	return nil
+}
+
+// tableColumns returns the set of column names on a table (empty if it does not
+// exist). The table name is an internal constant, so it is safe to interpolate.
+func (s *Store) tableColumns(ctx context.Context, table string) (map[string]bool, error) {
+	rows, err := s.db.QueryContext(ctx, "PRAGMA table_info("+table+")")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	cols := map[string]bool{}
+	for rows.Next() {
+		var (
+			cid, notnull, pk int
+			name, ctype      string
+			dflt             sql.NullString
+		)
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
+			return nil, err
+		}
+		cols[name] = true
+	}
+	return cols, rows.Err()
 }
 
 // --- Models -----------------------------------------------------------------
