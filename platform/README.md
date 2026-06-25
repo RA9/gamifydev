@@ -53,6 +53,9 @@ filesystem is ephemeral, so production uses **Turso** for the database.
 3. **Set the service variables** (Railway → Variables):
    - `DATABASE_URL` = `libsql://<your-db>.turso.io?authToken=<token>`
    - `PORT` is provided by Railway; `SECURE_COOKIES` is auto-enabled there.
+   - *(Optional)* add a **Redis** service in Railway and set `REDIS_URL` to its
+     connection string (e.g. `${{Redis.REDIS_URL}}`). The app runs without it
+     today; future features (caching, rate limiting, live competitions) use it.
 
 4. **Deploy.** Railway builds the image, runs migrations on boot, and serves on
    the generated domain (health-checked at `/healthz`). The **first account you
@@ -64,6 +67,7 @@ filesystem is ephemeral, so production uses **Turso** for the database.
 main.go                         # wiring: db, migrations, server
 internal/store/                 # data layer (database/sql) + SQL migrations
 internal/auth/                  # password hashing, sessions, request context
+internal/rdb/                   # optional Redis client (REDIS_URL)
 internal/server/                # routes, middleware, handlers, rendering
   web/templates/                # html/template pages + shared layout (embedded)
   web/static/                   # css / js assets (embedded)
