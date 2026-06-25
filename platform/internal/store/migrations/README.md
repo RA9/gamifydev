@@ -18,14 +18,13 @@ so there are no external files to ship. The runner:
   (notably `ALTER TABLE ADD COLUMN`) can run safely against a database that
   already has the change.
 
-All migrations run on a single dedicated connection with `foreign_keys=OFF`, set
-on the connection **outside** the transaction (SQLite ignores the pragma
-mid-transaction). This makes table **rebuilds** safe: a migration can create a
+Foreign-key enforcement is OFF — the default on both Turso/libSQL and the local
+SQLite file (the local DSN deliberately does not turn it on, to match
+production). That makes table **rebuilds** safe: a migration can create a
 replacement table, copy data, drop the old one, and rename the new one into
-place even while child tables still reference it. Foreign keys are off to match
-production — Turso/libSQL runs with foreign-key enforcement disabled by default —
-so the local SQLite file uses the same setting. The pragma is best-effort
-(logged, not fatal) because libSQL rejects some PRAGMAs over its remote protocol.
+place even while child tables still reference it. (No pragma is set during
+migration — libSQL rejects some PRAGMAs over its remote protocol, and none is
+needed since foreign keys are already off.)
 
 That last point is what keeps an older or shared database in sync. SQLite has no
 `ADD COLUMN IF NOT EXISTS`, so a "sync" migration simply `ALTER TABLE ADD
