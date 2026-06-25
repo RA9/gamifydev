@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
+	"github.com/RA9/gamifydev/platform/internal/email"
 	"github.com/RA9/gamifydev/platform/internal/store"
 	"github.com/redis/go-redis/v9"
 )
@@ -12,16 +13,20 @@ import (
 type Server struct {
 	st     *store.Store
 	rdb    *redis.Client // optional; nil when REDIS_URL is unset
+	mail   *email.Mailer // optional; falls back to showing links when unconfigured
 	rnd    *renderer
 	secure bool // set Secure cookies (true in production/HTTPS)
 }
 
-func New(st *store.Store, rc *redis.Client, secure bool) (*Server, error) {
+func New(st *store.Store, rc *redis.Client, mail *email.Mailer, secure bool) (*Server, error) {
 	rnd, err := newRenderer()
 	if err != nil {
 		return nil, err
 	}
-	return &Server{st: st, rdb: rc, rnd: rnd, secure: secure}, nil
+	if mail == nil {
+		mail = email.New()
+	}
+	return &Server{st: st, rdb: rc, mail: mail, rnd: rnd, secure: secure}, nil
 }
 
 func (s *Server) Routes() http.Handler {
@@ -48,6 +53,9 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /register", s.handleRegisterForm)
 	mux.HandleFunc("POST /register", s.handleRegister)
 	mux.HandleFunc("POST /logout", s.handleLogout)
+	// Invitation acceptance (public — the invitee has no account yet).
+	mux.HandleFunc("GET /invite/{token}", s.handleInvite)
+	mux.HandleFunc("POST /invite/{token}", s.handleInviteSubmit)
 
 	// Learner (auth required)
 	in := s.requireAuth
@@ -64,7 +72,10 @@ func (s *Server) Routes() http.Handler {
 	admin := s.requireRole("admin")
 	mux.Handle("GET /admin", admin(http.HandlerFunc(s.handleAdminHome)))
 	mux.Handle("GET /admin/users", admin(http.HandlerFunc(s.handleAdminUsers)))
+	mux.Handle("GET /admin/users/new", admin(http.HandlerFunc(s.handleAdminInviteForm)))
+	mux.Handle("POST /admin/users/invite", admin(http.HandlerFunc(s.handleAdminInvite)))
 	mux.Handle("POST /admin/users/{id}/role", admin(http.HandlerFunc(s.handleAdminSetRole)))
+	mux.Handle("POST /admin/invitations/{id}/revoke", admin(http.HandlerFunc(s.handleAdminRevokeInvite)))
 	mux.Handle("GET /admin/courses", admin(http.HandlerFunc(s.handleAdminCourses)))
 	mux.Handle("GET /admin/courses/new", admin(http.HandlerFunc(s.handleAdminCourseNew)))
 	mux.Handle("POST /admin/courses", admin(http.HandlerFunc(s.handleAdminCourseCreate)))

@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/RA9/gamifydev/platform/internal/email"
 	"github.com/RA9/gamifydev/platform/internal/rdb"
 	"github.com/RA9/gamifydev/platform/internal/seed"
 	"github.com/RA9/gamifydev/platform/internal/server"
@@ -70,7 +71,16 @@ func main() {
 		log.Printf("redis: REDIS_URL not set, running without Redis")
 	}
 
-	srv, err := server.New(st, rc, secure)
+	// Email is optional. When SMTP is unconfigured, invite links are shown to the
+	// admin instead of being emailed.
+	mailer := email.New()
+	if mailer.Configured() {
+		log.Printf("email: SMTP configured")
+	} else {
+		log.Printf("email: SMTP not configured — invite links will be shown to the admin")
+	}
+
+	srv, err := server.New(st, rc, mailer, secure)
 	if err != nil {
 		log.Fatalf("server: %v", err)
 	}

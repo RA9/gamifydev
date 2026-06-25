@@ -1,0 +1,30 @@
+{{ define "content" }}
+<div class="page-head">
+  <a class="back" href="/admin/users">← Users</a>
+  <h1>Invite a member</h1>
+  <p class="muted">Send an invitation by email. They'll set their own password from the link.</p>
+</div>
+
+<div class="card" style="max-width:560px;">
+  <form method="post" action="/admin/users/invite" class="form">
+    <label class="field">
+      <span>Name <span class="muted">(optional)</span></span>
+      <input name="name" value="{{ index .Data "name" }}" placeholder="Ada Lovelace" autofocus />
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input type="email" name="email" value="{{ index .Data "email" }}" required />
+    </label>
+    <label class="field">
+      <span>Role</span>
+      {{ $role := index .Data "role" }}
+      <select name="role" class="role-select">
+        <option value="learner" {{ if eq $role "learner" }}selected{{ end }}>Learner</option>
+        <option value="grader" {{ if eq $role "grader" }}selected{{ end }}>Grader</option>
+        <option value="admin" {{ if eq $role "admin" }}selected{{ end }}>Admin</option>
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary">Send invitation</button>
+  </form>
+</div>
+{{ end }}

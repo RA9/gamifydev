@@ -1,0 +1,7 @@
+{{ define "content" }}
+<div class="auth-card card">
+  <h1>Invitation unavailable</h1>
+  <p class="muted">{{ if .Flash }}{{ .Flash }}{{ else }}This invitation link is invalid, has already been used, or has expired.{{ end }}</p>
+  <p class="auth-alt">Already have an account? <a href="/login">Sign in</a> — or ask an admin to send a new invitation.</p>
+</div>
+{{ end }}

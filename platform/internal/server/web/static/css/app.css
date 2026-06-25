@@ -245,10 +245,34 @@ a:hover {
 .page-head {
     margin-bottom: 24px;
 }
+.page-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
 .page-head h1 {
     font-size: 1.9rem;
     color: var(--slate-900);
     margin: 0.1em 0;
+}
+.invite-result {
+    border-left: 3px solid var(--brand, #6d4aff);
+    margin-bottom: 20px;
+}
+.invite-result p {
+    margin: 0 0 10px;
+}
+.invite-link {
+    width: 100%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    border: 1px solid var(--slate-200);
+    border-radius: 8px;
+    background: var(--slate-50);
+    color: var(--slate-700);
 }
 .muted {
     color: var(--slate-500);

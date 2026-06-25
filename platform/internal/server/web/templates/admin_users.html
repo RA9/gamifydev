@@ -1,8 +1,25 @@
 {{ define "content" }}
-<div class="page-head">
-  <h1>User management</h1>
-  <p class="muted">Change a member's role. Graders and admins can review assignment submissions.</p>
+<div class="page-head page-head-row">
+  <div>
+    <h1>User management</h1>
+    <p class="muted">Change a member's role. Graders and admins can review assignment submissions.</p>
+  </div>
+  <a href="/admin/users/new" class="btn btn-primary">Invite member</a>
 </div>
+
+{{ with index .Data "invited" }}
+  <div class="card invite-result">
+    {{ if index $.Data "sent" }}
+      <p>✓ Invitation emailed to <strong>{{ .Email }}</strong> as <strong>{{ .Role }}</strong>.</p>
+    {{ else }}
+      <p>
+        Invitation created for <strong>{{ .Email }}</strong> as <strong>{{ .Role }}</strong>.
+        {{ if index $.Data "mailConfigured" }}The email couldn't be sent — share this link with them:{{ else }}Email isn't configured, so copy this link and send it to them:{{ end }}
+      </p>
+      <input class="invite-link" type="text" readonly value="{{ index $.Data "inviteLink" }}" onclick="this.select()" />
+    {{ end }}
+  </div>
+{{ end }}
 
 <div class="card table-card">
   <table class="table table-activity">
@@ -18,6 +35,36 @@
     </tbody>
   </table>
 </div>
+
+{{ $pending := index .Data "pending" }}
+{{ if $pending }}
+<div class="page-head" style="margin-top:2rem;">
+  <h2>Pending invitations</h2>
+  <p class="muted">People who have been invited but haven't set up their account yet.</p>
+</div>
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr><th>Email</th><th>Role</th><th>Invited by</th><th>Expires</th><th class="ta-right">Action</th></tr>
+    </thead>
+    <tbody>
+      {{ range $pending }}
+      <tr>
+        <td>{{ .Email }}{{ if .Name }} <span class="muted">({{ .Name }})</span>{{ end }}</td>
+        <td>{{ titlecase .Role }}</td>
+        <td class="muted">{{ if .InviterName }}{{ .InviterName }}{{ else }}—{{ end }}</td>
+        <td class="muted">{{ if .Expired }}Expired{{ else }}{{ fmtdate .ExpiresAt }}{{ end }}</td>
+        <td class="ta-right">
+          <form method="post" action="/admin/invitations/{{ .ID }}/revoke" onsubmit="return confirm('Revoke this invitation?')">
+            <button class="btn btn-ghost btn-sm" type="submit">Revoke</button>
+          </form>
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}
 {{ end }}
 
 {{ define "userRow" }}

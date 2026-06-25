@@ -1,0 +1,24 @@
+{{ define "content" }}
+{{ $inv := index .Data "inv" }}
+<div class="auth-card card">
+  <h1>Set your password</h1>
+  <p class="muted">You've been invited to join GamifyDev as a <strong>{{ $inv.Role }}</strong>. Create your password to activate your account.</p>
+  <form method="post" action="/invite/{{ index .Data "token" }}" class="form">
+    <label class="field">
+      <span>Email</span>
+      <input type="email" value="{{ $inv.Email }}" disabled />
+    </label>
+    <label class="field">
+      <span>Name</span>
+      <input type="text" name="name" value="{{ $inv.Name }}" required autofocus />
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input type="password" name="password" minlength="8" required />
+      <small class="muted">At least 8 characters.</small>
+    </label>
+    <button type="submit" class="btn btn-primary btn-block">Activate account</button>
+  </form>
+  <p class="auth-alt">Already have an account? <a href="/login">Sign in</a></p>
+</div>
+{{ end }}
