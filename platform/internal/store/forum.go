@@ -32,13 +32,11 @@ type Reply struct {
 }
 
 func (s *Store) CreateThread(ctx context.Context, userID int64, title, body, category string) (int64, error) {
-	res, err := s.db.ExecContext(ctx,
-		`INSERT INTO forum_threads (user_id, title, body, category) VALUES (?, ?, ?, ?)`,
-		userID, title, body, category)
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
+	var id int64
+	err := s.db.QueryRowContext(ctx,
+		`INSERT INTO forum_threads (user_id, title, body, category) VALUES (?, ?, ?, ?) RETURNING id`,
+		userID, title, body, category).Scan(&id)
+	return id, err
 }
 
 // ListThreads returns threads with author, reply count, and last-activity time,

@@ -98,13 +98,11 @@ func (s *Store) GetAssignmentBySlug(ctx context.Context, slug string) (*Assignme
 // --- Submissions ------------------------------------------------------------
 
 func (s *Store) CreateSubmission(ctx context.Context, assignmentID, userID int64, code, note string) (int64, error) {
-	res, err := s.db.ExecContext(ctx,
-		`INSERT INTO submissions (assignment_id, user_id, code, note, status) VALUES (?, ?, ?, ?, 'submitted')`,
-		assignmentID, userID, code, note)
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
+	var id int64
+	err := s.db.QueryRowContext(ctx,
+		`INSERT INTO submissions (assignment_id, user_id, code, note, status) VALUES (?, ?, ?, ?, 'submitted') RETURNING id`,
+		assignmentID, userID, code, note).Scan(&id)
+	return id, err
 }
 
 // LatestSubmission returns a learner's most recent submission for an assignment.

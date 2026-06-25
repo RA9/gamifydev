@@ -113,14 +113,14 @@ type Session struct {
 // --- User queries -----------------------------------------------------------
 
 func (s *Store) CreateUser(ctx context.Context, email, passwordHash, name, role string) (*User, error) {
-	res, err := s.db.ExecContext(ctx,
-		`INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)`,
-		strings.ToLower(strings.TrimSpace(email)), passwordHash, name, role)
-	if err != nil {
-		return nil, err
-	}
-	id, _ := res.LastInsertId()
-	return s.GetUserByID(ctx, id)
+	// Use INSERT ... RETURNING to get the new row in a single round-trip. This
+	// avoids relying on LastInsertId(), which the libsql/Turso HTTP driver does
+	// not reliably populate (it can return 0, making a follow-up lookup fail
+	// even though the INSERT succeeded).
+	return s.scanUser(s.db.QueryRowContext(ctx,
+		`INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)
+		 RETURNING `+userCols,
+		strings.ToLower(strings.TrimSpace(email)), passwordHash, name, role))
 }
 
 func (s *Store) scanUser(row *sql.Row) (*User, error) {

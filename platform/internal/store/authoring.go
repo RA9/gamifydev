@@ -25,14 +25,12 @@ func (s *Store) GetCourseByID(ctx context.Context, id int64) (*Course, error) {
 }
 
 func (s *Store) CreateCourse(ctx context.Context, c Course) (int64, error) {
-	res, err := s.db.ExecContext(ctx,
+	var id int64
+	err := s.db.QueryRowContext(ctx,
 		`INSERT INTO courses (slug, title, emoji, tagline, description, sort, published)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		c.Slug, c.Title, c.Emoji, c.Tagline, c.Description, c.Sort, boolToInt(c.Published))
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
+		 VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		c.Slug, c.Title, c.Emoji, c.Tagline, c.Description, c.Sort, boolToInt(c.Published)).Scan(&id)
+	return id, err
 }
 
 func (s *Store) UpdateCourse(ctx context.Context, id int64, c Course) error {

@@ -80,14 +80,12 @@ func (s *Store) GetPostByID(ctx context.Context, id int64) (*Post, error) {
 }
 
 func (s *Store) CreatePost(ctx context.Context, p Post) (int64, error) {
-	res, err := s.db.ExecContext(ctx, `
+	var id int64
+	err := s.db.QueryRowContext(ctx, `
 		INSERT INTO blog_posts (slug, title, excerpt, body, cover_url, author_id, published, published_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		p.Slug, p.Title, p.Excerpt, p.Body, p.CoverURL, p.AuthorID, boolToInt(p.Published), nullStr(p.PublishedAt))
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		p.Slug, p.Title, p.Excerpt, p.Body, p.CoverURL, p.AuthorID, boolToInt(p.Published), nullStr(p.PublishedAt)).Scan(&id)
+	return id, err
 }
 
 func (s *Store) UpdatePost(ctx context.Context, id int64, p Post) error {
