@@ -71,6 +71,8 @@ func (s *Server) handleSubmitAssignment(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "could not save submission", http.StatusInternalServerError)
 		return
 	}
+	// Refresh the learner's own dashboard (e.g. an open tab) in realtime.
+	s.hub.Notify(u.ID, "submissions")
 	http.Redirect(w, r, "/assignments/"+a.Slug+"?submitted=1", http.StatusSeeOther)
 }
 
@@ -119,6 +121,10 @@ func (s *Server) handleAdminGrade(w http.ResponseWriter, r *http.Request) {
 	if err := s.st.GradeSubmission(r.Context(), id, u.ID, score, feedback, status); err != nil {
 		http.Error(w, "could not save grade", http.StatusInternalServerError)
 		return
+	}
+	// Push a realtime refresh to the learner whose work was just graded.
+	if sub, err := s.st.GetSubmission(r.Context(), id); err == nil {
+		s.hub.Notify(sub.UserID, "submissions")
 	}
 	http.Redirect(w, r, "/admin/grading", http.StatusSeeOther)
 }

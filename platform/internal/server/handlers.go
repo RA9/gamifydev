@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -120,7 +121,77 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 // --- Learner ----------------------------------------------------------------
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
-	s.render(w, r, "dashboard.html", ViewData{Title: "Your dashboard"})
+	data, err := s.dashboardData(r.Context())
+	if err != nil {
+		http.Error(w, "could not load your dashboard", http.StatusInternalServerError)
+		return
+	}
+	s.render(w, r, "dashboard.html", ViewData{Title: "Your dashboard", Data: data})
+}
+
+// handleDashboardLive renders just the realtime region of the dashboard. htmx
+// fetches it on a "refresh" signal pushed over the WebSocket (e.g. after a
+// submission is graded), so the cards/charts/table update without a reload.
+func (s *Server) handleDashboardLive(w http.ResponseWriter, r *http.Request) {
+	data, err := s.dashboardData(r.Context())
+	if err != nil {
+		http.Error(w, "could not load your dashboard", http.StatusInternalServerError)
+		return
+	}
+	vd := ViewData{User: auth.CurrentUser(r.Context()), Path: r.URL.Path, Data: data}
+	s.renderPartial(w, r, "dashboard.html", "dashLive", vd)
+}
+
+// dashboardData assembles every figure the learner dashboard shows.
+func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
+	u := auth.CurrentUser(ctx)
+	if u == nil {
+		return nil, errors.New("no user")
+	}
+	st, err := s.st.LearnerStats(ctx, u.ID)
+	if err != nil {
+		return nil, err
+	}
+	series, err := s.st.LearnerSubmissionSeries(ctx, u.ID, 14)
+	if err != nil {
+		return nil, err
+	}
+	recent, err := s.st.RecentSubmissionsByUser(ctx, u.ID, 6)
+	if err != nil {
+		return nil, err
+	}
+	courses, _ := s.st.ListCourses(ctx, false)
+	if len(courses) > 4 {
+		courses = courses[:4]
+	}
+
+	periodTotal := 0
+	for _, d := range series {
+		periodTotal += d.Count
+	}
+
+	// Submission-status donut.
+	pct := func(n int) int {
+		if st.TotalSubmissions == 0 {
+			return 0
+		}
+		return int(float64(n) / float64(st.TotalSubmissions) * 100)
+	}
+	segments := []DonutSegment{
+		{Label: "Graded", Count: st.Graded, Class: "donut-learner", Pct: pct(st.Graded)},
+		{Label: "Awaiting review", Count: st.Pending, Class: "donut-grader", Pct: pct(st.Pending)},
+		{Label: "Needs rework", Count: st.Returned, Class: "donut-admin", Pct: pct(st.Returned)},
+	}
+
+	return map[string]any{
+		"stats":       st,
+		"chart":       areaChartSVG(series),
+		"periodTotal": periodTotal,
+		"donut":       donutSVG(st.TotalSubmissions, "submissions", segments),
+		"segments":    segments,
+		"recent":      recent,
+		"courses":     courses,
+	}, nil
 }
 
 // --- Admin ------------------------------------------------------------------
@@ -156,7 +227,7 @@ func (s *Server) handleAdminHome(w http.ResponseWriter, r *http.Request) {
 		Data: map[string]any{
 			"stats":       stats,
 			"chart":       areaChartSVG(series),
-			"donut":       donutSVG(stats.TotalUsers, segments),
+			"donut":       donutSVG(stats.TotalUsers, "members", segments),
 			"segments":    segments,
 			"recent":      recent,
 			"courses":     courses,

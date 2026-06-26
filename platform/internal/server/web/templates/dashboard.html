@@ -1,41 +1,183 @@
 {{ define "content" }}
-<section class="portal-hero">
-  <div>
-    <h1>Welcome back, {{ .User.Name }} 👋</h1>
-    <p class="muted">Your learning home — keep the streak going.</p>
+<div class="dash">
+  <div class="dash-head">
+    <div>
+      <h1>Welcome back, {{ .User.Name }} 👋</h1>
+      <p class="muted">
+        Your learning home — keep the streak going.
+        <span class="live-badge" data-live-status title="Live updates">
+          <span class="live-dot" aria-hidden="true"></span>Live
+        </span>
+      </p>
+    </div>
+    <div class="dash-head-actions">
+      <a href="/courses" class="btn btn-secondary btn-sm">{{ icon "book" }} Browse courses</a>
+      <a href="/assignments" class="btn btn-primary btn-sm">{{ icon "clipboard" }} Assignments</a>
+    </div>
   </div>
-</section>
 
-<section class="portal-tiles">
-  <a class="portal-tile tile-brand" href="/courses">
-    <span class="tile-ic">{{ icon "book" }}</span>
-    <span class="tile-name">Courses</span>
-    <span class="tile-sub">Guided learning paths</span>
-  </a>
-  <a class="portal-tile tile-grass" href="/assignments">
-    <span class="tile-ic">{{ icon "clipboard" }}</span>
-    <span class="tile-name">Assignments</span>
-    <span class="tile-sub">Submit for mentor review</span>
-  </a>
-  <a class="portal-tile tile-amber" href="/competitions">
-    <span class="tile-ic">{{ icon "trophy" }}</span>
-    <span class="tile-name">Competitions</span>
-    <span class="tile-sub">Compete on the leaderboard</span>
-  </a>
-  <a class="portal-tile tile-rose" href="/forum">
-    <span class="tile-ic">{{ icon "chat" }}</span>
-    <span class="tile-name">Forum</span>
-    <span class="tile-sub">Ask &amp; share with peers</span>
-  </a>
-</section>
-
-{{ if .User.CanGrade }}
-<section class="card staff-strip">
-  <div>
-    <strong>{{ icon "clipboard" }} Mentor tools</strong>
-    <p class="muted">You can review and grade learner submissions.</p>
+  <!-- Realtime region: refreshed by htmx when the WebSocket pushes a signal. -->
+  <div id="dash-live" hx-get="/dashboard/live" hx-trigger="refresh from:body" hx-swap="innerHTML">
+    {{ template "dashLive" . }}
   </div>
-  <a href="/admin/grading" class="btn btn-primary btn-sm">Open grading queue</a>
-</section>
+
+  {{ if .User.CanGrade }}
+  <section class="card staff-strip">
+    <div>
+      <strong>{{ icon "clipboard" }} Mentor tools</strong>
+      <p class="muted">You can review and grade learner submissions.</p>
+    </div>
+    <a href="/admin/grading" class="btn btn-primary btn-sm">Open grading queue</a>
+  </section>
+  {{ end }}
+</div>
+<script src="/static/js/realtime.js" defer></script>
 {{ end }}
+
+{{ define "dashLive" }}
+{{ $s := index .Data "stats" }}
+<!-- Stat cards -->
+<section class="stat-grid" aria-label="Your stats">
+  <article class="stat-card stagger">
+    <div class="stat-top">
+      <span class="stat-ic ic-brand">{{ icon "clipboard" }}</span>
+      {{ if gt $s.Pending 0 }}<span class="trend trend-flat">{{ $s.Pending }} in review</span>{{ end }}
+    </div>
+    <p class="stat-value" data-numeric>{{ $s.TotalSubmissions }}</p>
+    <p class="stat-label">Submissions</p>
+    <p class="stat-sub">{{ $s.Graded }} graded · {{ $s.Pending }} awaiting review</p>
+  </article>
+
+  <article class="stat-card stagger">
+    <div class="stat-top">
+      <span class="stat-ic ic-grass">{{ icon "check" }}</span>
+      {{ if gt $s.BestScore 0 }}<span class="trend trend-up">{{ icon "trendup" }} {{ $s.BestScore }} best</span>{{ end }}
+    </div>
+    <p class="stat-value" data-numeric>{{ $s.AvgScore }}</p>
+    <p class="stat-label">Average score</p>
+    <p class="stat-sub">across {{ $s.Graded }} graded submission{{ if ne $s.Graded 1 }}s{{ end }}</p>
+  </article>
+
+  <article class="stat-card stagger">
+    <div class="stat-top">
+      <span class="stat-ic ic-amber">{{ icon "trophy" }}</span>
+    </div>
+    <p class="stat-value" data-numeric>{{ $s.TotalPoints }}</p>
+    <p class="stat-label">Points earned</p>
+    <p class="stat-sub">{{ $s.Competitions }} competition{{ if ne $s.Competitions 1 }}s{{ end }} entered</p>
+  </article>
+
+  <article class="stat-card stagger">
+    <div class="stat-top">
+      <span class="stat-ic ic-rose">{{ icon "activity" }}</span>
+      <span class="pulse-dot" aria-hidden="true"></span>
+    </div>
+    <p class="stat-value" data-numeric>{{ $s.ActiveDays }}</p>
+    <p class="stat-label">Active days</p>
+    <p class="stat-sub">days you submitted work</p>
+  </article>
+</section>
+
+<!-- Charts -->
+<section class="dash-row dash-row-2-1">
+  <article class="card chart-card">
+    <header class="card-head">
+      <div>
+        <h3>Your activity</h3>
+        <p class="muted">Submissions · last 14 days</p>
+      </div>
+      <div class="card-head-metric">
+        <span class="metric-value" data-numeric>{{ index .Data "periodTotal" }}</span>
+        <span class="metric-label">submissions</span>
+      </div>
+    </header>
+    <div class="chart-wrap">{{ index .Data "chart" }}</div>
+  </article>
+
+  <article class="card chart-card">
+    <header class="card-head">
+      <div>
+        <h3>Submission status</h3>
+        <p class="muted">Where your work stands</p>
+      </div>
+    </header>
+    <div class="donut-wrap">
+      {{ index .Data "donut" }}
+      <ul class="donut-legend">
+        {{ range index .Data "segments" }}
+        <li>
+          <span class="legend-swatch {{ .Class }}"></span>
+          <span class="legend-label">{{ .Label }}</span>
+          <span class="legend-val">{{ .Count }} · {{ .Pct }}%</span>
+        </li>
+        {{ end }}
+      </ul>
+    </div>
+  </article>
+</section>
+
+<!-- Recent submissions + continue learning -->
+<section class="dash-row dash-row-2-1">
+  <article class="card table-card">
+    <header class="card-head card-head-pad">
+      <div>
+        <h3>Recent submissions</h3>
+        <p class="muted">Your latest work and its status</p>
+      </div>
+      <a href="/assignments" class="card-link">All assignments {{ icon "chevright" }}</a>
+    </header>
+    <table class="table table-activity">
+      <thead>
+        <tr><th>Assignment</th><th>Status</th><th class="ta-right">Score</th><th class="ta-right">When</th></tr>
+      </thead>
+      <tbody>
+        {{ range index .Data "recent" }}
+        <tr>
+          <td>
+            <div class="member-meta">
+              <span class="member-name">{{ .Assignment.Title }}</span>
+              <span class="member-email">{{ .Assignment.Language }}</span>
+            </div>
+          </td>
+          <td>
+            {{ if eq .Status "graded" }}<span class="badge badge-ok">Graded</span>
+            {{ else if eq .Status "returned" }}<span class="badge badge-warn">Needs rework</span>
+            {{ else }}<span class="badge badge-info">In review</span>{{ end }}
+          </td>
+          <td class="ta-right">
+            {{ if .Score.Valid }}<strong>{{ .Score.Int64 }}</strong><span class="muted">/{{ .Assignment.MaxPoints }}</span>{{ else }}<span class="muted">—</span>{{ end }}
+          </td>
+          <td class="ta-right muted">{{ reltime .CreatedAt }}</td>
+        </tr>
+        {{ else }}
+        <tr><td colspan="4" class="muted">No submissions yet — <a href="/assignments">pick an assignment</a> to get started.</td></tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </article>
+
+  <article class="card">
+    <header class="card-head">
+      <div>
+        <h3>Continue learning</h3>
+        <p class="muted">{{ $s.CoursesAvailable }} courses · {{ $s.LessonsAvailable }} lessons</p>
+      </div>
+    </header>
+    <ul class="mini-list">
+      {{ range index .Data "courses" }}
+      <li>
+        <span class="mini-ic">{{ if .Emoji }}{{ .Emoji }}{{ else }}{{ icon "book" }}{{ end }}</span>
+        <div class="mini-meta">
+          <span class="mini-name">{{ .Title }}</span>
+          <span class="mini-sub">{{ .LessonCount }} lesson{{ if ne .LessonCount 1 }}s{{ end }}</span>
+        </div>
+        <a href="/courses/{{ .Slug }}" class="badge badge-info">Open</a>
+      </li>
+      {{ else }}
+      <li class="muted" style="padding:14px 4px">No courses available yet.</li>
+      {{ end }}
+    </ul>
+    <a href="/courses" class="btn btn-secondary btn-sm btn-block" style="margin-top:8px">Browse all courses</a>
+  </article>
+</section>
 {{ end }}
