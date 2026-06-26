@@ -27,6 +27,7 @@
         <nav class="sidebar-nav" aria-label="Admin">
           <a href="/admin" class="{{ if eq $p "/admin" }}active{{ end }}">{{ icon "grid" }}<span>Overview</span></a>
           <a href="/admin/users" class="{{ if eq $p "/admin/users" }}active{{ end }}">{{ icon "users" }}<span>Users</span></a>
+          <a href="/admin/paths" class="{{ if hasprefix $p "/admin/paths" }}active{{ end }}">{{ icon "compass" }}<span>Career paths</span></a>
           <a href="/admin/courses" class="{{ if hasprefix $p "/admin/courses" }}active{{ end }}">{{ icon "book" }}<span>Courses</span></a>
           <a href="/admin/assignments" class="{{ if hasprefix $p "/admin/assignments" }}active{{ end }}">{{ icon "clipboard" }}<span>Assignments</span></a>
           <a href="/admin/grading" class="{{ if eq $p "/admin/grading" }}active{{ end }}">{{ icon "check" }}<span>Grading</span></a>

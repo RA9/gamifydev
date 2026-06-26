@@ -46,7 +46,26 @@ func slugify(s string) string {
 }
 
 // Counts returned by Run.
-type Result struct{ Courses, Lessons, Assignments int }
+type Result struct{ Courses, Lessons, Assignments, Paths int }
+
+// seedPaths are the initial career paths, each an ordered list of course slugs.
+var seedPaths = []struct {
+	Slug, Title, Tagline, Emoji, Level, Description string
+	Courses                                         []string
+}{
+	{"frontend-developer", "Frontend Developer", "Build what users see and touch", "🎨", "Beginner",
+		"Go from zero to building modern, responsive, interactive web interfaces.",
+		[]string{"frontend"}},
+	{"backend-developer", "Backend Developer", "Power apps from behind the scenes", "🗄️", "Intermediate",
+		"Design APIs, model data, and ship reliable server-side systems — with the Linux skills to run them.",
+		[]string{"backend", "python", "linux"}},
+	{"fullstack-developer", "Full-Stack Developer", "Own the whole stack, front to back", "🔗", "Intermediate",
+		"Combine frontend and backend skills to build complete applications end to end.",
+		[]string{"frontend", "backend", "fullstack"}},
+	{"cs-foundations", "Computer Science Foundations", "Program close to the metal", "⚙️", "Beginner",
+		"Build durable fundamentals with C, Java, and the Linux command line.",
+		[]string{"c", "java", "linux"}},
+}
 
 // RunIfEmpty seeds content only when there are no courses yet (a fresh DB).
 func RunIfEmpty(ctx context.Context, st *store.Store) (Result, bool, error) {
@@ -112,6 +131,20 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 			return res, err
 		}
 		res.Assignments++
+	}
+
+	for i, p := range seedPaths {
+		id, err := st.UpsertPath(ctx, store.Path{
+			Slug: p.Slug, Title: p.Title, Tagline: p.Tagline, Description: p.Description,
+			Emoji: p.Emoji, Level: p.Level, Sort: i, Published: true,
+		})
+		if err != nil {
+			return res, err
+		}
+		if err := st.SetPathCoursesBySlug(ctx, id, p.Courses); err != nil {
+			return res, err
+		}
+		res.Paths++
 	}
 	return res, nil
 }

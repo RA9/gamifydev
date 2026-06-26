@@ -1,0 +1,39 @@
+{{ define "content" }}
+<div class="page-head forum-head">
+  <div>
+    <h1>Career paths</h1>
+    <p class="muted">Group courses into guided curricula learners can follow toward a job outcome.</p>
+  </div>
+  <a href="/admin/paths/new" class="btn btn-primary">{{ icon "compass" }} New path</a>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr><th>Path</th><th>Level</th><th class="ta-center">Courses</th><th class="ta-center">Lessons</th><th>Status</th><th class="ta-right"></th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "paths" }}
+        <tr>
+          <td>
+            <div class="member-cell">
+              <span class="mini-ic">{{ if .Emoji }}{{ .Emoji }}{{ else }}🧭{{ end }}</span>
+              <div class="member-meta">
+                <span class="member-name">{{ .Title }}</span>
+                <span class="member-email">{{ .Tagline }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="muted">{{ .Level }}</td>
+          <td class="ta-center"><span class="count-pill">{{ .CourseCount }}</span></td>
+          <td class="ta-center"><span class="count-pill">{{ .LessonCount }}</span></td>
+          <td>{{ if .Published }}<span class="badge badge-ok">Published</span>{{ else }}<span class="badge">Draft</span>{{ end }}</td>
+          <td class="ta-right"><a class="btn btn-secondary btn-sm" href="/admin/paths/{{ .ID }}">Manage</a></td>
+        </tr>
+      {{ else }}
+        <tr><td colspan="6" class="muted">No career paths yet. Create your first one.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

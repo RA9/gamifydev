@@ -1,0 +1,35 @@
+{{ define "content" }}
+{{ $p := index .Data "path" }}
+<div class="page-head">
+  <a class="back" href="/paths">← All career paths</a>
+  <div class="course-head">
+    <div class="course-emoji-lg">{{ if $p.Emoji }}{{ $p.Emoji }}{{ else }}🧭{{ end }}</div>
+    <div>
+      <span class="badge badge-info">{{ $p.Level }}</span>
+      <h1>{{ $p.Title }}</h1>
+      <p class="muted">{{ $p.Tagline }}</p>
+      <p class="course-meta">{{ $p.CourseCount }} course{{ if ne $p.CourseCount 1 }}s{{ end }} · {{ $p.LessonCount }} lesson{{ if ne $p.LessonCount 1 }}s{{ end }}</p>
+    </div>
+  </div>
+</div>
+
+{{ with index .Data "about" }}<div class="prose card path-about">{{ . }}</div>{{ end }}
+
+<h2 class="path-curriculum-title">Curriculum</h2>
+<ol class="path-steps">
+  {{ range $i, $c := index .Data "courses" }}
+    <li class="card path-step">
+      <span class="path-step-no">{{ add $i 1 }}</span>
+      <span class="path-step-emoji">{{ if $c.Emoji }}{{ $c.Emoji }}{{ else }}📘{{ end }}</span>
+      <span class="path-step-info">
+        <a class="path-step-title" href="/courses/{{ $c.Slug }}">{{ $c.Title }}</a>
+        {{ if $c.Tagline }}<span class="muted">{{ $c.Tagline }}</span>{{ end }}
+        <span class="course-meta">{{ $c.LessonCount }} lesson{{ if ne $c.LessonCount 1 }}s{{ end }}</span>
+      </span>
+      <a class="btn btn-secondary btn-sm path-step-go" href="/courses/{{ $c.Slug }}">Start</a>
+    </li>
+  {{ else }}
+    <li class="muted">This path has no courses yet.</li>
+  {{ end }}
+</ol>
+{{ end }}

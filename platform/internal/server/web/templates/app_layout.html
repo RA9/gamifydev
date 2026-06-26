@@ -21,6 +21,7 @@
         {{ $p := .Path }}
         <nav class="app-links" aria-label="Learner navigation">
           <a href="/dashboard" class="{{ if eq $p "/dashboard" }}active{{ end }}">{{ icon "grid" }}<span>Dashboard</span></a>
+          <a href="/paths" class="{{ if hasprefix $p "/paths" }}active{{ end }}">{{ icon "compass" }}<span>Career Paths</span></a>
           <a href="/courses" class="{{ if hasprefix $p "/courses" }}active{{ end }}">{{ icon "book" }}<span>Courses</span></a>
           <a href="/assignments" class="{{ if hasprefix $p "/assignments" }}active{{ end }}">{{ icon "clipboard" }}<span>Assignments</span></a>
           <a href="/competitions" class="{{ if hasprefix $p "/competitions" }}active{{ end }}">{{ icon "trophy" }}<span>Competitions</span></a>

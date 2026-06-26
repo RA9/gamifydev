@@ -1,0 +1,23 @@
+{{ define "content" }}
+<div class="page-head">
+  <span class="chip">Career paths</span>
+  <h1>Choose your path</h1>
+  <p class="muted">A career path is a guided curriculum of courses — follow it top to bottom to go from beginner to job-ready.</p>
+</div>
+
+<div class="grid-cards">
+  {{ range index .Data "paths" }}
+    <a class="card linkcard path-card" href="/paths/{{ .Slug }}">
+      <div class="path-card-top">
+        <div class="course-emoji">{{ if .Emoji }}{{ .Emoji }}{{ else }}🧭{{ end }}</div>
+        <span class="badge badge-info">{{ .Level }}</span>
+      </div>
+      <h3>{{ .Title }}</h3>
+      <p class="muted">{{ .Tagline }}</p>
+      <span class="course-meta">{{ .CourseCount }} course{{ if ne .CourseCount 1 }}s{{ end }} · {{ .LessonCount }} lesson{{ if ne .LessonCount 1 }}s{{ end }}</span>
+    </a>
+  {{ else }}
+    <p class="muted">No career paths are published yet. Browse the <a href="/courses">course catalog</a> instead.</p>
+  {{ end }}
+</div>
+{{ end }}

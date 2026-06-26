@@ -40,6 +40,8 @@ func (s *Server) Routes() http.Handler {
 
 	// Public
 	mux.HandleFunc("GET /{$}", s.handleHome)
+	mux.HandleFunc("GET /paths", s.handlePaths)
+	mux.HandleFunc("GET /paths/{slug}", s.handlePath)
 	mux.HandleFunc("GET /courses", s.handleCourses)
 	mux.HandleFunc("GET /courses/{course}", s.handleCourse)
 	mux.HandleFunc("GET /courses/{course}/{lesson}", s.handleLesson)
@@ -79,6 +81,12 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /admin/users/invite", admin(http.HandlerFunc(s.handleAdminInvite)))
 	mux.Handle("POST /admin/users/{id}/role", admin(http.HandlerFunc(s.handleAdminSetRole)))
 	mux.Handle("POST /admin/invitations/{id}/revoke", admin(http.HandlerFunc(s.handleAdminRevokeInvite)))
+	mux.Handle("GET /admin/paths", admin(http.HandlerFunc(s.handleAdminPaths)))
+	mux.Handle("GET /admin/paths/new", admin(http.HandlerFunc(s.handleAdminPathNew)))
+	mux.Handle("POST /admin/paths", admin(http.HandlerFunc(s.handleAdminPathCreate)))
+	mux.Handle("GET /admin/paths/{id}", admin(http.HandlerFunc(s.handleAdminPathEdit)))
+	mux.Handle("POST /admin/paths/{id}", admin(http.HandlerFunc(s.handleAdminPathUpdate)))
+	mux.Handle("POST /admin/paths/{id}/delete", admin(http.HandlerFunc(s.handleAdminPathDelete)))
 	mux.Handle("GET /admin/courses", admin(http.HandlerFunc(s.handleAdminCourses)))
 	mux.Handle("GET /admin/courses/new", admin(http.HandlerFunc(s.handleAdminCourseNew)))
 	mux.Handle("POST /admin/courses", admin(http.HandlerFunc(s.handleAdminCourseCreate)))

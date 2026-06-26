@@ -159,25 +159,25 @@
   <article class="card">
     <header class="card-head">
       <div>
-        <h3>Continue learning</h3>
+        <h3>Career paths</h3>
         <p class="muted">{{ $s.CoursesAvailable }} courses · {{ $s.LessonsAvailable }} lessons</p>
       </div>
     </header>
     <ul class="mini-list">
-      {{ range index .Data "courses" }}
+      {{ range index .Data "paths" }}
       <li>
-        <span class="mini-ic">{{ if .Emoji }}{{ .Emoji }}{{ else }}{{ icon "book" }}{{ end }}</span>
+        <span class="mini-ic">{{ if .Emoji }}{{ .Emoji }}{{ else }}🧭{{ end }}</span>
         <div class="mini-meta">
           <span class="mini-name">{{ .Title }}</span>
-          <span class="mini-sub">{{ .LessonCount }} lesson{{ if ne .LessonCount 1 }}s{{ end }}</span>
+          <span class="mini-sub">{{ .Level }} · {{ .CourseCount }} course{{ if ne .CourseCount 1 }}s{{ end }}</span>
         </div>
-        <a href="/courses/{{ .Slug }}" class="badge badge-info">Open</a>
+        <a href="/paths/{{ .Slug }}" class="badge badge-info">Open</a>
       </li>
       {{ else }}
-      <li class="muted" style="padding:14px 4px">No courses available yet.</li>
+      <li class="muted" style="padding:14px 4px">No career paths yet — <a href="/courses">browse courses</a>.</li>
       {{ end }}
     </ul>
-    <a href="/courses" class="btn btn-secondary btn-sm btn-block" style="margin-top:8px">Browse all courses</a>
+    <a href="/paths" class="btn btn-secondary btn-sm btn-block" style="margin-top:8px">Explore career paths</a>
   </article>
 </section>
 {{ end }}
