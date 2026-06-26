@@ -1,23 +1,94 @@
 {{ define "content" }}
-<div class="auth-card card">
-  <h1>Create your account</h1>
-  <p class="muted">Join GamifyDev and start your first lesson today.</p>
-  <form method="post" action="/register" class="form">
-    <label class="field">
-      <span>Name</span>
-      <input type="text" name="name" value="{{ index .Data "name" }}" required autofocus />
-    </label>
-    <label class="field">
-      <span>Email</span>
-      <input type="email" name="email" value="{{ index .Data "email" }}" required />
-    </label>
-    <label class="field">
-      <span>Password</span>
-      <input type="password" name="password" minlength="8" required />
-      <small class="muted">At least 8 characters.</small>
-    </label>
-    <button type="submit" class="btn btn-primary btn-block">Create account</button>
-  </form>
-  <p class="auth-alt">Already have an account? <a href="/login">Sign in</a></p>
+<div class="auth-split">
+  <!-- Left: form column -->
+  <div class="auth-split-form">
+    <div class="auth-split-form-inner">
+      <a href="/" class="brand auth-brand">Gamify<span>Dev</span></a>
+      <h1>Create your account</h1>
+      <p class="muted">Join thousands of builders learning to code — for free.</p>
+      {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
+      <form method="post" action="/register" class="form">
+        <label class="field">
+          <span>Name</span>
+          <input type="text" name="name" value="{{ index .Data "name" }}" required autofocus />
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input type="email" name="email" value="{{ index .Data "email" }}" required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input type="password" name="password" minlength="8" required />
+          <small class="muted">At least 8 characters.</small>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+      </form>
+      <p class="auth-alt">Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+  </div>
+
+  <!-- Right: image/visual column -->
+  <div class="auth-split-visual">
+    <div class="auth-split-overlay">
+      <svg viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg" class="auth-split-illustration" aria-hidden="true">
+        <!-- Grid -->
+        <g stroke="rgba(255,255,255,.15)" stroke-width="1">
+          <line x1="40" y1="260" x2="360" y2="260"/>
+          <line x1="40" y1="220" x2="360" y2="220"/>
+          <line x1="40" y1="180" x2="360" y2="180"/>
+          <line x1="80" y1="140" x2="80" y2="280"/>
+          <line x1="140" y1="140" x2="140" y2="280"/>
+          <line x1="200" y1="140" x2="200" y2="280"/>
+          <line x1="260" y1="140" x2="260" y2="280"/>
+          <line x1="320" y1="140" x2="320" y2="280"/>
+        </g>
+        <!-- Code blocks stacking -->
+        <rect x="220" y="214" width="50" height="36" rx="7" fill="#a78bfa" opacity=".9"/>
+        <rect x="276" y="214" width="50" height="36" rx="7" fill="#6ee7b7" opacity=".9"/>
+        <rect x="220" y="172" width="50" height="36" rx="7" fill="#93c5fd" opacity=".9"/>
+        <rect x="276" y="172" width="50" height="36" rx="7" fill="#a78bfa" opacity=".85"/>
+        <rect x="248" y="130" width="50" height="36" rx="7" fill="#6ee7b7" opacity=".88"/>
+        <!-- Text on blocks -->
+        <text x="230" y="236" font-family="monospace" font-size="9" fill="#fff" opacity=".85">build</text>
+        <text x="286" y="236" font-family="monospace" font-size="9" fill="#fff" opacity=".85">ship</text>
+        <text x="228" y="194" font-family="monospace" font-size="9" fill="#fff" opacity=".85">learn</text>
+        <text x="286" y="194" font-family="monospace" font-size="9" fill="#fff" opacity=".85">code</text>
+        <text x="258" y="152" font-family="monospace" font-size="9" fill="#fff" opacity=".85">grow</text>
+        <!-- Robot -->
+        <rect x="80" y="186" width="60" height="68" rx="12" fill="#ffd166"/>
+        <rect x="88" y="142" width="44" height="44" rx="10" fill="#ffd166"/>
+        <line x1="110" y1="142" x2="110" y2="126" stroke="#ffd166" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="110" cy="122" r="5" fill="#fff" opacity=".9"/>
+        <rect x="97" y="155" width="11" height="11" rx="3" fill="#1e1b4b"/>
+        <rect x="114" y="155" width="11" height="11" rx="3" fill="#1e1b4b"/>
+        <circle cx="101" cy="159" r="2.5" fill="#fff" opacity=".7"/>
+        <circle cx="118" cy="159" r="2.5" fill="#fff" opacity=".7"/>
+        <path d="M100 174 Q110 182 120 174" stroke="#1e1b4b" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <!-- Arm -->
+        <rect x="140" y="204" width="52" height="10" rx="5" fill="#f0a030" opacity=".95"/>
+        <rect x="188" y="200" width="14" height="18" rx="5" fill="#ffd166"/>
+        <!-- Carrying block -->
+        <rect x="184" y="176" width="34" height="24" rx="5" fill="#93c5fd" opacity=".9"/>
+        <text x="191" y="192" font-family="monospace" font-size="8" fill="#fff" opacity=".9">new!</text>
+        <!-- Legs -->
+        <rect x="93" y="254" width="13" height="20" rx="5" fill="#e89520"/>
+        <rect x="115" y="254" width="13" height="20" rx="5" fill="#e89520"/>
+        <!-- Sparkles -->
+        <circle cx="330" cy="130" r="3" fill="#ffd166" opacity=".7">
+          <animate attributeName="opacity" values=".7;.2;.7" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="60" cy="150" r="2.5" fill="#a78bfa" opacity=".6">
+          <animate attributeName="opacity" values=".6;.15;.6" dur="2.4s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="350" cy="190" r="2.5" fill="#6ee7b7" opacity=".6">
+          <animate attributeName="opacity" values=".6;.2;.6" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+      <div class="auth-split-cta">
+        <h2>Learn to code by building.</h2>
+        <p>Guided courses, mentor-graded code, live competitions — start for free.</p>
+      </div>
+    </div>
+  </div>
 </div>
 {{ end }}

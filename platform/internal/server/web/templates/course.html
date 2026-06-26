@@ -1,7 +1,8 @@
 {{ define "content" }}
 {{ $course := index .Data "course" }}
+{{ $locked := index .Data "locked" }}
 <div class="page-head">
-  <a class="back" href="/courses">← All courses</a>
+  <a class="back" href="/paths">← Curriculum</a>
   <div class="course-head">
     <div class="course-emoji-lg">{{ if $course.Emoji }}{{ $course.Emoji }}{{ else }}📘{{ end }}</div>
     <div>
@@ -10,6 +11,20 @@
     </div>
   </div>
 </div>
+
+{{ if $locked }}
+<div class="card signin-banner">
+  <span class="signin-banner-ic">{{ icon "lock" }}</span>
+  <div class="signin-banner-text">
+    <strong>Sign in to continue</strong>
+    <p class="muted">Preview the full curriculum below — sign in to open the lessons and submit the checkpoint.</p>
+  </div>
+  <div class="signin-banner-actions">
+    <a href="/login" class="btn btn-secondary btn-sm">Sign in</a>
+    <a href="/register" class="btn btn-primary btn-sm">Get started</a>
+  </div>
+</div>
+{{ end }}
 
 <ol class="lesson-list card">
   {{ range index .Data "lessons" }}
@@ -20,11 +35,32 @@
           <span class="lesson-title">{{ .Title }}</span>
           {{ if .Summary }}<span class="lesson-sum muted">{{ .Summary }}</span>{{ end }}
         </span>
-        <span class="lesson-go">→</span>
+        {{ if $locked }}<span class="lesson-go lesson-lock" title="Sign in to continue">{{ icon "lock" }}</span>{{ else }}<span class="lesson-go">→</span>{{ end }}
       </a>
     </li>
   {{ else }}
     <li class="muted">No lessons yet.</li>
   {{ end }}
 </ol>
+
+{{ with index .Data "assignments" }}
+<h2 class="course-checkpoint-title">{{ icon "flag" }} Checkpoint{{ if ne (len .) 1 }}s{{ end }}</h2>
+<p class="muted course-checkpoint-sub">Complete the project to mark this course done and move on to the next.</p>
+<ul class="checkpoint-list">
+  {{ range . }}
+    <li class="card checkpoint-item">
+      <span class="checkpoint-ic">{{ icon "trophy" }}</span>
+      <span class="checkpoint-info">
+        <span class="checkpoint-title">{{ .Title }}</span>
+        <span class="muted">{{ .Language }} · {{ .MaxPoints }} pts</span>
+      </span>
+      {{ if $locked }}
+        <a href="/login" class="btn btn-secondary btn-sm">{{ icon "lock" }} Sign in</a>
+      {{ else }}
+        <a href="/assignments/{{ .Slug }}" class="btn btn-primary btn-sm">Start project</a>
+      {{ end }}
+    </li>
+  {{ end }}
+</ul>
+{{ end }}
 {{ end }}
