@@ -50,13 +50,14 @@ var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin, layoutLanding, l
 
 // alwaysPublic pages keep the marketing shell even when signed in.
 var alwaysPublic = map[string]bool{
-	"login.html": true, "notfound.html": true,
-	"invite.html": true, "invite_invalid.html": true,
+	"notfound.html": true,
+	"invite.html":   true, "invite_invalid.html": true,
 }
 
 // authPages use the dedicated auth layout (no header/footer).
 var authPages = map[string]bool{
 	"register.html": true,
+	"login.html":    true,
 }
 
 type renderer struct {
@@ -77,7 +78,7 @@ func newRenderer() (*renderer, error) {
 	r := &renderer{pages: map[string]*template.Template{}}
 	for _, e := range entries {
 		name := e.Name()
-		if e.IsDir() || name == layoutPublic || name == layoutApp || name == layoutAdmin {
+		if e.IsDir() || name == layoutPublic || name == layoutApp || name == layoutAdmin || name == layoutLanding || name == layoutAuth {
 			continue
 		}
 		files := append(append([]string{}, layoutPaths...), "web/templates/"+name)
