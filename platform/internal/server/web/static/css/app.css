@@ -702,6 +702,14 @@ body.admin {
     flex-direction: column;
     gap: 28px;
 }
+/* The realtime region wraps the stat/chart/table sections, so it needs the same
+   vertical rhythm as .dash (whose gap can't reach its grandchildren). */
+#dash-live {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+}
 .dash-head {
     display: flex;
     align-items: flex-end;
