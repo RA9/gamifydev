@@ -66,9 +66,17 @@ func (h *hub) Notify(userID int64, topic string) {
 	}
 }
 
+const (
+	// wsPingInterval keeps idle connections alive through Railway's edge and any
+	// intermediary proxies, which drop connections after a few idle minutes.
+	wsPingInterval = 30 * time.Second
+	wsPingTimeout  = 10 * time.Second
+)
+
 // handleWS upgrades to a WebSocket and keeps it open for server-pushed refresh
 // signals. Auth is enforced by the requireAuth middleware; the socket is
 // write-only from the server's side (reads are drained to detect disconnect).
+// A periodic ping heartbeat prevents idle connections from being dropped.
 func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	u := auth.CurrentUser(r.Context())
 	if u == nil {
@@ -83,9 +91,26 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	s.hub.add(u.ID, client)
 	defer s.hub.remove(u.ID, client)
 
-	// CloseRead drains incoming frames and returns a context cancelled when the
-	// client disconnects; we hold the handler open until then.
+	// CloseRead drains incoming frames (and answers the peer's pings) and returns
+	// a context cancelled when the client disconnects. Ping needs that reader
+	// running so it can receive the pong.
 	ctx := conn.CloseRead(r.Context())
-	<-ctx.Done()
-	conn.Close(websocket.StatusNormalClosure, "")
+
+	ticker := time.NewTicker(wsPingInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			conn.Close(websocket.StatusNormalClosure, "")
+			return
+		case <-ticker.C:
+			pctx, cancel := context.WithTimeout(ctx, wsPingTimeout)
+			err := conn.Ping(pctx)
+			cancel()
+			if err != nil {
+				conn.CloseNow()
+				return
+			}
+		}
+	}
 }
