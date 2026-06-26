@@ -97,9 +97,9 @@ type DonutSegment struct {
 	Pct   int
 }
 
-// donutSVG renders a role-distribution donut with a centered total. Segments
-// with zero count are skipped.
-func donutSVG(total int, segs []DonutSegment) template.HTML {
+// donutSVG renders a distribution donut with a centered total and caption.
+// Segments with zero count are skipped.
+func donutSVG(total int, caption string, segs []DonutSegment) template.HTML {
 	const size = 160.0
 	const r = 62.0
 	const sw = 22.0
@@ -127,9 +127,10 @@ func donutSVG(total int, segs []DonutSegment) template.HTML {
 		}
 	}
 
-	svg := fmt.Sprintf(`<svg viewBox="0 0 %.0f %.0f" class="chart-donut" role="img" aria-label="Members by role">
+	svg := fmt.Sprintf(`<svg viewBox="0 0 %.0f %.0f" class="chart-donut" role="img" aria-label="%s">
 %s<text x="%.1f" y="%.1f" text-anchor="middle" class="donut-total">%d</text>
-<text x="%.1f" y="%.1f" text-anchor="middle" class="donut-sub">members</text></svg>`,
-		size, size, arcs.String(), cx, cy-2, total, cx, cy+18)
+<text x="%.1f" y="%.1f" text-anchor="middle" class="donut-sub">%s</text></svg>`,
+		size, size, template.HTMLEscapeString(caption), arcs.String(), cx, cy-2, total, cx, cy+18,
+		template.HTMLEscapeString(caption))
 	return template.HTML(svg)
 }
