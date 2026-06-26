@@ -700,7 +700,7 @@ body.admin {
 .dash {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 28px;
 }
 .dash-head {
     display: flex;
@@ -726,7 +726,7 @@ body.admin {
 .stat-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px;
+    gap: 24px;
     min-width: 0;
 }
 .dash,
@@ -847,7 +847,7 @@ body.admin {
 /* ----- Dashboard rows ----- */
 .dash-row {
     display: grid;
-    gap: 18px;
+    gap: 24px;
 }
 .dash-row-2-1 {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
