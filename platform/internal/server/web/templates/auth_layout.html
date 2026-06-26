@@ -1,0 +1,19 @@
+{{ define "auth_layout.html" }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{{ .Title }}{{ if .Title }} · {{ end }}GamifyDev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/app.css" />
+  </head>
+  <body class="auth-page">
+    {{ if .Flash }}<div class="auth-flash flash">{{ .Flash }}</div>{{ end }}
+    {{ block "content" . }}{{ end }}
+  </body>
+</html>
+{{ end }}
+""

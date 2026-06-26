@@ -43,14 +43,20 @@ const (
 	layoutApp     = "app_layout.html"
 	layoutAdmin   = "admin_layout.html"
 	layoutLanding = "landing_layout.html"
+	layoutAuth    = "auth_layout.html"
 )
 
-var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin, layoutLanding}
+var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin, layoutLanding, layoutAuth}
 
 // alwaysPublic pages keep the marketing shell even when signed in.
 var alwaysPublic = map[string]bool{
-	"login.html": true, "register.html": true, "notfound.html": true,
+	"login.html": true, "notfound.html": true,
 	"invite.html": true, "invite_invalid.html": true,
+}
+
+// authPages use the dedicated auth layout (no header/footer).
+var authPages = map[string]bool{
+	"register.html": true,
 }
 
 type renderer struct {
@@ -89,6 +95,8 @@ func chooseLayout(page string, signedIn bool) string {
 	switch {
 	case page == "home.html":
 		return layoutLanding
+	case authPages[page]:
+		return layoutAuth
 	case strings.HasPrefix(page, "admin_"):
 		return layoutAdmin
 	case alwaysPublic[page]:

@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/content"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
@@ -25,9 +26,16 @@ func (s *Server) handleCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	lessons, _ := s.st.ListLessons(r.Context(), course.ID)
+	assignments, _ := s.st.ListAssignmentsByCourse(r.Context(), course.ID)
+	locked := auth.CurrentUser(r.Context()) == nil
 	s.render(w, r, "course.html", ViewData{
 		Title: course.Title,
-		Data:  map[string]any{"course": course, "lessons": lessons},
+		Data: map[string]any{
+			"course":      course,
+			"lessons":     lessons,
+			"assignments": assignments,
+			"locked":      locked,
+		},
 	})
 }
 
@@ -56,16 +64,19 @@ func (s *Server) handleLesson(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	s.render(w, r, "lesson.html", ViewData{
-		Title: lesson.Title,
-		Data: map[string]any{
-			"course": course,
-			"lesson": lesson,
-			"body":   content.Render(lesson.Body),
-			"prev":   prev,
-			"next":   next,
-		},
-	})
+	// Guests can see the lesson exists, but the body is gated behind sign-in.
+	locked := auth.CurrentUser(r.Context()) == nil
+	data := map[string]any{
+		"course": course,
+		"lesson": lesson,
+		"prev":   prev,
+		"next":   next,
+		"locked": locked,
+	}
+	if !locked {
+		data["body"] = content.Render(lesson.Body)
+	}
+	s.render(w, r, "lesson.html", ViewData{Title: lesson.Title, Data: data})
 }
 
 // --- Admin ------------------------------------------------------------------

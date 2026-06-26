@@ -39,9 +39,9 @@ func areaChartSVG(series []store.DayCount) template.HTML {
 		return padT + ih - (float64(v)/scaleMax)*ih
 	}
 
-	var line strings.Builder    // the stroke path
-	var area strings.Builder    // the filled area path
-	var dots strings.Builder    // point markers
+	var line strings.Builder // the stroke path
+	var area strings.Builder // the filled area path
+	var dots strings.Builder // point markers
 	baseline := padT + ih
 	area.WriteString(fmt.Sprintf("M%.1f,%.1f", xAt(0), baseline))
 	for i, d := range series {

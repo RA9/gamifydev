@@ -86,6 +86,27 @@ func (s *Store) ListAssignments(ctx context.Context, includeUnpublished bool) ([
 	return out, rows.Err()
 }
 
+// ListAssignmentsByCourse returns a course's published assignments in order —
+// the "checkpoint" items shown within the course.
+func (s *Store) ListAssignmentsByCourse(ctx context.Context, courseID int64) ([]Assignment, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT `+assignmentCols+` FROM assignments a LEFT JOIN courses c ON c.id = a.course_id
+		 WHERE a.course_id = ? AND a.published = 1 ORDER BY a.sort, a.title`, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Assignment
+	for rows.Next() {
+		a, err := scanAssignment(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, *a)
+	}
+	return out, rows.Err()
+}
+
 func (s *Store) GetAssignmentBySlug(ctx context.Context, slug string) (*Assignment, error) {
 	a, err := scanAssignment(s.db.QueryRowContext(ctx,
 		`SELECT `+assignmentCols+` FROM assignments a LEFT JOIN courses c ON c.id = a.course_id WHERE a.slug = ?`, slug))
