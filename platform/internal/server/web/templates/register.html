@@ -21,7 +21,10 @@
           <input type="password" name="password" minlength="8" required />
           <small class="muted">At least 8 characters.</small>
         </label>
-        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        <button type="submit" class="btn btn-primary btn-block auth-submit">
+          <span class="auth-submit-text">Create account</span>
+          <span class="auth-submit-spinner" aria-hidden="true"></span>
+        </button>
       </form>
       <p class="auth-alt">Already have an account? <a href="/login">Sign in</a></p>
     </div>
