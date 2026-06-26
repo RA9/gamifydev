@@ -50,6 +50,19 @@ func (s *Server) handleAdminBlogNew(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "admin_blog_form.html", ViewData{Title: "New post", Data: map[string]any{"action": "/admin/blog"}})
 }
 
+// handleAdminBlogPreview renders submitted markdown to HTML for the live editor
+// preview. It uses the same renderer as published posts, so the preview matches
+// the final output (including :::tip / :::warning blocks).
+func (s *Server) handleAdminBlogPreview(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	body := r.FormValue("body")
+	if strings.TrimSpace(body) == "" {
+		_, _ = w.Write([]byte(`<p class="muted">Nothing to preview yet — start writing on the right.</p>`))
+		return
+	}
+	_, _ = w.Write([]byte(content.Render(body)))
+}
+
 func (s *Server) handleAdminBlogCreate(w http.ResponseWriter, r *http.Request) {
 	u := auth.CurrentUser(r.Context())
 	p := postFromForm(r)

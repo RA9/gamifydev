@@ -100,6 +100,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("POST /admin/forum/{id}/{action}", admin(http.HandlerFunc(s.handleForumModerate)))
 	mux.Handle("GET /admin/blog", admin(http.HandlerFunc(s.handleAdminBlog)))
 	mux.Handle("GET /admin/blog/new", admin(http.HandlerFunc(s.handleAdminBlogNew)))
+	mux.Handle("POST /admin/blog/preview", admin(http.HandlerFunc(s.handleAdminBlogPreview)))
 	mux.Handle("POST /admin/blog", admin(http.HandlerFunc(s.handleAdminBlogCreate)))
 	mux.Handle("GET /admin/blog/{id}", admin(http.HandlerFunc(s.handleAdminBlogEdit)))
 	mux.Handle("POST /admin/blog/{id}", admin(http.HandlerFunc(s.handleAdminBlogUpdate)))
