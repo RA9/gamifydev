@@ -48,12 +48,12 @@ func main() {
 		if r, err := seed.Run(ctx, st); err != nil {
 			log.Printf("seed (forced): %v", err)
 		} else {
-			log.Printf("seed (forced): %d courses, %d lessons, %d assignments", r.Courses, r.Lessons, r.Assignments)
+			log.Printf("seed (forced): %d courses, %d lessons, %d assignments, %d paths", r.Courses, r.Lessons, r.Assignments, r.Paths)
 		}
 	} else if r, seeded, err := seed.RunIfEmpty(ctx, st); err != nil {
 		log.Printf("seed: %v", err)
 	} else if seeded {
-		log.Printf("seed: fresh database — %d courses, %d lessons, %d assignments", r.Courses, r.Lessons, r.Assignments)
+		log.Printf("seed: fresh database — %d courses, %d lessons, %d assignments, %d paths", r.Courses, r.Lessons, r.Assignments, r.Paths)
 	}
 
 	// Redis is optional — connect only if REDIS_URL is configured. Future

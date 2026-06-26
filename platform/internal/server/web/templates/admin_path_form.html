@@ -1,0 +1,69 @@
+{{ define "content" }}
+{{ $p := index .Data "path" }}
+<div class="page-head">
+  <a class="back" href="/admin/paths">← Career paths</a>
+  <h1>{{ if $p }}Edit career path{{ else }}New career path{{ end }}</h1>
+</div>
+
+<div class="card" style="max-width:760px;">
+  <form method="post" action="{{ if $p }}/admin/paths/{{ $p.ID }}{{ else }}/admin/paths{{ end }}" class="form">
+    <label class="field"><span>Title</span>
+      <input name="title" value="{{ if $p }}{{ $p.Title }}{{ end }}" required autofocus /></label>
+    <div class="form-row">
+      <label class="field"><span>Emoji</span>
+        <input name="emoji" value="{{ if $p }}{{ $p.Emoji }}{{ end }}" placeholder="🧭" /></label>
+      <label class="field"><span>Slug <span class="muted">(optional)</span></span>
+        <input name="slug" value="{{ if $p }}{{ $p.Slug }}{{ end }}" placeholder="auto from title" /></label>
+    </div>
+    <div class="form-row">
+      <label class="field"><span>Tagline</span>
+        <input name="tagline" value="{{ if $p }}{{ $p.Tagline }}{{ end }}" placeholder="Build what users see and touch" /></label>
+      <label class="field"><span>Level</span>
+        {{ $lvl := "Beginner" }}{{ if $p }}{{ $lvl = $p.Level }}{{ end }}
+        <select name="level" class="role-select">
+          <option {{ if eq $lvl "Beginner" }}selected{{ end }}>Beginner</option>
+          <option {{ if eq $lvl "Intermediate" }}selected{{ end }}>Intermediate</option>
+          <option {{ if eq $lvl "Advanced" }}selected{{ end }}>Advanced</option>
+        </select></label>
+    </div>
+    <label class="field"><span>Description <span class="muted">(markdown, shown on the path page)</span></span>
+      <textarea name="description" rows="3">{{ if $p }}{{ $p.Description }}{{ end }}</textarea></label>
+    <label class="check"><input type="checkbox" name="published" value="1" {{ if $p }}{{ if $p.Published }}checked{{ end }}{{ else }}checked{{ end }} /> Published</label>
+
+    {{ if $p }}
+    <div class="path-courses-field">
+      <span class="field-label">Curriculum <span class="muted">— tick the courses in this path; the order number sets their sequence</span></span>
+      <ul class="path-course-picker">
+        {{ range index .Data "courseRows" }}
+        <li class="path-course-row {{ if .Selected }}is-on{{ end }}">
+          <label class="check">
+            <input type="checkbox" name="course" value="{{ .Course.ID }}" {{ if .Selected }}checked{{ end }} />
+            <span class="mini-ic">{{ if .Course.Emoji }}{{ .Course.Emoji }}{{ else }}📘{{ end }}</span>
+            <span class="path-course-name">{{ .Course.Title }}
+              <span class="muted">· {{ .Course.LessonCount }} lesson{{ if ne .Course.LessonCount 1 }}s{{ end }}</span>
+            </span>
+          </label>
+          <label class="path-course-order">order
+            <input type="number" name="order_{{ .Course.ID }}" value="{{ .Order }}" min="0" />
+          </label>
+        </li>
+        {{ else }}
+        <li class="muted">No courses exist yet — create courses first.</li>
+        {{ end }}
+      </ul>
+    </div>
+    {{ else }}
+    <p class="muted">Save the path, then you'll assign courses to its curriculum.</p>
+    {{ end }}
+
+    <button class="btn btn-primary" type="submit">{{ if $p }}Save changes{{ else }}Create path{{ end }}</button>
+  </form>
+
+  {{ if $p }}
+  <form method="post" action="/admin/paths/{{ $p.ID }}/delete" class="form" style="margin-top:14px"
+        onsubmit="return confirm('Delete this career path? Courses and lessons are not affected.')">
+    <button class="btn btn-ghost btn-sm" type="submit">Delete path</button>
+  </form>
+  {{ end }}
+</div>
+{{ end }}

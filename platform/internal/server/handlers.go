@@ -160,9 +160,9 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	courses, _ := s.st.ListCourses(ctx, false)
-	if len(courses) > 4 {
-		courses = courses[:4]
+	paths, _ := s.st.ListPaths(ctx, false)
+	if len(paths) > 4 {
+		paths = paths[:4]
 	}
 
 	periodTotal := 0
@@ -190,7 +190,7 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 		"donut":       donutSVG(st.TotalSubmissions, "submissions", segments),
 		"segments":    segments,
 		"recent":      recent,
-		"courses":     courses,
+		"paths":       paths,
 	}, nil
 }
 
