@@ -3640,3 +3640,47 @@ body.auth-page a:hover {
     padding: 22px 18px;
   }
 }
+
+/* Password visibility toggle */
+.password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-wrap input {
+  width: 100%;
+  padding-right: 44px;
+}
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--slate-400);
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.password-toggle:hover {
+  color: var(--slate-600);
+  background: var(--slate-100);
+}
+.password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+.password-toggle .eye-closed {
+  display: none;
+}
+.password-toggle.is-visible .eye-open {
+  display: none;
+}
+.password-toggle.is-visible .eye-closed {
+  display: block;
+}

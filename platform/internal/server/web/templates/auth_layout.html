@@ -14,6 +14,7 @@
     {{ if .Flash }}<div class="auth-flash flash">{{ .Flash }}</div>{{ end }}
     {{ block "content" . }}{{ end }}
     <script>
+      // Loading state on submit
       document.querySelectorAll('.auth-split-form form').forEach(function(form) {
         form.addEventListener('submit', function() {
           var btn = form.querySelector('.auth-submit');
@@ -21,6 +22,17 @@
             btn.classList.add('is-loading');
             btn.disabled = true;
           }
+        });
+      });
+      // Password visibility toggle
+      document.querySelectorAll('.password-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var wrap = btn.closest('.password-wrap');
+          var input = wrap.querySelector('input');
+          var isPassword = input.type === 'password';
+          input.type = isPassword ? 'text' : 'password';
+          btn.classList.toggle('is-visible', isPassword);
+          btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
         });
       });
     </script>
