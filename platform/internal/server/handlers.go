@@ -17,6 +17,10 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "home.html", ViewData{Title: "GamifyDev — Learn to code by building"})
 }
 
+func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {
+	s.render(w, r, "about.html", ViewData{Title: "About us"})
+}
+
 // --- Auth -------------------------------------------------------------------
 
 func (s *Server) handleLoginForm(w http.ResponseWriter, r *http.Request) {

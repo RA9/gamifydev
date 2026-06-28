@@ -94,7 +94,7 @@ func newRenderer() (*renderer, error) {
 // chooseLayout decides which shell wraps a page for this request.
 func chooseLayout(page string, signedIn bool) string {
 	switch {
-	case page == "home.html":
+	case page == "home.html" || page == "about.html":
 		return layoutLanding
 	case authPages[page]:
 		return layoutAuth

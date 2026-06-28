@@ -40,6 +40,7 @@ func (s *Server) Routes() http.Handler {
 
 	// Public
 	mux.HandleFunc("GET /{$}", s.handleHome)
+	mux.HandleFunc("GET /about", s.handleAbout)
 	mux.HandleFunc("GET /paths", s.handlePaths)
 	mux.HandleFunc("GET /paths/{slug}", s.handlePath)
 	mux.HandleFunc("GET /courses", s.handleCourses)
