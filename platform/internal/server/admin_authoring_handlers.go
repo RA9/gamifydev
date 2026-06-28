@@ -44,7 +44,8 @@ func (s *Server) handleAdminCourseManage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	lessons, _ := s.st.ListLessons(r.Context(), c.ID)
-	s.render(w, r, "admin_course.html", ViewData{Title: c.Title, Data: map[string]any{"course": c, "lessons": lessons}})
+	assignments, _ := s.st.ListAssignmentsByCourse(r.Context(), c.ID, true)
+	s.render(w, r, "admin_course.html", ViewData{Title: c.Title, Data: map[string]any{"course": c, "lessons": lessons, "assignments": assignments}})
 }
 
 func (s *Server) handleAdminCourseUpdate(w http.ResponseWriter, r *http.Request) {
@@ -200,6 +201,69 @@ func (s *Server) handleAdminAssignmentUpdate(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "could not update assignment", http.StatusInternalServerError)
 		return
 	}
+	// Return to the owning course's manager when the assignment belongs to one.
+	if a.CourseID.Valid {
+		http.Redirect(w, r, "/admin/courses/"+strconv.FormatInt(a.CourseID.Int64, 10), http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/admin/assignments", http.StatusSeeOther)
+}
+
+// --- Assignments scoped to a course (add directly from the course manager) ---
+
+func (s *Server) handleAdminCourseAssignmentNew(w http.ResponseWriter, r *http.Request) {
+	cid, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	c, err := s.st.GetCourseByID(r.Context(), cid)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	courses, _ := s.st.ListCourses(r.Context(), true)
+	back := "/admin/courses/" + r.PathValue("id")
+	s.render(w, r, "admin_assignment_form.html", ViewData{Title: "New assignment", Data: map[string]any{
+		"courses": courses, "presetCourseID": c.ID, "action": back + "/assignments", "back": back,
+	}})
+}
+
+func (s *Server) handleAdminCourseAssignmentCreate(w http.ResponseWriter, r *http.Request) {
+	cid, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	c, err := s.st.GetCourseByID(r.Context(), cid)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	back := "/admin/courses/" + r.PathValue("id")
+	a := assignmentFromForm(r)
+	a.CourseID = sql.NullInt64{Int64: cid, Valid: true} // force this course
+	existing, _ := s.st.ListAssignmentsByCourse(r.Context(), cid, true)
+	a.Sort = len(existing)
+	if len(a.Title) < 2 {
+		courses, _ := s.st.ListCourses(r.Context(), true)
+		s.render(w, r, "admin_assignment_form.html", ViewData{Title: "New assignment", Flash: "A title is required.",
+			Data: map[string]any{"courses": courses, "assignment": &a, "presetCourseID": c.ID, "action": back + "/assignments", "back": back}})
+		return
+	}
+	if err := s.st.CreateAssignment(r.Context(), a); err != nil {
+		courses, _ := s.st.ListCourses(r.Context(), true)
+		s.render(w, r, "admin_assignment_form.html", ViewData{Title: "New assignment", Flash: "Could not create — is the slug unique?",
+			Data: map[string]any{"courses": courses, "assignment": &a, "presetCourseID": c.ID, "action": back + "/assignments", "back": back}})
+		return
+	}
+	http.Redirect(w, r, back, http.StatusSeeOther)
+}
+
+func (s *Server) handleAdminAssignmentDelete(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	a, err := s.st.GetAssignmentByID(r.Context(), id)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	_ = s.st.DeleteAssignment(r.Context(), id)
+	if a.CourseID.Valid {
+		http.Redirect(w, r, "/admin/courses/"+strconv.FormatInt(a.CourseID.Int64, 10), http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/admin/assignments", http.StatusSeeOther)
 }
 
@@ -217,14 +281,20 @@ func assignmentFromForm(r *http.Request) store.Assignment {
 	if cid, err := strconv.ParseInt(r.FormValue("course_id"), 10, 64); err == nil && cid > 0 {
 		courseID = sql.NullInt64{Int64: cid, Valid: true}
 	}
+	passPts, _ := strconv.Atoi(r.FormValue("pass_points"))
+	if passPts < 0 {
+		passPts = 0
+	}
 	return store.Assignment{
-		Title:     title,
-		Slug:      slugOr(r.FormValue("slug"), title),
-		CourseID:  courseID,
-		Language:  lang,
-		Prompt:    r.FormValue("prompt"),
-		Starter:   r.FormValue("starter"),
-		MaxPoints: pts,
-		Published: r.FormValue("published") == "1",
+		Title:      title,
+		Slug:       slugOr(r.FormValue("slug"), title),
+		CourseID:   courseID,
+		Language:   lang,
+		Prompt:     r.FormValue("prompt"),
+		Starter:    r.FormValue("starter"),
+		MaxPoints:  pts,
+		Published:  r.FormValue("published") == "1",
+		Required:   r.FormValue("required") == "1",
+		PassPoints: passPts,
 	}
 }

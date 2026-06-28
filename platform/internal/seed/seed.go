@@ -127,6 +127,7 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		if err := st.UpsertAssignment(ctx, store.Assignment{
 			CourseID: courseID, Slug: a.slug, Title: a.title, Language: a.lang,
 			Prompt: a.prompt, Starter: a.starter, MaxPoints: 100, Published: true, Sort: i,
+			Required: true, // act as the course checkpoint that gates the next course
 		}); err != nil {
 			return res, err
 		}

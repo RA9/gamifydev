@@ -1,7 +1,9 @@
 {{ define "content" }}
 {{ $a := index .Data "assignment" }}
+{{ $preset := index .Data "presetCourseID" }}
+{{ $back := index .Data "back" }}
 <div class="page-head">
-  <a class="back" href="/admin/assignments">← Assignments</a>
+  <a class="back" href="{{ if $back }}{{ $back }}{{ else }}/admin/assignments{{ end }}">← Back</a>
   <h1>{{ if $a }}Edit assignment{{ else }}New assignment{{ end }}</h1>
 </div>
 <div class="card" style="max-width:840px;">
@@ -17,7 +19,7 @@
         <select name="course_id" class="role-select">
           <option value="">— None —</option>
           {{ range index .Data "courses" }}
-          <option value="{{ .ID }}" {{ if $a }}{{ if $a.CourseID.Valid }}{{ if eq $a.CourseID.Int64 .ID }}selected{{ end }}{{ end }}{{ end }}>{{ .Title }}</option>
+          <option value="{{ .ID }}" {{ if $a }}{{ if $a.CourseID.Valid }}{{ if eq $a.CourseID.Int64 .ID }}selected{{ end }}{{ end }}{{ else if $preset }}{{ if eq $preset .ID }}selected{{ end }}{{ end }}>{{ .Title }}</option>
           {{ end }}
         </select></label>
       <label class="field"><span>Language</span>
@@ -29,6 +31,11 @@
       <textarea name="prompt" rows="8">{{ if $a }}{{ $a.Prompt }}{{ end }}</textarea></label>
     <label class="field"><span>Starter code <span class="muted">(optional)</span></span>
       <textarea name="starter" rows="6" class="code-area">{{ if $a }}{{ $a.Starter }}{{ end }}</textarea></label>
+    <div class="form-row">
+      <label class="check gate-check"><input type="checkbox" name="required" value="1" {{ if $a }}{{ if $a.Required }}checked{{ end }}{{ end }} /> Required checkpoint — gates the next course in a path</label>
+      <label class="field"><span>Pass score <span class="muted">(min to pass; 0 = any graded)</span></span>
+        <input type="number" name="pass_points" value="{{ if $a }}{{ $a.PassPoints }}{{ else }}0{{ end }}" min="0" /></label>
+    </div>
     <label class="check"><input type="checkbox" name="published" value="1" {{ if not $a }}checked{{ else if $a.Published }}checked{{ end }} /> Published</label>
     <button class="btn btn-primary" type="submit">{{ if $a }}Save changes{{ else }}Create assignment{{ end }}</button>
   </form>

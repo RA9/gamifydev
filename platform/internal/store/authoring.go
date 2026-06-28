@@ -101,16 +101,18 @@ func (s *Store) GetAssignmentByID(ctx context.Context, id int64) (*Assignment, e
 
 func (s *Store) CreateAssignment(ctx context.Context, a Assignment) error {
 	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO assignments (course_id, slug, title, language, prompt, starter, max_points, published, sort)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		a.CourseID, a.Slug, a.Title, a.Language, a.Prompt, a.Starter, a.MaxPoints, boolToInt(a.Published), a.Sort)
+		`INSERT INTO assignments (course_id, slug, title, language, prompt, starter, max_points, published, sort, required, pass_points)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		a.CourseID, a.Slug, a.Title, a.Language, a.Prompt, a.Starter, a.MaxPoints, boolToInt(a.Published), a.Sort,
+		boolToInt(a.Required), a.PassPoints)
 	return err
 }
 
 func (s *Store) UpdateAssignment(ctx context.Context, id int64, a Assignment) error {
 	_, err := s.db.ExecContext(ctx,
-		`UPDATE assignments SET course_id=?, slug=?, title=?, language=?, prompt=?, starter=?, max_points=?, published=?, updated_at=datetime('now')
+		`UPDATE assignments SET course_id=?, slug=?, title=?, language=?, prompt=?, starter=?, max_points=?, published=?, required=?, pass_points=?, updated_at=datetime('now')
 		 WHERE id=?`,
-		a.CourseID, a.Slug, a.Title, a.Language, a.Prompt, a.Starter, a.MaxPoints, boolToInt(a.Published), id)
+		a.CourseID, a.Slug, a.Title, a.Language, a.Prompt, a.Starter, a.MaxPoints, boolToInt(a.Published),
+		boolToInt(a.Required), a.PassPoints, id)
 	return err
 }

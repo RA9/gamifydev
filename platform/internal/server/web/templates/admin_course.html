@@ -34,6 +34,41 @@
   </table>
 </div>
 
+<div class="page-head forum-head" style="margin-top:26px;">
+  <div>
+    <h2>Checkpoints &amp; assignments</h2>
+    <p class="muted">Projects inside this course. Mark one <strong>required</strong> to gate the next course in a curriculum path. Add as many as you like.</p>
+  </div>
+  <a href="/admin/courses/{{ $c.ID }}/assignments/new" class="btn btn-primary">{{ icon "flag" }} Add assignment</a>
+</div>
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>Assignment</th><th>Language</th><th class="ta-center">Gate</th><th>Status</th><th class="ta-right">Actions</th></tr></thead>
+    <tbody>
+      {{ range index .Data "assignments" }}
+      <tr>
+        <td>
+          <span class="member-name">{{ .Title }}</span>
+          <div class="muted">{{ .MaxPoints }} pts{{ if gt .PassPoints 0 }} · pass ≥ {{ .PassPoints }}{{ end }}</div>
+        </td>
+        <td class="muted">{{ .Language }}</td>
+        <td class="ta-center">{{ if .Required }}<span class="badge badge-warn">Required</span>{{ else }}<span class="muted">—</span>{{ end }}</td>
+        <td>{{ if .Published }}<span class="badge badge-ok">Published</span>{{ else }}<span class="badge">Draft</span>{{ end }}</td>
+        <td class="ta-right mod-actions">
+          <a class="btn btn-secondary btn-sm" href="/admin/assignments/{{ .ID }}">Edit</a>
+          <form method="post" action="/admin/assignments/{{ .ID }}/delete" class="inline" onsubmit="return confirm('Delete this assignment?')">
+            <button class="btn btn-secondary btn-sm btn-danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">No assignments yet — add a checkpoint to gate progression.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
 <details class="card" style="margin-top:18px;">
   <summary style="cursor:pointer;font-weight:800;color:var(--slate-700);">Course settings</summary>
   <form method="post" action="/admin/courses/{{ $c.ID }}" class="form" style="margin-top:16px;">

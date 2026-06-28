@@ -17,16 +17,28 @@
 
 <h2 class="path-curriculum-title">Curriculum</h2>
 <ol class="path-steps">
-  {{ range $i, $c := index .Data "courses" }}
-    <li class="card path-step">
-      <span class="path-step-no">{{ add $i 1 }}</span>
+  {{ range $i, $st := index .Data "steps" }}
+    {{ $c := $st.Course }}
+    <li class="card path-step {{ if $st.Locked }}is-locked{{ end }} {{ if $st.Completed }}is-done{{ end }}">
+      <span class="path-step-no">{{ if $st.Completed }}{{ icon "check" }}{{ else if $st.Locked }}{{ icon "lock" }}{{ else }}{{ add $i 1 }}{{ end }}</span>
       <span class="path-step-emoji">{{ if $c.Emoji }}{{ $c.Emoji }}{{ else }}📘{{ end }}</span>
       <span class="path-step-info">
-        <a class="path-step-title" href="/courses/{{ $c.Slug }}">{{ $c.Title }}</a>
-        {{ if $c.Tagline }}<span class="muted">{{ $c.Tagline }}</span>{{ end }}
-        <span class="course-meta">{{ $c.LessonCount }} lesson{{ if ne $c.LessonCount 1 }}s{{ end }}</span>
+        {{ if $st.Locked }}
+          <span class="path-step-title">{{ $c.Title }}</span>
+          <span class="muted">{{ icon "lock" }} Pass the previous checkpoint to unlock</span>
+        {{ else }}
+          <a class="path-step-title" href="/courses/{{ $c.Slug }}">{{ $c.Title }}</a>
+          {{ if $c.Tagline }}<span class="muted">{{ $c.Tagline }}</span>{{ end }}
+        {{ end }}
+        <span class="course-meta">{{ $c.LessonCount }} lesson{{ if ne $c.LessonCount 1 }}s{{ end }}{{ if $st.HasGate }} · checkpoint{{ end }}</span>
       </span>
-      <a class="btn btn-secondary btn-sm path-step-go" href="/courses/{{ $c.Slug }}">Start</a>
+      {{ if $st.Locked }}
+        <span class="btn btn-secondary btn-sm path-step-go" aria-disabled="true">{{ icon "lock" }} Locked</span>
+      {{ else if $st.Completed }}
+        <a class="btn btn-secondary btn-sm path-step-go" href="/courses/{{ $c.Slug }}">Review ✓</a>
+      {{ else }}
+        <a class="btn btn-primary btn-sm path-step-go" href="/courses/{{ $c.Slug }}">Start</a>
+      {{ end }}
     </li>
   {{ else }}
     <li class="muted">This path has no courses yet.</li>

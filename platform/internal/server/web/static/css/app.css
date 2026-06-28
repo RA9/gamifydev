@@ -2457,6 +2457,9 @@ body.landing {
     font-size: 1.45rem;
     letter-spacing: -0.02em;
 }
+.lp-brand:hover {
+    color: #fff;
+}
 .lp-brand span {
     color: #c9bcff;
 }
@@ -3437,4 +3440,42 @@ body.auth-page a:hover {
     to {
         transform: rotate(360deg);
     }
+}
+
+/* ===== Progression gating (path steps) ===== */
+.path-step.is-locked {
+    opacity: 0.72;
+}
+.path-step.is-locked .path-step-no {
+    color: var(--slate-400, #94a3b8);
+    background: var(--slate-100, #f1f5f9);
+}
+.path-step.is-locked .path-step-no .ic {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+.path-step.is-done .path-step-no {
+    color: #15803d;
+    background: #dcfce7;
+}
+.path-step.is-done .path-step-no .ic {
+    width: 1rem;
+    height: 1rem;
+}
+.path-step .muted .ic {
+    width: 0.85rem;
+    height: 0.85rem;
+    vertical-align: -1px;
+}
+.path-step-go[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.checkpoint-item.is-passed .checkpoint-ic {
+    color: #15803d;
+    background: #dcfce7;
+}
+.gate-check {
+    align-self: center;
 }
