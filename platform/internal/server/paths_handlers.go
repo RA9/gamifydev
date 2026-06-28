@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/content"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
@@ -20,6 +21,14 @@ func (s *Server) handlePaths(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "paths.html", ViewData{Title: "Career paths", Data: map[string]any{"paths": paths}})
 }
 
+// pathStep is a course in a path plus the viewing learner's progression state.
+type pathStep struct {
+	Course    store.Course
+	HasGate   bool
+	Completed bool
+	Locked    bool // a previous course's checkpoint isn't passed yet
+}
+
 func (s *Server) handlePath(w http.ResponseWriter, r *http.Request) {
 	p, err := s.st.GetPathBySlug(r.Context(), r.PathValue("slug"))
 	if err != nil || !p.Published {
@@ -27,12 +36,31 @@ func (s *Server) handlePath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	courses, _ := s.st.PathCourses(r.Context(), p.ID)
+	u := auth.CurrentUser(r.Context())
+
+	steps := make([]pathStep, 0, len(courses))
+	blocked := false // becomes true once an earlier required checkpoint is unmet
+	for _, c := range courses {
+		step := pathStep{Course: c}
+		if u != nil {
+			g, _ := s.st.CourseGateFor(r.Context(), u.ID, c.ID)
+			step.HasGate = g.HasGate()
+			step.Completed = g.HasGate() && g.Satisfied()
+			step.Locked = blocked
+			if g.HasGate() && !g.Satisfied() {
+				blocked = true // gate the rest of the curriculum
+			}
+		}
+		steps = append(steps, step)
+	}
+
 	s.render(w, r, "path.html", ViewData{
 		Title: p.Title,
 		Data: map[string]any{
-			"path":    p,
-			"courses": courses,
-			"about":   content.RenderSafe(p.Description),
+			"path":     p,
+			"steps":    steps,
+			"signedIn": u != nil,
+			"about":    content.RenderSafe(p.Description),
 		},
 	})
 }

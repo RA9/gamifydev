@@ -43,21 +43,26 @@
   {{ end }}
 </ol>
 
+{{ $passed := index .Data "passed" }}
 {{ with index .Data "assignments" }}
 <h2 class="course-checkpoint-title">{{ icon "flag" }} Checkpoint{{ if ne (len .) 1 }}s{{ end }}</h2>
-<p class="muted course-checkpoint-sub">Complete the project to mark this course done and move on to the next.</p>
+<p class="muted course-checkpoint-sub">Pass the required checkpoint to complete this course and unlock the next one in your path.</p>
 <ul class="checkpoint-list">
   {{ range . }}
-    <li class="card checkpoint-item">
-      <span class="checkpoint-ic">{{ icon "trophy" }}</span>
+    {{ $isPassed := index $passed .ID }}
+    <li class="card checkpoint-item {{ if $isPassed }}is-passed{{ end }}">
+      <span class="checkpoint-ic">{{ if $isPassed }}{{ icon "check" }}{{ else }}{{ icon "trophy" }}{{ end }}</span>
       <span class="checkpoint-info">
-        <span class="checkpoint-title">{{ .Title }}</span>
-        <span class="muted">{{ .Language }} · {{ .MaxPoints }} pts</span>
+        <span class="checkpoint-title">{{ .Title }}
+          {{ if .Required }}<span class="badge badge-warn">Required</span>{{ end }}
+          {{ if $isPassed }}<span class="badge badge-ok">Passed</span>{{ end }}
+        </span>
+        <span class="muted">{{ .Language }} · {{ .MaxPoints }} pts{{ if gt .PassPoints 0 }} · pass ≥ {{ .PassPoints }}{{ end }}</span>
       </span>
       {{ if $locked }}
         <a href="/login" class="btn btn-secondary btn-sm">{{ icon "lock" }} Sign in</a>
       {{ else }}
-        <a href="/assignments/{{ .Slug }}" class="btn btn-primary btn-sm">Start project</a>
+        <a href="/assignments/{{ .Slug }}" class="btn btn-primary btn-sm">{{ if $isPassed }}Review{{ else }}Start project{{ end }}</a>
       {{ end }}
     </li>
   {{ end }}

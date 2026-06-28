@@ -26,8 +26,13 @@ func (s *Server) handleCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	lessons, _ := s.st.ListLessons(r.Context(), course.ID)
-	assignments, _ := s.st.ListAssignmentsByCourse(r.Context(), course.ID)
-	locked := auth.CurrentUser(r.Context()) == nil
+	assignments, _ := s.st.ListAssignmentsByCourse(r.Context(), course.ID, false)
+	u := auth.CurrentUser(r.Context())
+	locked := u == nil
+	passed := map[int64]bool{}
+	if u != nil {
+		passed, _ = s.st.AssignmentPassState(r.Context(), u.ID, course.ID)
+	}
 	s.render(w, r, "course.html", ViewData{
 		Title: course.Title,
 		Data: map[string]any{
@@ -35,6 +40,7 @@ func (s *Server) handleCourse(w http.ResponseWriter, r *http.Request) {
 			"lessons":     lessons,
 			"assignments": assignments,
 			"locked":      locked,
+			"passed":      passed,
 		},
 	})
 }
