@@ -65,6 +65,18 @@
             "kind": "theory"
           },
           {
+            "title": "Workshop: Build a Sign-up Form",
+            "description": "Build a real sign-up form step by step — inputs, types, required, and a submit button — in an interactive editor.",
+            "section": "HTML",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
             "title": "Web Accessibility Basics",
             "description": "Build pages everyone can use — semantics, alt text, keyboard access, and ARIA.",
             "resources": [],
@@ -135,6 +147,18 @@
             "previous": "CSS Layout with Flexbox",
             "section": "CSS",
             "kind": "theory"
+          },
+          {
+            "title": "Workshop: Build an Image Gallery with Grid",
+            "description": "Lay out an image gallery hands-on using CSS Grid in an interactive editor.",
+            "section": "CSS",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
           },
           {
             "title": "Responsive Design",
