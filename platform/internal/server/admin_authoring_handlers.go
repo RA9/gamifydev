@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/RA9/gamifydev/platform/internal/content"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
@@ -138,6 +139,16 @@ func (s *Server) handleAdminLessonDelete(w http.ResponseWriter, r *http.Request)
 	}
 	_ = s.st.DeleteLesson(r.Context(), id)
 	http.Redirect(w, r, "/admin/courses/"+strconv.FormatInt(existing.CourseID, 10), http.StatusSeeOther)
+}
+
+func (s *Server) handleAdminLessonPreview(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	body := r.FormValue("body")
+	if strings.TrimSpace(body) == "" {
+		_, _ = w.Write([]byte(`<p class="muted">Nothing to preview yet — start writing.</p>`))
+		return
+	}
+	_, _ = w.Write([]byte(content.Render(body)))
 }
 
 func lessonFromForm(r *http.Request) store.Lesson {

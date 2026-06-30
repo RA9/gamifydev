@@ -100,6 +100,7 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /admin/lessons/{id}", admin(http.HandlerFunc(s.handleAdminLessonEdit)))
 	mux.Handle("POST /admin/lessons/{id}", admin(http.HandlerFunc(s.handleAdminLessonUpdate)))
 	mux.Handle("POST /admin/lessons/{id}/delete", admin(http.HandlerFunc(s.handleAdminLessonDelete)))
+	mux.Handle("POST /admin/lessons/preview", admin(http.HandlerFunc(s.handleAdminLessonPreview)))
 	mux.Handle("GET /admin/assignments", admin(http.HandlerFunc(s.handleAdminAssignments)))
 	mux.Handle("GET /admin/assignments/new", admin(http.HandlerFunc(s.handleAdminAssignmentNew)))
 	mux.Handle("POST /admin/assignments", admin(http.HandlerFunc(s.handleAdminAssignmentCreate)))

@@ -21,11 +21,15 @@
       <label class="field"><span>Audio URL <span class="muted">(optional)</span></span>
         <input name="audio_url" value="{{ if $l }}{{ $l.AudioURL }}{{ end }}" placeholder="https://..." /></label>
     </div>
-    <label class="field">
+    <div class="field">
       <span>Body <span class="muted">— markdown; supports images, code, and :::tip / :::analogy / :::quiz blocks</span></span>
-      <textarea name="body" rows="18" class="code-area">{{ if $l }}{{ $l.Body }}{{ end }}</textarea>
-    </label>
+      <gd-markdown-editor endpoint="/admin/lessons/preview">
+        <textarea slot="editor" name="body" rows="18" class="code-area md-input">{{ if $l }}{{ $l.Body }}{{ end }}</textarea>
+        <div slot="preview" class="prose md-preview"></div>
+      </gd-markdown-editor>
+    </div>
     <button class="btn btn-primary" type="submit">{{ if $l }}Save changes{{ else }}Create lesson{{ end }}</button>
   </form>
 </div>
+<script type="module" src="/static/js/markdown-editor.js"></script>
 {{ end }}
