@@ -5,7 +5,7 @@
   <h1>{{ if $p }}Edit career path{{ else }}New career path{{ end }}</h1>
 </div>
 
-<div class="card" style="max-width:760px;">
+<div class="card"></div>
   <form method="post" action="{{ if $p }}/admin/paths/{{ $p.ID }}{{ else }}/admin/paths{{ end }}" class="form">
     <label class="field"><span>Title</span>
       <input name="title" value="{{ if $p }}{{ $p.Title }}{{ end }}" required autofocus /></label>
