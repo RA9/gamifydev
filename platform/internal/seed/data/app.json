@@ -41,8 +41,8 @@
             "kind": "theory"
           },
           {
-            "title": "Workshop: Build a Cat Photo App",
-            "description": "Learn HTML hands-on by building a page step by step in an interactive editor.",
+            "title": "Workshop: Build a Game Launch Page",
+            "description": "Learn HTML structure hands-on by building a launch page for your own game — title, sections, image, features, and a call to action.",
             "section": "HTML",
             "kind": "lab",
             "resources": [],
@@ -103,6 +103,18 @@
           {
             "title": "Workshop: Style a Business Card",
             "description": "Practise CSS hands-on — style a card with colours, spacing, and rounded corners in an interactive editor.",
+            "section": "CSS",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
+            "title": "Workshop: Build a Pricing Card",
+            "description": "Style a polished product pricing card with CSS — padding, shadow, rounded corners, and a clickable button.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],

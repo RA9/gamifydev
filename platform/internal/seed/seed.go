@@ -168,40 +168,69 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 	return res, nil
 }
 
-// catPhotoSteps is the interactive "Build a Cat Photo App" workshop. Each step's
-// starter is the expected result of the previous one, so the page builds up.
-// Check tests are tiny JS boolean expressions run against the preview document
-// (`doc`); they use single quotes so they sit cleanly in an HTML data attribute.
-var catPhotoSteps = []store.Step{
+// gameLaunchSteps is an original HTML-structure workshop: a launch page for a
+// fictional indie game. Each step's starter is the result of the previous one so
+// the page builds up. Checks are tiny JS boolean expressions over the preview
+// document (`doc`), single-quoted so they sit cleanly in an HTML data attribute.
+var gameLaunchSteps = []store.Step{
 	{
-		Instruction: "Every page starts with a main heading. Add an `<h1>` element with the text **CatPhotoApp**.",
-		Starter:     "<!-- Add your h1 below -->\n",
-		Checks:      `[{"text":"You should have an h1 element.","test":"doc.querySelector('h1')"},{"text":"Your h1 should say CatPhotoApp.","test":"doc.querySelector('h1') && /catphotoapp/i.test(doc.querySelector('h1').textContent)"}]`,
+		Instruction: "Every launch page needs a title. Add an `<h1>` with the name of your game — invent one!",
+		Starter:     "<!-- Add your game's title in an h1 -->\n",
+		Checks:      `[{"text":"You should have an h1 element.","test":"doc.querySelector('h1')"},{"text":"Your h1 should have a title in it.","test":"doc.querySelector('h1') && doc.querySelector('h1').textContent.trim().length > 0"}]`,
 	},
 	{
-		Instruction: "The main content of a page belongs in a `<main>` element. Add a `<main>` element below your `h1`.",
-		Starter:     "<h1>CatPhotoApp</h1>\n<!-- Add a main element below -->\n",
-		Checks:      `[{"text":"Keep your h1 with the text CatPhotoApp.","test":"doc.querySelector('h1') && /catphotoapp/i.test(doc.querySelector('h1').textContent)"},{"text":"You should have a main element.","test":"doc.querySelector('main')"}]`,
+		Instruction: "Wrap the page content in a `<main>` element below the title.",
+		Starter:     "<h1>Pixel Quest</h1>\n<!-- Add a main element below -->\n",
+		Checks:      `[{"text":"Keep your h1 title.","test":"doc.querySelector('h1') && doc.querySelector('h1').textContent.trim().length > 0"},{"text":"You should have a main element.","test":"doc.querySelector('main')"}]`,
 	},
 	{
-		Instruction: "Inside `main`, add an `<h2>` with the text **Cat Photos** and a `<p>` that says something about cats.",
-		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <!-- Add an h2 and a p here -->\n</main>\n",
-		Checks:      `[{"text":"main should contain an h2.","test":"doc.querySelector('main h2')"},{"text":"Your h2 should say Cat Photos.","test":"doc.querySelector('main h2') && /cat photos/i.test(doc.querySelector('main h2').textContent)"},{"text":"main should contain a non-empty paragraph (p).","test":"doc.querySelector('main p') && doc.querySelector('main p').textContent.trim().length > 0"}]`,
+		Instruction: "Inside `main`, add an `<h2>` that says **About the Game** and a `<p>` describing what it's about.",
+		Starter:     "<h1>Pixel Quest</h1>\n<main>\n  <!-- Add an h2 and a p here -->\n</main>\n",
+		Checks:      `[{"text":"main should contain an h2.","test":"doc.querySelector('main h2')"},{"text":"Your h2 should mention 'About'.","test":"doc.querySelector('main h2') && /about/i.test(doc.querySelector('main h2').textContent)"},{"text":"main should contain a non-empty paragraph.","test":"doc.querySelector('main p') && doc.querySelector('main p').textContent.trim().length > 0"}]`,
 	},
 	{
-		Instruction: "Now add a photo. Add an `<img>` inside `main` with a `src` (any image URL) and a descriptive `alt` attribute.",
-		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <h2>Cat Photos</h2>\n  <p>Everybody loves cute cats online!</p>\n  <!-- Add an img with src and alt -->\n</main>\n",
+		Instruction: "Show off the game with a cover image. Add an `<img>` inside `main` with a `src` and a descriptive `alt`. _Tip: use `https://placehold.co/600x300` as a placeholder._",
+		Starter:     "<h1>Pixel Quest</h1>\n<main>\n  <h2>About the Game</h2>\n  <p>A retro platformer where every jump counts.</p>\n  <!-- Add a cover img with src and alt -->\n</main>\n",
 		Checks:      `[{"text":"You should have an img element.","test":"doc.querySelector('img')"},{"text":"Your img needs a non-empty src.","test":"doc.querySelector('img') && (doc.querySelector('img').getAttribute('src')||'').length > 0"},{"text":"Your img needs a descriptive alt attribute.","test":"doc.querySelector('img') && (doc.querySelector('img').getAttribute('alt')||'').trim().length > 0"}]`,
 	},
 	{
-		Instruction: "Add a link. Below the image add an `<a>` element whose `href` points anywhere (use `#` for now) and whose text mentions cats — e.g. *See more cat photos*.",
-		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <h2>Cat Photos</h2>\n  <p>Everybody loves cute cats online!</p>\n  <img src=\"https://cdn.freecodecamp.org/curriculum/cat-photo-app/relaxing-cat.jpg\" alt=\"A relaxing cat\">\n  <!-- Add an anchor link -->\n</main>\n",
-		Checks:      `[{"text":"You should have an a (anchor) element.","test":"doc.querySelector('a')"},{"text":"Your link should have an href.","test":"doc.querySelector('a') && doc.querySelector('a').getAttribute('href') !== null"},{"text":"Your link text should mention cats.","test":"doc.querySelector('a') && /cat/i.test(doc.querySelector('a').textContent)"}]`,
+		Instruction: "List what makes it fun. Add a `<ul>` with at least **three** `<li>` feature bullets.",
+		Starter:     "<h1>Pixel Quest</h1>\n<main>\n  <h2>About the Game</h2>\n  <p>A retro platformer where every jump counts.</p>\n  <img src=\"https://placehold.co/600x300\" alt=\"Pixel Quest cover art\">\n  <!-- Add a ul with at least three feature items -->\n</main>\n",
+		Checks:      `[{"text":"You should have a ul element.","test":"doc.querySelector('ul')"},{"text":"Your list should have at least 3 li items.","test":"doc.querySelectorAll('ul li').length >= 3"}]`,
 	},
 	{
-		Instruction: "Finish with a list. Add an unordered list `<ul>` with at least **three** `<li>` items of things cats love.",
-		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <h2>Cat Photos</h2>\n  <p>Everybody loves cute cats online!</p>\n  <img src=\"https://cdn.freecodecamp.org/curriculum/cat-photo-app/relaxing-cat.jpg\" alt=\"A relaxing cat\">\n  <a href=\"#\">See more cat photos</a>\n  <!-- Add a ul with at least three li items -->\n</main>\n",
-		Checks:      `[{"text":"You should have a ul element.","test":"doc.querySelector('ul')"},{"text":"Your list should have at least 3 li items.","test":"doc.querySelectorAll('ul li').length >= 3"}]`,
+		Instruction: "Finish with a call to action. Add an `<a>` link (use `#` for the `href`) whose text says **Play now**.",
+		Starter:     "<h1>Pixel Quest</h1>\n<main>\n  <h2>About the Game</h2>\n  <p>A retro platformer where every jump counts.</p>\n  <img src=\"https://placehold.co/600x300\" alt=\"Pixel Quest cover art\">\n  <ul>\n    <li>30 hand-crafted levels</li>\n    <li>Original chiptune soundtrack</li>\n    <li>Local co-op</li>\n  </ul>\n  <!-- Add a Play now link -->\n</main>\n",
+		Checks:      `[{"text":"You should have an a (anchor) element with an href.","test":"doc.querySelector('a') && doc.querySelector('a').getAttribute('href') !== null"},{"text":"Your link text should say 'Play'.","test":"doc.querySelector('a') && /play/i.test(doc.querySelector('a').textContent)"}]`,
+	},
+}
+
+// pricingCardSteps is an original CSS workshop: style a product pricing card.
+var pricingCardSteps = []store.Step{
+	{
+		Instruction: "Give the `.price-card` some breathing room — add `padding` of at least `24px`.",
+		Starter:     "<style>\n  .price-card {\n    width: 240px;\n    /* add padding */\n  }\n  .price { font-size: 1rem; }\n  .buy { }\n</style>\n<div class=\"price-card\">\n  <h2>GamifyDev Pro</h2>\n  <p class=\"price\">$9/mo</p>\n  <ul>\n    <li>Unlimited courses</li>\n    <li>Mentor code reviews</li>\n    <li>Shareable certificates</li>\n  </ul>\n  <button class=\"buy\">Get Pro</button>\n</div>\n",
+		Checks:      `[{"text":"The .price-card should have padding of at least 24px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.price-card')).paddingTop) >= 24"}]`,
+	},
+	{
+		Instruction: "Lift the card off the page with a **`box-shadow`**.",
+		Starter:     "<style>\n  .price-card {\n    width: 240px;\n    padding: 28px;\n    /* add a box-shadow */\n  }\n  .price { font-size: 1rem; }\n  .buy { }\n</style>\n<div class=\"price-card\">\n  <h2>GamifyDev Pro</h2>\n  <p class=\"price\">$9/mo</p>\n  <ul>\n    <li>Unlimited courses</li>\n    <li>Mentor code reviews</li>\n    <li>Shareable certificates</li>\n  </ul>\n  <button class=\"buy\">Get Pro</button>\n</div>\n",
+		Checks:      `[{"text":"The .price-card should have a box-shadow.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.price-card')).boxShadow !== 'none'"}]`,
+	},
+	{
+		Instruction: "Soften the card with rounded corners — add **`border-radius`**.",
+		Starter:     "<style>\n  .price-card {\n    width: 240px;\n    padding: 28px;\n    box-shadow: 0 10px 25px rgba(0,0,0,0.12);\n    /* round the corners */\n  }\n  .price { font-size: 1rem; }\n  .buy { }\n</style>\n<div class=\"price-card\">\n  <h2>GamifyDev Pro</h2>\n  <p class=\"price\">$9/mo</p>\n  <ul>\n    <li>Unlimited courses</li>\n    <li>Mentor code reviews</li>\n    <li>Shareable certificates</li>\n  </ul>\n  <button class=\"buy\">Get Pro</button>\n</div>\n",
+		Checks:      `[{"text":"The .price-card should have rounded corners.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.price-card')).borderTopLeftRadius) > 0"}]`,
+	},
+	{
+		Instruction: "Make the price pop — give `.price` a larger **`font-size`** (at least `2rem`).",
+		Starter:     "<style>\n  .price-card {\n    width: 240px;\n    padding: 28px;\n    box-shadow: 0 10px 25px rgba(0,0,0,0.12);\n    border-radius: 16px;\n  }\n  .price {\n    /* make this big */\n  }\n  .buy { }\n</style>\n<div class=\"price-card\">\n  <h2>GamifyDev Pro</h2>\n  <p class=\"price\">$9/mo</p>\n  <ul>\n    <li>Unlimited courses</li>\n    <li>Mentor code reviews</li>\n    <li>Shareable certificates</li>\n  </ul>\n  <button class=\"buy\">Get Pro</button>\n</div>\n",
+		Checks:      `[{"text":"The .price should be at least 2rem (32px).","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.price')).fontSize) >= 30"}]`,
+	},
+	{
+		Instruction: "Finish the **`.buy` button**: add `padding` (at least `10px`) and `cursor: pointer` so it feels clickable.",
+		Starter:     "<style>\n  .price-card {\n    width: 240px;\n    padding: 28px;\n    box-shadow: 0 10px 25px rgba(0,0,0,0.12);\n    border-radius: 16px;\n  }\n  .price { font-size: 2rem; }\n  .buy {\n    /* add padding and a pointer cursor */\n  }\n</style>\n<div class=\"price-card\">\n  <h2>GamifyDev Pro</h2>\n  <p class=\"price\">$9/mo</p>\n  <ul>\n    <li>Unlimited courses</li>\n    <li>Mentor code reviews</li>\n    <li>Shareable certificates</li>\n  </ul>\n  <button class=\"buy\">Get Pro</button>\n</div>\n",
+		Checks:      `[{"text":"The button should have padding of at least 10px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.buy')).paddingTop) >= 10"},{"text":"The button should use cursor: pointer.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.buy')).cursor === 'pointer'"}]`,
 	},
 }
 
@@ -315,10 +344,11 @@ var gridGallerySteps = []store.Step{
 
 // labSteps maps a frontend lesson slug to its interactive steps.
 var labSteps = map[string][]store.Step{
-	"workshop_build_a_cat_photo_app":            catPhotoSteps,
-	"workshop_style_a_business_card":            businessCardSteps,
-	"workshop_build_a_nav_bar_with_flexbox":     navBarSteps,
+	"workshop_build_a_game_launch_page":         gameLaunchSteps,
 	"workshop_build_a_sign_up_form":             signupFormSteps,
+	"workshop_style_a_business_card":            businessCardSteps,
+	"workshop_build_a_pricing_card":             pricingCardSteps,
+	"workshop_build_a_nav_bar_with_flexbox":     navBarSteps,
 	"workshop_build_an_image_gallery_with_grid": gridGallerySteps,
 }
 
