@@ -6,13 +6,8 @@
         "modules": [
           {
             "title": "History of the Web",
-            "description": "The web is a big place. Let's learn how it got started and where it's going.",
-            "resources": [
-              {
-                "title": "The History of the Web",
-                "url": "https://www.youtube.com/watch?v=9hIQjrMHTv4"
-              }
-            ],
+            "description": "How the web began, how it actually works under the hood, and where it's going.",
+            "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": true,
@@ -21,7 +16,7 @@
           },
           {
             "title": "Intro to Programming",
-            "description": "Get started with programming by learning what it is and how it works.",
+            "description": "What programming is, how code runs, and the building blocks you'll use everywhere.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -31,37 +26,97 @@
           },
           {
             "title": "HTML Basics",
-            "description": "Let's learn what HTML is and how it structures every web page.",
+            "description": "Structure every web page with HTML — elements, attributes, and semantic markup.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "HTML Forms and Inputs",
+            "previous": "Intro to Programming"
+          },
+          {
+            "title": "HTML Forms and Inputs",
+            "description": "Collect input from people with forms, fields, labels, and built-in validation.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Web Accessibility Basics",
+            "previous": "HTML Basics"
+          },
+          {
+            "title": "Web Accessibility Basics",
+            "description": "Build pages everyone can use — semantics, alt text, keyboard access, and ARIA.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "CSS Basics",
-            "previous": "Intro to Programming"
+            "previous": "HTML Forms and Inputs"
           },
           {
             "title": "CSS Basics",
-            "description": "Create beautiful webpages using CSS.",
+            "description": "Style your pages: selectors, the box model, the cascade, colours, and typography.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "CSS Layout with Flexbox",
+            "previous": "Web Accessibility Basics"
+          },
+          {
+            "title": "CSS Layout with Flexbox",
+            "description": "Arrange elements into flexible rows and columns with Flexbox.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "CSS Grid Layout",
+            "previous": "CSS Basics"
+          },
+          {
+            "title": "CSS Grid Layout",
+            "description": "Build true two-dimensional page layouts with CSS Grid.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Responsive Design",
+            "previous": "CSS Layout with Flexbox"
+          },
+          {
+            "title": "Responsive Design",
+            "description": "Make your site look great on phones, tablets, and desktops with media queries.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "CSS Transitions and Animations",
+            "previous": "CSS Grid Layout"
+          },
+          {
+            "title": "CSS Transitions and Animations",
+            "description": "Bring interfaces to life with smooth transitions and keyframe animations.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Building a Website with HTML and CSS",
-            "previous": "HTML Basics"
+            "previous": "Responsive Design"
           },
           {
             "title": "Building a Website with HTML and CSS",
-            "description": "A hands-on approach to building stunning webpages.",
+            "description": "Combine everything into a complete, polished multi-section landing page.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Project: Build a Profile Card",
-            "previous": "CSS Basics"
+            "previous": "CSS Transitions and Animations"
           },
           {
             "title": "Project: Build a Profile Card",
-            "description": "Your first real build — a polished profile card with HTML and CSS.",
+            "description": "Your first real build — a polished, responsive profile card with HTML and CSS.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -71,23 +126,73 @@
           },
           {
             "title": "JavaScript Basics",
-            "description": "Let's learn what JavaScript is and how it works.",
+            "description": "Add logic to pages: variables, data types, operators, and control flow.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "JavaScript Functions, Arrays and Objects",
+            "previous": "Project: Build a Profile Card"
+          },
+          {
+            "title": "JavaScript Functions, Arrays and Objects",
+            "description": "Organise code with functions and model real data with arrays and objects.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "The DOM: Selecting and Changing Elements",
+            "previous": "JavaScript Basics"
+          },
+          {
+            "title": "The DOM: Selecting and Changing Elements",
+            "description": "Use JavaScript to read and change the page in real time.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "JavaScript Events",
+            "previous": "JavaScript Functions, Arrays and Objects"
+          },
+          {
+            "title": "JavaScript Events",
+            "description": "Respond to clicks, typing, and other user actions with event listeners.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Building Interactive JavaScript Websites",
-            "previous": "Project: Build a Profile Card"
+            "previous": "The DOM: Selecting and Changing Elements"
           },
           {
             "title": "Building Interactive JavaScript Websites",
-            "description": "Build interactive websites with lots of features using JavaScript.",
+            "description": "Wire HTML, CSS, and JavaScript together into dynamic, interactive interfaces.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Working with APIs and Fetch",
+            "previous": "JavaScript Events"
+          },
+          {
+            "title": "Working with APIs and Fetch",
+            "description": "Load live data from the internet with fetch and JSON.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Async JavaScript",
+            "previous": "Building Interactive JavaScript Websites"
+          },
+          {
+            "title": "Async JavaScript",
+            "description": "Understand promises and async/await so your code can wait without freezing.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Project: Build a Quiz Game",
-            "previous": "JavaScript Basics"
+            "previous": "Working with APIs and Fetch"
           },
           {
             "title": "Project: Build a Quiz Game",
@@ -96,32 +201,52 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
+            "next": "Browser DevTools and Debugging",
+            "previous": "Async JavaScript"
+          },
+          {
+            "title": "Browser DevTools and Debugging",
+            "description": "Inspect, debug, and fix your code with the browser's developer tools.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
             "next": "Git and GitHub",
-            "previous": "Building Interactive JavaScript Websites"
+            "previous": "Project: Build a Quiz Game"
           },
           {
             "title": "Git and GitHub",
-            "description": "Let's learn what Git and GitHub are and how to save and share your work.",
+            "description": "Track changes and back up your work with Git and GitHub.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Deploying Your Website",
+            "previous": "Browser DevTools and Debugging"
+          },
+          {
+            "title": "Deploying Your Website",
+            "description": "Put your site live on the internet for free and share the link.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Building your portfolio website",
-            "previous": "Project: Build a Quiz Game"
+            "previous": "Git and GitHub"
           },
           {
             "title": "Building your portfolio website",
-            "description": "Build your own portfolio website to showcase your work.",
+            "description": "Build a portfolio site to showcase everything you've made.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Next Steps",
-            "previous": "Git and GitHub"
+            "previous": "Deploying Your Website"
           },
           {
             "title": "Next Steps",
-            "description": "A guide to what to do next after completing the Frontend path.",
+            "description": "Where to go after the Frontend path — frameworks, tooling, and how to keep growing.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
