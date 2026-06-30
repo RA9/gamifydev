@@ -108,6 +108,10 @@ a:hover {
     width: 100%;
     padding: 36px 20px 64px;
 }
+.app-main {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+}
 .site-footer {
     border-top: 1px solid var(--slate-200);
     background: #fff;
@@ -1880,7 +1884,6 @@ body.portal {
 }
 .app-nav {
     position: relative;
-    max-width: 1180px;
     margin: 0 auto;
     height: 62px;
     display: flex;
@@ -2306,7 +2309,6 @@ body.portal {
     width: 100%;
 }
 .app-footer-inner {
-    max-width: 1180px;
     margin: 0 auto;
     padding: 32px 20px 20px;
     display: flex;
@@ -2345,7 +2347,6 @@ body.portal {
     border-radius: 4px;
 }
 .app-footer-bottom {
-    max-width: 1180px;
     margin: 0 auto;
     padding: 14px 20px max(16px, env(safe-area-inset-bottom));
     border-top: 1px solid var(--slate-100);
