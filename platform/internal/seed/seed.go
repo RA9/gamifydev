@@ -260,11 +260,66 @@ var navBarSteps = []store.Step{
 	},
 }
 
+// signupFormSteps is an HTML forms lab. Checks are DOM queries.
+var signupFormSteps = []store.Step{
+	{
+		Instruction: "Add a **text input** for the name: an `<input>` with `type=\"text\"` inside the form.",
+		Starter:     "<form>\n  <!-- Add a text input for the name -->\n</form>\n",
+		Checks:      `[{"text":"You should have a text input.","test":"doc.querySelector('form input[type=text], form input:not([type])')"}]`,
+	},
+	{
+		Instruction: "Add an **email field**: an `<input>` with `type=\"email\"`.",
+		Starter:     "<form>\n  <input type=\"text\" placeholder=\"Name\">\n  <!-- Add an email input -->\n</form>\n",
+		Checks:      `[{"text":"You should have an email input.","test":"doc.querySelector('form input[type=email]')"}]`,
+	},
+	{
+		Instruction: "Add a **password field**: an `<input>` with `type=\"password\"`.",
+		Starter:     "<form>\n  <input type=\"text\" placeholder=\"Name\">\n  <input type=\"email\" placeholder=\"Email\">\n  <!-- Add a password input -->\n</form>\n",
+		Checks:      `[{"text":"You should have a password input.","test":"doc.querySelector('form input[type=password]')"}]`,
+	},
+	{
+		Instruction: "Make the email field **required** — add the `required` attribute to your email input.",
+		Starter:     "<form>\n  <input type=\"text\" placeholder=\"Name\">\n  <input type=\"email\" placeholder=\"Email\">\n  <input type=\"password\" placeholder=\"Password\">\n</form>\n",
+		Checks:      `[{"text":"Your email input should be required.","test":"doc.querySelector('form input[type=email]') && doc.querySelector('form input[type=email]').hasAttribute('required')"}]`,
+	},
+	{
+		Instruction: "Finish with a **submit button** — add a `<button>` (or `<input type=\"submit\">`).",
+		Starter:     "<form>\n  <input type=\"text\" placeholder=\"Name\">\n  <input type=\"email\" placeholder=\"Email\" required>\n  <input type=\"password\" placeholder=\"Password\">\n  <!-- Add a submit button -->\n</form>\n",
+		Checks:      `[{"text":"You should have a submit button.","test":"doc.querySelector('form button, form input[type=submit]')"}]`,
+	},
+}
+
+// gridGallerySteps is a CSS Grid lab. Checks read computed styles.
+var gridGallerySteps = []store.Step{
+	{
+		Instruction: "Make `.gallery` a **grid container** with `display: grid`.",
+		Starter:     "<style>\n  .gallery {\n    /* make this a grid */\n  }\n  .gallery div { background: #c7d2fe; height: 70px; border-radius: 8px; }\n</style>\n<div class=\"gallery\">\n  <div></div><div></div><div></div>\n  <div></div><div></div><div></div>\n</div>\n",
+		Checks:      `[{"text":".gallery should be a grid container.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.gallery')).display === 'grid'"}]`,
+	},
+	{
+		Instruction: "Lay out **3 columns** with `grid-template-columns: repeat(3, 1fr);`.",
+		Starter:     "<style>\n  .gallery {\n    display: grid;\n    /* add 3 columns */\n  }\n  .gallery div { background: #c7d2fe; height: 70px; border-radius: 8px; }\n</style>\n<div class=\"gallery\">\n  <div></div><div></div><div></div>\n  <div></div><div></div><div></div>\n</div>\n",
+		Checks:      `[{"text":"Your grid should have 3 columns.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.gallery')).gridTemplateColumns.split(' ').length === 3"}]`,
+	},
+	{
+		Instruction: "Add a **gap** of at least `10px` between the items.",
+		Starter:     "<style>\n  .gallery {\n    display: grid;\n    grid-template-columns: repeat(3, 1fr);\n    /* add a gap */\n  }\n  .gallery div { background: #c7d2fe; height: 70px; border-radius: 8px; }\n</style>\n<div class=\"gallery\">\n  <div></div><div></div><div></div>\n  <div></div><div></div><div></div>\n</div>\n",
+		Checks:      `[{"text":"Your grid should have a gap of at least 10px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.gallery')).gap) >= 10"}]`,
+	},
+	{
+		Instruction: "Make the **first item wider** — give `.gallery div:first-child` `grid-column: span 2;`.",
+		Starter:     "<style>\n  .gallery {\n    display: grid;\n    grid-template-columns: repeat(3, 1fr);\n    gap: 12px;\n  }\n  .gallery div { background: #c7d2fe; height: 70px; border-radius: 8px; }\n  .gallery div:first-child {\n    /* span 2 columns */\n  }\n</style>\n<div class=\"gallery\">\n  <div></div><div></div><div></div>\n  <div></div><div></div><div></div>\n</div>\n",
+		Checks:      `[{"text":"The first item should span 2 columns.","test":"/span 2/.test(doc.defaultView.getComputedStyle(doc.querySelector('.gallery div')).gridColumn)"}]`,
+	},
+}
+
 // labSteps maps a frontend lesson slug to its interactive steps.
 var labSteps = map[string][]store.Step{
-	"workshop_build_a_cat_photo_app":        catPhotoSteps,
-	"workshop_style_a_business_card":        businessCardSteps,
-	"workshop_build_a_nav_bar_with_flexbox": navBarSteps,
+	"workshop_build_a_cat_photo_app":            catPhotoSteps,
+	"workshop_style_a_business_card":            businessCardSteps,
+	"workshop_build_a_nav_bar_with_flexbox":     navBarSteps,
+	"workshop_build_a_sign_up_form":             signupFormSteps,
+	"workshop_build_an_image_gallery_with_grid": gridGallerySteps,
 }
 
 type seedA struct{ slug, title, course, lang, prompt, starter string }
