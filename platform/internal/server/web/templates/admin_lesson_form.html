@@ -43,5 +43,37 @@
     <button class="btn btn-primary" type="submit">{{ if $l }}Save changes{{ else }}Create lesson{{ end }}</button>
   </form>
 </div>
+
+{{ if $l }}
+<div class="page-head forum-head" style="margin-top:26px;">
+  <div>
+    <h2>Interactive steps</h2>
+    <p class="muted">Turn this lesson into a hands-on lab. Each step has an instruction, starter code, and checks. A lesson with steps shows the interactive editor instead of the body above.</p>
+  </div>
+  <a href="/admin/lessons/{{ $l.ID }}/steps/new" class="btn btn-primary">{{ icon "flag" }} Add step</a>
+</div>
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>#</th><th>Instruction</th><th class="ta-center">Checks</th><th class="ta-right">Actions</th></tr></thead>
+    <tbody>
+      {{ range $i, $st := index .Data "steps" }}
+      <tr>
+        <td class="muted">{{ add $i 1 }}</td>
+        <td><span class="member-name">{{ $st.Instruction }}</span></td>
+        <td class="ta-center"><span class="count-pill">{{ $st.CheckCount }}</span></td>
+        <td class="ta-right mod-actions">
+          <form method="post" action="/admin/steps/{{ $st.ID }}/up" class="inline"><button class="btn btn-secondary btn-sm" type="submit" title="Move up">↑</button></form>
+          <form method="post" action="/admin/steps/{{ $st.ID }}/down" class="inline"><button class="btn btn-secondary btn-sm" type="submit" title="Move down">↓</button></form>
+          <a class="btn btn-secondary btn-sm" href="/admin/steps/{{ $st.ID }}">Edit</a>
+          <form method="post" action="/admin/steps/{{ $st.ID }}/delete" class="inline" onsubmit="return confirm('Delete this step?')"><button class="btn btn-secondary btn-sm btn-danger" type="submit">Delete</button></form>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="4" class="muted">No steps — this lesson shows the body above. Add a step to make it an interactive lab.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}
 <script type="module" src="/static/js/markdown-editor.js"></script>
 {{ end }}

@@ -69,6 +69,65 @@ func (s *Store) ReplaceLessonSteps(ctx context.Context, lessonID int64, steps []
 	return tx.Commit()
 }
 
+// CreateStep appends a step to a lesson (sort = next index) and returns its id.
+func (s *Store) CreateStep(ctx context.Context, st Step) (int64, error) {
+	var sort int
+	_ = s.db.QueryRowContext(ctx,
+		`SELECT COALESCE(MAX(sort)+1, 0) FROM lesson_steps WHERE lesson_id = ?`, st.LessonID).Scan(&sort)
+	var id int64
+	err := s.db.QueryRowContext(ctx,
+		`INSERT INTO lesson_steps (lesson_id, sort, instruction, starter, checks)
+		 VALUES (?, ?, ?, ?, ?) RETURNING id`,
+		st.LessonID, sort, st.Instruction, st.Starter, st.Checks).Scan(&id)
+	return id, err
+}
+
+// UpdateStep saves a step's content.
+func (s *Store) UpdateStep(ctx context.Context, id int64, st Step) error {
+	_, err := s.db.ExecContext(ctx,
+		`UPDATE lesson_steps SET instruction=?, starter=?, checks=?, updated_at=datetime('now') WHERE id=?`,
+		st.Instruction, st.Starter, st.Checks, id)
+	return err
+}
+
+// DeleteStep removes a step and any progress against it.
+func (s *Store) DeleteStep(ctx context.Context, id int64) error {
+	if _, err := s.db.ExecContext(ctx, `DELETE FROM step_progress WHERE step_id = ?`, id); err != nil {
+		return err
+	}
+	_, err := s.db.ExecContext(ctx, `DELETE FROM lesson_steps WHERE id = ?`, id)
+	return err
+}
+
+// MoveStep swaps a step's order with its neighbour (dir -1 = up, +1 = down).
+func (s *Store) MoveStep(ctx context.Context, id int64, dir int) error {
+	cur, err := s.GetStep(ctx, id)
+	if err != nil {
+		return err
+	}
+	var nbID int64
+	var nbSort int
+	q := `SELECT id, sort FROM lesson_steps WHERE lesson_id = ? AND sort < ? ORDER BY sort DESC LIMIT 1`
+	if dir > 0 {
+		q = `SELECT id, sort FROM lesson_steps WHERE lesson_id = ? AND sort > ? ORDER BY sort ASC LIMIT 1`
+	}
+	if err := s.db.QueryRowContext(ctx, q, cur.LessonID, cur.Sort).Scan(&nbID, &nbSort); err != nil {
+		return nil // no neighbour — nothing to do
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	if _, err := tx.ExecContext(ctx, `UPDATE lesson_steps SET sort=? WHERE id=?`, nbSort, cur.ID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE lesson_steps SET sort=? WHERE id=?`, cur.Sort, nbID); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 // MarkStepComplete records that a user finished a step (idempotent).
 func (s *Store) MarkStepComplete(ctx context.Context, userID, stepID int64) error {
 	_, err := s.db.ExecContext(ctx,

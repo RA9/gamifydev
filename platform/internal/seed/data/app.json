@@ -89,6 +89,18 @@
             "kind": "theory"
           },
           {
+            "title": "Workshop: Style a Business Card",
+            "description": "Practise CSS hands-on — style a card with colours, spacing, and rounded corners in an interactive editor.",
+            "section": "CSS",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
             "title": "CSS Layout with Flexbox",
             "description": "Arrange elements into flexible rows and columns with Flexbox.",
             "resources": [],
@@ -99,6 +111,18 @@
             "previous": "CSS Basics",
             "section": "CSS",
             "kind": "theory"
+          },
+          {
+            "title": "Workshop: Build a Nav Bar with Flexbox",
+            "description": "Build a real navigation bar step by step using Flexbox in an interactive editor.",
+            "section": "CSS",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
           },
           {
             "title": "CSS Grid Layout",

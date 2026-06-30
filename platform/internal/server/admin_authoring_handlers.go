@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -112,7 +113,131 @@ func (s *Server) handleAdminLessonEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c, _ := s.st.GetCourseByID(r.Context(), l.CourseID)
-	s.render(w, r, "admin_lesson_form.html", ViewData{Title: "Edit lesson", Data: map[string]any{"course": c, "lesson": l, "action": "/admin/lessons/" + r.PathValue("id")}})
+	steps, _ := s.st.ListSteps(r.Context(), l.ID)
+	type stepRow struct {
+		store.Step
+		CheckCount int
+	}
+	rows := make([]stepRow, 0, len(steps))
+	for _, st := range steps {
+		var cs []stepCheck
+		_ = json.Unmarshal([]byte(st.Checks), &cs)
+		rows = append(rows, stepRow{Step: st, CheckCount: len(cs)})
+	}
+	s.render(w, r, "admin_lesson_form.html", ViewData{Title: "Edit lesson", Data: map[string]any{"course": c, "lesson": l, "steps": rows, "action": "/admin/lessons/" + r.PathValue("id")}})
+}
+
+// --- Interactive steps (admin authoring) ------------------------------------
+
+func (s *Server) handleAdminStepNew(w http.ResponseWriter, r *http.Request) {
+	lid, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	l, err := s.st.GetLessonByID(r.Context(), lid)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	s.render(w, r, "admin_step_form.html", ViewData{Title: "New step", Data: map[string]any{
+		"lesson": l, "action": "/admin/lessons/" + r.PathValue("id") + "/steps",
+	}})
+}
+
+func (s *Server) handleAdminStepCreate(w http.ResponseWriter, r *http.Request) {
+	lid, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if _, err := s.st.GetLessonByID(r.Context(), lid); err != nil {
+		s.notFound(w, r)
+		return
+	}
+	st := stepFromForm(r)
+	st.LessonID = lid
+	if _, err := s.st.CreateStep(r.Context(), st); err != nil {
+		http.Error(w, "could not create step", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/admin/lessons/"+r.PathValue("id"), http.StatusSeeOther)
+}
+
+func (s *Server) handleAdminStepEdit(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	st, err := s.st.GetStep(r.Context(), id)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	l, _ := s.st.GetLessonByID(r.Context(), st.LessonID)
+	var checks []stepCheck
+	_ = json.Unmarshal([]byte(st.Checks), &checks)
+	s.render(w, r, "admin_step_form.html", ViewData{Title: "Edit step", Data: map[string]any{
+		"lesson": l, "step": st, "checks": checks, "action": "/admin/steps/" + r.PathValue("id"),
+	}})
+}
+
+func (s *Server) handleAdminStepUpdate(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	existing, err := s.st.GetStep(r.Context(), id)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	if err := s.st.UpdateStep(r.Context(), id, stepFromForm(r)); err != nil {
+		http.Error(w, "could not save step", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/admin/lessons/"+strconv.FormatInt(existing.LessonID, 10), http.StatusSeeOther)
+}
+
+func (s *Server) handleAdminStepDelete(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	st, err := s.st.GetStep(r.Context(), id)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	_ = s.st.DeleteStep(r.Context(), id)
+	http.Redirect(w, r, "/admin/lessons/"+strconv.FormatInt(st.LessonID, 10), http.StatusSeeOther)
+}
+
+func (s *Server) handleAdminStepMove(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	st, err := s.st.GetStep(r.Context(), id)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	dir := -1
+	if r.PathValue("dir") == "down" {
+		dir = 1
+	}
+	_ = s.st.MoveStep(r.Context(), id, dir)
+	http.Redirect(w, r, "/admin/lessons/"+strconv.FormatInt(st.LessonID, 10), http.StatusSeeOther)
+}
+
+// stepFromForm builds a Step from the editor form, zipping the parallel
+// check_text[] / check_test[] inputs into the checks JSON.
+func stepFromForm(r *http.Request) store.Step {
+	_ = r.ParseForm()
+	texts := r.Form["check_text"]
+	tests := r.Form["check_test"]
+	var checks []stepCheck
+	for i := range texts {
+		text := strings.TrimSpace(texts[i])
+		test := ""
+		if i < len(tests) {
+			test = strings.TrimSpace(tests[i])
+		}
+		if text == "" && test == "" {
+			continue
+		}
+		checks = append(checks, stepCheck{Text: text, Test: test})
+	}
+	if checks == nil {
+		checks = []stepCheck{}
+	}
+	raw, _ := json.Marshal(checks)
+	return store.Step{
+		Instruction: r.FormValue("instruction"),
+		Starter:     r.FormValue("starter"),
+		Checks:      string(raw),
+	}
 }
 
 func (s *Server) handleAdminLessonUpdate(w http.ResponseWriter, r *http.Request) {

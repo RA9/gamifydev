@@ -3786,3 +3786,10 @@ body.auth-page a:hover {
     color: #4338ca; background: #eef2ff; border: 1px solid #e0e7ff;
 }
 .step-pill.is-done { color: #15803d; background: #dcfce7; border-color: #bbf7d0; }
+
+/* Admin: step check rows */
+.check-rows { display: flex; flex-direction: column; gap: 8px; }
+.check-row { display: flex; gap: 8px; align-items: center; }
+.check-row input[name="check_text"] { flex: 1 1 40%; }
+.check-row input[name="check_test"] { flex: 2 1 60%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
+.check-row .check-del { flex: 0 0 auto; }
