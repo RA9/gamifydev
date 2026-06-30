@@ -141,6 +141,15 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		res.Assignments++
 	}
 
+	// Interactive steps for the demo workshop lesson.
+	if c, err := st.GetCourseBySlug(ctx, "frontend"); err == nil {
+		if l, err := st.GetLesson(ctx, c.ID, "workshop_build_a_cat_photo_app"); err == nil {
+			if err := st.ReplaceLessonSteps(ctx, l.ID, catPhotoSteps); err != nil {
+				return res, err
+			}
+		}
+	}
+
 	for i, p := range seedPaths {
 		id, err := st.UpsertPath(ctx, store.Path{
 			Slug: p.Slug, Title: p.Title, Tagline: p.Tagline, Description: p.Description,
@@ -155,6 +164,43 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		res.Paths++
 	}
 	return res, nil
+}
+
+// catPhotoSteps is the interactive "Build a Cat Photo App" workshop. Each step's
+// starter is the expected result of the previous one, so the page builds up.
+// Check tests are tiny JS boolean expressions run against the preview document
+// (`doc`); they use single quotes so they sit cleanly in an HTML data attribute.
+var catPhotoSteps = []store.Step{
+	{
+		Instruction: "Every page starts with a main heading. Add an `<h1>` element with the text **CatPhotoApp**.",
+		Starter:     "<!-- Add your h1 below -->\n",
+		Checks:      `[{"text":"You should have an h1 element.","test":"doc.querySelector('h1')"},{"text":"Your h1 should say CatPhotoApp.","test":"doc.querySelector('h1') && /catphotoapp/i.test(doc.querySelector('h1').textContent)"}]`,
+	},
+	{
+		Instruction: "The main content of a page belongs in a `<main>` element. Add a `<main>` element below your `h1`.",
+		Starter:     "<h1>CatPhotoApp</h1>\n<!-- Add a main element below -->\n",
+		Checks:      `[{"text":"Keep your h1 with the text CatPhotoApp.","test":"doc.querySelector('h1') && /catphotoapp/i.test(doc.querySelector('h1').textContent)"},{"text":"You should have a main element.","test":"doc.querySelector('main')"}]`,
+	},
+	{
+		Instruction: "Inside `main`, add an `<h2>` with the text **Cat Photos** and a `<p>` that says something about cats.",
+		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <!-- Add an h2 and a p here -->\n</main>\n",
+		Checks:      `[{"text":"main should contain an h2.","test":"doc.querySelector('main h2')"},{"text":"Your h2 should say Cat Photos.","test":"doc.querySelector('main h2') && /cat photos/i.test(doc.querySelector('main h2').textContent)"},{"text":"main should contain a non-empty paragraph (p).","test":"doc.querySelector('main p') && doc.querySelector('main p').textContent.trim().length > 0"}]`,
+	},
+	{
+		Instruction: "Now add a photo. Add an `<img>` inside `main` with a `src` (any image URL) and a descriptive `alt` attribute.",
+		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <h2>Cat Photos</h2>\n  <p>Everybody loves cute cats online!</p>\n  <!-- Add an img with src and alt -->\n</main>\n",
+		Checks:      `[{"text":"You should have an img element.","test":"doc.querySelector('img')"},{"text":"Your img needs a non-empty src.","test":"doc.querySelector('img') && (doc.querySelector('img').getAttribute('src')||'').length > 0"},{"text":"Your img needs a descriptive alt attribute.","test":"doc.querySelector('img') && (doc.querySelector('img').getAttribute('alt')||'').trim().length > 0"}]`,
+	},
+	{
+		Instruction: "Add a link. Below the image add an `<a>` element whose `href` points anywhere (use `#` for now) and whose text mentions cats — e.g. *See more cat photos*.",
+		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <h2>Cat Photos</h2>\n  <p>Everybody loves cute cats online!</p>\n  <img src=\"https://cdn.freecodecamp.org/curriculum/cat-photo-app/relaxing-cat.jpg\" alt=\"A relaxing cat\">\n  <!-- Add an anchor link -->\n</main>\n",
+		Checks:      `[{"text":"You should have an a (anchor) element.","test":"doc.querySelector('a')"},{"text":"Your link should have an href.","test":"doc.querySelector('a') && doc.querySelector('a').getAttribute('href') !== null"},{"text":"Your link text should mention cats.","test":"doc.querySelector('a') && /cat/i.test(doc.querySelector('a').textContent)"}]`,
+	},
+	{
+		Instruction: "Finish with a list. Add an unordered list `<ul>` with at least **three** `<li>` items of things cats love.",
+		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <h2>Cat Photos</h2>\n  <p>Everybody loves cute cats online!</p>\n  <img src=\"https://cdn.freecodecamp.org/curriculum/cat-photo-app/relaxing-cat.jpg\" alt=\"A relaxing cat\">\n  <a href=\"#\">See more cat photos</a>\n  <!-- Add a ul with at least three li items -->\n</main>\n",
+		Checks:      `[{"text":"You should have a ul element.","test":"doc.querySelector('ul')"},{"text":"Your list should have at least 3 li items.","test":"doc.querySelectorAll('ul li').length >= 3"}]`,
+	},
 }
 
 type seedA struct{ slug, title, course, lang, prompt, starter string }

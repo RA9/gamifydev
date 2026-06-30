@@ -1,6 +1,7 @@
 {{ define "content" }}
 {{ $course := index .Data "course" }}
 {{ $locked := index .Data "locked" }}
+{{ $stepProg := index .Data "stepProgress" }}
 <div class="page-head">
   <a class="back" href="/paths">← Curriculum</a>
   <div class="course-head">
@@ -43,7 +44,8 @@
           <a href="/courses/{{ $course.Slug }}/{{ .Slug }}">
             <span class="lesson-no">{{ add .Sort 1 }}</span>
             <span class="lesson-info">
-              <span class="lesson-title">{{ .Title }}{{ if .Kind }}<span class="kind-badge kind-{{ .Kind }}">{{ titlecase .Kind }}</span>{{ end }}</span>
+              <span class="lesson-title">{{ .Title }}{{ if .Kind }}<span class="kind-badge kind-{{ .Kind }}">{{ titlecase .Kind }}</span>{{ end }}
+                {{ $sp := index $stepProg .ID }}{{ if $sp.Total }}<span class="step-pill {{ if and (gt $sp.Done 0) (ge $sp.Done $sp.Total) }}is-done{{ end }}">{{ $sp.Done }}/{{ $sp.Total }} steps</span>{{ end }}</span>
               {{ if .Summary }}<span class="lesson-sum muted">{{ .Summary }}</span>{{ end }}
             </span>
             {{ if $locked }}<span class="lesson-go lesson-lock" title="Sign in to continue">{{ icon "lock" }}</span>{{ else }}<span class="lesson-go">→</span>{{ end }}
