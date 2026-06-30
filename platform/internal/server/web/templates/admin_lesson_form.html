@@ -16,6 +16,18 @@
     <label class="field"><span>Summary</span>
       <input name="summary" value="{{ if $l }}{{ $l.Summary }}{{ end }}" placeholder="One-line description" /></label>
     <div class="form-row">
+      <label class="field"><span>Section <span class="muted">(groups lessons, e.g. "HTML")</span></span>
+        <input name="section" value="{{ if $l }}{{ $l.Section }}{{ end }}" placeholder="e.g. HTML" /></label>
+      <label class="field"><span>Type</span>
+        {{ $k := "theory" }}{{ if $l }}{{ $k = $l.Kind }}{{ end }}
+        <select name="kind" class="role-select">
+          <option value="theory" {{ if eq $k "theory" }}selected{{ end }}>Theory</option>
+          <option value="lab" {{ if eq $k "lab" }}selected{{ end }}>Lab</option>
+          <option value="workshop" {{ if eq $k "workshop" }}selected{{ end }}>Workshop</option>
+          <option value="project" {{ if eq $k "project" }}selected{{ end }}>Project</option>
+        </select></label>
+    </div>
+    <div class="form-row">
       <label class="field"><span>Video URL <span class="muted">(optional)</span></span>
         <input name="video_url" value="{{ if $l }}{{ $l.VideoURL }}{{ end }}" placeholder="https://..." /></label>
       <label class="field"><span>Audio URL <span class="muted">(optional)</span></span>

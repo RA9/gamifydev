@@ -11,7 +11,7 @@
 
 <div class="card table-card">
   <table class="table table-activity">
-    <thead><tr><th>#</th><th>Lesson</th><th class="ta-right">Actions</th></tr></thead>
+    <thead><tr><th>#</th><th>Lesson</th><th>Section</th><th class="ta-center">Type</th><th class="ta-right">Actions</th></tr></thead>
     <tbody>
       {{ range index .Data "lessons" }}
       <tr>
@@ -20,6 +20,8 @@
           <span class="member-name">{{ .Title }}</span>
           {{ if .Summary }}<div class="muted">{{ .Summary }}</div>{{ end }}
         </td>
+        <td class="muted">{{ if .Section }}{{ .Section }}{{ else }}—{{ end }}</td>
+        <td class="ta-center">{{ if .Kind }}<span class="kind-badge kind-{{ .Kind }}">{{ titlecase .Kind }}</span>{{ end }}</td>
         <td class="ta-right mod-actions">
           <a class="btn btn-secondary btn-sm" href="/admin/lessons/{{ .ID }}">Edit</a>
           <form method="post" action="/admin/lessons/{{ .ID }}/delete" class="inline" onsubmit="return confirm('Delete this lesson?')">
@@ -28,7 +30,7 @@
         </td>
       </tr>
       {{ else }}
-      <tr><td colspan="3" class="muted">No lessons yet — add the first one.</td></tr>
+      <tr><td colspan="5" class="muted">No lessons yet — add the first one.</td></tr>
       {{ end }}
     </tbody>
   </table>

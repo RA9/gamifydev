@@ -37,12 +37,36 @@ func (s *Server) handleCourse(w http.ResponseWriter, r *http.Request) {
 		Title: course.Title,
 		Data: map[string]any{
 			"course":      course,
-			"lessons":     lessons,
+			"sections":    groupLessons(lessons),
+			"lessonCount": len(lessons),
 			"assignments": assignments,
 			"locked":      locked,
 			"passed":      passed,
 		},
 	})
+}
+
+// lessonSection is a named group of lessons within a course.
+type lessonSection struct {
+	Name    string
+	Lessons []store.Lesson
+}
+
+// groupLessons groups lessons into their sections, preserving lesson order (so a
+// section appears at the position of its first lesson).
+func groupLessons(lessons []store.Lesson) []lessonSection {
+	var out []lessonSection
+	idx := map[string]int{}
+	for _, l := range lessons {
+		i, ok := idx[l.Section]
+		if !ok {
+			out = append(out, lessonSection{Name: l.Section})
+			i = len(out) - 1
+			idx[l.Section] = i
+		}
+		out[i].Lessons = append(out[i].Lessons, l)
+	}
+	return out
 }
 
 func (s *Server) handleLesson(w http.ResponseWriter, r *http.Request) {

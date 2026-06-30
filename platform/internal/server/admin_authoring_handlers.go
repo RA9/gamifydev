@@ -153,6 +153,10 @@ func (s *Server) handleAdminLessonPreview(w http.ResponseWriter, r *http.Request
 
 func lessonFromForm(r *http.Request) store.Lesson {
 	title := strings.TrimSpace(r.FormValue("title"))
+	kind := strings.TrimSpace(r.FormValue("kind"))
+	if kind == "" {
+		kind = "theory"
+	}
 	return store.Lesson{
 		Title:    title,
 		Slug:     slugOr(r.FormValue("slug"), title),
@@ -160,6 +164,8 @@ func lessonFromForm(r *http.Request) store.Lesson {
 		Body:     r.FormValue("body"),
 		VideoURL: strings.TrimSpace(r.FormValue("video_url")),
 		AudioURL: strings.TrimSpace(r.FormValue("audio_url")),
+		Section:  strings.TrimSpace(r.FormValue("section")),
+		Kind:     kind,
 	}
 }
 

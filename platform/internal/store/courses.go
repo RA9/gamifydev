@@ -28,6 +28,8 @@ type Lesson struct {
 	VideoURL string
 	AudioURL string
 	Sort     int
+	Section  string // heading this lesson sits under ("" = ungrouped)
+	Kind     string // theory | lab | workshop | project
 }
 
 // UpsertCourse inserts or updates a course by slug; returns its id.
@@ -51,13 +53,13 @@ func (s *Store) UpsertCourse(ctx context.Context, c Course) (int64, error) {
 // UpsertLesson inserts or updates a lesson by (course_id, slug).
 func (s *Store) UpsertLesson(ctx context.Context, l Lesson) error {
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO lessons (course_id, slug, title, summary, body, video_url, audio_url, sort, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+		INSERT INTO lessons (course_id, slug, title, summary, body, video_url, audio_url, sort, section, kind, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 		ON CONFLICT(course_id, slug) DO UPDATE SET
 			title=excluded.title, summary=excluded.summary, body=excluded.body,
 			video_url=excluded.video_url, audio_url=excluded.audio_url, sort=excluded.sort,
-			updated_at=datetime('now')`,
-		l.CourseID, l.Slug, l.Title, l.Summary, l.Body, l.VideoURL, l.AudioURL, l.Sort)
+			section=excluded.section, kind=excluded.kind, updated_at=datetime('now')`,
+		l.CourseID, l.Slug, l.Title, l.Summary, l.Body, l.VideoURL, l.AudioURL, l.Sort, l.Section, l.Kind)
 	return err
 }
 
@@ -107,7 +109,7 @@ func (s *Store) GetCourseBySlug(ctx context.Context, slug string) (*Course, erro
 // ListLessons returns a course's lessons in order (without bodies, for menus).
 func (s *Store) ListLessons(ctx context.Context, courseID int64) ([]Lesson, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, course_id, slug, title, summary, sort FROM lessons WHERE course_id = ? ORDER BY sort`, courseID)
+		`SELECT id, course_id, slug, title, summary, sort, section, kind FROM lessons WHERE course_id = ? ORDER BY sort`, courseID)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +117,7 @@ func (s *Store) ListLessons(ctx context.Context, courseID int64) ([]Lesson, erro
 	var out []Lesson
 	for rows.Next() {
 		var l Lesson
-		if err := rows.Scan(&l.ID, &l.CourseID, &l.Slug, &l.Title, &l.Summary, &l.Sort); err != nil {
+		if err := rows.Scan(&l.ID, &l.CourseID, &l.Slug, &l.Title, &l.Summary, &l.Sort, &l.Section, &l.Kind); err != nil {
 			return nil, err
 		}
 		out = append(out, l)
@@ -126,9 +128,9 @@ func (s *Store) ListLessons(ctx context.Context, courseID int64) ([]Lesson, erro
 func (s *Store) GetLesson(ctx context.Context, courseID int64, slug string) (*Lesson, error) {
 	var l Lesson
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, course_id, slug, title, summary, body, video_url, audio_url, sort
+		`SELECT id, course_id, slug, title, summary, body, video_url, audio_url, sort, section, kind
 		 FROM lessons WHERE course_id = ? AND slug = ?`, courseID, slug).
-		Scan(&l.ID, &l.CourseID, &l.Slug, &l.Title, &l.Summary, &l.Body, &l.VideoURL, &l.AudioURL, &l.Sort)
+		Scan(&l.ID, &l.CourseID, &l.Slug, &l.Title, &l.Summary, &l.Body, &l.VideoURL, &l.AudioURL, &l.Sort, &l.Section, &l.Kind)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}

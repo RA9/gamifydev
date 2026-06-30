@@ -24,6 +24,8 @@ type appJSON struct {
 			Modules []struct {
 				Title       string `json:"title"`
 				Description string `json:"description"`
+				Section     string `json:"section"`
+				Kind        string `json:"kind"`
 			} `json:"modules"`
 		} `json:"paths"`
 	} `json:"config"`
@@ -110,8 +112,13 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 			if b, err := contentFS.ReadFile("data/notes/" + cslug + "/" + lslug + ".md"); err == nil {
 				body = imgRewrite.Replace(stripFirstH1(string(b)))
 			}
+			kind := mod.Kind
+			if kind == "" {
+				kind = "theory"
+			}
 			if err := st.UpsertLesson(ctx, store.Lesson{
 				CourseID: courseID, Slug: lslug, Title: mod.Title, Summary: mod.Description, Body: body, Sort: li,
+				Section: mod.Section, Kind: kind,
 			}); err != nil {
 				return res, err
 			}

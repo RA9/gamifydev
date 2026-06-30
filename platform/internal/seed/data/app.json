@@ -12,7 +12,9 @@
             "is_completed": false,
             "current": true,
             "next": "Intro to Programming",
-            "previous": null
+            "previous": null,
+            "section": "Getting started",
+            "kind": "theory"
           },
           {
             "title": "Intro to Programming",
@@ -22,7 +24,9 @@
             "is_completed": false,
             "current": false,
             "next": "HTML Basics",
-            "previous": "History of the Web"
+            "previous": "History of the Web",
+            "section": "Getting started",
+            "kind": "theory"
           },
           {
             "title": "HTML Basics",
@@ -32,7 +36,9 @@
             "is_completed": false,
             "current": false,
             "next": "HTML Forms and Inputs",
-            "previous": "Intro to Programming"
+            "previous": "Intro to Programming",
+            "section": "HTML",
+            "kind": "theory"
           },
           {
             "title": "HTML Forms and Inputs",
@@ -42,7 +48,9 @@
             "is_completed": false,
             "current": false,
             "next": "Web Accessibility Basics",
-            "previous": "HTML Basics"
+            "previous": "HTML Basics",
+            "section": "HTML",
+            "kind": "theory"
           },
           {
             "title": "Web Accessibility Basics",
@@ -52,7 +60,9 @@
             "is_completed": false,
             "current": false,
             "next": "CSS Basics",
-            "previous": "HTML Forms and Inputs"
+            "previous": "HTML Forms and Inputs",
+            "section": "HTML",
+            "kind": "theory"
           },
           {
             "title": "CSS Basics",
@@ -62,7 +72,9 @@
             "is_completed": false,
             "current": false,
             "next": "CSS Layout with Flexbox",
-            "previous": "Web Accessibility Basics"
+            "previous": "Web Accessibility Basics",
+            "section": "CSS",
+            "kind": "theory"
           },
           {
             "title": "CSS Layout with Flexbox",
@@ -72,7 +84,9 @@
             "is_completed": false,
             "current": false,
             "next": "CSS Grid Layout",
-            "previous": "CSS Basics"
+            "previous": "CSS Basics",
+            "section": "CSS",
+            "kind": "theory"
           },
           {
             "title": "CSS Grid Layout",
@@ -82,7 +96,9 @@
             "is_completed": false,
             "current": false,
             "next": "Responsive Design",
-            "previous": "CSS Layout with Flexbox"
+            "previous": "CSS Layout with Flexbox",
+            "section": "CSS",
+            "kind": "theory"
           },
           {
             "title": "Responsive Design",
@@ -92,7 +108,9 @@
             "is_completed": false,
             "current": false,
             "next": "CSS Transitions and Animations",
-            "previous": "CSS Grid Layout"
+            "previous": "CSS Grid Layout",
+            "section": "CSS",
+            "kind": "theory"
           },
           {
             "title": "CSS Transitions and Animations",
@@ -102,7 +120,9 @@
             "is_completed": false,
             "current": false,
             "next": "Building a Website with HTML and CSS",
-            "previous": "Responsive Design"
+            "previous": "Responsive Design",
+            "section": "CSS",
+            "kind": "theory"
           },
           {
             "title": "Building a Website with HTML and CSS",
@@ -112,7 +132,9 @@
             "is_completed": false,
             "current": false,
             "next": "Project: Build a Profile Card",
-            "previous": "CSS Transitions and Animations"
+            "previous": "CSS Transitions and Animations",
+            "section": "Build with HTML & CSS",
+            "kind": "workshop"
           },
           {
             "title": "Project: Build a Profile Card",
@@ -122,7 +144,9 @@
             "is_completed": false,
             "current": false,
             "next": "JavaScript Basics",
-            "previous": "Building a Website with HTML and CSS"
+            "previous": "Building a Website with HTML and CSS",
+            "section": "Build with HTML & CSS",
+            "kind": "project"
           },
           {
             "title": "JavaScript Basics",
@@ -132,7 +156,9 @@
             "is_completed": false,
             "current": false,
             "next": "JavaScript Functions, Arrays and Objects",
-            "previous": "Project: Build a Profile Card"
+            "previous": "Project: Build a Profile Card",
+            "section": "JavaScript",
+            "kind": "theory"
           },
           {
             "title": "JavaScript Functions, Arrays and Objects",
@@ -142,7 +168,9 @@
             "is_completed": false,
             "current": false,
             "next": "The DOM: Selecting and Changing Elements",
-            "previous": "JavaScript Basics"
+            "previous": "JavaScript Basics",
+            "section": "JavaScript",
+            "kind": "theory"
           },
           {
             "title": "The DOM: Selecting and Changing Elements",
@@ -152,7 +180,9 @@
             "is_completed": false,
             "current": false,
             "next": "JavaScript Events",
-            "previous": "JavaScript Functions, Arrays and Objects"
+            "previous": "JavaScript Functions, Arrays and Objects",
+            "section": "JavaScript",
+            "kind": "theory"
           },
           {
             "title": "JavaScript Events",
@@ -162,7 +192,9 @@
             "is_completed": false,
             "current": false,
             "next": "Building Interactive JavaScript Websites",
-            "previous": "The DOM: Selecting and Changing Elements"
+            "previous": "The DOM: Selecting and Changing Elements",
+            "section": "JavaScript",
+            "kind": "theory"
           },
           {
             "title": "Building Interactive JavaScript Websites",
@@ -172,7 +204,9 @@
             "is_completed": false,
             "current": false,
             "next": "Working with APIs and Fetch",
-            "previous": "JavaScript Events"
+            "previous": "JavaScript Events",
+            "section": "JavaScript",
+            "kind": "workshop"
           },
           {
             "title": "Working with APIs and Fetch",
@@ -182,7 +216,9 @@
             "is_completed": false,
             "current": false,
             "next": "Async JavaScript",
-            "previous": "Building Interactive JavaScript Websites"
+            "previous": "Building Interactive JavaScript Websites",
+            "section": "Data & async",
+            "kind": "theory"
           },
           {
             "title": "Async JavaScript",
@@ -192,7 +228,9 @@
             "is_completed": false,
             "current": false,
             "next": "Project: Build a Quiz Game",
-            "previous": "Working with APIs and Fetch"
+            "previous": "Working with APIs and Fetch",
+            "section": "Data & async",
+            "kind": "theory"
           },
           {
             "title": "Project: Build a Quiz Game",
@@ -202,7 +240,9 @@
             "is_completed": false,
             "current": false,
             "next": "Browser DevTools and Debugging",
-            "previous": "Async JavaScript"
+            "previous": "Async JavaScript",
+            "section": "Data & async",
+            "kind": "project"
           },
           {
             "title": "Browser DevTools and Debugging",
@@ -212,7 +252,9 @@
             "is_completed": false,
             "current": false,
             "next": "Git and GitHub",
-            "previous": "Project: Build a Quiz Game"
+            "previous": "Project: Build a Quiz Game",
+            "section": "Tools & deployment",
+            "kind": "theory"
           },
           {
             "title": "Git and GitHub",
@@ -222,7 +264,9 @@
             "is_completed": false,
             "current": false,
             "next": "Deploying Your Website",
-            "previous": "Browser DevTools and Debugging"
+            "previous": "Browser DevTools and Debugging",
+            "section": "Tools & deployment",
+            "kind": "theory"
           },
           {
             "title": "Deploying Your Website",
@@ -232,7 +276,9 @@
             "is_completed": false,
             "current": false,
             "next": "Building your portfolio website",
-            "previous": "Git and GitHub"
+            "previous": "Git and GitHub",
+            "section": "Tools & deployment",
+            "kind": "theory"
           },
           {
             "title": "Building your portfolio website",
@@ -242,7 +288,9 @@
             "is_completed": false,
             "current": false,
             "next": "Next Steps",
-            "previous": "Deploying Your Website"
+            "previous": "Deploying Your Website",
+            "section": "Your career",
+            "kind": "project"
           },
           {
             "title": "Next Steps",
@@ -252,7 +300,9 @@
             "is_completed": false,
             "current": false,
             "next": null,
-            "previous": "Building your portfolio website"
+            "previous": "Building your portfolio website",
+            "section": "Your career",
+            "kind": "theory"
           }
         ]
       },

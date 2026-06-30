@@ -26,22 +26,35 @@
 </div>
 {{ end }}
 
-<ol class="lesson-list card">
-  {{ range index .Data "lessons" }}
-    <li>
-      <a href="/courses/{{ $course.Slug }}/{{ .Slug }}">
-        <span class="lesson-no">{{ add .Sort 1 }}</span>
-        <span class="lesson-info">
-          <span class="lesson-title">{{ .Title }}</span>
-          {{ if .Summary }}<span class="lesson-sum muted">{{ .Summary }}</span>{{ end }}
-        </span>
-        {{ if $locked }}<span class="lesson-go lesson-lock" title="Sign in to continue">{{ icon "lock" }}</span>{{ else }}<span class="lesson-go">→</span>{{ end }}
-      </a>
-    </li>
-  {{ else }}
-    <li class="muted">No lessons yet.</li>
-  {{ end }}
-</ol>
+<p class="muted course-progress-line">{{ index .Data "lessonCount" }} lessons across {{ len (index .Data "sections") }} section{{ if ne (len (index .Data "sections")) 1 }}s{{ end }}</p>
+
+{{ range $si, $sec := index .Data "sections" }}
+  <section class="course-section">
+    {{ if $sec.Name }}
+    <header class="course-section-head">
+      <span class="course-section-no">{{ add $si 1 }}</span>
+      <h2 class="course-section-title">{{ $sec.Name }}</h2>
+      <span class="course-section-count">{{ len $sec.Lessons }} lesson{{ if ne (len $sec.Lessons) 1 }}s{{ end }}</span>
+    </header>
+    {{ end }}
+    <ol class="lesson-list card">
+      {{ range $sec.Lessons }}
+        <li>
+          <a href="/courses/{{ $course.Slug }}/{{ .Slug }}">
+            <span class="lesson-no">{{ add .Sort 1 }}</span>
+            <span class="lesson-info">
+              <span class="lesson-title">{{ .Title }}{{ if .Kind }}<span class="kind-badge kind-{{ .Kind }}">{{ titlecase .Kind }}</span>{{ end }}</span>
+              {{ if .Summary }}<span class="lesson-sum muted">{{ .Summary }}</span>{{ end }}
+            </span>
+            {{ if $locked }}<span class="lesson-go lesson-lock" title="Sign in to continue">{{ icon "lock" }}</span>{{ else }}<span class="lesson-go">→</span>{{ end }}
+          </a>
+        </li>
+      {{ end }}
+    </ol>
+  </section>
+{{ else }}
+  <ol class="lesson-list card"><li class="muted">No lessons yet.</li></ol>
+{{ end }}
 
 {{ $passed := index .Data "passed" }}
 {{ with index .Data "assignments" }}

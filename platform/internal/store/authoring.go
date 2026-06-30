@@ -46,8 +46,8 @@ func (s *Store) UpdateCourse(ctx context.Context, id int64, c Course) error {
 func (s *Store) GetLessonByID(ctx context.Context, id int64) (*Lesson, error) {
 	var l Lesson
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, course_id, slug, title, summary, body, video_url, audio_url, sort FROM lessons WHERE id = ?`, id).
-		Scan(&l.ID, &l.CourseID, &l.Slug, &l.Title, &l.Summary, &l.Body, &l.VideoURL, &l.AudioURL, &l.Sort)
+		`SELECT id, course_id, slug, title, summary, body, video_url, audio_url, sort, section, kind FROM lessons WHERE id = ?`, id).
+		Scan(&l.ID, &l.CourseID, &l.Slug, &l.Title, &l.Summary, &l.Body, &l.VideoURL, &l.AudioURL, &l.Sort, &l.Section, &l.Kind)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -59,17 +59,17 @@ func (s *Store) GetLessonByID(ctx context.Context, id int64) (*Lesson, error) {
 
 func (s *Store) CreateLesson(ctx context.Context, l Lesson) error {
 	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO lessons (course_id, slug, title, summary, body, video_url, audio_url, sort)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		l.CourseID, l.Slug, l.Title, l.Summary, l.Body, l.VideoURL, l.AudioURL, l.Sort)
+		`INSERT INTO lessons (course_id, slug, title, summary, body, video_url, audio_url, sort, section, kind)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		l.CourseID, l.Slug, l.Title, l.Summary, l.Body, l.VideoURL, l.AudioURL, l.Sort, l.Section, l.Kind)
 	return err
 }
 
 func (s *Store) UpdateLesson(ctx context.Context, id int64, l Lesson) error {
 	_, err := s.db.ExecContext(ctx,
-		`UPDATE lessons SET slug=?, title=?, summary=?, body=?, video_url=?, audio_url=?, sort=?, updated_at=datetime('now')
+		`UPDATE lessons SET slug=?, title=?, summary=?, body=?, video_url=?, audio_url=?, sort=?, section=?, kind=?, updated_at=datetime('now')
 		 WHERE id=?`,
-		l.Slug, l.Title, l.Summary, l.Body, l.VideoURL, l.AudioURL, l.Sort, id)
+		l.Slug, l.Title, l.Summary, l.Body, l.VideoURL, l.AudioURL, l.Sort, l.Section, l.Kind, id)
 	return err
 }
 
