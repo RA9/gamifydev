@@ -4,7 +4,7 @@
   <a class="back" href="/admin/courses">← Courses</a>
   <h1>New course</h1>
 </div>
-<div class="card" style="max-width:680px;">
+<div class="card">
   <form method="post" action="/admin/courses" class="form">
     <label class="field"><span>Title</span>
       <input name="title" value="{{ if $c }}{{ $c.Title }}{{ end }}" required autofocus /></label>

@@ -6,7 +6,7 @@
   <a class="back" href="{{ if $back }}{{ $back }}{{ else }}/admin/assignments{{ end }}">← Back</a>
   <h1>{{ if $a }}Edit assignment{{ else }}New assignment{{ end }}</h1>
 </div>
-<div class="card" style="max-width:840px;">
+<div class="card">
   <form method="post" action="{{ index .Data "action" }}" class="form">
     <div class="form-row">
       <label class="field"><span>Title</span>

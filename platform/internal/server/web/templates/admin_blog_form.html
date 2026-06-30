@@ -4,7 +4,7 @@
   <a class="back" href="/admin/blog">← Blog</a>
   <h1>{{ if $p }}Edit post{{ else }}New post{{ end }}</h1>
 </div>
-<div class="card" style="max-width:1100px;">
+<div class="card">
   <form method="post" action="{{ index .Data "action" }}" class="form">
     <div class="form-row">
       <label class="field"><span>Title</span>
