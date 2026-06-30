@@ -141,11 +141,13 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		res.Assignments++
 	}
 
-	// Interactive steps for the demo workshop lesson.
+	// Interactive step-based "lab" lessons in the frontend course.
 	if c, err := st.GetCourseBySlug(ctx, "frontend"); err == nil {
-		if l, err := st.GetLesson(ctx, c.ID, "workshop_build_a_cat_photo_app"); err == nil {
-			if err := st.ReplaceLessonSteps(ctx, l.ID, catPhotoSteps); err != nil {
-				return res, err
+		for slug, steps := range labSteps {
+			if l, err := st.GetLesson(ctx, c.ID, slug); err == nil {
+				if err := st.ReplaceLessonSteps(ctx, l.ID, steps); err != nil {
+					return res, err
+				}
 			}
 		}
 	}
@@ -201,6 +203,68 @@ var catPhotoSteps = []store.Step{
 		Starter:     "<h1>CatPhotoApp</h1>\n<main>\n  <h2>Cat Photos</h2>\n  <p>Everybody loves cute cats online!</p>\n  <img src=\"https://cdn.freecodecamp.org/curriculum/cat-photo-app/relaxing-cat.jpg\" alt=\"A relaxing cat\">\n  <a href=\"#\">See more cat photos</a>\n  <!-- Add a ul with at least three li items -->\n</main>\n",
 		Checks:      `[{"text":"You should have a ul element.","test":"doc.querySelector('ul')"},{"text":"Your list should have at least 3 li items.","test":"doc.querySelectorAll('ul li').length >= 3"}]`,
 	},
+}
+
+// businessCardSteps is a CSS lab. The learner edits a <style> block; checks read
+// computed styles via doc.defaultView.getComputedStyle. Each starter pre-fills
+// the previous step's answer so the page builds up.
+var businessCardSteps = []store.Step{
+	{
+		Instruction: "Give the `.card` a **background colour** — add `background` inside the `.card` rule.",
+		Starter:     "<style>\n  .card {\n    /* add a background colour */\n  }\n</style>\n<div class=\"card\">\n  <h1>Ada Lovelace</h1>\n  <p>Pioneer of Programming</p>\n</div>\n",
+		Checks:      `[{"text":"The .card should have a background colour.","test":"doc.querySelector('.card') && doc.defaultView.getComputedStyle(doc.querySelector('.card')).backgroundColor !== 'rgba(0, 0, 0, 0)'"}]`,
+	},
+	{
+		Instruction: "Add **padding** of at least `16px` to the `.card` so the text isn't cramped.",
+		Starter:     "<style>\n  .card {\n    background: #eef2ff;\n    /* add padding */\n  }\n</style>\n<div class=\"card\">\n  <h1>Ada Lovelace</h1>\n  <p>Pioneer of Programming</p>\n</div>\n",
+		Checks:      `[{"text":"The .card should have padding of at least 16px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.card')).paddingTop) >= 16"}]`,
+	},
+	{
+		Instruction: "Round the corners with **`border-radius`**.",
+		Starter:     "<style>\n  .card {\n    background: #eef2ff;\n    padding: 24px;\n    /* round the corners */\n  }\n</style>\n<div class=\"card\">\n  <h1>Ada Lovelace</h1>\n  <p>Pioneer of Programming</p>\n</div>\n",
+		Checks:      `[{"text":"The .card should have rounded corners (border-radius > 0).","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.card')).borderTopLeftRadius) > 0"}]`,
+	},
+	{
+		Instruction: "**Centre** the text with `text-align: center`.",
+		Starter:     "<style>\n  .card {\n    background: #eef2ff;\n    padding: 24px;\n    border-radius: 14px;\n    /* center the text */\n  }\n</style>\n<div class=\"card\">\n  <h1>Ada Lovelace</h1>\n  <p>Pioneer of Programming</p>\n</div>\n",
+		Checks:      `[{"text":"The .card text should be centred.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.card')).textAlign === 'center'"}]`,
+	},
+	{
+		Instruction: "Finally, give the **`h1` a colour** other than black. Add a `.card h1` rule.",
+		Starter:     "<style>\n  .card {\n    background: #eef2ff;\n    padding: 24px;\n    border-radius: 14px;\n    text-align: center;\n  }\n  .card h1 {\n    /* set a colour */\n  }\n</style>\n<div class=\"card\">\n  <h1>Ada Lovelace</h1>\n  <p>Pioneer of Programming</p>\n</div>\n",
+		Checks:      `[{"text":"The h1 should have a colour other than black.","test":"doc.querySelector('.card h1') && doc.defaultView.getComputedStyle(doc.querySelector('.card h1')).color !== 'rgb(0, 0, 0)'"}]`,
+	},
+}
+
+// navBarSteps is a Flexbox lab.
+var navBarSteps = []store.Step{
+	{
+		Instruction: "Make `.nav` a **flex container** with `display: flex`.",
+		Starter:     "<style>\n  .nav {\n    /* make this a flex container */\n  }\n  .links { display: flex; }\n</style>\n<nav class=\"nav\">\n  <div class=\"brand\">GamifyDev</div>\n  <div class=\"links\">\n    <a href=\"#\">Home</a>\n    <a href=\"#\">Courses</a>\n    <a href=\"#\">Login</a>\n  </div>\n</nav>\n",
+		Checks:      `[{"text":".nav should be a flex container.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.nav')).display === 'flex'"}]`,
+	},
+	{
+		Instruction: "Push the brand and links to opposite ends with **`justify-content: space-between`**.",
+		Starter:     "<style>\n  .nav {\n    display: flex;\n    /* push items apart */\n  }\n  .links { display: flex; }\n</style>\n<nav class=\"nav\">\n  <div class=\"brand\">GamifyDev</div>\n  <div class=\"links\">\n    <a href=\"#\">Home</a>\n    <a href=\"#\">Courses</a>\n    <a href=\"#\">Login</a>\n  </div>\n</nav>\n",
+		Checks:      `[{"text":".nav should use justify-content: space-between.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.nav')).justifyContent === 'space-between'"}]`,
+	},
+	{
+		Instruction: "Vertically centre the items with **`align-items: center`**.",
+		Starter:     "<style>\n  .nav {\n    display: flex;\n    justify-content: space-between;\n    /* vertically center */\n  }\n  .links { display: flex; }\n</style>\n<nav class=\"nav\">\n  <div class=\"brand\">GamifyDev</div>\n  <div class=\"links\">\n    <a href=\"#\">Home</a>\n    <a href=\"#\">Courses</a>\n    <a href=\"#\">Login</a>\n  </div>\n</nav>\n",
+		Checks:      `[{"text":".nav should use align-items: center.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.nav')).alignItems === 'center'"}]`,
+	},
+	{
+		Instruction: "Space the links out: add a **`gap`** of at least `12px` to `.links`.",
+		Starter:     "<style>\n  .nav {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n  }\n  .links {\n    display: flex;\n    /* add a gap */\n  }\n</style>\n<nav class=\"nav\">\n  <div class=\"brand\">GamifyDev</div>\n  <div class=\"links\">\n    <a href=\"#\">Home</a>\n    <a href=\"#\">Courses</a>\n    <a href=\"#\">Login</a>\n  </div>\n</nav>\n",
+		Checks:      `[{"text":".links should have a gap of at least 12px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.links')).gap) >= 12"}]`,
+	},
+}
+
+// labSteps maps a frontend lesson slug to its interactive steps.
+var labSteps = map[string][]store.Step{
+	"workshop_build_a_cat_photo_app":        catPhotoSteps,
+	"workshop_style_a_business_card":        businessCardSteps,
+	"workshop_build_a_nav_bar_with_flexbox": navBarSteps,
 }
 
 type seedA struct{ slug, title, course, lang, prompt, starter string }

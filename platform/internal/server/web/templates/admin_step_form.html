@@ -1,0 +1,57 @@
+{{ define "content" }}
+{{ $l := index .Data "lesson" }}
+{{ $s := index .Data "step" }}
+<div class="page-head">
+  <a class="back" href="/admin/lessons/{{ $l.ID }}">← {{ $l.Title }}</a>
+  <h1>{{ if $s }}Edit step{{ else }}New step{{ end }}</h1>
+</div>
+<div class="card">
+  <form method="post" action="{{ index .Data "action" }}" class="form">
+    <label class="field">
+      <span>Instruction <span class="muted">— markdown; what the learner should do</span></span>
+      <textarea name="instruction" rows="4" required autofocus>{{ if $s }}{{ $s.Instruction }}{{ end }}</textarea>
+    </label>
+
+    <label class="field">
+      <span>Starter code <span class="muted">— what the editor starts with (HTML/CSS)</span></span>
+      <textarea name="starter" rows="8" class="code-area" spellcheck="false">{{ if $s }}{{ $s.Starter }}{{ end }}</textarea>
+    </label>
+
+    <div class="field">
+      <span>Checks <span class="muted">— each is a requirement + a JS test run against the preview <code>doc</code> (e.g. <code>doc.querySelector('h1')</code>). Use <code>doc.defaultView.getComputedStyle(...)</code> for CSS.</span></span>
+      <div id="checkRows" class="check-rows">
+        {{ range index .Data "checks" }}
+        <div class="check-row">
+          <input name="check_text" value="{{ .Text }}" placeholder="Requirement shown to the learner" />
+          <input name="check_test" value="{{ .Test }}" class="code-area" placeholder="JS boolean expression" spellcheck="false" />
+          <button type="button" class="btn btn-secondary btn-sm btn-danger check-del">✕</button>
+        </div>
+        {{ end }}
+      </div>
+      <button type="button" id="addCheck" class="btn btn-secondary btn-sm" style="margin-top:8px">+ Add check</button>
+    </div>
+
+    <button class="btn btn-primary" type="submit">{{ if $s }}Save step{{ else }}Create step{{ end }}</button>
+  </form>
+</div>
+
+<template id="checkRowTpl">
+  <div class="check-row">
+    <input name="check_text" placeholder="Requirement shown to the learner" />
+    <input name="check_test" class="code-area" placeholder="JS boolean expression" spellcheck="false" />
+    <button type="button" class="btn btn-secondary btn-sm btn-danger check-del">✕</button>
+  </div>
+</template>
+<script>
+  (function () {
+    const rows = document.getElementById("checkRows");
+    const tpl = document.getElementById("checkRowTpl");
+    const add = () => rows.appendChild(tpl.content.cloneNode(true));
+    document.getElementById("addCheck").addEventListener("click", add);
+    rows.addEventListener("click", (e) => {
+      if (e.target.classList.contains("check-del")) e.target.closest(".check-row").remove();
+    });
+    if (!rows.querySelector(".check-row")) add(); // start with one empty row
+  })();
+</script>
+{{ end }}
