@@ -63,6 +63,7 @@ func (s *Server) Routes() http.Handler {
 
 	// Learner (auth required)
 	in := s.requireAuth
+	mux.Handle("POST /steps/{id}/complete", in(http.HandlerFunc(s.handleStepComplete)))
 	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
 	mux.Handle("GET /dashboard/live", in(http.HandlerFunc(s.handleDashboardLive)))
 	mux.Handle("GET /ws", in(http.HandlerFunc(s.handleWS)))

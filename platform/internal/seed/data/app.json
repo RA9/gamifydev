@@ -41,6 +41,18 @@
             "kind": "theory"
           },
           {
+            "title": "Workshop: Build a Cat Photo App",
+            "description": "Learn HTML hands-on by building a page step by step in an interactive editor.",
+            "section": "HTML",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
             "title": "HTML Forms and Inputs",
             "description": "Collect input from people with forms, fields, labels, and built-in validation.",
             "resources": [],

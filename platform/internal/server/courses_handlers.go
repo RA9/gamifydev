@@ -1,7 +1,9 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/content"
@@ -30,18 +32,22 @@ func (s *Server) handleCourse(w http.ResponseWriter, r *http.Request) {
 	u := auth.CurrentUser(r.Context())
 	locked := u == nil
 	passed := map[int64]bool{}
+	var uid int64
 	if u != nil {
+		uid = u.ID
 		passed, _ = s.st.AssignmentPassState(r.Context(), u.ID, course.ID)
 	}
+	stepProgress, _ := s.st.StepProgressByLesson(r.Context(), uid, course.ID)
 	s.render(w, r, "course.html", ViewData{
 		Title: course.Title,
 		Data: map[string]any{
-			"course":      course,
-			"sections":    groupLessons(lessons),
-			"lessonCount": len(lessons),
-			"assignments": assignments,
-			"locked":      locked,
-			"passed":      passed,
+			"course":       course,
+			"sections":     groupLessons(lessons),
+			"lessonCount":  len(lessons),
+			"assignments":  assignments,
+			"locked":       locked,
+			"passed":       passed,
+			"stepProgress": stepProgress,
 		},
 	})
 }
@@ -94,8 +100,11 @@ func (s *Server) handleLesson(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	// Guests can see the lesson exists, but the body is gated behind sign-in.
-	locked := auth.CurrentUser(r.Context()) == nil
+	// Guests can see the lesson exists, but content is gated behind sign-in.
+	u := auth.CurrentUser(r.Context())
+	locked := u == nil
+	steps, _ := s.st.ListSteps(r.Context(), lesson.ID)
+
 	data := map[string]any{
 		"course": course,
 		"lesson": lesson,
@@ -103,10 +112,98 @@ func (s *Server) handleLesson(w http.ResponseWriter, r *http.Request) {
 		"next":   next,
 		"locked": locked,
 	}
-	if !locked {
+
+	switch {
+	case locked:
+		data["hasSteps"] = len(steps) > 0
+	case len(steps) > 0:
+		s.renderStepLab(w, r, course, lesson, steps, next)
+		return
+	default:
 		data["body"] = content.Render(lesson.Body)
 	}
 	s.render(w, r, "lesson.html", ViewData{Title: lesson.Title, Data: data})
+}
+
+type stepCheck struct {
+	Text string `json:"text"`
+	Test string `json:"test"`
+}
+
+// renderStepLab renders the interactive, step-by-step view of a lesson for a
+// signed-in learner.
+func (s *Server) renderStepLab(w http.ResponseWriter, r *http.Request, course *store.Course, lesson *store.Lesson, steps []store.Step, next *store.Lesson) {
+	u := auth.CurrentUser(r.Context())
+	completed, _ := s.st.CompletedStepIDs(r.Context(), u.ID, lesson.ID)
+
+	// Current step: explicit ?step=N (1-based), else first incomplete, else last.
+	cur := -1
+	if n, err := strconv.Atoi(r.URL.Query().Get("step")); err == nil && n >= 1 && n <= len(steps) {
+		cur = n - 1
+	}
+	if cur == -1 {
+		for i, st := range steps {
+			if !completed[st.ID] {
+				cur = i
+				break
+			}
+		}
+		if cur == -1 {
+			cur = len(steps) - 1
+		}
+	}
+	step := steps[cur]
+
+	var checks []stepCheck
+	_ = json.Unmarshal([]byte(step.Checks), &checks)
+
+	nextURL := ""
+	isLast := cur == len(steps)-1
+	if !isLast {
+		nextURL = "?step=" + strconv.Itoa(cur+2)
+	} else if next != nil {
+		nextURL = "/courses/" + course.Slug + "/" + next.Slug
+	} else {
+		nextURL = "/courses/" + course.Slug
+	}
+	prevURL := ""
+	if cur > 0 {
+		prevURL = "?step=" + strconv.Itoa(cur)
+	}
+
+	s.render(w, r, "lesson_steps.html", ViewData{Title: lesson.Title, Data: map[string]any{
+		"course":      course,
+		"lesson":      lesson,
+		"step":        step,
+		"instruction": content.Render(step.Instruction),
+		"checks":      checks,
+		"index":       cur + 1,
+		"total":       len(steps),
+		"progressPct": (cur + 1) * 100 / len(steps),
+		"completed":   completed[step.ID],
+		"isLast":      isLast,
+		"nextURL":     nextURL,
+		"prevURL":     prevURL,
+		"completeURL": "/steps/" + strconv.FormatInt(step.ID, 10) + "/complete",
+	}})
+}
+
+func (s *Server) handleStepComplete(w http.ResponseWriter, r *http.Request) {
+	u := auth.CurrentUser(r.Context())
+	if u == nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if _, err := s.st.GetStep(r.Context(), id); err != nil {
+		s.notFound(w, r)
+		return
+	}
+	if err := s.st.MarkStepComplete(r.Context(), u.ID, id); err != nil {
+		http.Error(w, "could not save progress", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // --- Admin ------------------------------------------------------------------
