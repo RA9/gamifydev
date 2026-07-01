@@ -125,6 +125,30 @@
             "previous": null
           },
           {
+            "title": "Workshop: Build an Achievement Badge",
+            "description": "Craft a circular achievement badge with CSS — sizing, border-radius, flexbox centering, and a gradient.",
+            "section": "CSS",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
+            "title": "Workshop: Build an XP Progress Bar",
+            "description": "Build an XP progress bar with CSS — a coloured fill inside a rounded track.",
+            "section": "CSS",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
             "title": "CSS Layout with Flexbox",
             "description": "Arrange elements into flexible rows and columns with Flexbox.",
             "resources": [],
@@ -139,6 +163,18 @@
           {
             "title": "Workshop: Build a Nav Bar with Flexbox",
             "description": "Build a real navigation bar step by step using Flexbox in an interactive editor.",
+            "section": "CSS",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
+            "title": "Workshop: Build a Leaderboard Row",
+            "description": "Lay out a leaderboard entry with Flexbox — rank, name, and score aligned and spaced.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
