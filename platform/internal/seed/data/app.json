@@ -281,6 +281,18 @@
             "kind": "theory"
           },
           {
+            "title": "Workshop: Code a Level-Up System",
+            "description": "Write real JavaScript in an interactive editor — variables, functions, conditionals, and arrays — with a live console and instant checks.",
+            "section": "JavaScript",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
             "title": "The DOM: Selecting and Changing Elements",
             "description": "Use JavaScript to read and change the page in real time.",
             "resources": [],

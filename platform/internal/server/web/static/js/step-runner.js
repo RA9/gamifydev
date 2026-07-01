@@ -1,92 +1,64 @@
-// step-runner.js — drives an interactive, step-by-step lesson:
-//   - live-previews the learner's HTML in a sandboxed iframe
-//   - on "Check", runs each step's author-defined checks against the rendered DOM
-//   - when all checks pass, records progress and reveals the Next button
+// step-runner.js — drives an interactive, step-by-step lesson in two modes:
 //
-// Each check is an <li data-test="<js boolean expression>"> where the expression
-// is evaluated with `doc` (the preview document) and `code` (the raw editor text)
-// in scope. Authors are trusted (same as lesson content), so eval is acceptable.
+//   HTML/CSS (data-lang="html"): the editor's HTML is live-previewed in a
+//     same-origin iframe; each check is a JS boolean expression evaluated in the
+//     parent with `doc` (the preview document) and `code` (raw source) in scope.
+//
+//   JavaScript (data-lang="js"): the learner's code runs inside a sandboxed
+//     (scripts-only, opaque-origin) iframe that cannot reach the parent or its
+//     cookies. A harness captures console output, runs the checks *inside* the
+//     iframe — where the learner's functions/variables, `logs`, `code`, and
+//     `document` are in scope — and posts the results back.
+//
+// Checks are authored (trusted), so eval of their test expressions is fine.
 (function () {
   const lab = document.querySelector(".step-lab");
   if (!lab) return;
   const ta = document.getElementById("stepCode");
   const frame = document.getElementById("stepPreview");
+  const consoleEl = document.getElementById("stepConsole");
   const checkBtn = document.getElementById("checkBtn");
   const nextBtn = document.getElementById("nextBtn");
   const msg = document.getElementById("stepMsg");
   const items = [...document.querySelectorAll("#stepChecks li")];
   if (!ta || !frame) return;
 
+  const lang = lab.dataset.lang === "js" ? "js" : "html";
   const completeURL = lab.dataset.completeUrl;
-  let alreadyDone = lab.dataset.completed === "1";
-
-  // --- live preview (debounced) ---
-  const renderPreview = () => {
-    frame.srcdoc = ta.value;
-  };
-  let timer = null;
-  ta.addEventListener("input", () => {
-    clearTimeout(timer);
-    timer = setTimeout(renderPreview, 250);
-  });
-  renderPreview();
-
-  // Render the code into the iframe and resolve once it has loaded.
-  const renderAndWait = () =>
-    new Promise((resolve) => {
-      const done = () => {
-        frame.removeEventListener("load", done);
-        resolve(frame.contentDocument);
-      };
-      frame.addEventListener("load", done);
-      frame.srcdoc = ta.value;
-    });
-
-  const runCheck = (doc, code, test) => {
-    try {
-      // eslint-disable-next-line no-new-func
-      return !!Function("doc", "code", "return (" + test + ");")(doc, code);
-    } catch (_) {
-      return false;
-    }
-  };
+  let done = lab.dataset.completed === "1";
+  let runSeq = 0; // makes each run's srcdoc unique so the iframe always reloads
 
   const markComplete = () => {
-    if (alreadyDone) return;
-    alreadyDone = true;
+    if (done) return;
+    done = true;
     fetch(completeURL, { method: "POST", credentials: "same-origin" }).catch(() => {});
   };
 
-  checkBtn.addEventListener("click", async () => {
-    checkBtn.disabled = true;
-    const doc = await renderAndWait();
-    const code = ta.value;
-    let allPass = true;
-    items.forEach((li) => {
-      const ok = runCheck(doc, code, li.dataset.test);
+  const applyResults = (results) => {
+    let all = items.length > 0;
+    items.forEach((li, i) => {
+      const ok = !!results[i];
       li.classList.toggle("pass", ok);
       li.classList.toggle("fail", !ok);
       const mark = li.querySelector(".check-mark");
       if (mark) mark.textContent = ok ? "✓" : "✗";
-      if (!ok) allPass = false;
+      if (!ok) all = false;
     });
-    checkBtn.disabled = false;
-
-    if (allPass) {
+    if (all) {
       msg.textContent = "Great — all checks passed! 🎉";
       msg.className = "step-msg is-ok";
       markComplete();
-      if (nextBtn) {
-        nextBtn.hidden = false;
-        nextBtn.focus();
-      }
+      if (nextBtn) { nextBtn.hidden = false; nextBtn.focus(); }
     } else {
       msg.textContent = "Not quite — fix the items marked ✗ and check again.";
       msg.className = "step-msg is-bad";
     }
-  });
+  };
 
-  // Tab inserts two spaces instead of leaving the editor.
+  const escapeHtml = (s) =>
+    String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+  // Tab inserts two spaces (both modes).
   ta.addEventListener("keydown", (e) => {
     if (e.key === "Tab") {
       e.preventDefault();
@@ -94,5 +66,95 @@
       ta.value = ta.value.slice(0, s) + "  " + ta.value.slice(en);
       ta.selectionStart = ta.selectionEnd = s + 2;
     }
+  });
+
+  // ---------------------------------------------------------------- HTML mode
+  if (lang === "html") {
+    const renderPreview = () => { frame.srcdoc = ta.value; };
+    let timer = null;
+    ta.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(renderPreview, 250); });
+    renderPreview();
+
+    const renderAndWait = () =>
+      new Promise((resolve) => {
+        const done = () => { frame.removeEventListener("load", done); resolve(frame.contentDocument); };
+        frame.addEventListener("load", done);
+        frame.srcdoc = ta.value + "\n<!--gd" + ++runSeq + "-->";
+      });
+
+    checkBtn.addEventListener("click", async () => {
+      checkBtn.disabled = true;
+      const doc = await renderAndWait();
+      const code = ta.value;
+      const results = items.map((li) => {
+        try {
+          // eslint-disable-next-line no-new-func
+          return !!Function("doc", "code", "return (" + li.dataset.test + ");")(doc, code);
+        } catch (_) { return false; }
+      });
+      checkBtn.disabled = false;
+      applyResults(results);
+    });
+    return;
+  }
+
+  // ------------------------------------------------------------------ JS mode
+  const escScript = (s) => String(s).replace(/<\/(script)/gi, "<\\/$1");
+
+  const buildSandbox = (code, tests) => {
+    const harness =
+      "window.__logs=[];window.__err=null;" +
+      "(function(){var o=console.log;console.log=function(){" +
+      "window.__logs.push(Array.prototype.map.call(arguments,function(x){" +
+      "try{return typeof x==='object'?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(' '));" +
+      "o.apply(console,arguments)};})();" +
+      "window.onerror=function(m){window.__err=String(m);return false};";
+    const runner =
+      "(function(){var logs=window.__logs;var error=window.__err;" +
+      "var code=" + escScript(JSON.stringify(code)) + ";" +
+      "var tests=" + escScript(JSON.stringify(tests)) + ";" +
+      "var results=tests.map(function(t){try{return !!eval('('+t+')')}catch(e){return false}});" +
+      "parent.postMessage({type:'gd-check',results:results,logs:logs,error:error},'*');})();";
+    return (
+      "<!doctype html><html><body>" +
+      "<script>" + harness + "<\/script>" +
+      "<script>\n" + escScript(code) + "\n<\/script>" +
+      "<script>" + runner + "<\/script>" +
+      "</body></html>"
+    );
+  };
+
+  const showConsole = (logs, error) => {
+    if (!consoleEl) return;
+    let html = (logs || []).map((l) => '<div class="console-line">' + escapeHtml(l) + "</div>").join("");
+    if (error) html += '<div class="console-line console-error">⚠ ' + escapeHtml(error) + "</div>";
+    if (!html) html = '<div class="console-empty">No output — use console.log(…) to print something.</div>';
+    consoleEl.innerHTML = html;
+  };
+
+  checkBtn.addEventListener("click", () => {
+    checkBtn.disabled = true;
+    const code = ta.value;
+    const tests = items.map((li) => li.dataset.test);
+
+    const onMsg = (e) => {
+      if (!e || !e.data || e.data.type !== "gd-check") return;
+      window.removeEventListener("message", onMsg);
+      clearTimeout(timer);
+      checkBtn.disabled = false;
+      showConsole(e.data.logs, e.data.error);
+      applyResults(e.data.results);
+    };
+    window.addEventListener("message", onMsg);
+
+    // Guard against code that never returns (e.g. an infinite loop).
+    const timer = setTimeout(() => {
+      window.removeEventListener("message", onMsg);
+      checkBtn.disabled = false;
+      msg.textContent = "Your code didn't finish running — check for an infinite loop, then reload.";
+      msg.className = "step-msg is-bad";
+    }, 4000);
+
+    frame.srcdoc = buildSandbox(code, tests) + "<!--gd" + ++runSeq + "-->";
   });
 })();

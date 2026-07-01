@@ -8,17 +8,26 @@
 <div class="card">
   <form method="post" action="{{ index .Data "action" }}" class="form">
     <label class="field">
+      <span>Language <span class="muted">— HTML/CSS (live preview) or JavaScript (runs in a sandbox with a console)</span></span>
+      {{ $lang := "html" }}{{ if $s }}{{ $lang = $s.Lang }}{{ end }}
+      <select name="lang" class="role-select">
+        <option value="html" {{ if eq $lang "html" }}selected{{ end }}>HTML / CSS</option>
+        <option value="js" {{ if eq $lang "js" }}selected{{ end }}>JavaScript</option>
+      </select>
+    </label>
+
+    <label class="field">
       <span>Instruction <span class="muted">— markdown; what the learner should do</span></span>
       <textarea name="instruction" rows="4" required autofocus>{{ if $s }}{{ $s.Instruction }}{{ end }}</textarea>
     </label>
 
     <label class="field">
-      <span>Starter code <span class="muted">— what the editor starts with (HTML/CSS)</span></span>
+      <span>Starter code <span class="muted">— what the editor starts with</span></span>
       <textarea name="starter" rows="8" class="code-area" spellcheck="false">{{ if $s }}{{ $s.Starter }}{{ end }}</textarea>
     </label>
 
     <div class="field">
-      <span>Checks <span class="muted">— each is a requirement + a JS test run against the preview <code>doc</code> (e.g. <code>doc.querySelector('h1')</code>). Use <code>doc.defaultView.getComputedStyle(...)</code> for CSS.</span></span>
+      <span>Checks <span class="muted">— each is a requirement + a JS boolean test. <strong>HTML/CSS:</strong> test the preview <code>doc</code> (e.g. <code>doc.querySelector('h1')</code>, <code>doc.defaultView.getComputedStyle(...)</code>). <strong>JavaScript:</strong> the learner's code runs first — test their functions/variables, <code>logs</code> (console output array), <code>code</code> (source), or <code>document</code> (e.g. <code>typeof add==='function' &amp;&amp; add(2,3)===5</code>).</span></span>
       <div id="checkRows" class="check-rows">
         {{ range index .Data "checks" }}
         <div class="check-row">

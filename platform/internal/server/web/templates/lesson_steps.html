@@ -3,6 +3,7 @@
 {{ $lesson := index .Data "lesson" }}
 {{ $step := index .Data "step" }}
 <div class="step-lab"
+     data-lang="{{ $step.Lang }}"
      data-complete-url="{{ index .Data "completeURL" }}"
      data-next-url="{{ index .Data "nextURL" }}"
      data-completed="{{ if index .Data "completed" }}1{{ else }}0{{ end }}"
@@ -37,13 +38,21 @@
     </div>
 
     <div class="step-panel step-work">
-      <gd-code-editor lang="html">
+      <gd-code-editor lang="{{ if eq $step.Lang "js" }}javascript{{ else }}html{{ end }}">
         <textarea id="stepCode" class="gd-editor-ta" spellcheck="false">{{ $step.Starter }}</textarea>
       </gd-code-editor>
+      {{ if eq $step.Lang "js" }}
+      <div class="step-preview-wrap">
+        <span class="step-preview-label">Console</span>
+        <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run it and see output here.</div></div>
+      </div>
+      <iframe id="stepPreview" title="Code runner" sandbox="allow-scripts" hidden></iframe>
+      {{ else }}
       <div class="step-preview-wrap">
         <span class="step-preview-label">Preview</span>
         <iframe id="stepPreview" class="step-preview" title="Live preview" sandbox="allow-same-origin"></iframe>
       </div>
+      {{ end }}
     </div>
   </div>
 </div>
