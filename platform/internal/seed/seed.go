@@ -342,13 +342,93 @@ var gridGallerySteps = []store.Step{
 	},
 }
 
+// achievementBadgeSteps is an original CSS lab: a circular achievement badge.
+var achievementBadgeSteps = []store.Step{
+	{
+		Instruction: "Give the `.badge` a fixed size — a `width` and `height` of about `96px`.",
+		Starter:     "<style>\n  .badge {\n    /* give it a size */\n  }\n</style>\n<div class=\"badge\">🏆</div>\n",
+		Checks:      `[{"text":"The badge should be at least 80x80px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.badge')).width) >= 80 && parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.badge')).height) >= 80"}]`,
+	},
+	{
+		Instruction: "Make it a perfect **circle** with `border-radius: 50%`.",
+		Starter:     "<style>\n  .badge {\n    width: 96px;\n    height: 96px;\n    /* make it round */\n  }\n</style>\n<div class=\"badge\">🏆</div>\n",
+		Checks:      `[{"text":"The badge should be a circle (border-radius: 50%).","test":"doc.defaultView.getComputedStyle(doc.querySelector('.badge')).borderTopLeftRadius === '50%' || parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.badge')).borderTopLeftRadius) >= 20"}]`,
+	},
+	{
+		Instruction: "Centre the emoji: make `.badge` a **flex** container with `align-items: center` and `justify-content: center`.",
+		Starter:     "<style>\n  .badge {\n    width: 96px;\n    height: 96px;\n    border-radius: 50%;\n    /* center the icon */\n  }\n</style>\n<div class=\"badge\">🏆</div>\n",
+		Checks:      `[{"text":"The badge should center its content with flexbox.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.badge')).display === 'flex' && doc.defaultView.getComputedStyle(doc.querySelector('.badge')).alignItems === 'center' && doc.defaultView.getComputedStyle(doc.querySelector('.badge')).justifyContent === 'center'"}]`,
+	},
+	{
+		Instruction: "Give it a **background** — a solid colour or a `linear-gradient`.",
+		Starter:     "<style>\n  .badge {\n    width: 96px;\n    height: 96px;\n    border-radius: 50%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    /* add a background */\n  }\n</style>\n<div class=\"badge\">🏆</div>\n",
+		Checks:      `[{"text":"The badge should have a background colour or gradient.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.badge')).backgroundImage !== 'none' || doc.defaultView.getComputedStyle(doc.querySelector('.badge')).backgroundColor !== 'rgba(0, 0, 0, 0)'"}]`,
+	},
+	{
+		Instruction: "Make the emoji **bigger** — set `font-size` to at least `40px`.",
+		Starter:     "<style>\n  .badge {\n    width: 96px;\n    height: 96px;\n    border-radius: 50%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    background: linear-gradient(135deg, #6d4aff, #a855f7);\n    /* enlarge the emoji */\n  }\n</style>\n<div class=\"badge\">🏆</div>\n",
+		Checks:      `[{"text":"The emoji should be at least 40px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.badge')).fontSize) >= 40"}]`,
+	},
+}
+
+// xpBarSteps is an original CSS lab: an XP progress bar (a fill inside a track).
+var xpBarSteps = []store.Step{
+	{
+		Instruction: "Style the track: give `.bar` a **height** of at least `14px` and a light **background**.",
+		Starter:     "<style>\n  .bar {\n    width: 300px;\n    /* add a height and a background */\n  }\n  .fill {\n    /* you'll style this next */\n  }\n</style>\n<div class=\"bar\"><div class=\"fill\"></div></div>\n",
+		Checks:      `[{"text":"The .bar should have a height of at least 14px and a background.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.bar')).height) >= 14 && doc.defaultView.getComputedStyle(doc.querySelector('.bar')).backgroundColor !== 'rgba(0, 0, 0, 0)'"}]`,
+	},
+	{
+		Instruction: "Round the track and clip the fill: add `border-radius` and `overflow: hidden` to `.bar`.",
+		Starter:     "<style>\n  .bar {\n    width: 300px;\n    height: 18px;\n    background: #e2e8f0;\n    /* round it and hide overflow */\n  }\n  .fill {\n    /* you'll style this next */\n  }\n</style>\n<div class=\"bar\"><div class=\"fill\"></div></div>\n",
+		Checks:      `[{"text":"The .bar should have rounded corners and overflow: hidden.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.bar')).borderTopLeftRadius) > 0 && doc.defaultView.getComputedStyle(doc.querySelector('.bar')).overflow === 'hidden'"}]`,
+	},
+	{
+		Instruction: "Style the fill: give `.fill` a `height` of `100%` and a bright **background** colour.",
+		Starter:     "<style>\n  .bar {\n    width: 300px;\n    height: 18px;\n    background: #e2e8f0;\n    border-radius: 999px;\n    overflow: hidden;\n  }\n  .fill {\n    /* height 100% and a colour */\n  }\n</style>\n<div class=\"bar\"><div class=\"fill\"></div></div>\n",
+		Checks:      `[{"text":"The .fill should have height and a background colour.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.fill')).height) >= 14 && doc.defaultView.getComputedStyle(doc.querySelector('.fill')).backgroundColor !== 'rgba(0, 0, 0, 0)'"}]`,
+	},
+	{
+		Instruction: "Set the progress: give `.fill` a **`width`** of `70%` so it only fills part of the track.",
+		Starter:     "<style>\n  .bar {\n    width: 300px;\n    height: 18px;\n    background: #e2e8f0;\n    border-radius: 999px;\n    overflow: hidden;\n  }\n  .fill {\n    height: 100%;\n    background: #6d4aff;\n    /* set a partial width */\n  }\n</style>\n<div class=\"bar\"><div class=\"fill\"></div></div>\n",
+		Checks:      `[{"text":"The .fill should be a partial width (wider than 0, narrower than the track).","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.fill')).width) > 0 && parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.fill')).width) < 300"}]`,
+	},
+}
+
+// leaderboardRowSteps is an original Flexbox lab: a leaderboard entry.
+var leaderboardRowSteps = []store.Step{
+	{
+		Instruction: "Make `.row` a **flex** container with `display: flex`.",
+		Starter:     "<style>\n  .row {\n    /* make a flex row */\n  }\n  .rank { font-weight: 800; }\n</style>\n<div class=\"row\">\n  <span class=\"rank\">#1</span>\n  <span class=\"name\">Ada</span>\n  <span class=\"score\">1200 XP</span>\n</div>\n",
+		Checks:      `[{"text":".row should be a flex container.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.row')).display === 'flex'"}]`,
+	},
+	{
+		Instruction: "Vertically centre the items with `align-items: center`.",
+		Starter:     "<style>\n  .row {\n    display: flex;\n    /* vertically center */\n  }\n  .rank { font-weight: 800; }\n</style>\n<div class=\"row\">\n  <span class=\"rank\">#1</span>\n  <span class=\"name\">Ada</span>\n  <span class=\"score\">1200 XP</span>\n</div>\n",
+		Checks:      `[{"text":".row should use align-items: center.","test":"doc.defaultView.getComputedStyle(doc.querySelector('.row')).alignItems === 'center'"}]`,
+	},
+	{
+		Instruction: "Add a **`gap`** of at least `8px` between the items.",
+		Starter:     "<style>\n  .row {\n    display: flex;\n    align-items: center;\n    /* add a gap */\n  }\n  .rank { font-weight: 800; }\n</style>\n<div class=\"row\">\n  <span class=\"rank\">#1</span>\n  <span class=\"name\">Ada</span>\n  <span class=\"score\">1200 XP</span>\n</div>\n",
+		Checks:      `[{"text":".row should have a gap of at least 8px.","test":"parseInt(doc.defaultView.getComputedStyle(doc.querySelector('.row')).gap) >= 8"}]`,
+	},
+	{
+		Instruction: "Push the score to the far right: give `.name` **`flex: 1`** so it grows and fills the space.",
+		Starter:     "<style>\n  .row {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n  }\n  .rank { font-weight: 800; }\n  .name {\n    /* let this grow */\n  }\n</style>\n<div class=\"row\">\n  <span class=\"rank\">#1</span>\n  <span class=\"name\">Ada</span>\n  <span class=\"score\">1200 XP</span>\n</div>\n",
+		Checks:      `[{"text":".name should grow to fill the space (flex: 1).","test":"doc.defaultView.getComputedStyle(doc.querySelector('.name')).flexGrow === '1'"}]`,
+	},
+}
+
 // labSteps maps a frontend lesson slug to its interactive steps.
 var labSteps = map[string][]store.Step{
 	"workshop_build_a_game_launch_page":         gameLaunchSteps,
 	"workshop_build_a_sign_up_form":             signupFormSteps,
 	"workshop_style_a_business_card":            businessCardSteps,
 	"workshop_build_a_pricing_card":             pricingCardSteps,
+	"workshop_build_an_achievement_badge":       achievementBadgeSteps,
+	"workshop_build_an_xp_progress_bar":         xpBarSteps,
 	"workshop_build_a_nav_bar_with_flexbox":     navBarSteps,
+	"workshop_build_a_leaderboard_row":          leaderboardRowSteps,
 	"workshop_build_an_image_gallery_with_grid": gridGallerySteps,
 }
 
