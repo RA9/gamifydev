@@ -419,8 +419,44 @@ var leaderboardRowSteps = []store.Step{
 	},
 }
 
+// levelUpSteps is a JavaScript lab (Lang "js"). The learner's code runs in a
+// sandbox; checks call their functions and inspect `logs` (console output).
+var levelUpSteps = []store.Step{
+	{
+		Lang:        "js",
+		Instruction: "Create a variable `xp`, set it to `150`, and print it with `console.log(xp)`.",
+		Starter:     "// Create xp and log it\n",
+		Checks:      `[{"text":"xp should be the number 150.","test":"typeof xp === 'number' && xp === 150"},{"text":"You should log something to the console.","test":"logs.length > 0"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Write a function `levelUp(xp)` that **returns** `xp + 100`.",
+		Starter:     "let xp = 150;\nconsole.log(xp);\n\n// Write a function levelUp(xp) that returns xp + 100\n",
+		Checks:      `[{"text":"levelUp should be a function.","test":"typeof levelUp === 'function'"},{"text":"levelUp(200) should return 300.","test":"levelUp(200) === 300"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Call `levelUp(150)` and log the result — the console should show `250`.",
+		Starter:     "let xp = 150;\nconsole.log(xp);\n\nfunction levelUp(xp) {\n  return xp + 100;\n}\n\n// Call levelUp(150) and log the result\n",
+		Checks:      `[{"text":"The console should print 250.","test":"logs.some(function(l){return l.trim() === '250'})"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Write a function `isMaxLevel(level)` that **returns** `true` when `level` is 100 or more, otherwise `false`.",
+		Starter:     "let xp = 150;\nconsole.log(xp);\n\nfunction levelUp(xp) {\n  return xp + 100;\n}\nconsole.log(levelUp(150));\n\n// Write isMaxLevel(level)\n",
+		Checks:      `[{"text":"isMaxLevel should be a function.","test":"typeof isMaxLevel === 'function'"},{"text":"isMaxLevel(100) should be true.","test":"isMaxLevel(100) === true"},{"text":"isMaxLevel(50) should be false.","test":"isMaxLevel(50) === false"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Total up an array. Create `scores = [10, 25, 5]` and log the sum — it should print `40`. (Try `.reduce()` or a loop.)",
+		Starter:     "let xp = 150;\nconsole.log(xp);\n\nfunction levelUp(xp) {\n  return xp + 100;\n}\nconsole.log(levelUp(150));\n\nfunction isMaxLevel(level) {\n  return level >= 100;\n}\n\n// Create scores and log the total\n",
+		Checks:      `[{"text":"scores should be an array of 3 numbers.","test":"Array.isArray(scores) && scores.length === 3"},{"text":"The console should print 40.","test":"logs.some(function(l){return l.trim() === '40'})"}]`,
+	},
+}
+
 // labSteps maps a frontend lesson slug to its interactive steps.
 var labSteps = map[string][]store.Step{
+	"workshop_code_a_level_up_system":           levelUpSteps,
 	"workshop_build_a_game_launch_page":         gameLaunchSteps,
 	"workshop_build_a_sign_up_form":             signupFormSteps,
 	"workshop_style_a_business_card":            businessCardSteps,

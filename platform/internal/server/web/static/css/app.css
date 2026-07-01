@@ -3793,3 +3793,15 @@ body.auth-page a:hover {
 .check-row input[name="check_text"] { flex: 1 1 40%; }
 .check-row input[name="check_test"] { flex: 2 1 60%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
 .check-row .check-del { flex: 0 0 auto; }
+
+/* Interactive step lab — JS console panel */
+.step-console {
+    min-height: 200px; max-height: 62vh; overflow: auto;
+    padding: 12px 14px; margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.84rem; line-height: 1.5;
+    background: #0f172a; color: #e2e8f0;
+}
+.console-line { white-space: pre-wrap; word-break: break-word; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.console-error { color: #fca5a5; }
+.console-empty { color: #64748b; font-style: italic; }
