@@ -454,9 +454,73 @@ var levelUpSteps = []store.Step{
 	},
 }
 
+// inventorySteps is a JavaScript lab on arrays & objects (pure logic + console).
+var inventorySteps = []store.Step{
+	{
+		Lang:        "js",
+		Instruction: "Create an array `items` of **3 objects**, each with a `name` and a `price`. Then log `items.length`.",
+		Starter:     "// Create an array `items` of 3 objects (name, price)\n// then log items.length\n",
+		Checks:      `[{"text":"items should be an array of 3 objects with name and price.","test":"Array.isArray(items) && items.length===3 && typeof items[0]==='object' && 'name' in items[0] && 'price' in items[0]"},{"text":"Log the number of items (3).","test":"logs.some(function(l){return l.trim()==='3'})"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Add a 4th item with `items.push(...)`, then log the new `items.length` (4).",
+		Starter:     "const items = [\n  { name: 'Sword', price: 30 },\n  { name: 'Shield', price: 20 },\n  { name: 'Potion', price: 5 },\n];\nconsole.log(items.length);\n\n// Push a 4th item, then log items.length\n",
+		Checks:      `[{"text":"items should now have 4 entries.","test":"Array.isArray(items) && items.length===4"},{"text":"Log the new length (4).","test":"logs.some(function(l){return l.trim()==='4'})"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Make a list of just the names with `items.map(i => i.name)`; store it in `names` and log it.",
+		Starter:     "const items = [\n  { name: 'Sword', price: 30 },\n  { name: 'Shield', price: 20 },\n  { name: 'Potion', price: 5 },\n];\nconsole.log(items.length);\nitems.push({ name: 'Bow', price: 25 });\nconsole.log(items.length);\n\n// Create names with map, then log it\n",
+		Checks:      `[{"text":"names should be an array of every item's name.","test":"Array.isArray(names) && names.length===items.length && names.indexOf(items[0].name)!==-1"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Add up the prices with `reduce`: store the sum in `total` and log it.",
+		Starter:     "const items = [\n  { name: 'Sword', price: 30 },\n  { name: 'Shield', price: 20 },\n  { name: 'Potion', price: 5 },\n];\nitems.push({ name: 'Bow', price: 25 });\nconst names = items.map(i => i.name);\nconsole.log(names);\n\n// Create total with reduce, then log it\n",
+		Checks:      `[{"text":"total should equal the sum of all prices.","test":"typeof total==='number' && total===items.reduce(function(s,i){return s+i.price},0)"}]`,
+	},
+	{
+		Lang:        "js",
+		Instruction: "Find the **cheapest** item (lowest price). Store it in `cheapest` and log its name.",
+		Starter:     "const items = [\n  { name: 'Sword', price: 30 },\n  { name: 'Shield', price: 20 },\n  { name: 'Potion', price: 5 },\n];\nitems.push({ name: 'Bow', price: 25 });\nconst total = items.reduce((s, i) => s + i.price, 0);\nconsole.log(total);\n\n// Find the cheapest item; store in `cheapest` and log its name\n",
+		Checks:      `[{"text":"cheapest should be the lowest-priced item.","test":"cheapest && typeof cheapest==='object' && cheapest.price===Math.min.apply(null, items.map(function(i){return i.price}))"}]`,
+	},
+}
+
+// likeScaffold is the markup the DOM lab's JavaScript runs against.
+const likeScaffold = "<button id=\"like\">👍 Like</button>\n<p>Likes: <span id=\"count\">0</span></p>\n<button id=\"reset\">Reset</button>\n"
+
+// likeButtonSteps is a JavaScript DOM + events lab; checks simulate clicks.
+var likeButtonSteps = []store.Step{
+	{
+		Lang:        "js",
+		Scaffold:    likeScaffold,
+		Instruction: "Wire up the Like button: add a **click** listener on `#like` that adds `1` to the number in `#count` each time it's clicked.",
+		Starter:     "// Select #like and #count, then add a click listener that increments the count\n",
+		Checks:      `[{"text":"Clicking Like should add 1 to the count each time.","test":"(function(){var b=document.querySelector('#like'),c=document.querySelector('#count');if(!b||!c)return false;var s=parseInt(c.textContent)||0;b.click();b.click();b.click();return (parseInt(c.textContent)||0)===s+3;})()"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    likeScaffold,
+		Instruction: "Also reflect the count in the **button text** — after a click it should read like `👍 3`.",
+		Starter:     "const like = document.querySelector('#like');\nconst count = document.querySelector('#count');\nlike.addEventListener('click', () => {\n  count.textContent = Number(count.textContent) + 1;\n});\n\n// Also update the button's text to include the count\n",
+		Checks:      `[{"text":"After clicking, the Like button text should include the count.","test":"(function(){var b=document.querySelector('#like'),c=document.querySelector('#count');b.click();b.click();return b.textContent.indexOf(c.textContent.trim())!==-1;})()"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    likeScaffold,
+		Instruction: "Wire the **Reset** button (`#reset`) so it sets the count back to `0`.",
+		Starter:     "const like = document.querySelector('#like');\nconst count = document.querySelector('#count');\nconst reset = document.querySelector('#reset');\nlike.addEventListener('click', () => {\n  count.textContent = Number(count.textContent) + 1;\n  like.textContent = '👍 ' + count.textContent;\n});\n\n// Wire the Reset button to set the count back to 0\n",
+		Checks:      `[{"text":"Reset should set the count back to 0.","test":"(function(){var l=document.querySelector('#like'),c=document.querySelector('#count'),r=document.querySelector('#reset');l.click();l.click();r.click();return c.textContent.trim()==='0';})()"}]`,
+	},
+}
+
 // labSteps maps a frontend lesson slug to its interactive steps.
 var labSteps = map[string][]store.Step{
 	"workshop_code_a_level_up_system":           levelUpSteps,
+	"workshop_build_an_inventory":               inventorySteps,
+	"workshop_build_a_like_button":              likeButtonSteps,
 	"workshop_build_a_game_launch_page":         gameLaunchSteps,
 	"workshop_build_a_sign_up_form":             signupFormSteps,
 	"workshop_style_a_business_card":            businessCardSteps,

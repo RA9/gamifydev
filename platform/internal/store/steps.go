@@ -15,6 +15,7 @@ type Step struct {
 	Starter     string
 	Checks      string // raw JSON array of {text,test}
 	Lang        string // html | js
+	Scaffold    string // optional base HTML rendered before a js step's code
 }
 
 // langOr defaults an empty language to html.
@@ -28,7 +29,7 @@ func langOr(l string) string {
 // ListSteps returns a lesson's steps in order.
 func (s *Store) ListSteps(ctx context.Context, lessonID int64) ([]Step, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, lesson_id, sort, instruction, starter, checks, lang FROM lesson_steps
+		`SELECT id, lesson_id, sort, instruction, starter, checks, lang, scaffold FROM lesson_steps
 		 WHERE lesson_id = ? ORDER BY sort`, lessonID)
 	if err != nil {
 		return nil, err
@@ -37,7 +38,7 @@ func (s *Store) ListSteps(ctx context.Context, lessonID int64) ([]Step, error) {
 	var out []Step
 	for rows.Next() {
 		var st Step
-		if err := rows.Scan(&st.ID, &st.LessonID, &st.Sort, &st.Instruction, &st.Starter, &st.Checks, &st.Lang); err != nil {
+		if err := rows.Scan(&st.ID, &st.LessonID, &st.Sort, &st.Instruction, &st.Starter, &st.Checks, &st.Lang, &st.Scaffold); err != nil {
 			return nil, err
 		}
 		out = append(out, st)
@@ -49,8 +50,8 @@ func (s *Store) ListSteps(ctx context.Context, lessonID int64) ([]Step, error) {
 func (s *Store) GetStep(ctx context.Context, id int64) (*Step, error) {
 	var st Step
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, lesson_id, sort, instruction, starter, checks, lang FROM lesson_steps WHERE id = ?`, id).
-		Scan(&st.ID, &st.LessonID, &st.Sort, &st.Instruction, &st.Starter, &st.Checks, &st.Lang)
+		`SELECT id, lesson_id, sort, instruction, starter, checks, lang, scaffold FROM lesson_steps WHERE id = ?`, id).
+		Scan(&st.ID, &st.LessonID, &st.Sort, &st.Instruction, &st.Starter, &st.Checks, &st.Lang, &st.Scaffold)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -70,8 +71,8 @@ func (s *Store) ReplaceLessonSteps(ctx context.Context, lessonID int64, steps []
 	}
 	for i, st := range steps {
 		if _, err := tx.ExecContext(ctx,
-			`INSERT INTO lesson_steps (lesson_id, sort, instruction, starter, checks, lang) VALUES (?, ?, ?, ?, ?, ?)`,
-			lessonID, i, st.Instruction, st.Starter, st.Checks, langOr(st.Lang)); err != nil {
+			`INSERT INTO lesson_steps (lesson_id, sort, instruction, starter, checks, lang, scaffold) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			lessonID, i, st.Instruction, st.Starter, st.Checks, langOr(st.Lang), st.Scaffold); err != nil {
 			return err
 		}
 	}
@@ -85,17 +86,17 @@ func (s *Store) CreateStep(ctx context.Context, st Step) (int64, error) {
 		`SELECT COALESCE(MAX(sort)+1, 0) FROM lesson_steps WHERE lesson_id = ?`, st.LessonID).Scan(&sort)
 	var id int64
 	err := s.db.QueryRowContext(ctx,
-		`INSERT INTO lesson_steps (lesson_id, sort, instruction, starter, checks, lang)
-		 VALUES (?, ?, ?, ?, ?, ?) RETURNING id`,
-		st.LessonID, sort, st.Instruction, st.Starter, st.Checks, langOr(st.Lang)).Scan(&id)
+		`INSERT INTO lesson_steps (lesson_id, sort, instruction, starter, checks, lang, scaffold)
+		 VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		st.LessonID, sort, st.Instruction, st.Starter, st.Checks, langOr(st.Lang), st.Scaffold).Scan(&id)
 	return id, err
 }
 
 // UpdateStep saves a step's content.
 func (s *Store) UpdateStep(ctx context.Context, id int64, st Step) error {
 	_, err := s.db.ExecContext(ctx,
-		`UPDATE lesson_steps SET instruction=?, starter=?, checks=?, lang=?, updated_at=datetime('now') WHERE id=?`,
-		st.Instruction, st.Starter, st.Checks, langOr(st.Lang), id)
+		`UPDATE lesson_steps SET instruction=?, starter=?, checks=?, lang=?, scaffold=?, updated_at=datetime('now') WHERE id=?`,
+		st.Instruction, st.Starter, st.Checks, langOr(st.Lang), st.Scaffold, id)
 	return err
 }
 

@@ -293,6 +293,18 @@
             "previous": null
           },
           {
+            "title": "Workshop: Build an Inventory",
+            "description": "Practise JavaScript arrays and objects in an interactive editor — map, filter, reduce, and find over a list of items.",
+            "section": "JavaScript",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
+          },
+          {
             "title": "The DOM: Selecting and Changing Elements",
             "description": "Use JavaScript to read and change the page in real time.",
             "resources": [],
@@ -315,6 +327,18 @@
             "previous": "The DOM: Selecting and Changing Elements",
             "section": "JavaScript",
             "kind": "theory"
+          },
+          {
+            "title": "Workshop: Build a Like Button",
+            "description": "Wire up a real interactive Like button with JavaScript — select elements, handle clicks, and update the page.",
+            "section": "JavaScript",
+            "kind": "lab",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null
           },
           {
             "title": "Building Interactive JavaScript Websites",
