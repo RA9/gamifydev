@@ -242,6 +242,7 @@ func stepFromForm(r *http.Request) store.Step {
 		Starter:     r.FormValue("starter"),
 		Checks:      string(raw),
 		Lang:        lang,
+		Scaffold:    r.FormValue("scaffold"),
 	}
 }
 

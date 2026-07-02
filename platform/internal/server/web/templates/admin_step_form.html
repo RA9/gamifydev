@@ -26,6 +26,11 @@
       <textarea name="starter" rows="8" class="code-area" spellcheck="false">{{ if $s }}{{ $s.Starter }}{{ end }}</textarea>
     </label>
 
+    <label class="field">
+      <span>Scaffold HTML <span class="muted">— JS labs only: markup rendered before the learner's code runs (so their JS has elements to select/change). Leave blank for pure-logic labs.</span></span>
+      <textarea name="scaffold" rows="4" class="code-area" spellcheck="false">{{ if $s }}{{ $s.Scaffold }}{{ end }}</textarea>
+    </label>
+
     <div class="field">
       <span>Checks <span class="muted">— each is a requirement + a JS boolean test. <strong>HTML/CSS:</strong> test the preview <code>doc</code> (e.g. <code>doc.querySelector('h1')</code>, <code>doc.defaultView.getComputedStyle(...)</code>). <strong>JavaScript:</strong> the learner's code runs first — test their functions/variables, <code>logs</code> (console output array), <code>code</code> (source), or <code>document</code> (e.g. <code>typeof add==='function' &amp;&amp; add(2,3)===5</code>).</span></span>
       <div id="checkRows" class="check-rows">

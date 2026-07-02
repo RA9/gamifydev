@@ -101,6 +101,8 @@
   // ------------------------------------------------------------------ JS mode
   const escScript = (s) => String(s).replace(/<\/(script)/gi, "<\\/$1");
 
+  const scaffold = lab.dataset.scaffold || "";
+
   const buildSandbox = (code, tests) => {
     const harness =
       "window.__logs=[];window.__err=null;" +
@@ -117,6 +119,7 @@
       "parent.postMessage({type:'gd-check',results:results,logs:logs,error:error},'*');})();";
     return (
       "<!doctype html><html><body>" +
+      scaffold +
       "<script>" + harness + "<\/script>" +
       "<script>\n" + escScript(code) + "\n<\/script>" +
       "<script>" + runner + "<\/script>" +
