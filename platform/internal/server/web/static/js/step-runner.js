@@ -99,33 +99,7 @@
   }
 
   // ------------------------------------------------------------------ JS mode
-  const escScript = (s) => String(s).replace(/<\/(script)/gi, "<\\/$1");
-
   const scaffold = lab.dataset.scaffold || "";
-
-  const buildSandbox = (code, tests) => {
-    const harness =
-      "window.__logs=[];window.__err=null;" +
-      "(function(){var o=console.log;console.log=function(){" +
-      "window.__logs.push(Array.prototype.map.call(arguments,function(x){" +
-      "try{return typeof x==='object'?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(' '));" +
-      "o.apply(console,arguments)};})();" +
-      "window.onerror=function(m){window.__err=String(m);return false};";
-    const runner =
-      "(function(){var logs=window.__logs;var error=window.__err;" +
-      "var code=" + escScript(JSON.stringify(code)) + ";" +
-      "var tests=" + escScript(JSON.stringify(tests)) + ";" +
-      "var results=tests.map(function(t){try{return !!eval('('+t+')')}catch(e){return false}});" +
-      "parent.postMessage({type:'gd-check',results:results,logs:logs,error:error},'*');})();";
-    return (
-      "<!doctype html><html><body>" +
-      scaffold +
-      "<script>" + harness + "<\/script>" +
-      "<script>\n" + escScript(code) + "\n<\/script>" +
-      "<script>" + runner + "<\/script>" +
-      "</body></html>"
-    );
-  };
 
   const showConsole = (logs, error) => {
     if (!consoleEl) return;
@@ -135,29 +109,85 @@
     consoleEl.innerHTML = html;
   };
 
+  const finish = (data) => {
+    checkBtn.disabled = false;
+    showConsole(data.logs, data.error);
+    applyResults(data.results || []);
+  };
+  const timedOut = () => {
+    checkBtn.disabled = false;
+    msg.textContent = "Your code didn't finish — check for an infinite loop, then try again.";
+    msg.className = "step-msg is-bad";
+  };
+
+  if (scaffold) {
+    // --- DOM lab: run in a sandboxed iframe (needs `document`) ---
+    const escScript = (s) => String(s).replace(/<\/(script)/gi, "<\\/$1");
+    const buildSandbox = (code, tests) => {
+      const harness =
+        "window.__logs=[];window.__err=null;" +
+        "(function(){var o=console.log;console.log=function(){" +
+        "window.__logs.push(Array.prototype.map.call(arguments,function(x){" +
+        "try{return typeof x==='object'?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(' '));" +
+        "o.apply(console,arguments)};})();" +
+        "window.onerror=function(m){window.__err=String(m);return false};";
+      const runner =
+        "(function(){var logs=window.__logs;var error=window.__err;" +
+        "var code=" + escScript(JSON.stringify(code)) + ";" +
+        "var tests=" + escScript(JSON.stringify(tests)) + ";" +
+        "var results=tests.map(function(t){try{return !!eval('('+t+')')}catch(e){return false}});" +
+        "parent.postMessage({type:'gd-check',results:results,logs:logs,error:error},'*');})();";
+      return (
+        "<!doctype html><html><body>" + scaffold +
+        "<script>" + harness + "<\/script>" +
+        "<script>\n" + escScript(code) + "\n<\/script>" +
+        "<script>" + runner + "<\/script>" +
+        "</body></html>"
+      );
+    };
+    checkBtn.addEventListener("click", () => {
+      checkBtn.disabled = true;
+      const code = ta.value;
+      const tests = items.map((li) => li.dataset.test);
+      const onMsg = (e) => {
+        if (!e || !e.data || e.data.type !== "gd-check") return;
+        window.removeEventListener("message", onMsg);
+        clearTimeout(timer);
+        finish(e.data);
+      };
+      window.addEventListener("message", onMsg);
+      const timer = setTimeout(() => { window.removeEventListener("message", onMsg); timedOut(); }, 5000);
+      frame.srcdoc = buildSandbox(code, tests) + "<!--gd" + ++runSeq + "-->";
+    });
+    return;
+  }
+
+  // --- Pure-logic JS: run in a Web Worker so an infinite loop can be killed ---
+  // Learner code + checks run in one eval (so checks see the learner's top-level
+  // let/const); the worker has no DOM, and is terminated if it exceeds the timeout.
+  const WORKER_SRC =
+    "self.onmessage=function(e){" +
+    "var code=e.data.code,tests=e.data.tests,logs=[];" +
+    "self.console={log:function(){logs.push(Array.prototype.map.call(arguments,function(x){try{return typeof x==='object'?JSON.stringify(x):String(x)}catch(_){return String(x)}}).join(' '))}};" +
+    "var checks=tests.map(function(t){return '(function(){try{return !!('+t+')}catch(e){return false}})()'}).join(',');" +
+    "var program=code+'\\n;globalThis.__gdResults=['+checks+'];';" +
+    "var error=null,results=[];" +
+    "try{eval(program);results=globalThis.__gdResults||[]}catch(err){error=String(err&&err.message||err);results=tests.map(function(){return false})}" +
+    "self.postMessage({type:'gd-check',results:results,logs:logs,error:error})};";
+  const workerURL = URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }));
+
   checkBtn.addEventListener("click", () => {
     checkBtn.disabled = true;
     const code = ta.value;
     const tests = items.map((li) => li.dataset.test);
-
-    const onMsg = (e) => {
-      if (!e || !e.data || e.data.type !== "gd-check") return;
-      window.removeEventListener("message", onMsg);
+    const worker = new Worker(workerURL);
+    const timer = setTimeout(() => { worker.terminate(); timedOut(); }, 3000);
+    worker.onmessage = (e) => {
       clearTimeout(timer);
-      checkBtn.disabled = false;
-      showConsole(e.data.logs, e.data.error);
-      applyResults(e.data.results);
+      worker.terminate();
+      if (e.data && e.data.type === "gd-check") finish(e.data);
     };
-    window.addEventListener("message", onMsg);
-
-    // Guard against code that never returns (e.g. an infinite loop).
-    const timer = setTimeout(() => {
-      window.removeEventListener("message", onMsg);
-      checkBtn.disabled = false;
-      msg.textContent = "Your code didn't finish running — check for an infinite loop, then reload.";
-      msg.className = "step-msg is-bad";
-    }, 4000);
-
-    frame.srcdoc = buildSandbox(code, tests) + "<!--gd" + ++runSeq + "-->";
+    worker.onerror = () => { clearTimeout(timer); worker.terminate(); timedOut(); };
+    worker.postMessage({ code, tests });
   });
 })();
