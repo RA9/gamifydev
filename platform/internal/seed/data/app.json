@@ -701,7 +701,9 @@
             "is_completed": false,
             "current": true,
             "next": "Python Basics",
-            "previous": null
+            "previous": null,
+            "section": "Get Started",
+            "kind": "theory"
           },
           {
             "title": "Python Basics",
@@ -711,7 +713,21 @@
             "is_completed": false,
             "current": false,
             "next": "Control Flow in Python",
-            "previous": "What is Python?"
+            "previous": "What is Python?",
+            "section": "Get Started",
+            "kind": "theory"
+          },
+          {
+            "title": "Workshop: Python Warm-Up",
+            "description": "Write and run real Python right in your browser — variables, print, functions, and lists — with instant checks on every step.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": true,
+            "next": "",
+            "previous": null,
+            "section": "Get Started",
+            "kind": "lab"
           },
           {
             "title": "Control Flow in Python",
@@ -721,7 +737,9 @@
             "is_completed": false,
             "current": false,
             "next": "Functions in Python",
-            "previous": "Python Basics"
+            "previous": "Python Basics",
+            "section": "Core Python",
+            "kind": "theory"
           },
           {
             "title": "Functions in Python",
@@ -731,7 +749,9 @@
             "is_completed": false,
             "current": false,
             "next": "Lists and Dictionaries",
-            "previous": "Control Flow in Python"
+            "previous": "Control Flow in Python",
+            "section": "Core Python",
+            "kind": "theory"
           },
           {
             "title": "Lists and Dictionaries",
@@ -741,7 +761,9 @@
             "is_completed": false,
             "current": false,
             "next": "Next Steps with Python",
-            "previous": "Functions in Python"
+            "previous": "Functions in Python",
+            "section": "Core Python",
+            "kind": "theory"
           },
           {
             "title": "Next Steps with Python",
@@ -751,7 +773,9 @@
             "is_completed": false,
             "current": false,
             "next": null,
-            "previous": "Lists and Dictionaries"
+            "previous": "Lists and Dictionaries",
+            "section": "Beyond the Basics",
+            "kind": "theory"
           }
         ]
       },

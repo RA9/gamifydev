@@ -18,12 +18,14 @@ type Step struct {
 	Scaffold    string // optional base HTML rendered before a js step's code
 }
 
-// langOr defaults an empty language to html.
+// langOr defaults an empty/unknown language to html.
 func langOr(l string) string {
-	if l == "js" {
-		return "js"
+	switch l {
+	case "js", "python":
+		return l
+	default:
+		return "html"
 	}
-	return "html"
 }
 
 // ListSteps returns a lesson's steps in order.

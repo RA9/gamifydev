@@ -141,9 +141,13 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		res.Assignments++
 	}
 
-	// Interactive step-based "lab" lessons in the frontend course.
-	if c, err := st.GetCourseBySlug(ctx, "frontend"); err == nil {
-		for slug, steps := range labSteps {
+	// Interactive step-based "lab" lessons, keyed by course slug.
+	for cslug, labs := range courseLabs {
+		c, err := st.GetCourseBySlug(ctx, cslug)
+		if err != nil {
+			continue
+		}
+		for slug, steps := range labs {
 			if l, err := st.GetLesson(ctx, c.ID, slug); err == nil {
 				if err := st.ReplaceLessonSteps(ctx, l.ID, steps); err != nil {
 					return res, err
@@ -514,6 +518,53 @@ var likeButtonSteps = []store.Step{
 		Starter:     "const like = document.querySelector('#like');\nconst count = document.querySelector('#count');\nconst reset = document.querySelector('#reset');\nlike.addEventListener('click', () => {\n  count.textContent = Number(count.textContent) + 1;\n  like.textContent = '👍 ' + count.textContent;\n});\n\n// Wire the Reset button to set the count back to 0\n",
 		Checks:      `[{"text":"Reset should set the count back to 0.","test":"(function(){var l=document.querySelector('#like'),c=document.querySelector('#count'),r=document.querySelector('#reset');l.click();l.click();r.click();return c.textContent.trim()==='0';})()"}]`,
 	},
+}
+
+// pythonWarmupSteps is the first interactive Python lab — variables, print,
+// functions, and lists — run through Pyodide (Python compiled to WASM).
+var pythonWarmupSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Let's warm up. Create a variable `name` set to your name (a string), then `print` a greeting that uses it — something like `Hello, Ada!`.",
+		Starter:     "# Set `name` to your name, then print a greeting that uses it\n",
+		Checks:      `[{"text":"name should be a non-empty string.","test":"isinstance(name, str) and len(name) > 0"},{"text":"You should print a greeting that includes your name.","test":"name in _out"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Define a function `double(n)` that **returns** `n * 2`. (Return it — don't print it.)",
+		Starter:     "name = \"Ada\"\nprint(\"Hello, \" + name + \"!\")\n\n# Define a function double(n) that returns n * 2\n",
+		Checks:      `[{"text":"double should be a function.","test":"callable(double)"},{"text":"double(5) should return 10.","test":"double(5) == 10"},{"text":"double(0) should return 0.","test":"double(0) == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Now **call** `double(21)` and `print` the result — the output should show `42`.",
+		Starter:     "def double(n):\n    return n * 2\n\n# Call double(21) and print the result\n",
+		Checks:      `[{"text":"The printed output should include 42.","test":"\"42\" in _out"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Make a list called `scores` holding the numbers `4, 8, 15, 16, 23, 42`, then `print` how many items it has using `len(scores)`.",
+		Starter:     "# Create the list `scores`, then print its length\n",
+		Checks:      `[{"text":"scores should be a list of 6 numbers.","test":"isinstance(scores, list) and len(scores) == 6"},{"text":"You should print the length, 6.","test":"\"6\" in _out"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Finish by printing the **total** of every score using Python's built-in `sum()`. The total of the list should be `108`.",
+		Starter:     "scores = [4, 8, 15, 16, 23, 42]\n\n# Print the total of all the scores using sum()\n",
+		Checks:      `[{"text":"You should print the total using sum().","test":"\"108\" in _out"},{"text":"The list should still hold all 6 scores.","test":"sum(scores) == 108"}]`,
+	},
+}
+
+// courseLabs maps a course slug to that course's interactive lab lessons
+// (lesson slug → steps).
+var courseLabs = map[string]map[string][]store.Step{
+	"frontend": labSteps,
+	"python":   pythonLabs,
+}
+
+// pythonLabs are the interactive Python labs (run via Pyodide/WASM).
+var pythonLabs = map[string][]store.Step{
+	"workshop_python_warm_up": pythonWarmupSteps,
 }
 
 // labSteps maps a frontend lesson slug to its interactive steps.
