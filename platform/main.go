@@ -11,6 +11,7 @@ import (
 
 	"github.com/RA9/gamifydev/platform/internal/email"
 	"github.com/RA9/gamifydev/platform/internal/rdb"
+	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/seed"
 	"github.com/RA9/gamifydev/platform/internal/server"
 	"github.com/RA9/gamifydev/platform/internal/store"
@@ -80,7 +81,22 @@ func main() {
 		log.Printf("email: SMTP not configured — invite links will be shown to the admin")
 	}
 
-	srv, err := server.New(st, rc, mailer, secure)
+	// Server-side Python execution (the Playground and future server-run labs).
+	// Disabled unless CODE_EXEC is set; secure-by-default rules live in runner.New.
+	exec, err := runner.New(runner.Config{
+		Mode:         os.Getenv("CODE_EXEC"), // ""(off) | local | remote
+		PythonPath:   os.Getenv("PYTHON"),
+		SandboxURL:   os.Getenv("CODE_EXEC_SANDBOX_URL"),
+		SandboxToken: os.Getenv("CODE_EXEC_SANDBOX_TOKEN"),
+		Deployed:     os.Getenv("RAILWAY_ENVIRONMENT") != "",
+		AllowUnsafe:  os.Getenv("CODE_EXEC_UNSAFE") == "1",
+	})
+	if err != nil {
+		log.Fatalf("code exec: %v", err)
+	}
+	log.Printf("code exec: mode=%s enabled=%v", exec.Kind(), exec.Enabled())
+
+	srv, err := server.New(st, rc, mailer, exec, secure)
 	if err != nil {
 		log.Fatalf("server: %v", err)
 	}

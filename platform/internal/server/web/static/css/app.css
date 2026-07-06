@@ -3805,3 +3805,30 @@ body.auth-page a:hover {
 .console-line { white-space: pre-wrap; word-break: break-word; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .console-error { color: #fca5a5; }
 .console-empty { color: #64748b; font-style: italic; }
+
+/* Python Playground (server-side execution) */
+.pg { max-width: 1100px; margin: 0 auto; }
+.pg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.pg-head h1 { margin: 0 0 4px; }
+.pg-badge { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+    padding: 5px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+    background: #0f172a; color: #a5b4fc; white-space: nowrap; }
+.pg-badge .ic { width: 15px; height: 15px; }
+.pg-disabled { text-align: center; padding: 40px 24px; }
+.pg-disabled h2 { display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+.pg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 860px) { .pg-grid { grid-template-columns: 1fr; } }
+.pg-stdin { margin-top: 10px; }
+.pg-stdin summary { cursor: pointer; font-size: 0.85rem; color: var(--muted, #64748b); }
+.pg-stdin textarea { margin-top: 8px; width: 100%; }
+.pg-actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.pg-actions .btn .ic { width: 16px; height: 16px; }
+.pg-status { font-size: 0.85rem; color: var(--muted, #64748b); }
+.pg-output { border-radius: 12px; overflow: hidden; border: 1px solid rgba(148,163,184,0.25); }
+.pg-output-head { display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #1e293b; color: #cbd5e1; font-size: 0.8rem; font-weight: 600; }
+.pg-meta { font-weight: 500; color: #94a3b8; font-variant-numeric: tabular-nums; }
+.pg-out { min-height: 260px; max-height: 62vh; overflow: auto; margin: 0; padding: 12px 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.84rem;
+    line-height: 1.5; background: #0f172a; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; }
+.pg-err { color: #fca5a5; }
