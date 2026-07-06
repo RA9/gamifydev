@@ -1,0 +1,40 @@
+{{ define "content" }}
+{{ $enabled := index .Data "enabled" }}
+<div class="pg" data-enabled="{{ if $enabled }}1{{ else }}0{{ end }}">
+  <div class="pg-head">
+    <div>
+      <h1>Python Playground</h1>
+      <p class="muted">Real server-side Python — <code>input()</code>, the filesystem, and the full standard library all work here, unlike the in-browser labs.</p>
+    </div>
+    <span class="pg-badge">{{ icon "terminal" }} runs on the server</span>
+  </div>
+
+  {{ if not $enabled }}
+  <div class="card pg-disabled">
+    <h2>{{ icon "lock" }} Server execution is off</h2>
+    <p class="muted">This instance doesn't have code execution enabled. An operator can turn it on by configuring <code>CODE_EXEC</code> (see the runner README).</p>
+  </div>
+  {{ else }}
+  <div class="pg-grid">
+    <div class="pg-editor">
+      <gd-code-editor lang="python">
+        <textarea id="pgCode" class="gd-editor-ta" spellcheck="false">{{ index .Data "starter" }}</textarea>
+      </gd-code-editor>
+      <details class="pg-stdin">
+        <summary>Standard input <span class="muted">— optional; fed to <code>input()</code></span></summary>
+        <textarea id="pgStdin" class="code-area" rows="3" spellcheck="false" placeholder="One line per input() call…"></textarea>
+      </details>
+      <div class="pg-actions">
+        <button id="pgRun" class="btn btn-primary">{{ icon "activity" }} Run</button>
+        <span id="pgStatus" class="pg-status" role="status"></span>
+      </div>
+    </div>
+    <div class="pg-output">
+      <div class="pg-output-head"><span>Output</span><span id="pgMeta" class="pg-meta"></span></div>
+      <pre id="pgOut" class="pg-out"><span class="console-empty">Press Run to execute your program.</span></pre>
+    </div>
+  </div>
+  {{ end }}
+</div>
+<script type="module" src="/static/js/playground.js"></script>
+{{ end }}

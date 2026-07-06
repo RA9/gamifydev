@@ -137,6 +137,10 @@ func (s *Server) render(w http.ResponseWriter, req *http.Request, page string, v
 	if vd.Data == nil {
 		vd.Data = map[string]any{}
 	}
+	// So the nav can show the Playground link only when it's usable.
+	if _, ok := vd.Data["execEnabled"]; !ok {
+		vd.Data["execEnabled"] = s.exec != nil && s.exec.Enabled()
+	}
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, chooseLayout(page, vd.User != nil), vd); err != nil {
 		http.Error(w, "render error: "+err.Error(), http.StatusInternalServerError)

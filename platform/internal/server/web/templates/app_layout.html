@@ -23,6 +23,7 @@
           <a href="/dashboard" class="{{ if eq $p "/dashboard" }}active{{ end }}">{{ icon "grid" }}<span>Dashboard</span></a>
           <a href="/paths" class="{{ if or (hasprefix $p "/paths") (hasprefix $p "/courses") }}active{{ end }}">{{ icon "compass" }}<span>Curriculum</span></a>
           <a href="/assignments" class="{{ if hasprefix $p "/assignments" }}active{{ end }}">{{ icon "clipboard" }}<span>Assignments</span></a>
+          {{ if index .Data "execEnabled" }}<a href="/playground" class="{{ if eq $p "/playground" }}active{{ end }}">{{ icon "terminal" }}<span>Playground</span></a>{{ end }}
           <a href="/competitions" class="{{ if hasprefix $p "/competitions" }}active{{ end }}">{{ icon "trophy" }}<span>Competitions</span></a>
           <a href="/forum" class="{{ if hasprefix $p "/forum" }}active{{ end }}">{{ icon "chat" }}<span>Forum</span></a>
           <a href="/blog" class="{{ if hasprefix $p "/blog" }}active{{ end }}">{{ icon "file" }}<span>Blog</span></a>

@@ -6,6 +6,7 @@ import (
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/email"
+	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/store"
 	"github.com/redis/go-redis/v9"
 )
@@ -16,10 +17,12 @@ type Server struct {
 	mail   *email.Mailer // optional; falls back to showing links when unconfigured
 	hub    *hub          // realtime WebSocket fan-out
 	rnd    *renderer
-	secure bool // set Secure cookies (true in production/HTTPS)
+	exec   runner.Executor // server-side code execution; disabled by default
+	runlim *runLimiter     // throttles /api/run
+	secure bool            // set Secure cookies (true in production/HTTPS)
 }
 
-func New(st *store.Store, rc *redis.Client, mail *email.Mailer, secure bool) (*Server, error) {
+func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Executor, secure bool) (*Server, error) {
 	rnd, err := newRenderer()
 	if err != nil {
 		return nil, err
@@ -27,7 +30,13 @@ func New(st *store.Store, rc *redis.Client, mail *email.Mailer, secure bool) (*S
 	if mail == nil {
 		mail = email.New()
 	}
-	return &Server{st: st, rdb: rc, mail: mail, hub: newHub(), rnd: rnd, secure: secure}, nil
+	if exec == nil {
+		exec, _ = runner.New(runner.Config{}) // disabled
+	}
+	return &Server{
+		st: st, rdb: rc, mail: mail, hub: newHub(), rnd: rnd,
+		exec: exec, runlim: newRunLimiter(4, 1500), secure: secure,
+	}, nil
 }
 
 func (s *Server) Routes() http.Handler {
@@ -67,6 +76,8 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
 	mux.Handle("GET /dashboard/live", in(http.HandlerFunc(s.handleDashboardLive)))
 	mux.Handle("GET /ws", in(http.HandlerFunc(s.handleWS)))
+	mux.Handle("GET /playground", in(http.HandlerFunc(s.handlePlayground)))
+	mux.Handle("POST /api/run", in(http.HandlerFunc(s.handleRunCode)))
 	mux.Handle("GET /assignments", in(http.HandlerFunc(s.handleAssignments)))
 	mux.Handle("GET /assignments/{slug}", in(http.HandlerFunc(s.handleAssignment)))
 	mux.Handle("POST /assignments/{slug}/submit", in(http.HandlerFunc(s.handleSubmitAssignment)))

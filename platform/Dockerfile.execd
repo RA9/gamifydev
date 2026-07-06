@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1
+#
+# Dockerfile.execd — the standalone Python execution sandbox (cmd/execd).
+#
+# This is a SEPARATE service from the main app. The main app image stays
+# distroless with no interpreter; this one carries Python + bubblewrap and is
+# where untrusted learner code actually runs. Point the app at it with
+#   CODE_EXEC=remote
+#   CODE_EXEC_SANDBOX_URL=http://execd:9090
+#   CODE_EXEC_SANDBOX_TOKEN=<same as EXECD_TOKEN below>
+#
+# Run it locked down. bubblewrap needs unprivileged user namespaces; grant only
+# what it needs and nothing else, e.g.:
+#   docker run --rm \
+#     --read-only --tmpfs /tmp \
+#     --cap-drop ALL --security-opt no-new-privileges \
+#     --pids-limit 256 --memory 512m --cpus 1 \
+#     -e EXECD_TOKEN=$TOKEN -p 9090:9090 gamifydev-execd
+# (If your host disables unprivileged userns, bwrap won't isolate — execd logs a
+# warning. In that case run this whole container under gVisor/Kata or a VM.)
+
+# ---- build ----
+FROM golang:1.26-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /app/execd ./cmd/execd
+
+# ---- run ----
+FROM python:3.12-slim
+# bubblewrap provides the unprivileged namespace sandbox (no network,
+# read-only root, private /tmp) that execd wraps each run in.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bubblewrap \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/execd /usr/local/bin/execd
+# Run as an unprivileged user; execd never needs root.
+RUN useradd --create-home --uid 10001 sandbox
+USER sandbox
+ENV EXECD_ADDR=:9090 \
+    PYTHON=python3 \
+    EXECD_MAX_CONCURRENCY=4
+EXPOSE 9090
+ENTRYPOINT ["execd"]
