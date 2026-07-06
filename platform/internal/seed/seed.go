@@ -562,9 +562,119 @@ var courseLabs = map[string]map[string][]store.Step{
 	"python":   pythonLabs,
 }
 
+// xpCalcSteps — numbers, functions, and f-strings via an XP calculator.
+var xpCalcSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Different foes give different XP. Write `xp_reward(kind)` that returns `10` for `\"easy\"`, `25` for `\"normal\"`, `100` for `\"boss\"`, and `0` for anything else.",
+		Starter:     "def xp_reward(kind):\n    # return the XP for this foe kind\n    pass\n",
+		Checks:      `[{"text":"xp_reward should be a function.","test":"callable(xp_reward)"},{"text":"xp_reward('easy') should be 10.","test":"xp_reward('easy') == 10"},{"text":"xp_reward('boss') should be 100.","test":"xp_reward('boss') == 100"},{"text":"An unknown kind should give 0.","test":"xp_reward('dragon') == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `total_xp(rewards)` that returns the sum of a list of XP numbers. An empty list should return `0`.",
+		Starter:     "def xp_reward(kind):\n    return {'easy': 10, 'normal': 25, 'boss': 100}.get(kind, 0)\n\ndef total_xp(rewards):\n    # add up every number in the list\n    pass\n",
+		Checks:      `[{"text":"total_xp([10, 25, 100]) should be 135.","test":"total_xp([10, 25, 100]) == 135"},{"text":"An empty list should total 0.","test":"total_xp([]) == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Every 100 XP is one level. Write `level_for(xp)` that returns how many **full** levels that XP is worth — use integer division (`//`).",
+		Starter:     "def level_for(xp):\n    # 100 XP per level\n    pass\n",
+		Checks:      `[{"text":"0 XP is level 0.","test":"level_for(0) == 0"},{"text":"100 XP is level 1.","test":"level_for(100) == 1"},{"text":"250 XP is level 2.","test":"level_for(250) == 2"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Finish with a summary. For `xp = 350`, use an **f-string** to print `Level 3 · 350 XP` (call your `level_for` to get the level).",
+		Starter:     "def level_for(xp):\n    return xp // 100\n\nxp = 350\n# Print a summary line like: Level 3 · 350 XP\n",
+		Checks:      `[{"text":"Your summary should include the level, 3.","test":"'Level 3' in _out"},{"text":"Your summary should include the XP, 350.","test":"'350' in _out"}]`,
+	},
+}
+
+// lootInventorySteps — lists, dictionaries, and loops via a loot bag.
+var lootInventorySteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Start an empty `inventory` list, then add `'sword'` and `'shield'` to it using `.append()`.",
+		Starter:     "# Make an empty list called inventory, then append 'sword' and 'shield'\n",
+		Checks:      `[{"text":"inventory should be a list.","test":"isinstance(inventory, list)"},{"text":"It should contain 'sword' and 'shield'.","test":"'sword' in inventory and 'shield' in inventory"},{"text":"It should hold exactly 2 items.","test":"len(inventory) == 2"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Make a `prices` dictionary that maps `'sword'` → `100`, `'shield'` → `50`, and `'potion'` → `10`.",
+		Starter:     "# Create the prices dictionary\n",
+		Checks:      `[{"text":"prices should be a dict.","test":"isinstance(prices, dict)"},{"text":"A sword should cost 100.","test":"prices['sword'] == 100"},{"text":"There should be 3 prices.","test":"len(prices) == 3"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `total_value(items, prices)` that adds up the price of every item in the `items` list (items can repeat). Return `0` for an empty list.",
+		Starter:     "def total_value(items, prices):\n    # sum the price of each item\n    pass\n",
+		Checks:      `[{"text":"Two potions and a sword cost 120.","test":"total_value(['potion', 'potion', 'sword'], {'sword': 100, 'potion': 10}) == 120"},{"text":"An empty bag is worth 0.","test":"total_value([], {}) == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Loop over `inventory` and print each item next to its price, like `sword — 100` (use the `prices` dict).",
+		Starter:     "inventory = ['sword', 'shield']\nprices = {'sword': 100, 'shield': 50, 'potion': 10}\n# Print each item with its price, like: sword — 100\n",
+		Checks:      `[{"text":"You should print the sword's price.","test":"'sword — 100' in _out"},{"text":"You should print the shield's price.","test":"'shield — 50' in _out"}]`,
+	},
+}
+
+// comboSteps — loops and conditionals via an original FizzBuzz-style combo meter.
+var comboSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Our combo meter labels each hit number: divisible by 3 → `COMBO`, divisible by 5 → `CRIT`, divisible by **both** → `COMBOCRIT`, otherwise the number itself as text. Write `label(n)` that returns the right **string**.",
+		Starter:     "def label(n):\n    pass\n",
+		Checks:      `[{"text":"3 is a COMBO.","test":"label(3) == 'COMBO'"},{"text":"5 is a CRIT.","test":"label(5) == 'CRIT'"},{"text":"15 is a COMBOCRIT.","test":"label(15) == 'COMBOCRIT'"},{"text":"7 is just '7'.","test":"label(7) == '7'"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `combo(n)` that returns a **list** of the labels for every hit from `1` to `n` inclusive.",
+		Starter:     "def label(n):\n    if n % 15 == 0:\n        return 'COMBOCRIT'\n    if n % 3 == 0:\n        return 'COMBO'\n    if n % 5 == 0:\n        return 'CRIT'\n    return str(n)\n\ndef combo(n):\n    pass\n",
+		Checks:      `[{"text":"combo(5) has five labels.","test":"len(combo(5)) == 5"},{"text":"combo(5) is ['1', '2', 'COMBO', '4', 'CRIT'].","test":"combo(5) == ['1', '2', 'COMBO', '4', 'CRIT']"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Now print the full combo for `n = 15`, one label per line.",
+		Starter:     "def label(n):\n    if n % 15 == 0: return 'COMBOCRIT'\n    if n % 3 == 0: return 'COMBO'\n    if n % 5 == 0: return 'CRIT'\n    return str(n)\n\n# Print label(1) through label(15), one per line\n",
+		Checks:      `[{"text":"Hit 15 should print COMBOCRIT.","test":"'COMBOCRIT' in _out"},{"text":"You should print 15 lines.","test":"len([l for l in _out.strip().split(chr(10)) if l]) == 15"}]`,
+	},
+}
+
+// playerClassSteps — classes and objects via a Player model.
+var playerClassSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Define a `Player` class. Its `__init__` should take a `name`, store it on `self.name`, and set `self.hp` to `100`.",
+		Starter:     "class Player:\n    def __init__(self, name):\n        pass\n",
+		Checks:      `[{"text":"Player should be a class you can call.","test":"callable(Player)"},{"text":"A new player keeps their name.","test":"Player('Zed').name == 'Zed'"},{"text":"A new player starts at 100 HP.","test":"Player('Zed').hp == 100"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Add a `take_damage(self, amount)` method that subtracts `amount` from `self.hp` — but never lets HP drop below `0`.",
+		Starter:     "class Player:\n    def __init__(self, name):\n        self.name = name\n        self.hp = 100\n\n    def take_damage(self, amount):\n        pass\n",
+		Checks:      `[{"text":"30 damage leaves 70 HP.","test":"[p := Player('Zed'), p.take_damage(30), p.hp][2] == 70"},{"text":"HP never goes negative.","test":"[p := Player('Zed'), p.take_damage(999), p.hp][2] == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Add an `is_alive(self)` method that returns `True` while HP is above `0`, and `False` otherwise.",
+		Starter:     "class Player:\n    def __init__(self, name):\n        self.name = name\n        self.hp = 100\n\n    def take_damage(self, amount):\n        self.hp = max(0, self.hp - amount)\n\n    def is_alive(self):\n        pass\n",
+		Checks:      `[{"text":"A fresh player is alive.","test":"Player('Zed').is_alive() == True"},{"text":"A defeated player is not.","test":"[p := Player('Zed'), p.take_damage(999), p.is_alive()][2] == False"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Give `Player` a `__str__(self)` that returns text like `Zed: 100 HP`. Then create a player and `print` it.",
+		Starter:     "class Player:\n    def __init__(self, name):\n        self.name = name\n        self.hp = 100\n\n    def take_damage(self, amount):\n        self.hp = max(0, self.hp - amount)\n\n    def is_alive(self):\n        return self.hp > 0\n\n    def __str__(self):\n        pass\n\n# Create a Player and print it\n",
+		Checks:      `[{"text":"str(player) reads like 'Zed: 100 HP'.","test":"str(Player('Zed')) == 'Zed: 100 HP'"},{"text":"You printed a player.","test":"'HP' in _out"}]`,
+	},
+}
+
 // pythonLabs are the interactive Python labs (run via Pyodide/WASM).
 var pythonLabs = map[string][]store.Step{
-	"workshop_python_warm_up": pythonWarmupSteps,
+	"workshop_python_warm_up":         pythonWarmupSteps,
+	"workshop_build_an_xp_calculator": xpCalcSteps,
+	"workshop_build_a_loot_inventory": lootInventorySteps,
+	"workshop_score_multipliers":      comboSteps,
+	"workshop_model_a_player":         playerClassSteps,
 }
 
 // labSteps maps a frontend lesson slug to its interactive steps.
