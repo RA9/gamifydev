@@ -21,9 +21,9 @@
   const nextBtn = document.getElementById("nextBtn");
   const msg = document.getElementById("stepMsg");
   const items = [...document.querySelectorAll("#stepChecks li")];
-  if (!ta || !frame) return;
+  if (!ta) return; // `frame` is absent in Python mode (no preview iframe)
 
-  const lang = lab.dataset.lang === "js" ? "js" : "html";
+  const lang = (lab.dataset.lang === "js" || lab.dataset.lang === "python") ? lab.dataset.lang : "html";
   const completeURL = lab.dataset.completeUrl;
   let done = lab.dataset.completed === "1";
   let runSeq = 0; // makes each run's srcdoc unique so the iframe always reloads
@@ -105,7 +105,10 @@
     if (!consoleEl) return;
     let html = (logs || []).map((l) => '<div class="console-line">' + escapeHtml(l) + "</div>").join("");
     if (error) html += '<div class="console-line console-error">⚠ ' + escapeHtml(error) + "</div>";
-    if (!html) html = '<div class="console-empty">No output — use console.log(…) to print something.</div>';
+    if (!html) {
+      const how = lang === "python" ? "print(…)" : "console.log(…)";
+      html = '<div class="console-empty">No output — use ' + how + " to print something.</div>";
+    }
     consoleEl.innerHTML = html;
   };
 
@@ -119,6 +122,66 @@
     msg.textContent = "Your code didn't finish — check for an infinite loop, then try again.";
     msg.className = "step-msg is-bad";
   };
+
+  // --------------------------------------------------------------- Python mode
+  // Runs the learner's Python via Pyodide (WASM) in a Web Worker. Checks are
+  // Python expressions evaluated in the learner's namespace, with `_out`
+  // (printed output) and `_code` available. The worker is killed if it hangs.
+  if (lang === "python") {
+    const PYBASE = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+    const WORKER_SRC =
+      "let pyReady=null;" +
+      "function getPy(){if(!pyReady){importScripts('" + PYBASE + "pyodide.js');pyReady=loadPyodide({indexURL:'" + PYBASE + "'})}return pyReady}" +
+      "self.onmessage=async function(e){" +
+      "var code=e.data.code,tests=e.data.tests,py;" +
+      "try{py=await getPy()}catch(err){self.postMessage({type:'gd-check',results:tests.map(function(){return false}),logs:[],error:'Could not load Python: '+(err&&err.message||err)});return}" +
+      "var logs=[];py.setStdout({batched:function(s){logs.push(s)}});py.setStderr({batched:function(s){logs.push(s)}});" +
+      "var ns=py.toPy({});var error=null,results=[];" +
+      "try{py.runPython(code,{globals:ns})}catch(err){error=String(err&&err.message||err);" +
+      "var el=error.split('\\n').filter(Boolean);var mine=el.filter(function(x){return x.indexOf('<exec>')!==-1});" +
+      "error=(mine.length?mine.join('\\n')+'\\n':'')+el[el.length-1]}" +
+      "try{ns.set('_out',logs.join('\\n'));ns.set('_code',code)}catch(_){}" +
+      "results=tests.map(function(t){try{return !!py.runPython('bool('+t+')',{globals:ns})}catch(e){return false}});" +
+      "try{ns.destroy()}catch(_){}" +
+      "self.postMessage({type:'gd-check',results:results,logs:logs,error:error})};";
+    const workerURL = URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }));
+    let worker = null;
+    let pyLoaded = false;
+
+    checkBtn.addEventListener("click", () => {
+      checkBtn.disabled = true;
+      if (!pyLoaded && consoleEl) {
+        consoleEl.innerHTML = '<div class="console-empty">Loading Python… the first run downloads it (about 10&nbsp;MB), which can take a minute or two on a slow connection. Later runs are instant.</div>';
+      }
+      const code = ta.value;
+      const tests = items.map((li) => li.dataset.test);
+      if (!worker) worker = new Worker(workerURL);
+      const w = worker;
+      // Cold start pulls Pyodide (~10MB) from the CDN, so the first run gets a
+      // very generous timeout; once loaded, runs are near-instant and an 8s cap
+      // catches an accidental infinite loop.
+      const wasLoaded = pyLoaded;
+      const timer = setTimeout(() => {
+        w.terminate();
+        worker = null;
+        checkBtn.disabled = false;
+        if (wasLoaded) {
+          timedOut();
+        } else {
+          msg.textContent = "Python is taking too long to load — check your connection and try again.";
+          msg.className = "step-msg is-bad";
+        }
+      }, wasLoaded ? 8000 : 180000);
+      w.onmessage = (e) => {
+        clearTimeout(timer);
+        pyLoaded = true;
+        if (e.data && e.data.type === "gd-check") finish(e.data);
+      };
+      w.onerror = () => { clearTimeout(timer); w.terminate(); worker = null; timedOut(); };
+      w.postMessage({ code, tests });
+    });
+    return;
+  }
 
   if (scaffold) {
     // --- DOM lab: run in a sandboxed iframe (needs `document`) ---

@@ -234,8 +234,11 @@ func stepFromForm(r *http.Request) store.Step {
 	}
 	raw, _ := json.Marshal(checks)
 	lang := "html"
-	if r.FormValue("lang") == "js" {
+	switch r.FormValue("lang") {
+	case "js":
 		lang = "js"
+	case "python":
+		lang = "python"
 	}
 	return store.Step{
 		Instruction: r.FormValue("instruction"),

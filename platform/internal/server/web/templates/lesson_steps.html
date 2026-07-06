@@ -39,10 +39,15 @@
     </div>
 
     <div class="step-panel step-work">
-      <gd-code-editor lang="{{ if eq $step.Lang "js" }}javascript{{ else }}html{{ end }}">
+      <gd-code-editor lang="{{ if eq $step.Lang "js" }}javascript{{ else if eq $step.Lang "python" }}python{{ else }}html{{ end }}">
         <textarea id="stepCode" class="gd-editor-ta" spellcheck="false">{{ $step.Starter }}</textarea>
       </gd-code-editor>
-      {{ if eq $step.Lang "js" }}
+      {{ if eq $step.Lang "python" }}
+      <div class="step-preview-wrap">
+        <span class="step-preview-label">Output</span>
+        <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run your Python and see its output here.</div></div>
+      </div>
+      {{ else if eq $step.Lang "js" }}
       {{ if $step.Scaffold }}
       <div class="step-preview-wrap">
         <span class="step-preview-label">Result</span>
