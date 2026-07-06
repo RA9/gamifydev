@@ -1002,6 +1002,144 @@ var dataclassSteps = []store.Step{
 	},
 }
 
+// --- Server-side labs (Lang "pyserver"): the learner writes a real web app or
+// database program that runs on the server; the checks exercise it in-process
+// via the framework's test client. ---
+
+// flaskRouteSteps — a first Flask web server.
+var flaskRouteSteps = []store.Step{
+	{
+		Lang:        "pyserver",
+		Instruction: "Time to build a real web server! Create a Flask app named `app`, then add a route for `/` that returns `Hello, GamifyDev!`. The checker runs your app for you — you don't need `app.run()`.",
+		Starter:     "from flask import Flask\n\napp = Flask(__name__)\n\n# Add a route for '/' that returns 'Hello, GamifyDev!'\n",
+		Checks:      `[{"text":"The home page loads (status 200).","test":"client.get('/').status_code == 200"},{"text":"It returns 'Hello, GamifyDev!'.","test":"b'Hello, GamifyDev!' in client.get('/').data"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Add a second route, `/ping`, that returns the text `pong`.",
+		Starter:     "from flask import Flask\n\napp = Flask(__name__)\n\n@app.route('/')\ndef home():\n    return 'Hello, GamifyDev!'\n\n# Add a /ping route that returns 'pong'\n",
+		Checks:      `[{"text":"/ping loads (status 200).","test":"client.get('/ping').status_code == 200"},{"text":"/ping returns exactly 'pong'.","test":"client.get('/ping').data == b'pong'"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Routes can capture parts of the URL. Add `/hi/<name>` that returns `Hi, <name>!` — so `/hi/Ada` returns `Hi, Ada!`.",
+		Starter:     "from flask import Flask\n\napp = Flask(__name__)\n\n# Add /hi/<name> that returns 'Hi, <name>!'\n",
+		Checks:      `[{"text":"/hi/Ada greets Ada.","test":"b'Hi, Ada!' in client.get('/hi/Ada').data"},{"text":"/hi/Zed greets Zed.","test":"b'Hi, Zed!' in client.get('/hi/Zed').data"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "A route can set the HTTP status code by returning a tuple of `(body, status)`. Add `/created` that returns the body `Created` with status `201`.",
+		Starter:     "from flask import Flask\n\napp = Flask(__name__)\n\n# Add /created that returns 'Created' with status code 201\n",
+		Checks:      `[{"text":"/created returns status 201.","test":"client.get('/created').status_code == 201"},{"text":"Its body is 'Created'.","test":"b'Created' in client.get('/created').data"}]`,
+	},
+}
+
+// flaskRequestSteps — reading query strings, form/JSON, and methods.
+var flaskRequestSteps = []store.Step{
+	{
+		Lang:        "pyserver",
+		Instruction: "Read query strings with `request.args`. Add `/greet` that returns `Hello, <name>!` using the `name` query parameter, defaulting to `friend` when it's missing.",
+		Starter:     "from flask import Flask, request\n\napp = Flask(__name__)\n\n# /greet -> 'Hello, <name>!', reading ?name=... (default 'friend')\n",
+		Checks:      `[{"text":"No name defaults to 'friend'.","test":"b'Hello, friend!' in client.get('/greet').data"},{"text":"?name=Ada greets Ada.","test":"b'Hello, Ada!' in client.get('/greet?name=Ada').data"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Add `/sum` that reads two integer query params `a` and `b` and returns their sum as text. Query values are strings — convert them with `int(...)`.",
+		Starter:     "from flask import Flask, request\n\napp = Flask(__name__)\n\n# /sum?a=2&b=3 -> '5'\n",
+		Checks:      `[{"text":"2 + 3 is 5.","test":"client.get('/sum?a=2&b=3').data == b'5'"},{"text":"10 + 15 is 25.","test":"client.get('/sum?a=10&b=15').data == b'25'"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Handle JSON. Add a **POST** route `/echo` that reads a JSON body `{\"msg\": ...}` and returns JSON `{\"echo\": <msg>}`. Use `request.get_json()` and `jsonify`.",
+		Starter:     "from flask import Flask, request, jsonify\n\napp = Flask(__name__)\n\n# POST /echo: read {'msg': ...} and return {'echo': <msg>}\n",
+		Checks:      `[{"text":"It echoes the message back as JSON.","test":"client.post('/echo', json={'msg': 'hi'}).get_json() == {'echo': 'hi'}"},{"text":"It works for any message.","test":"client.post('/echo', json={'msg': 'yo'}).get_json() == {'echo': 'yo'}"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Flask knows which methods a route allows. Confirm your `/echo` only accepts POST — a `GET` to it should return status `405` (Method Not Allowed).",
+		Starter:     "from flask import Flask, request, jsonify\n\napp = Flask(__name__)\n\n@app.post('/echo')\ndef echo():\n    return jsonify({'echo': request.get_json()['msg']})\n\n# Nothing to add — run the check to confirm GET is rejected with 405.\n",
+		Checks:      `[{"text":"A GET to /echo is rejected (405).","test":"client.get('/echo').status_code == 405"},{"text":"A POST to /echo still works.","test":"client.post('/echo', json={'msg': 'x'}).get_json() == {'echo': 'x'}"}]`,
+	},
+}
+
+// restApiSteps — a full CRUD REST resource.
+var restApiSteps = []store.Step{
+	{
+		Lang:        "pyserver",
+		Instruction: "Build a REST API for tasks. Using the `tasks` list provided, add `GET /tasks` that returns the whole list as JSON.",
+		Starter:     "from flask import Flask, request, jsonify\n\napp = Flask(__name__)\ntasks = []\n\n# GET /tasks -> the tasks list as JSON\n",
+		Checks:      `[{"text":"GET /tasks returns 200.","test":"client.get('/tasks').status_code == 200"},{"text":"It starts empty.","test":"client.get('/tasks').get_json() == []"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Add `POST /tasks` that reads `{\"title\": ...}`, appends `{\"id\": <n>, \"title\": <title>, \"done\": False}` to `tasks`, and returns the new task with status `201`. A task's position (`len(tasks) + 1`) makes a fine id.",
+		Starter:     "from flask import Flask, request, jsonify\n\napp = Flask(__name__)\ntasks = []\n\n@app.get('/tasks')\ndef list_tasks():\n    return jsonify(tasks)\n\n# POST /tasks: create a task from {'title': ...} and return it with status 201\n",
+		Checks:      `[{"text":"Creating a task returns 201.","test":"client.post('/tasks', json={'title': 'Learn Flask'}).status_code == 201"},{"text":"The new task echoes its title.","test":"client.post('/tasks', json={'title': 'Ship it'}).get_json()['title'] == 'Ship it'"},{"text":"A new task starts not done.","test":"client.post('/tasks', json={'title': 'x'}).get_json()['done'] == False"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Add `GET /tasks/<int:id>` that returns a single task by its id, or a `404` if there's no such task. `abort(404)` is the easy way to bail out.",
+		Starter:     "from flask import Flask, request, jsonify, abort\n\napp = Flask(__name__)\ntasks = []\n\n@app.post('/tasks')\ndef create_task():\n    task = {'id': len(tasks) + 1, 'title': request.get_json()['title'], 'done': False}\n    tasks.append(task)\n    return jsonify(task), 201\n\n# GET /tasks/<int:id> -> the matching task, or abort(404)\n",
+		Checks:      `[{"text":"A created task can be fetched by id.","test":"(tid := client.post('/tasks', json={'title': 'Find me'}).get_json()['id']) and client.get(f'/tasks/{tid}').get_json()['title'] == 'Find me'"},{"text":"An unknown id returns 404.","test":"client.get('/tasks/9999').status_code == 404"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Complete the CRUD set: add `DELETE /tasks/<int:id>` that removes a task and returns status `204`. Deleting a task then fetching it should give `404`.",
+		Starter:     "from flask import Flask, request, jsonify, abort\n\napp = Flask(__name__)\ntasks = []\n\n@app.post('/tasks')\ndef create_task():\n    task = {'id': len(tasks) + 1, 'title': request.get_json()['title'], 'done': False}\n    tasks.append(task)\n    return jsonify(task), 201\n\n@app.get('/tasks/<int:id>')\ndef get_task(id):\n    for t in tasks:\n        if t['id'] == id:\n            return jsonify(t)\n    abort(404)\n\n# DELETE /tasks/<int:id> -> remove it, return status 204\n",
+		Checks:      `[{"text":"Deleting a task returns 204.","test":"(tid := client.post('/tasks', json={'title': 'Bye'}).get_json()['id']) and client.delete(f'/tasks/{tid}').status_code == 204"},{"text":"After deleting, it's gone (404).","test":"(tid := client.post('/tasks', json={'title': 'Gone'}).get_json()['id']) and (client.delete(f'/tasks/{tid}'), client.get(f'/tasks/{tid}').status_code)[1] == 404"}]`,
+	},
+}
+
+// sqliteSteps — persisting and querying data with SQLite (stdlib).
+var sqliteSteps = []store.Step{
+	{
+		Lang:        "pyserver",
+		Instruction: "Databases hold your app's data. Write `setup_db()` that returns a new in-memory SQLite connection with a `players` table (`name TEXT, score INT`) seeded with `('Ada', 90)` and `('Zed', 70)`.",
+		Starter:     "import sqlite3\n\ndef setup_db():\n    conn = sqlite3.connect(':memory:')\n    # create the players table and insert Ada (90) and Zed (70)\n    return conn\n",
+		Checks:      `[{"text":"The table has 2 players.","test":"setup_db().execute('SELECT COUNT(*) FROM players').fetchone()[0] == 2"},{"text":"Ada's score is stored.","test":"setup_db().execute(\"SELECT score FROM players WHERE name = 'Ada'\").fetchone()[0] == 90"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Write `top_player(conn)` that returns the **name** of the highest-scoring player. `ORDER BY score DESC LIMIT 1` does the work in SQL.",
+		Starter:     "import sqlite3\n\ndef setup_db():\n    conn = sqlite3.connect(':memory:')\n    conn.execute('CREATE TABLE players (name TEXT, score INT)')\n    conn.executemany('INSERT INTO players VALUES (?, ?)', [('Ada', 90), ('Zed', 70)])\n    return conn\n\ndef top_player(conn):\n    pass\n",
+		Checks:      `[{"text":"Ada is on top.","test":"top_player(setup_db()) == 'Ada'"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Write `add_player(conn, name, score)` that inserts a new player, and `count_players(conn)` that returns how many players there are.",
+		Starter:     "import sqlite3\n\ndef setup_db():\n    conn = sqlite3.connect(':memory:')\n    conn.execute('CREATE TABLE players (name TEXT, score INT)')\n    conn.executemany('INSERT INTO players VALUES (?, ?)', [('Ada', 90), ('Zed', 70)])\n    return conn\n\ndef add_player(conn, name, score):\n    pass\n\ndef count_players(conn):\n    pass\n",
+		Checks:      `[{"text":"A fresh database has 2 players.","test":"count_players(setup_db()) == 2"},{"text":"Adding a player bumps the count to 3.","test":"(c := setup_db(), add_player(c, 'Nova', 80), count_players(c))[2] == 3"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Write `leaderboard(conn)` that returns a list of `(name, score)` tuples, highest score first.",
+		Starter:     "import sqlite3\n\ndef setup_db():\n    conn = sqlite3.connect(':memory:')\n    conn.execute('CREATE TABLE players (name TEXT, score INT)')\n    conn.executemany('INSERT INTO players VALUES (?, ?)', [('Ada', 90), ('Zed', 70)])\n    return conn\n\ndef leaderboard(conn):\n    pass\n",
+		Checks:      `[{"text":"The leaderboard is sorted high to low.","test":"leaderboard(setup_db()) == [('Ada', 90), ('Zed', 70)]"}]`,
+	},
+}
+
+// fastapiSteps — a modern, type-hinted API with FastAPI + Pydantic.
+var fastapiSteps = []store.Step{
+	{
+		Lang:        "pyserver",
+		Instruction: "FastAPI is a modern, type-hinted web framework. Create `app = FastAPI()` and a `GET /` route that returns the JSON `{'msg': 'Hello from FastAPI'}`.",
+		Starter:     "from fastapi import FastAPI\n\napp = FastAPI()\n\n# GET / -> {'msg': 'Hello from FastAPI'}\n",
+		Checks:      `[{"text":"The root returns 200.","test":"client.get('/').status_code == 200"},{"text":"It returns the greeting JSON.","test":"client.get('/').json() == {'msg': 'Hello from FastAPI'}"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "FastAPI reads typed path parameters for you. Add `GET /square/{n}` with `n: int` that returns `{'n': n, 'square': n * n}`.",
+		Starter:     "from fastapi import FastAPI\n\napp = FastAPI()\n\n# GET /square/{n} with n: int -> {'n': n, 'square': n * n}\n",
+		Checks:      `[{"text":"square of 4 is 16.","test":"client.get('/square/4').json() == {'n': 4, 'square': 16}"},{"text":"square of 9 is 81.","test":"client.get('/square/9').json()['square'] == 81"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Add a typed request body with Pydantic. A `Msg` model with a `text: str` field is provided. Add `POST /echo` taking a `Msg` that returns `{'echo': <text>, 'length': <len of text>}`.",
+		Starter:     "from fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI()\n\nclass Msg(BaseModel):\n    text: str\n\n# POST /echo taking a Msg -> {'echo': <text>, 'length': <len>}\n",
+		Checks:      `[{"text":"It echoes and measures the text.","test":"client.post('/echo', json={'text': 'hi'}).json() == {'echo': 'hi', 'length': 2}"},{"text":"It works for longer text.","test":"client.post('/echo', json={'text': 'hello'}).json()['length'] == 5"}]`,
+	},
+}
+
 // pythonLabs are the interactive Python labs (run via Pyodide/WASM).
 var pythonLabs = map[string][]store.Step{
 	"workshop_python_warm_up":             pythonWarmupSteps,
@@ -1019,6 +1157,11 @@ var pythonLabs = map[string][]store.Step{
 	"workshop_recursion_puzzles":          recursionSteps,
 	"workshop_parse_game_logs_with_regex": regexSteps,
 	"workshop_model_with_dataclasses":     dataclassSteps,
+	"workshop_your_first_flask_route":     flaskRouteSteps,
+	"workshop_handle_request_data":        flaskRequestSteps,
+	"workshop_build_a_rest_api":           restApiSteps,
+	"workshop_query_a_database":           sqliteSteps,
+	"workshop_a_fastapi_endpoint":         fastapiSteps,
 }
 
 // labSteps maps a frontend lesson slug to its interactive steps.

@@ -21,7 +21,7 @@ type Step struct {
 // langOr defaults an empty/unknown language to html.
 func langOr(l string) string {
 	switch l {
-	case "js", "python":
+	case "js", "python", "pyserver":
 		return l
 	default:
 		return "html"

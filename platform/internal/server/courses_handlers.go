@@ -185,6 +185,7 @@ func (s *Server) renderStepLab(w http.ResponseWriter, r *http.Request, course *s
 		"nextURL":     nextURL,
 		"prevURL":     prevURL,
 		"completeURL": "/steps/" + strconv.FormatInt(step.ID, 10) + "/complete",
+		"runURL":      "/steps/" + strconv.FormatInt(step.ID, 10) + "/run",
 	}})
 }
 
