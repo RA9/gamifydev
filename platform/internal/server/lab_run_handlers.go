@@ -146,7 +146,12 @@ func buildPyHarness(code string, tests []string) string {
 	b.WriteString("    if hasattr(app, 'test_client'):\n        return app.test_client()\n") // Flask / WSGI
 	b.WriteString("    try:\n        from starlette.testclient import TestClient\n        return TestClient(app)\n    except Exception:\n        return None\n")
 	b.WriteString("try:\n    client = _gd_make_client()\nexcept Exception:\n    client = None\n")
-	b.WriteString("_gd_tests = ")
+	// Expose the learner's source so checks can inspect it (e.g. testing labs
+	// that confirm an `assert` was actually written).
+	codeJSON, _ := json.Marshal(code)
+	b.WriteString("_code = ")
+	b.Write(codeJSON)
+	b.WriteString("\n_gd_tests = ")
 	b.Write(testsJSON)
 	b.WriteString("\n_gd_results = []\n")
 	b.WriteString("for _gd_t in _gd_tests:\n")

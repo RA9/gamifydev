@@ -1140,6 +1140,56 @@ var fastapiSteps = []store.Step{
 	},
 }
 
+// --- Testing labs (Lang "pyserver"): the learner writes assert-based tests
+// (the shape pytest discovers and runs) or fixes buggy code to make a provided
+// test pass. A passing test function returns None; a failing assert raises, so
+// `test_x() is None` is True exactly when the learner's test is green. `_code`
+// (the learner's source) lets a check confirm an `assert` was really written. ---
+
+// writeTestsSteps — writing your first assert-based tests.
+var writeTestsSteps = []store.Step{
+	{
+		Lang:        "pyserver",
+		Instruction: "Good code comes with tests. The `total()` function is written for you — now write `test_total()` that **asserts** `total([1, 2, 3])` is `6` and `total([])` is `0`. (A test function whose asserts all hold is a green test.)",
+		Starter:     "def total(prices):\n    return sum(prices)\n\ndef test_total():\n    # assert total([1, 2, 3]) == 6, and total([]) == 0\n    pass\n",
+		Checks:      `[{"text":"test_total is a function.","test":"callable(test_total)"},{"text":"Your test uses assert.","test":"'assert' in _code"},{"text":"It actually calls total().","test":"'total(' in _code"},{"text":"Your test passes (no assertion fails).","test":"test_total() is None"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "Good tests cover the tricky cases. Add a second test, `test_total_edge()`, that asserts `total([5])` is `5` and `total([-1, 1])` is `0`.",
+		Starter:     "def total(prices):\n    return sum(prices)\n\ndef test_total():\n    assert total([1, 2, 3]) == 6\n    assert total([]) == 0\n\ndef test_total_edge():\n    # assert total([5]) == 5, and total([-1, 1]) == 0\n    pass\n",
+		Checks:      `[{"text":"test_total_edge is a function.","test":"callable(test_total_edge)"},{"text":"You now have two test functions.","test":"_code.count('def test_') >= 2"},{"text":"Both tests pass.","test":"test_total() is None and test_total_edge() is None"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "A test's job is to **catch mistakes**. Write `test_total_mixed()` that asserts `total([10, -3, 3])` is `10` — a mix of positive and negative numbers.",
+		Starter:     "def total(prices):\n    return sum(prices)\n\ndef test_total_mixed():\n    # assert total([10, -3, 3]) == 10\n    pass\n",
+		Checks:      `[{"text":"test_total_mixed is a function.","test":"callable(test_total_mixed)"},{"text":"It uses assert on total().","test":"'assert' in _code and 'total(' in _code"},{"text":"It passes.","test":"test_total_mixed() is None"}]`,
+	},
+}
+
+// findTheBugSteps — read a failing test, fix the code to turn it green.
+var findTheBugSteps = []store.Step{
+	{
+		Lang:        "pyserver",
+		Instruction: "Here's a function with a bug and a test that catches it. `average()` crashes on an empty list. **Fix `average`** so the provided `test_average` passes — an empty list should return `0`. (Don't change the test.)",
+		Starter:     "def average(nums):\n    return sum(nums) / len(nums)   # bug: crashes on an empty list\n\ndef test_average():\n    assert average([2, 4]) == 3\n    assert average([]) == 0\n",
+		Checks:      `[{"text":"The provided test now passes.","test":"test_average() is None"},{"text":"average([2, 4]) is still 3.","test":"average([2, 4]) == 3"},{"text":"average([]) returns 0 instead of crashing.","test":"average([]) == 0"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "`biggest()` returns the **first** number, not the biggest. Fix it so `test_biggest` passes.",
+		Starter:     "def biggest(nums):\n    return nums[0]   # bug: returns the first, not the biggest\n\ndef test_biggest():\n    assert biggest([3, 9, 4]) == 9\n    assert biggest([1]) == 1\n",
+		Checks:      `[{"text":"test_biggest passes.","test":"test_biggest() is None"},{"text":"It finds the max of several numbers.","test":"biggest([3, 9, 4]) == 9"},{"text":"A single number is its own max.","test":"biggest([1]) == 1"}]`,
+	},
+	{
+		Lang:        "pyserver",
+		Instruction: "`is_even()` has its logic backwards. Fix it so `test_is_even` passes.",
+		Starter:     "def is_even(n):\n    return n % 2 == 1   # bug: this is the test for ODD\n\ndef test_is_even():\n    assert is_even(4) is True\n    assert is_even(3) is False\n    assert is_even(0) is True\n",
+		Checks:      `[{"text":"test_is_even passes.","test":"test_is_even() is None"},{"text":"4 is even.","test":"is_even(4) is True"},{"text":"3 is not even.","test":"is_even(3) is False"}]`,
+	},
+}
+
 // pythonLabs are the interactive Python labs (run via Pyodide/WASM).
 var pythonLabs = map[string][]store.Step{
 	"workshop_python_warm_up":             pythonWarmupSteps,
@@ -1162,6 +1212,8 @@ var pythonLabs = map[string][]store.Step{
 	"workshop_build_a_rest_api":           restApiSteps,
 	"workshop_query_a_database":           sqliteSteps,
 	"workshop_a_fastapi_endpoint":         fastapiSteps,
+	"workshop_write_your_first_tests":     writeTestsSteps,
+	"workshop_find_the_bug":               findTheBugSteps,
 }
 
 // labSteps maps a frontend lesson slug to its interactive steps.
