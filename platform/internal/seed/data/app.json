@@ -30,7 +30,7 @@
           },
           {
             "title": "HTML Basics",
-            "description": "Structure every web page with HTML \u2014 elements, attributes, and semantic markup.",
+            "description": "Structure every web page with HTML — elements, attributes, and semantic markup.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -42,7 +42,7 @@
           },
           {
             "title": "Workshop: Build a Game Launch Page",
-            "description": "Learn HTML structure hands-on by building a launch page for your own game \u2014 title, sections, image, features, and a call to action.",
+            "description": "Learn HTML structure hands-on by building a launch page for your own game — title, sections, image, features, and a call to action.",
             "section": "HTML",
             "kind": "lab",
             "resources": [],
@@ -66,7 +66,7 @@
           },
           {
             "title": "Workshop: Build a Sign-up Form",
-            "description": "Build a real sign-up form step by step \u2014 inputs, types, required, and a submit button \u2014 in an interactive editor.",
+            "description": "Build a real sign-up form step by step — inputs, types, required, and a submit button — in an interactive editor.",
             "section": "HTML",
             "kind": "lab",
             "resources": [],
@@ -78,7 +78,7 @@
           },
           {
             "title": "Web Accessibility Basics",
-            "description": "Build pages everyone can use \u2014 semantics, alt text, keyboard access, and ARIA.",
+            "description": "Build pages everyone can use — semantics, alt text, keyboard access, and ARIA.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -102,7 +102,7 @@
           },
           {
             "title": "Workshop: Style a Business Card",
-            "description": "Practise CSS hands-on \u2014 style a card with colours, spacing, and rounded corners in an interactive editor.",
+            "description": "Practise CSS hands-on — style a card with colours, spacing, and rounded corners in an interactive editor.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -114,7 +114,7 @@
           },
           {
             "title": "Workshop: Build a Pricing Card",
-            "description": "Style a polished product pricing card with CSS \u2014 padding, shadow, rounded corners, and a clickable button.",
+            "description": "Style a polished product pricing card with CSS — padding, shadow, rounded corners, and a clickable button.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -126,7 +126,7 @@
           },
           {
             "title": "Workshop: Build an Achievement Badge",
-            "description": "Craft a circular achievement badge with CSS \u2014 sizing, border-radius, flexbox centering, and a gradient.",
+            "description": "Craft a circular achievement badge with CSS — sizing, border-radius, flexbox centering, and a gradient.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -138,7 +138,7 @@
           },
           {
             "title": "Workshop: Build an XP Progress Bar",
-            "description": "Build an XP progress bar with CSS \u2014 a coloured fill inside a rounded track.",
+            "description": "Build an XP progress bar with CSS — a coloured fill inside a rounded track.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -174,7 +174,7 @@
           },
           {
             "title": "Workshop: Build a Leaderboard Row",
-            "description": "Lay out a leaderboard entry with Flexbox \u2014 rank, name, and score aligned and spaced.",
+            "description": "Lay out a leaderboard entry with Flexbox — rank, name, and score aligned and spaced.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -246,7 +246,7 @@
           },
           {
             "title": "Project: Build a Profile Card",
-            "description": "Your first real build \u2014 a polished, responsive profile card with HTML and CSS.",
+            "description": "Your first real build — a polished, responsive profile card with HTML and CSS.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -306,7 +306,7 @@
           },
           {
             "title": "Workshop: Code a Level-Up System",
-            "description": "Write real JavaScript in an interactive editor \u2014 variables, functions, conditionals, and arrays \u2014 with a live console and instant checks.",
+            "description": "Write real JavaScript in an interactive editor — variables, functions, conditionals, and arrays — with a live console and instant checks.",
             "section": "JavaScript",
             "kind": "lab",
             "resources": [],
@@ -318,7 +318,7 @@
           },
           {
             "title": "Workshop: Build an Inventory",
-            "description": "Practise JavaScript arrays and objects in an interactive editor \u2014 map, filter, reduce, and find over a list of items.",
+            "description": "Practise JavaScript arrays and objects in an interactive editor — map, filter, reduce, and find over a list of items.",
             "section": "JavaScript",
             "kind": "lab",
             "resources": [],
@@ -366,7 +366,7 @@
           },
           {
             "title": "Workshop: Build a Like Button",
-            "description": "Wire up a real interactive Like button with JavaScript \u2014 select elements, handle clicks, and update the page.",
+            "description": "Wire up a real interactive Like button with JavaScript — select elements, handle clicks, and update the page.",
             "section": "JavaScript",
             "kind": "lab",
             "resources": [],
@@ -558,7 +558,7 @@
           },
           {
             "title": "Next Steps",
-            "description": "Where to go after the Frontend path \u2014 frameworks, tooling, and how to keep growing.",
+            "description": "Where to go after the Frontend path — frameworks, tooling, and how to keep growing.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -575,7 +575,7 @@
         "modules": [
           {
             "title": "What is the Backend?",
-            "description": "Servers, requests, and responses \u2014 what happens behind the scenes.",
+            "description": "Servers, requests, and responses — what happens behind the scenes.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -725,7 +725,7 @@
           },
           {
             "title": "Pointers and Memory",
-            "description": "C\u2019s signature feature: working with memory addresses.",
+            "description": "C’s signature feature: working with memory addresses.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -815,7 +815,7 @@
         "modules": [
           {
             "title": "What is Python?",
-            "description": "Meet Python \u2014 what it is, why it's everywhere, and what you can build with it.",
+            "description": "Meet Python — what it is, why it's everywhere, and what you can build with it.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -839,7 +839,7 @@
           },
           {
             "title": "Python Basics",
-            "description": "Variables, the core data types, and printing \u2014 the vocabulary every program is built from.",
+            "description": "Variables, the core data types, and printing — the vocabulary every program is built from.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -851,7 +851,7 @@
           },
           {
             "title": "Workshop: Python Warm-Up",
-            "description": "Write and run real Python in your browser \u2014 variables, print, functions, and lists \u2014 with instant checks.",
+            "description": "Write and run real Python in your browser — variables, print, functions, and lists — with instant checks.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -863,7 +863,7 @@
           },
           {
             "title": "Strings and Text",
-            "description": "Slicing, formatting, and transforming text \u2014 from f-strings to the string methods you'll reach for daily.",
+            "description": "Slicing, formatting, and transforming text — from f-strings to the string methods you'll reach for daily.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -875,7 +875,7 @@
           },
           {
             "title": "Workshop: Build a Chat Filter",
-            "description": "Practice string methods \u2014 case, slicing, replace, and split \u2014 by building a chat command filter.",
+            "description": "Practice string methods — case, slicing, replace, and split — by building a chat command filter.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -923,7 +923,7 @@
           },
           {
             "title": "Tuples and Sets",
-            "description": "Fixed tuples and unique-only sets \u2014 when to reach for each and why they matter.",
+            "description": "Fixed tuples and unique-only sets — when to reach for each and why they matter.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -1007,7 +1007,7 @@
           },
           {
             "title": "Workshop: Score Multipliers",
-            "description": "Wire up a combo meter with loops and conditionals \u2014 an original take on the classic FizzBuzz.",
+            "description": "Wire up a combo meter with loops and conditionals — an original take on the classic FizzBuzz.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -1103,7 +1103,7 @@
           },
           {
             "title": "Workshop: Build a Number Stream",
-            "description": "Write generators \u2014 finite, infinite, and lazily consumed \u2014 from scratch.",
+            "description": "Write generators — finite, infinite, and lazily consumed — from scratch.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -1234,6 +1234,162 @@
             "kind": "lab"
           },
           {
+            "title": "How the Web Works (HTTP)",
+            "description": "Requests, responses, methods, and status codes — the language every web app speaks.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
+            "title": "Your First Web Server (Flask)",
+            "description": "Build a real web server with Flask: routes, responses, and dynamic URLs.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
+            "title": "Workshop: Your First Flask Route",
+            "description": "Write a live Flask app with routes, dynamic URLs, and status codes — checked on the server.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "lab"
+          },
+          {
+            "title": "Handling Requests",
+            "description": "Read query strings, form data, and JSON bodies, and return JSON responses.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
+            "title": "Workshop: Handle Request Data",
+            "description": "Read query params and JSON, return JSON, and handle HTTP methods in Flask.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "lab"
+          },
+          {
+            "title": "Building a REST API",
+            "description": "Design resource endpoints with the right methods and status codes.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
+            "title": "Workshop: Build a REST API",
+            "description": "Build a full CRUD tasks API — create, read, and delete with proper status codes.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "lab"
+          },
+          {
+            "title": "Databases with SQL",
+            "description": "Persist data with SQL and Python's built-in sqlite3, safely.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
+            "title": "Workshop: Query a Database",
+            "description": "Create, seed, and query a SQLite database — top scores and leaderboards.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "lab"
+          },
+          {
+            "title": "Talking to Other APIs",
+            "description": "Be a client of someone else's API with requests / httpx.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
+            "title": "Modern APIs with FastAPI",
+            "description": "Type-hinted, self-documenting APIs with FastAPI and Pydantic.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
+            "title": "Workshop: A FastAPI Endpoint",
+            "description": "Build a typed FastAPI app with path params and a Pydantic request body.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "lab"
+          },
+          {
+            "title": "Deploying a Python Web App",
+            "description": "Take your app to production: WSGI/ASGI servers, requirements, env vars, hosting.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Web & Servers",
+            "kind": "theory"
+          },
+          {
             "title": "Classes and Objects",
             "description": "Model your own types with classes, attributes, and methods.",
             "resources": [],
@@ -1259,7 +1415,7 @@
           },
           {
             "title": "Workshop: Model a Player",
-            "description": "Build a Player class with HP, damage, and a readable __str__ \u2014 pure object-oriented Python.",
+            "description": "Build a Player class with HP, damage, and a readable __str__ — pure object-oriented Python.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -1283,7 +1439,7 @@
           },
           {
             "title": "Project: Text Adventure Engine",
-            "description": "A capstone \u2014 architect a data-driven adventure engine with rooms, items, and commands.",
+            "description": "A capstone — architect a data-driven adventure engine with rooms, items, and commands.",
             "resources": [],
             "author": "",
             "is_completed": false,

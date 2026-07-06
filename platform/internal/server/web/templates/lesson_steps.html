@@ -6,6 +6,7 @@
      data-lang="{{ $step.Lang }}"
      data-scaffold="{{ $step.Scaffold }}"
      data-complete-url="{{ index .Data "completeURL" }}"
+     data-run-url="{{ index .Data "runURL" }}"
      data-next-url="{{ index .Data "nextURL" }}"
      data-completed="{{ if index .Data "completed" }}1{{ else }}0{{ end }}"
      data-is-last="{{ if index .Data "isLast" }}1{{ else }}0{{ end }}">
@@ -39,10 +40,15 @@
     </div>
 
     <div class="step-panel step-work">
-      <gd-code-editor lang="{{ if eq $step.Lang "js" }}javascript{{ else if eq $step.Lang "python" }}python{{ else }}html{{ end }}">
+      <gd-code-editor lang="{{ if eq $step.Lang "js" }}javascript{{ else if or (eq $step.Lang "python") (eq $step.Lang "pyserver") }}python{{ else }}html{{ end }}">
         <textarea id="stepCode" class="gd-editor-ta" spellcheck="false">{{ $step.Starter }}</textarea>
       </gd-code-editor>
-      {{ if eq $step.Lang "python" }}
+      {{ if eq $step.Lang "pyserver" }}
+      <div class="step-preview-wrap">
+        <span class="step-preview-label">Server output</span>
+        <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run it on the server and see output here.</div></div>
+      </div>
+      {{ else if eq $step.Lang "python" }}
       <div class="step-preview-wrap">
         <span class="step-preview-label">Output</span>
         <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run your Python and see its output here.</div></div>

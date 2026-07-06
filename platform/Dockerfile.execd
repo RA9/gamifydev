@@ -34,6 +34,11 @@ FROM python:3.12-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends bubblewrap \
     && rm -rf /var/lib/apt/lists/*
+# Pre-install the packages learner code may import (Flask/FastAPI/DB labs).
+# Installed at build time because the sandbox has NO network, so runtime pip
+# is impossible by design.
+COPY cmd/execd/sandbox-requirements.txt /tmp/sandbox-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/sandbox-requirements.txt
 COPY --from=build /app/execd /usr/local/bin/execd
 # Run as an unprivileged user; execd never needs root.
 RUN useradd --create-home --uid 10001 sandbox

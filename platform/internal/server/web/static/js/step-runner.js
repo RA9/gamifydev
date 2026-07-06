@@ -23,7 +23,7 @@
   const items = [...document.querySelectorAll("#stepChecks li")];
   if (!ta) return; // `frame` is absent in Python mode (no preview iframe)
 
-  const lang = (lab.dataset.lang === "js" || lab.dataset.lang === "python") ? lab.dataset.lang : "html";
+  const lang = ["js", "python", "pyserver"].includes(lab.dataset.lang) ? lab.dataset.lang : "html";
   const completeURL = lab.dataset.completeUrl;
   let done = lab.dataset.completed === "1";
   let runSeq = 0; // makes each run's srcdoc unique so the iframe always reloads
@@ -106,7 +106,7 @@
     let html = (logs || []).map((l) => '<div class="console-line">' + escapeHtml(l) + "</div>").join("");
     if (error) html += '<div class="console-line console-error">⚠ ' + escapeHtml(error) + "</div>";
     if (!html) {
-      const how = lang === "python" ? "print(…)" : "console.log(…)";
+      const how = (lang === "python" || lang === "pyserver") ? "print(…)" : "console.log(…)";
       html = '<div class="console-empty">No output — use ' + how + " to print something.</div>";
     }
     consoleEl.innerHTML = html;
@@ -122,6 +122,39 @@
     msg.textContent = "Your code didn't finish — check for an infinite loop, then try again.";
     msg.className = "step-msg is-bad";
   };
+
+  // ------------------------------------------------------------- Server mode
+  // Server-side labs (Flask/FastAPI/DB): POST the learner's code to the server,
+  // which runs it plus the authored checks inside the sandbox and returns
+  // per-check results. Checks never reach the browser.
+  if (lang === "pyserver") {
+    const runURL = lab.dataset.runUrl;
+    checkBtn.addEventListener("click", async () => {
+      checkBtn.disabled = true;
+      if (consoleEl) consoleEl.innerHTML = '<div class="console-empty">Running on the server…</div>';
+      try {
+        const resp = await fetch(runURL, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: ta.value }),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          checkBtn.disabled = false;
+          msg.textContent = data.error || "Request failed (" + resp.status + ")";
+          msg.className = "step-msg is-bad";
+          return;
+        }
+        finish({ results: data.results || [], logs: data.logs || [], error: data.error || "" });
+      } catch (e) {
+        checkBtn.disabled = false;
+        msg.textContent = "Network error — try again.";
+        msg.className = "step-msg is-bad";
+      }
+    });
+    return;
+  }
 
   // --------------------------------------------------------------- Python mode
   // Runs the learner's Python via Pyodide (WASM) in a Web Worker. Checks are
