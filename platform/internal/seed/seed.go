@@ -520,6 +520,72 @@ var likeButtonSteps = []store.Step{
 	},
 }
 
+const productCatalogScaffold = "<label for=\"search\">Search</label>\n<input id=\"search\" placeholder=\"Search products\">\n<ul id=\"products\"></ul>\n<p id=\"empty\" hidden>No matching products.</p>\n"
+
+var productCatalogSteps = []store.Step{
+	{
+		Lang:        "js",
+		Scaffold:    productCatalogScaffold,
+		Instruction: "Create a `products` array with at least **4 objects** (`name` and `category`), then render one `<li>` per product into `#products`.",
+		Starter:     "// Create a products array and render each product name into #products as an <li>\n",
+		Checks:      `[{"text":"products should be an array of objects with name and category.","test":"Array.isArray(products) && products.length >= 4 && products.every(function(p){return p && typeof p.name === 'string' && typeof p.category === 'string';})"},{"text":"The product list should render one li per product.","test":"document.querySelectorAll('#products li').length === products.length"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    productCatalogScaffold,
+		Instruction: "Extract the rendering into a function `renderProducts(items)` that clears the list and renders whichever items it receives.",
+		Starter:     "const list = document.querySelector('#products');\n\nconst products = [\n  { name: 'Notebook', category: 'Office' },\n  { name: 'Monitor', category: 'Tech' },\n  { name: 'Mouse Pad', category: 'Tech' },\n  { name: 'Water Bottle', category: 'Lifestyle' },\n];\n\nproducts.forEach((product) => {\n  const item = document.createElement('li');\n  item.textContent = product.name;\n  list.appendChild(item);\n});\n\n// Write renderProducts(items) and call it with products\n",
+		Checks:      `[{"text":"renderProducts should be a function.","test":"typeof renderProducts === 'function'"},{"text":"renderProducts should clear the list and render the provided items.","test":"(function(){renderProducts(products.slice(0, 2));return document.querySelectorAll('#products li').length === 2;})()"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    productCatalogScaffold,
+		Instruction: "Add an `input` listener on `#search` that filters products by name, **case-insensitive**, and calls `renderProducts(filtered)`.",
+		Starter:     "const search = document.querySelector('#search');\nconst list = document.querySelector('#products');\n\nconst products = [\n  { name: 'Notebook', category: 'Office' },\n  { name: 'Monitor', category: 'Tech' },\n  { name: 'Mouse Pad', category: 'Tech' },\n  { name: 'Water Bottle', category: 'Lifestyle' },\n];\n\nfunction renderProducts(items) {\n  list.innerHTML = '';\n  items.forEach((product) => {\n    const item = document.createElement('li');\n    item.textContent = product.name;\n    list.appendChild(item);\n  });\n}\n\nrenderProducts(products);\n\n// Add an input listener that filters products by name and re-renders\n",
+		Checks:      `[{"text":"Typing into search should filter the rendered products by name.","test":"(function(){var input=document.querySelector('#search');if(!input)return false;input.value='note';input.dispatchEvent(new Event('input',{bubbles:true}));var items=Array.from(document.querySelectorAll('#products li'));return items.length > 0 && items.every(function(li){return /note/i.test(li.textContent);});})()"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    productCatalogScaffold,
+		Instruction: "Show the `#empty` message when nothing matches, and hide it again when results exist.",
+		Starter:     "const search = document.querySelector('#search');\nconst list = document.querySelector('#products');\nconst empty = document.querySelector('#empty');\n\nconst products = [\n  { name: 'Notebook', category: 'Office' },\n  { name: 'Monitor', category: 'Tech' },\n  { name: 'Mouse Pad', category: 'Tech' },\n  { name: 'Water Bottle', category: 'Lifestyle' },\n];\n\nfunction renderProducts(items) {\n  list.innerHTML = '';\n  items.forEach((product) => {\n    const item = document.createElement('li');\n    item.textContent = product.name;\n    list.appendChild(item);\n  });\n}\n\nrenderProducts(products);\n\nsearch.addEventListener('input', () => {\n  const term = search.value.toLowerCase();\n  const filtered = products.filter((product) => product.name.toLowerCase().includes(term));\n  renderProducts(filtered);\n\n  // Toggle the empty-state message here\n});\n",
+		Checks:      `[{"text":"The empty-state message should show with no matches and hide when matches return.","test":"(function(){var input=document.querySelector('#search'),empty=document.querySelector('#empty');if(!input||!empty)return false;input.value='zzzzz';input.dispatchEvent(new Event('input',{bubbles:true}));var shown=empty.hidden===false;input.value='note';input.dispatchEvent(new Event('input',{bubbles:true}));var hiddenAgain=empty.hidden===true;return shown && hiddenAgain;})()"}]`,
+	},
+}
+
+const passwordStrengthScaffold = "<label for=\"password\">Password</label>\n<input id=\"password\" type=\"password\">\n<p id=\"strength\">Enter a password</p>\n<div id=\"meter\" style=\"width:220px;height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;\"><span id=\"fill\" style=\"display:block;height:100%;width:0%;background:#ef4444;\"></span></div>\n"
+
+var passwordStrengthSteps = []store.Step{
+	{
+		Lang:        "js",
+		Scaffold:    passwordStrengthScaffold,
+		Instruction: "Add an `input` listener on `#password` that updates `#strength` to show the current password length.",
+		Starter:     "// Select #password and #strength, then show the current password length while typing\n",
+		Checks:      `[{"text":"Typing should update the strength text with the current length.","test":"(function(){var input=document.querySelector('#password'),strength=document.querySelector('#strength');if(!input||!strength)return false;input.value='abc';input.dispatchEvent(new Event('input',{bubbles:true}));return strength.textContent.indexOf('3') !== -1;})()"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    passwordStrengthScaffold,
+		Instruction: "Also update `#fill` so its width is `password length × 10`, capped at `100%`.",
+		Starter:     "const password = document.querySelector('#password');\nconst strength = document.querySelector('#strength');\n\npassword.addEventListener('input', () => {\n  strength.textContent = 'Length: ' + password.value.length;\n});\n\n// Also update #fill width here\n",
+		Checks:      `[{"text":"The meter fill should grow as the password gets longer.","test":"(function(){var input=document.querySelector('#password'),fill=document.querySelector('#fill');if(!input||!fill)return false;input.value='hello';input.dispatchEvent(new Event('input',{bubbles:true}));return fill.style.width === '50%';})()"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    passwordStrengthScaffold,
+		Instruction: "If the password is shorter than `8` characters, show `Too short`. Otherwise show `Good length`.",
+		Starter:     "const password = document.querySelector('#password');\nconst strength = document.querySelector('#strength');\nconst fill = document.querySelector('#fill');\n\npassword.addEventListener('input', () => {\n  const width = Math.min(password.value.length * 10, 100);\n  fill.style.width = width + '%';\n\n  // Update the message based on the password length\n});\n",
+		Checks:      `[{"text":"Short passwords should show a warning, and longer ones should show a positive message.","test":"(function(){var input=document.querySelector('#password'),strength=document.querySelector('#strength');if(!input||!strength)return false;input.value='abc';input.dispatchEvent(new Event('input',{bubbles:true}));var shortOk=/short/i.test(strength.textContent);input.value='abcdefgh';input.dispatchEvent(new Event('input',{bubbles:true}));var longOk=/good length/i.test(strength.textContent) || /strong/i.test(strength.textContent);return shortOk && longOk;})()"}]`,
+	},
+	{
+		Lang:        "js",
+		Scaffold:    passwordStrengthScaffold,
+		Instruction: "If the password has at least `10` characters, **one number**, and **one special character**, show `Strong password` and make sure the meter reaches `100%`.",
+		Starter:     "const password = document.querySelector('#password');\nconst strength = document.querySelector('#strength');\nconst fill = document.querySelector('#fill');\n\npassword.addEventListener('input', () => {\n  const value = password.value;\n  const width = Math.min(value.length * 10, 100);\n  fill.style.width = width + '%';\n\n  if (value.length < 8) {\n    strength.textContent = 'Too short';\n    return;\n  }\n\n  strength.textContent = 'Good length';\n\n  // Upgrade the message for a strong password\n});\n",
+		Checks:      `[{"text":"A strong password should show a strong message and fill the meter completely.","test":"(function(){var input=document.querySelector('#password'),strength=document.querySelector('#strength'),fill=document.querySelector('#fill');if(!input||!strength||!fill)return false;input.value='abc123!xyz';input.dispatchEvent(new Event('input',{bubbles:true}));return /strong/i.test(strength.textContent) && fill.style.width === '100%';})()"}]`,
+	},
+}
+
 // pythonWarmupSteps is the first interactive Python lab — variables, print,
 // functions, and lists — run through Pyodide (Python compiled to WASM).
 var pythonWarmupSteps = []store.Step{
@@ -959,7 +1025,9 @@ var pythonLabs = map[string][]store.Step{
 var labSteps = map[string][]store.Step{
 	"workshop_code_a_level_up_system":           levelUpSteps,
 	"workshop_build_an_inventory":               inventorySteps,
+	"workshop_filter_a_product_catalog":         productCatalogSteps,
 	"workshop_build_a_like_button":              likeButtonSteps,
+	"workshop_build_a_password_strength_meter":  passwordStrengthSteps,
 	"workshop_build_a_game_launch_page":         gameLaunchSteps,
 	"workshop_build_a_sign_up_form":             signupFormSteps,
 	"workshop_style_a_business_card":            businessCardSteps,

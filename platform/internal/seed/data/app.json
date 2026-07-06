@@ -30,7 +30,7 @@
           },
           {
             "title": "HTML Basics",
-            "description": "Structure every web page with HTML — elements, attributes, and semantic markup.",
+            "description": "Structure every web page with HTML \u2014 elements, attributes, and semantic markup.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -42,7 +42,7 @@
           },
           {
             "title": "Workshop: Build a Game Launch Page",
-            "description": "Learn HTML structure hands-on by building a launch page for your own game — title, sections, image, features, and a call to action.",
+            "description": "Learn HTML structure hands-on by building a launch page for your own game \u2014 title, sections, image, features, and a call to action.",
             "section": "HTML",
             "kind": "lab",
             "resources": [],
@@ -66,7 +66,7 @@
           },
           {
             "title": "Workshop: Build a Sign-up Form",
-            "description": "Build a real sign-up form step by step — inputs, types, required, and a submit button — in an interactive editor.",
+            "description": "Build a real sign-up form step by step \u2014 inputs, types, required, and a submit button \u2014 in an interactive editor.",
             "section": "HTML",
             "kind": "lab",
             "resources": [],
@@ -78,7 +78,7 @@
           },
           {
             "title": "Web Accessibility Basics",
-            "description": "Build pages everyone can use — semantics, alt text, keyboard access, and ARIA.",
+            "description": "Build pages everyone can use \u2014 semantics, alt text, keyboard access, and ARIA.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -102,7 +102,7 @@
           },
           {
             "title": "Workshop: Style a Business Card",
-            "description": "Practise CSS hands-on — style a card with colours, spacing, and rounded corners in an interactive editor.",
+            "description": "Practise CSS hands-on \u2014 style a card with colours, spacing, and rounded corners in an interactive editor.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -114,7 +114,7 @@
           },
           {
             "title": "Workshop: Build a Pricing Card",
-            "description": "Style a polished product pricing card with CSS — padding, shadow, rounded corners, and a clickable button.",
+            "description": "Style a polished product pricing card with CSS \u2014 padding, shadow, rounded corners, and a clickable button.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -126,7 +126,7 @@
           },
           {
             "title": "Workshop: Build an Achievement Badge",
-            "description": "Craft a circular achievement badge with CSS — sizing, border-radius, flexbox centering, and a gradient.",
+            "description": "Craft a circular achievement badge with CSS \u2014 sizing, border-radius, flexbox centering, and a gradient.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -138,7 +138,7 @@
           },
           {
             "title": "Workshop: Build an XP Progress Bar",
-            "description": "Build an XP progress bar with CSS — a coloured fill inside a rounded track.",
+            "description": "Build an XP progress bar with CSS \u2014 a coloured fill inside a rounded track.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -174,7 +174,7 @@
           },
           {
             "title": "Workshop: Build a Leaderboard Row",
-            "description": "Lay out a leaderboard entry with Flexbox — rank, name, and score aligned and spaced.",
+            "description": "Lay out a leaderboard entry with Flexbox \u2014 rank, name, and score aligned and spaced.",
             "section": "CSS",
             "kind": "lab",
             "resources": [],
@@ -246,7 +246,7 @@
           },
           {
             "title": "Project: Build a Profile Card",
-            "description": "Your first real build — a polished, responsive profile card with HTML and CSS.",
+            "description": "Your first real build \u2014 a polished, responsive profile card with HTML and CSS.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -287,14 +287,26 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "The DOM: Selecting and Changing Elements",
+            "next": "JavaScript Patterns: Scope, Closures and Array Methods",
             "previous": "JavaScript Basics",
             "section": "JavaScript",
             "kind": "theory"
           },
           {
+            "title": "JavaScript Patterns: Scope, Closures and Array Methods",
+            "description": "Move beyond syntax with scope, closures, destructuring, and the array methods that power real interfaces.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "The DOM: Selecting and Changing Elements",
+            "previous": "JavaScript Functions, Arrays and Objects",
+            "section": "JavaScript",
+            "kind": "theory"
+          },
+          {
             "title": "Workshop: Code a Level-Up System",
-            "description": "Write real JavaScript in an interactive editor — variables, functions, conditionals, and arrays — with a live console and instant checks.",
+            "description": "Write real JavaScript in an interactive editor \u2014 variables, functions, conditionals, and arrays \u2014 with a live console and instant checks.",
             "section": "JavaScript",
             "kind": "lab",
             "resources": [],
@@ -306,7 +318,7 @@
           },
           {
             "title": "Workshop: Build an Inventory",
-            "description": "Practise JavaScript arrays and objects in an interactive editor — map, filter, reduce, and find over a list of items.",
+            "description": "Practise JavaScript arrays and objects in an interactive editor \u2014 map, filter, reduce, and find over a list of items.",
             "section": "JavaScript",
             "kind": "lab",
             "resources": [],
@@ -317,6 +329,18 @@
             "previous": null
           },
           {
+            "title": "Workshop: Filter a Product Catalog",
+            "description": "Build a search-and-filter experience with arrays, render functions, and input-driven UI updates.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null,
+            "section": "JavaScript",
+            "kind": "lab"
+          },
+          {
             "title": "The DOM: Selecting and Changing Elements",
             "description": "Use JavaScript to read and change the page in real time.",
             "resources": [],
@@ -324,7 +348,7 @@
             "is_completed": false,
             "current": false,
             "next": "JavaScript Events",
-            "previous": "JavaScript Functions, Arrays and Objects",
+            "previous": "JavaScript Patterns: Scope, Closures and Array Methods",
             "section": "JavaScript",
             "kind": "theory"
           },
@@ -342,7 +366,7 @@
           },
           {
             "title": "Workshop: Build a Like Button",
-            "description": "Wire up a real interactive Like button with JavaScript — select elements, handle clicks, and update the page.",
+            "description": "Wire up a real interactive Like button with JavaScript \u2014 select elements, handle clicks, and update the page.",
             "section": "JavaScript",
             "kind": "lab",
             "resources": [],
@@ -353,16 +377,40 @@
             "previous": null
           },
           {
+            "title": "Workshop: Build a Password Strength Meter",
+            "description": "Turn validation rules into live visual feedback with input events, conditionals, and DOM updates.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": null,
+            "section": "JavaScript",
+            "kind": "lab"
+          },
+          {
             "title": "Building Interactive JavaScript Websites",
             "description": "Wire HTML, CSS, and JavaScript together into dynamic, interactive interfaces.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "Project: Build a Multi-Step Signup Form",
+            "next": "JavaScript State and Local Storage",
             "previous": "JavaScript Events",
             "section": "JavaScript",
             "kind": "workshop"
+          },
+          {
+            "title": "JavaScript State and Local Storage",
+            "description": "Model UI state cleanly and persist it with Local Storage so your interfaces survive refreshes.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a Multi-Step Signup Form",
+            "previous": "Building Interactive JavaScript Websites",
+            "section": "JavaScript",
+            "kind": "theory"
           },
           {
             "title": "Project: Build a Multi-Step Signup Form",
@@ -371,8 +419,20 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
+            "next": "Project: Build a Kanban Task Board",
+            "previous": "JavaScript State and Local Storage",
+            "section": "JavaScript",
+            "kind": "project"
+          },
+          {
+            "title": "Project: Build a Kanban Task Board",
+            "description": "Build a multi-column task board with add and move flows, derived views, and Local Storage persistence.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
             "next": "Working with APIs and Fetch",
-            "previous": "Building Interactive JavaScript Websites",
+            "previous": "Project: Build a Multi-Step Signup Form",
             "section": "JavaScript",
             "kind": "project"
           },
@@ -384,7 +444,7 @@
             "is_completed": false,
             "current": false,
             "next": "Async JavaScript",
-            "previous": "Project: Build a Multi-Step Signup Form",
+            "previous": "Project: Build a Kanban Task Board",
             "section": "Data & async",
             "kind": "theory"
           },
@@ -431,8 +491,20 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "Browser DevTools and Debugging",
+            "next": "Project: Build a GitHub Profile Explorer",
             "previous": "Project: Build a To-Do App",
+            "section": "Data & async",
+            "kind": "project"
+          },
+          {
+            "title": "Project: Build a GitHub Profile Explorer",
+            "description": "Search GitHub users, render profiles and repositories, and handle loading, empty, and error states like a real product.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Browser DevTools and Debugging",
+            "previous": "Project: Build a Personal Dashboard",
             "section": "Data & async",
             "kind": "project"
           },
@@ -444,7 +516,7 @@
             "is_completed": false,
             "current": false,
             "next": "Git and GitHub",
-            "previous": "Project: Build a Personal Dashboard",
+            "previous": "Project: Build a GitHub Profile Explorer",
             "section": "Tools & deployment",
             "kind": "theory"
           },
@@ -486,7 +558,7 @@
           },
           {
             "title": "Next Steps",
-            "description": "Where to go after the Frontend path — frameworks, tooling, and how to keep growing.",
+            "description": "Where to go after the Frontend path \u2014 frameworks, tooling, and how to keep growing.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -503,7 +575,7 @@
         "modules": [
           {
             "title": "What is the Backend?",
-            "description": "Servers, requests, and responses — what happens behind the scenes.",
+            "description": "Servers, requests, and responses \u2014 what happens behind the scenes.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -653,7 +725,7 @@
           },
           {
             "title": "Pointers and Memory",
-            "description": "C’s signature feature: working with memory addresses.",
+            "description": "C\u2019s signature feature: working with memory addresses.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -743,7 +815,7 @@
         "modules": [
           {
             "title": "What is Python?",
-            "description": "Meet Python — what it is, why it's everywhere, and what you can build with it.",
+            "description": "Meet Python \u2014 what it is, why it's everywhere, and what you can build with it.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -767,7 +839,7 @@
           },
           {
             "title": "Python Basics",
-            "description": "Variables, the core data types, and printing — the vocabulary every program is built from.",
+            "description": "Variables, the core data types, and printing \u2014 the vocabulary every program is built from.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -779,7 +851,7 @@
           },
           {
             "title": "Workshop: Python Warm-Up",
-            "description": "Write and run real Python in your browser — variables, print, functions, and lists — with instant checks.",
+            "description": "Write and run real Python in your browser \u2014 variables, print, functions, and lists \u2014 with instant checks.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -791,7 +863,7 @@
           },
           {
             "title": "Strings and Text",
-            "description": "Slicing, formatting, and transforming text — from f-strings to the string methods you'll reach for daily.",
+            "description": "Slicing, formatting, and transforming text \u2014 from f-strings to the string methods you'll reach for daily.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -803,7 +875,7 @@
           },
           {
             "title": "Workshop: Build a Chat Filter",
-            "description": "Practice string methods — case, slicing, replace, and split — by building a chat command filter.",
+            "description": "Practice string methods \u2014 case, slicing, replace, and split \u2014 by building a chat command filter.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -851,7 +923,7 @@
           },
           {
             "title": "Tuples and Sets",
-            "description": "Fixed tuples and unique-only sets — when to reach for each and why they matter.",
+            "description": "Fixed tuples and unique-only sets \u2014 when to reach for each and why they matter.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -935,7 +1007,7 @@
           },
           {
             "title": "Workshop: Score Multipliers",
-            "description": "Wire up a combo meter with loops and conditionals — an original take on the classic FizzBuzz.",
+            "description": "Wire up a combo meter with loops and conditionals \u2014 an original take on the classic FizzBuzz.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -1031,7 +1103,7 @@
           },
           {
             "title": "Workshop: Build a Number Stream",
-            "description": "Write generators — finite, infinite, and lazily consumed — from scratch.",
+            "description": "Write generators \u2014 finite, infinite, and lazily consumed \u2014 from scratch.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -1187,7 +1259,7 @@
           },
           {
             "title": "Workshop: Model a Player",
-            "description": "Build a Player class with HP, damage, and a readable __str__ — pure object-oriented Python.",
+            "description": "Build a Player class with HP, damage, and a readable __str__ \u2014 pure object-oriented Python.",
             "resources": [],
             "author": "",
             "is_completed": false,
@@ -1211,7 +1283,7 @@
           },
           {
             "title": "Project: Text Adventure Engine",
-            "description": "A capstone — architect a data-driven adventure engine with rooms, items, and commands.",
+            "description": "A capstone \u2014 architect a data-driven adventure engine with rooms, items, and commands.",
             "resources": [],
             "author": "",
             "is_completed": false,
