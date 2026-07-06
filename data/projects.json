@@ -6,13 +6,32 @@
       "emoji": "🪪",
       "world": "frontend",
       "difficulty": "Beginner",
-      "tech": [
-        "HTML",
-        "CSS"
-      ],
+      "tech": ["HTML", "CSS"],
       "tagline": "A polished profile card built from scratch.",
       "outcome": "A centered card with an avatar, name, bio, and button — one HTML file you can open in any browser.",
       "steps": 5
+    },
+    {
+      "id": "landing-page",
+      "title": "Responsive Landing Page",
+      "emoji": "🛬",
+      "world": "frontend",
+      "difficulty": "Intermediate",
+      "tech": ["HTML", "CSS"],
+      "tagline": "Turn a product brief into a polished responsive marketing page.",
+      "outcome": "A mobile-first landing page with a hero, feature grid, testimonial section, and clear call-to-action.",
+      "steps": 7
+    },
+    {
+      "id": "signup-form",
+      "title": "Accessible Signup Form",
+      "emoji": "📝",
+      "world": "frontend",
+      "difficulty": "Intermediate",
+      "tech": ["HTML", "CSS", "JS"],
+      "tagline": "Build a form that feels polished, helpful, and accessible.",
+      "outcome": "A signup form with labels, validation feedback, and a success state that works cleanly across devices.",
+      "steps": 6
     },
     {
       "id": "quiz-game",
@@ -20,11 +39,7 @@
       "emoji": "❓",
       "world": "frontend",
       "difficulty": "Intermediate",
-      "tech": [
-        "HTML",
-        "CSS",
-        "JS"
-      ],
+      "tech": ["HTML", "CSS", "JS"],
       "tagline": "An interactive multiple-choice quiz with scoring.",
       "outcome": "A working 3-question quiz that tracks your score and lets you play again.",
       "steps": 6
@@ -35,11 +50,7 @@
       "emoji": "✅",
       "world": "frontend",
       "difficulty": "Intermediate",
-      "tech": [
-        "HTML",
-        "CSS",
-        "JS"
-      ],
+      "tech": ["HTML", "CSS", "JS"],
       "tagline": "Add, complete, and delete tasks that persist.",
       "outcome": "A to-do app whose tasks survive a refresh, saved with localStorage.",
       "steps": 6
@@ -50,9 +61,7 @@
       "emoji": "👋",
       "world": "linux",
       "difficulty": "Beginner",
-      "tech": [
-        "Bash"
-      ],
+      "tech": ["Bash"],
       "tagline": "A Bash script that greets you by name and time of day.",
       "outcome": "An executable shell script that says good morning/afternoon/evening, personalised to you.",
       "steps": 5
@@ -63,9 +72,7 @@
       "emoji": "🎯",
       "world": "c",
       "difficulty": "Beginner",
-      "tech": [
-        "C"
-      ],
+      "tech": ["C"],
       "tagline": "A guess-the-number game with hot/cold hints.",
       "outcome": "A C program that picks a secret number and guides you to it with higher/lower hints.",
       "steps": 5
@@ -76,9 +83,7 @@
       "emoji": "🏦",
       "world": "java",
       "difficulty": "Intermediate",
-      "tech": [
-        "Java"
-      ],
+      "tech": ["Java"],
       "tagline": "An OOP bank account with deposits and withdrawals.",
       "outcome": "A BankAccount class with deposit, withdraw, and balance — your first real object-oriented program.",
       "steps": 5
@@ -89,9 +94,7 @@
       "emoji": "🐍",
       "world": "python",
       "difficulty": "Intermediate",
-      "tech": [
-        "Python"
-      ],
+      "tech": ["Python"],
       "tagline": "A command-line task manager that saves your tasks.",
       "outcome": "A Python CLI to add, list, complete, and delete tasks — saved to a file so they persist between runs.",
       "steps": 7

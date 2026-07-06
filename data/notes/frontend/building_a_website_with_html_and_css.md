@@ -1,135 +1,250 @@
 # Building a Website with HTML and CSS
 
-You've learned the pieces — HTML for structure, CSS for style. Now you'll put them together to build a real, multi-section web page. This is where it finally *feels* like making a website.
+You now have the core pieces:
 
-By the end of this lesson you'll know how to organise a project's files, structure a page with semantic HTML, and connect a stylesheet that brings it to life.
+- HTML for structure
+- semantic thinking for meaning
+- CSS for presentation
+- flexbox and grid for layout
+- media queries for responsiveness
 
-## From snippets to a real page
+This lesson is about combining them like a working frontend developer would: from brief to plan to implementation to QA.
 
-A real page isn't one giant blob of HTML — it's a handful of well-named **regions** stacked together: a header at the top, the main content in the middle, a footer at the bottom.
+## Real websites are built from decisions, not random code
 
-![A typical semantic page layout](/images/lessons/page-layout.svg)
+A common beginner trap is opening a file and immediately styling details.
 
-Using elements that *describe their role* — `<header>`, `<main>`, `<section>`, `<aside>`, `<footer>` — is called **semantic HTML**. It makes your page easier to style, better for search engines, and accessible to screen readers out of the box.
+A stronger workflow is:
 
-:::analogy
-Building a page is like organising a house into rooms. You wouldn't pile the kitchen, bedroom, and bathroom into one space. `<header>`, `<main>`, and `<footer>` are your rooms — each with a clear purpose.
-:::
-
-## Organising your project files
-
-Even a tiny site has a tidy structure. A common starting point:
-
-```text
-my-site/
-├── index.html      ← the page
-├── styles.css      ← all your CSS
-└── images/         ← logos, photos
-    └── logo.png
-```
-
-Keeping HTML, CSS, and images in their own places keeps the project understandable as it grows.
-
-## Connecting HTML and CSS
-
-The two files meet through one line in the `<head>`:
-
-```html
-<head>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-```
-
-That `<link>` tells the browser "also load this stylesheet." Now any rule in `styles.css` applies to your page.
-
-## A complete little page
-
-Here's a real page using semantic structure:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header>
-      <h1>Sunrise Café</h1>
-    </header>
-    <main>
-      <section>
-        <h2>Today's special</h2>
-        <p>Freshly baked cinnamon rolls.</p>
-      </section>
-    </main>
-    <footer>
-      <p>Open daily, 7am–3pm.</p>
-    </footer>
-  </body>
-</html>
-```
-
-And a touch of CSS to style it:
-
-```css
-header {
-  background: #6740e8;
-  color: white;
-  padding: 24px;
-}
-
-main {
-  padding: 24px;
-}
-```
-
-Notice how the **HTML never mentions colours or spacing** — that's all in the CSS. Keeping structure and style separate means you can redesign the whole look without touching the content.
-
-:::quiz
-Q: Which element should wrap the primary content of the page?
-- `<header>`
-- `<main>` *
-- `<footer>`
-E: `<main>` holds the page's primary content. `<header>` and `<footer>` are for the top and bottom regions.
-:::
-
-:::tip
-Style broad, then specific. Set sensible defaults on elements (like `body` font and colour), then use classes for the bits that need to stand out. You'll write far less CSS.
-:::
-
-## Layout with flexbox (a first taste)
-
-To place items side by side — like cards in a row — modern CSS uses **flexbox**:
-
-```css
-.cards {
-  display: flex;
-  gap: 16px;
-}
-```
-
-Add `display: flex` to a container and its children line up in a row with even spacing. It's the workhorse of modern layout; you'll use it constantly.
-
-:::quiz
-Q: What connects an external stylesheet to your HTML page?
-- A `<style>` element in the body
-- A `<link rel="stylesheet">` in the head *
-- The `class` attribute
-E: The `<link rel="stylesheet" href="...">` tag in the `<head>` loads an external CSS file.
-:::
+1. understand the page goal
+2. list the content sections
+3. write semantic HTML
+4. add layout CSS
+5. style components
+6. test and refine
 
 :::key
-A real page is **semantic regions** (`<header>`, `<main>`, `<footer>`) structured in HTML and styled by a **separate** stylesheet linked in the `<head>`. Keeping structure and style apart is what makes sites maintainable.
+Professionals don't start with colors. They start with structure and content.
 :::
 
-## Talk about it
+## Start from a page brief
 
-Explain out loud:
+Imagine the brief says:
 
-> "Why do we keep HTML and CSS in separate files? And what does semantic HTML give us?"
+> Build a homepage for a small creative studio. The page needs a hero, a services section, a recent-work section, a testimonial, and a footer with contact details.
 
-If you can answer both, you understand the foundation real websites are built on.
+Before you write code, translate the brief into page regions:
+
+- header / nav
+- hero
+- services
+- work gallery
+- testimonial
+- footer
+
+That gives you the structure of the whole build before a single visual detail is chosen.
+
+## Step 1 — scaffold the HTML
+
+Start with the page outline:
+
+```html
+<body>
+  <header>
+    <nav></nav>
+  </header>
+
+  <main>
+    <section class="hero"></section>
+    <section class="services"></section>
+    <section class="work"></section>
+    <section class="testimonial"></section>
+  </main>
+
+  <footer></footer>
+</body>
+```
+
+Then fill each section with real headings, paragraphs, cards, links, images, and buttons.
+
+## Step 2 — organize your files
+
+A tidy starting structure might be:
+
+```text
+studio-site/
+├── index.html
+├── styles.css
+└── images/
+```
+
+This seems basic, but good file hygiene becomes more important as projects grow.
+
+## Step 3 — create layout foundations first
+
+In `styles.css`, begin with broad rules:
+
+```css
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+```
+
+These rules give you:
+
+- predictable sizing
+- sensible typography defaults
+- responsive images
+
+## Step 4 — lay out the big sections
+
+Work from large structure to small details.
+
+For example:
+
+```css
+.hero {
+  display: grid;
+  gap: 2rem;
+  padding: 4rem 1.25rem;
+}
+
+.services-grid,
+.work-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    grid-template-columns: 1.1fr 1fr;
+    align-items: center;
+  }
+
+  .services-grid,
+  .work-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+```
+
+Only after the page structure feels right should you obsess over shadows, hover states, or exact spacing tokens.
+
+## Step 5 — style reusable components
+
+Real sites repeat patterns. Instead of styling each card from scratch, create reusable component rules.
+
+```css
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.button {
+  display: inline-block;
+  padding: 0.875rem 1.25rem;
+  border-radius: 999px;
+  background: #5b3df5;
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+}
+```
+
+This is how design consistency starts.
+
+## Step 6 — check the build like a reviewer
+
+A decent-looking page can still be weak.
+
+Run through this checklist:
+
+- Does the page have one clear `<h1>`?
+- Are links and buttons used correctly?
+- Do sections have enough spacing to scan easily?
+- Does the layout still work on mobile?
+- Are images responsive?
+- Does the CTA stand out?
+- Is the page still readable with no CSS?
+
+:::quiz
+Q: Which order usually produces stronger frontend work?
+- Color palette → animations → content structure
+- Structure → layout → components → polish *
+- Hover states → icons → headings
+E: Strong builds move from content structure to layout and reusable components, then finish with polish.
+:::
+
+## Mini build plan — from brief to finished page
+
+Use this workflow on your next static site:
+
+### Plan
+
+- write down the sections
+- decide the content for each section
+- list repeated UI patterns (cards, buttons, nav links)
+
+### Build HTML
+
+- create the page skeleton
+- add headings, copy, and media
+- keep semantics clean
+
+### Build CSS
+
+- add global defaults
+- build layout systems
+- style components
+- add responsive breakpoints
+
+### QA
+
+- resize the viewport
+- test button and link clarity
+- inspect spacing rhythm
+- check image overflow
+
+## Common mistakes to avoid
+
+- styling before content exists
+- using different spacing values everywhere
+- hard-coding widths that break on smaller screens
+- skipping semantic structure because the page "looks fine"
+- building sections one at a time with no shared system
+
+:::warning
+If every section is built with completely different spacing, typography, and layout logic, the site will feel inconsistent even if each part looks okay in isolation.
+:::
+
+## What good looks like
+
+You should now be able to:
+
+- translate a page brief into content sections
+- scaffold a semantic multi-section page
+- organize files cleanly
+- build broad layout systems before styling details
+- create reusable components for consistency
+- review a static site for structure, responsiveness, and polish
 
 ## What's next
 
-Your page looks great — but it's still static. Next, **Building Interactive JavaScript Websites** makes it respond to the people using it.
+In **Project: Build a Profile Card**, you'll zoom back into a smaller UI component and polish it properly — hierarchy, spacing, alignment, and finishing detail.

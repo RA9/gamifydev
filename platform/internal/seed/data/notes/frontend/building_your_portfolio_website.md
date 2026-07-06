@@ -1,107 +1,198 @@
 # Building your portfolio website
 
-A portfolio is the single most useful thing you can build as a new developer. It proves you can ship real work, and it's the link you'll paste into every application and message. In this lesson you'll plan, build, and prepare to deploy your own.
+Your portfolio is not just another project.
 
-## Why a portfolio matters
+It is your public proof that you can:
 
-Anyone can *say* they know HTML and CSS. A portfolio *shows* it. A good one does three jobs at once:
+- build real frontend work
+- explain your decisions
+- present projects clearly
+- ship something polished enough for other people to judge
 
-- It demonstrates your skills by being, itself, a thing you built.
-- It collects your projects in one place with context and links.
-- It gives people an easy way to learn about you and reach you.
+That makes it one of the most important things in the entire frontend path.
+
+## What a portfolio is really for
+
+A beginner portfolio should do four jobs well:
+
+1. show who you are
+2. show what you have built
+3. show how you think
+4. make it easy to contact you
+
+A weak portfolio feels like a template with random links.
+A strong portfolio feels like a small product about your work.
 
 :::key
-Your portfolio is both your résumé and a sample of your work at the same time. The site itself is evidence. Sloppy code or a broken link undercuts everything you say — polish counts here more than anywhere.
+Your portfolio is both a project and a presentation layer for your other projects. The site itself is part of the evidence.
 :::
 
-## What to include
+## What hiring managers or clients look for
 
-Keep it focused. A strong beginner portfolio has these sections:
+Most people do **not** spend ten minutes reading every word.
 
-- **Hero / intro** — your name, a one-line description of what you do, and a clear call to action (view work, contact me).
-- **About** — a short, human paragraph: who you are, what you're into, what you're learning.
-- **Projects** — the centerpiece. Each project gets a screenshot, a short description, the tech used, and links to the live site and source code.
-- **Skills** — the languages and tools you're comfortable with. Keep it honest.
-- **Contact** — an email link and your GitHub/LinkedIn. Make it effortless to reach you.
+They usually scan for:
+
+- visual polish
+- clear navigation
+- working project links
+- evidence of finished work
+- concise explanations of what you built
+- a sense that you understand frontend craft, not just copying tutorials
+
+That means your portfolio must be:
+
+- easy to scan
+- honest
+- fast
+- stable on mobile
+- focused on finished projects
+
+## The sections that matter most
+
+A strong first portfolio usually includes:
+
+### 1. Hero
+
+- your name
+- your role or direction
+- one short value statement
+- one clear call to action
+
+Example:
+
+> Frontend developer building accessible, responsive interfaces with HTML, CSS, and JavaScript.
+
+### 2. About
+
+A short paragraph about:
+
+- who you are
+- what you enjoy building
+- what you're learning now
+- what kind of opportunities interest you
+
+### 3. Projects
+
+This is the heart of the whole site.
+
+For each project, include:
+
+- a screenshot
+- project name
+- a 1–2 sentence description
+- the tech used
+- a live link
+- a source-code link
+- optionally: one sentence about a challenge you solved
+
+### 4. Skills / tools
+
+Keep this honest and readable.
+
+Don't list everything you've ever touched. List tools you can actually discuss.
+
+### 5. Contact
+
+Make it easy:
+
+- email
+- GitHub
+- LinkedIn
+- optional contact form
+
+## The projects section should feel like evidence, not decoration
+
+A lot of portfolios fail here.
+
+Weak project entry:
+
+- title
+- screenshot
+- no explanation
+
+Stronger project entry:
+
+- what the project does
+- what you used
+- what problem or interaction it demonstrates
+- what was tricky or interesting
+
+Example:
+
+```html
+<article class="project-card">
+  <img src="images/todo-app.png" alt="Screenshot of a task manager app" />
+  <h3>Task Tracker</h3>
+  <p>A task manager built with vanilla JavaScript, localStorage, and state-driven rendering.</p>
+  <p class="project-meta">HTML · CSS · JavaScript</p>
+  <p>I used a render function and localStorage to keep the UI and saved task data in sync.</p>
+  <div class="project-links">
+    <a href="https://example.com">Live</a>
+    <a href="https://github.com/example/repo">Code</a>
+  </div>
+</article>
+```
+
+That final sentence is what starts to show engineering thinking.
+
+## Choose fewer, better projects
+
+You do not need ten projects.
+
+A strong beginner portfolio often has **three to five polished projects**.
+
+For example:
+
+- responsive landing page
+- quiz game
+- to-do app
+- multi-step signup form
+- personal dashboard
+
+That gives a reviewer variety:
+
+- layout and responsiveness
+- DOM interaction
+- state and persistence
+- forms and validation
+- async data work
 
 :::tip
-Three solid, finished projects beat ten half-built ones. Quality and a clear write-up matter more than quantity. Lead with your best.
+A finished, polished project with a clear explanation is more valuable than a half-finished ambitious app with broken links.
 :::
 
-## Planning the sections
+## Design the portfolio like a frontend developer
 
-Before writing any code, sketch the page top to bottom on paper or in notes. A simple, proven order:
+Your portfolio should demonstrate the same standards you want people to trust you with.
 
-1. Sticky nav with links that jump to each section.
-2. Hero.
-3. About.
-4. Projects.
-5. Skills.
-6. Contact + footer.
+That means:
 
-Deciding the structure first means your HTML writes itself.
+- semantic HTML structure
+- consistent spacing scale
+- strong typography hierarchy
+- accessible color contrast
+- visible hover and focus states
+- responsive layouts
+- optimized screenshots and images
 
-## Structuring it with semantic HTML
-
-Use semantic tags so the page is meaningful and accessible (recall the HTML lessons). Reach for `<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, and `<footer>` instead of a pile of `<div>`s.
+A solid page structure might be:
 
 ```html
-<header>
-  <nav>
-    <a href="#projects">Work</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
-  </nav>
-</header>
-
+<header></header>
 <main>
-  <section id="hero">
-    <h1>Jane Doe</h1>
-    <p>Frontend developer building clean, accessible websites.</p>
-    <a class="btn" href="#projects">See my work</a>
-  </section>
-  <!-- about, projects, skills, contact below -->
+  <section id="hero"></section>
+  <section id="about"></section>
+  <section id="projects"></section>
+  <section id="skills"></section>
+  <section id="contact"></section>
 </main>
-
-<footer>
-  <p>&copy; 2026 Jane Doe</p>
-</footer>
+<footer></footer>
 ```
 
-## A starter projects section
+## Make the projects easy to compare
 
-This is the part recruiters actually read, so make it shine. Here's a skeleton using a responsive card grid (recall CSS Grid).
-
-```html
-<section id="projects">
-  <h2>Projects</h2>
-  <div class="project-grid">
-
-    <article class="project-card">
-      <img src="images/quiz-game.png" alt="Screenshot of the quiz game app" />
-      <h3>Quiz Game</h3>
-      <p>A timed multiple-choice quiz built with vanilla JavaScript and the DOM.</p>
-      <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li></ul>
-      <div class="links">
-        <a href="https://yourname.github.io/quiz-game/">Live</a>
-        <a href="https://github.com/yourname/quiz-game">Code</a>
-      </div>
-    </article>
-
-    <article class="project-card">
-      <img src="images/profile-card.png" alt="Screenshot of the profile card component" />
-      <h3>Profile Card</h3>
-      <p>A responsive profile card practicing flexbox, spacing, and hover states.</p>
-      <ul class="tags"><li>HTML</li><li>CSS</li></ul>
-      <div class="links">
-        <a href="https://yourname.github.io/profile-card/">Live</a>
-        <a href="https://github.com/yourname/profile-card">Code</a>
-      </div>
-    </article>
-
-  </div>
-</section>
-```
+A grid layout works well because it is scannable.
 
 ```css
 .project-grid {
@@ -109,114 +200,126 @@ This is the part recruiters actually read, so make it shine. Here's a skeleton u
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
 }
-
-.project-card {
-  border: 1px solid #e2e2e2;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.project-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.project-card img { width: 100%; display: block; }
-.project-card h3, .project-card p { padding: 0 1rem; }
-
-.tags { display: flex; gap: 0.5rem; list-style: none; padding: 0 1rem; }
-.tags li { font-size: 0.8rem; background: #f0f0f0; padding: 2px 8px; border-radius: 999px; }
-
-.links { display: flex; gap: 1rem; padding: 1rem; }
 ```
 
-That `repeat(auto-fit, minmax(280px, 1fr))` line is the magic: cards flow into as many columns as fit and stack to one column on phones — responsive with zero media queries.
+That single line creates a strong responsive card layout with minimal code.
 
-:::project
-**Build it.** Create a `portfolio/` folder with `index.html`, `css/style.css`, and an `images/` folder. Build all six sections. Add at least three real projects you've made in this course (the profile card and quiz game are great starts). Take a clean screenshot of each, drop them in `images/`, and wire up the live + code links.
-:::
+## Add small case-study thinking
 
-## Writing good project case studies
+You don't need full essays, but each project should answer:
 
-A screenshot and a link aren't enough — say something about each project. A tiny case study answers:
+- What is it?
+- What did you build?
+- What did you learn or solve?
 
-- **What is it?** One sentence.
-- **What did you build / learn?** "Practiced the DOM by handling clicks and updating the score live."
-- **What was tricky?** A sentence on a challenge you solved shows real thinking.
+Even one sentence helps.
 
-```html
-<p>
-  A timed quiz that tracks your score as you answer. The tricky part was
-  resetting the timer between questions without leaking old intervals —
-  I solved it with clearInterval before each new round.
-</p>
-```
+Examples:
 
-That extra sentence is what makes you sound like a developer, not a copier of tutorials.
+- I used localStorage so tasks persist after refresh.
+- I handled form-step validation before allowing the user to continue.
+- I used Grid and Flexbox together to create a responsive layout system.
+- I handled a fetch failure state instead of only the happy path.
 
-## Performance and polish
+That is how your portfolio starts sounding like real product work.
 
-Small touches make a portfolio feel professional:
+## Polish checklist before launch
 
-- **Optimize images.** Resize screenshots to the size they display and export as compressed JPG/WebP. Don't ship a 4 MB PNG.
-- **Add `alt` text** to every image for accessibility.
-- **Consistent spacing.** Pick a spacing scale (8px, 16px, 24px) and stick to it.
-- **Readable type.** Comfortable line length, decent contrast, sane font sizes.
-- **Hover and focus states.** Links and buttons should react. Don't forget `:focus` for keyboard users.
-- **A real `<title>` and favicon.** It's the first thing seen in the browser tab.
+Before shipping your portfolio, review:
+
+- all links work
+- live demos load
+- GitHub repos are public if intended
+- screenshots are compressed and sized reasonably
+- the site works on mobile
+- keyboard focus is visible
+- headings are in a logical order
+- page title is meaningful
+- there are no placeholder texts like lorem ipsum
 
 :::warning
-Test on a real phone, not just the desktop browser. Tiny tap targets, text running off the edge, and images that overflow are the most common portfolio problems — and all of them only show up at small widths.
+A portfolio with broken links, missing images, or unreadable mobile layout does more damage than having one fewer project.
 :::
 
-## Then deploy it
+## Deployment and maintenance matter too
 
-A portfolio nobody can visit isn't doing its job. Once it looks good, push it to GitHub and deploy with GitHub Pages or Netlify (recall the deploy lesson).
+Once the site is built, publish it.
 
-```bash
-git init
-git add .
-git commit -m "Initial portfolio site"
-git remote add origin https://github.com/yourname/portfolio.git
-git push -u origin main
-# then enable GitHub Pages in Settings -> Pages
-```
+Good options:
 
-Run the pre-deploy checklist — relative paths, working links, clean console, mobile check — and share your URL.
+- GitHub Pages
+- Netlify
+- Vercel
+
+After launch, keep it alive:
+
+- update project links
+- replace weaker projects as you build stronger ones
+- improve copy and screenshots
+- keep your featured work current
+
+A portfolio is not "done forever." It is a living record of your growth.
+
+## A practical build plan
+
+### Phase 1 — structure
+
+- build the sections
+- add real content
+- set up the project cards
+
+### Phase 2 — styling
+
+- establish typography and spacing
+- add responsive layout
+- polish buttons, cards, and navigation
+
+### Phase 3 — credibility
+
+- add real screenshots
+- write short project descriptions
+- include live and code links
+
+### Phase 4 — ship
+
+- push to GitHub
+- deploy to a public URL
+- test on desktop and mobile
 
 :::quiz
-Q: What is the most important section of a developer portfolio?
+Q: What is the most important section of a beginner developer portfolio?
 - A long autobiography
-- The projects section, with screenshots, descriptions, and live + code links *
-- A list of every tutorial you've watched
-E: Projects are the evidence that you can build real things. Screenshots, short write-ups, and working links make that evidence easy to evaluate.
+- The projects section with real evidence and links *
+- A giant list of every tool ever used
+E: Projects are the strongest proof that you can build and ship. That is the section most people actually evaluate.
 :::
 
 :::quiz
-Q: Why use semantic tags like <section> and <article> instead of plain <div>s?
-- They render faster than divs
-- They make the page more meaningful and accessible, and the code easier to read *
-- They are required by the browser
-E: Semantic elements describe what content *is*, which helps screen readers, search engines, and other developers (including future you) understand the page.
+Q: Why is a short explanation of what was tricky in a project valuable?
+- It shows how you think and solve problems *
+- It makes screenshots load faster
+- It replaces the need for code links
+E: A small case-study note helps readers understand your decisions and shows that you can reflect on implementation, not just copy a result.
 :::
 
 :::fill
-The CSS that creates a responsive card grid with no media queries is `grid-template-columns: repeat(auto-fit, minmax(280px, ______));`.
-- 1fr *
-- 100px
-- auto
-E: `minmax(280px, 1fr)` lets each card be at least 280px and grow to fill an equal share, while `auto-fit` flows them into as many columns as fit.
+Three to five ______ projects usually make a stronger beginner portfolio than ten scattered unfinished ones.
+- polished *
+- hidden
+- duplicated
+E: Fewer, polished projects are easier to trust and easier to review than a large pile of incomplete work.
 :::
 
-## Recap
+## What good looks like
 
-- A portfolio proves your skills and centralizes your work — it's the link you'll share everywhere.
-- Include a hero, about, projects, skills, and contact section; plan the order before coding.
-- Build with semantic HTML and a responsive CSS Grid; cards with `auto-fit` + `minmax` go responsive without media queries.
-- Write a short case study per project: what it is, what you built/learned, what was tricky.
-- Polish with optimized images, `alt` text, consistent spacing, hover/focus states, a title, and a favicon.
-- Test on a real phone, then deploy with GitHub Pages or Netlify and run the pre-deploy checklist.
+You should now be able to:
 
-**Next up:** Next Steps — where to take your skills from here.
+- explain what a portfolio needs to accomplish
+- choose which projects deserve to be featured
+- structure a clean portfolio site
+- write stronger project descriptions and mini case studies
+- launch a public portfolio that feels professional and trustworthy
+
+## What's next
+
+In **Next Steps**, you'll think beyond the first portfolio: stronger projects, frameworks, testing, backend integration, and the habits that move you from learning frontend to practising it seriously.

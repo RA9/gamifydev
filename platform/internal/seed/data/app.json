@@ -251,8 +251,20 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "JavaScript Basics",
+            "next": "Project: Build a Responsive Landing Page",
             "previous": "Building a Website with HTML and CSS",
+            "section": "Build with HTML & CSS",
+            "kind": "project"
+          },
+          {
+            "title": "Project: Build a Responsive Landing Page",
+            "description": "Turn a product brief into a polished, responsive marketing page with a hero, feature grid, testimonial, and strong call to action.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "JavaScript Basics",
+            "previous": "Project: Build a Profile Card",
             "section": "Build with HTML & CSS",
             "kind": "project"
           },
@@ -264,7 +276,7 @@
             "is_completed": false,
             "current": false,
             "next": "JavaScript Functions, Arrays and Objects",
-            "previous": "Project: Build a Profile Card",
+            "previous": "Project: Build a Responsive Landing Page",
             "section": "JavaScript",
             "kind": "theory"
           },
@@ -347,10 +359,22 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "Working with APIs and Fetch",
+            "next": "Project: Build a Multi-Step Signup Form",
             "previous": "JavaScript Events",
             "section": "JavaScript",
             "kind": "workshop"
+          },
+          {
+            "title": "Project: Build a Multi-Step Signup Form",
+            "description": "Build a realistic sign-up flow with validation, progress tracking, next and back buttons, and a clean success state.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Working with APIs and Fetch",
+            "previous": "Building Interactive JavaScript Websites",
+            "section": "JavaScript",
+            "kind": "project"
           },
           {
             "title": "Working with APIs and Fetch",
@@ -360,7 +384,7 @@
             "is_completed": false,
             "current": false,
             "next": "Async JavaScript",
-            "previous": "Building Interactive JavaScript Websites",
+            "previous": "Project: Build a Multi-Step Signup Form",
             "section": "Data & async",
             "kind": "theory"
           },
@@ -383,8 +407,32 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "Browser DevTools and Debugging",
+            "next": "Project: Build a To-Do App",
             "previous": "Async JavaScript",
+            "section": "Data & async",
+            "kind": "project"
+          },
+          {
+            "title": "Project: Build a To-Do App",
+            "description": "Build a task manager with rendering, completion toggles, delete actions, and localStorage persistence.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Project: Build a Personal Dashboard",
+            "previous": "Project: Build a Quiz Game",
+            "section": "Data & async",
+            "kind": "project"
+          },
+          {
+            "title": "Project: Build a Personal Dashboard",
+            "description": "Combine fetch, async JavaScript, local storage, and UI state to build a dashboard with live data and saved preferences.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Browser DevTools and Debugging",
+            "previous": "Project: Build a To-Do App",
             "section": "Data & async",
             "kind": "project"
           },
@@ -396,7 +444,7 @@
             "is_completed": false,
             "current": false,
             "next": "Git and GitHub",
-            "previous": "Project: Build a Quiz Game",
+            "previous": "Project: Build a Personal Dashboard",
             "section": "Tools & deployment",
             "kind": "theory"
           },

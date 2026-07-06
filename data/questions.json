@@ -824,6 +824,126 @@
       "difficulty": "Intermediate",
       "category": "Git",
       "duration": 30
+    },
+    {
+      "id": "FEXP001",
+      "question": "Which three technologies form the core of frontend development?",
+      "options": [
+        "HTML, CSS, JavaScript",
+        "HTML, SQL, Java",
+        "Python, CSS, React",
+        "Git, HTML, Node.js"
+      ],
+      "answer": "HTML, CSS, JavaScript",
+      "explanation": "The core frontend trio is HTML for structure, CSS for presentation, and JavaScript for behavior.",
+      "difficulty": "easy",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "FEXP002",
+      "question": "What does a mobile-first CSS approach mean?",
+      "options": [
+        "You design only for phones",
+        "You write base styles for small screens first, then enhance for larger ones",
+        "You hide content on desktop screens",
+        "You use JavaScript before CSS"
+      ],
+      "answer": "You write base styles for small screens first, then enhance for larger ones",
+      "explanation": "Mobile-first CSS starts with a strong small-screen default and adds layout enhancements at larger breakpoints.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "FEXP003",
+      "question": "When should you usually add a responsive breakpoint?",
+      "options": [
+        "Whenever a new phone is released",
+        "Only at 1920px",
+        "When the content or layout starts to feel cramped or break",
+        "Every 100 pixels"
+      ],
+      "answer": "When the content or layout starts to feel cramped or break",
+      "explanation": "Good breakpoints are content-driven, not based on random device lists.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "FEXP004",
+      "question": "Why is a max-width container often useful on large screens?",
+      "options": [
+        "It makes JavaScript faster",
+        "It prevents long lines of text from becoming hard to read",
+        "It disables responsive design",
+        "It replaces media queries"
+      ],
+      "answer": "It prevents long lines of text from becoming hard to read",
+      "explanation": "A max-width helps maintain readable line lengths and keeps layouts from stretching too wide.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "FEXP005",
+      "question": "What is a practical reason to lazy-load below-the-fold images?",
+      "options": [
+        "To make them decorative only",
+        "To reduce the work needed during the initial page load",
+        "To improve text alignment",
+        "To make the images clickable"
+      ],
+      "answer": "To reduce the work needed during the initial page load",
+      "explanation": "Lazy loading helps the browser focus first on visible content instead of loading every non-critical image immediately.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "FEXP006",
+      "question": "Which practice most directly improves keyboard accessibility?",
+      "options": [
+        "Using brighter colors only",
+        "Removing focus outlines",
+        "Making interactive elements reachable and keeping focus visible",
+        "Turning every link into a div"
+      ],
+      "answer": "Making interactive elements reachable and keeping focus visible",
+      "explanation": "Keyboard users need real interactive elements and clear visible focus states to navigate the page effectively.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
+    },
+    {
+      "id": "FEXP007",
+      "question": "Why is a descriptive page title important for SEO and usability?",
+      "options": [
+        "It only changes the background color",
+        "It helps users and search engines understand what the page is about",
+        "It replaces headings on the page",
+        "It is required for CSS to load"
+      ],
+      "answer": "It helps users and search engines understand what the page is about",
+      "explanation": "A useful title improves browser-tab clarity and helps search engines interpret the page topic.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 25
+    },
+    {
+      "id": "FEXP008",
+      "question": "What is the best main purpose of a frontend portfolio site?",
+      "options": [
+        "To list as many tools as possible",
+        "To show real work, decision-making, and outcomes",
+        "To hide finished projects behind forms",
+        "To avoid using any written content"
+      ],
+      "answer": "To show real work, decision-making, and outcomes",
+      "explanation": "A strong portfolio helps people understand what you built, how you think, and what impact your work had.",
+      "difficulty": "Intermediate",
+      "category": "Frontend",
+      "duration": 30
     }
   ],
   "javascript": [
@@ -2004,6 +2124,186 @@
       "answer": "undefined",
       "duration": 45,
       "difficulty": "challenge"
+    },
+    {
+      "id": "JSEXP001",
+      "question": "Which keyword is usually the best default when a variable should not be reassigned?",
+      "options": [
+        "var",
+        "const",
+        "let",
+        "function"
+      ],
+      "answer": "const",
+      "explanation": "Use const by default and switch to let only when the value must change later.",
+      "difficulty": "easy",
+      "category": "JavaScript",
+      "duration": 20
+    },
+    {
+      "id": "JSEXP002",
+      "question": "Which property reads the current text typed into an input field?",
+      "options": [
+        "value",
+        "textContent",
+        "innerHTML",
+        "dataset"
+      ],
+      "answer": "value",
+      "explanation": "For form inputs, the current user-entered text is read from the value property.",
+      "difficulty": "easy",
+      "category": "JavaScript",
+      "duration": 20
+    },
+    {
+      "id": "JSEXP003",
+      "question": "What does addEventListener do?",
+      "options": [
+        "Creates a new DOM node",
+        "Attaches a function to run when an event happens",
+        "Stores data in localStorage",
+        "Styles an element"
+      ],
+      "answer": "Attaches a function to run when an event happens",
+      "explanation": "addEventListener lets JavaScript respond to browser events like clicks, input, and submit.",
+      "difficulty": "easy",
+      "category": "JavaScript",
+      "duration": 20
+    },
+    {
+      "id": "JSEXP004",
+      "question": "Why would you call event.preventDefault in a submit handler?",
+      "options": [
+        "To stop the browser default form submission behavior",
+        "To reset all variables",
+        "To remove the form from the page",
+        "To speed up CSS rendering"
+      ],
+      "answer": "To stop the browser default form submission behavior",
+      "explanation": "preventDefault lets your code control the form flow instead of immediately reloading or navigating away.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 25
+    },
+    {
+      "id": "JSEXP005",
+      "question": "Which method creates a new DOM element in JavaScript?",
+      "options": [
+        "document.createElement()",
+        "document.querySelector()",
+        "element.appendChild()",
+        "window.addNode()"
+      ],
+      "answer": "document.createElement()",
+      "explanation": "createElement makes a new DOM node that you can configure and insert into the page.",
+      "difficulty": "easy",
+      "category": "JavaScript",
+      "duration": 20
+    },
+    {
+      "id": "JSEXP006",
+      "question": "What does querySelectorAll return?",
+      "options": [
+        "A NodeList of matching elements",
+        "Only the first matching element",
+        "A single string value",
+        "A CSS stylesheet"
+      ],
+      "answer": "A NodeList of matching elements",
+      "explanation": "querySelectorAll returns all matching elements in a NodeList-like collection.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 25
+    },
+    {
+      "id": "JSEXP007",
+      "question": "What does classList.toggle help you do?",
+      "options": [
+        "Read from localStorage",
+        "Add or remove a class based on its current presence",
+        "Create an array",
+        "Submit a form"
+      ],
+      "answer": "Add or remove a class based on its current presence",
+      "explanation": "classList.toggle is a simple way to reflect state changes in the DOM through classes.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 25
+    },
+    {
+      "id": "JSEXP008",
+      "question": "In frontend development, what does state usually mean?",
+      "options": [
+        "The browser tab title",
+        "The data that describes the current UI condition",
+        "A CSS animation step",
+        "A Git branch"
+      ],
+      "answer": "The data that describes the current UI condition",
+      "explanation": "State is the data your UI depends on, such as selected items, form values, or open panels.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 30
+    },
+    {
+      "id": "JSEXP009",
+      "question": "Why is rendering the UI from state a strong pattern?",
+      "options": [
+        "It keeps data and visible output consistent",
+        "It removes the need for HTML",
+        "It makes CSS selectors optional",
+        "It prevents all bugs automatically"
+      ],
+      "answer": "It keeps data and visible output consistent",
+      "explanation": "When UI is derived from state, the behavior is easier to reason about and update predictably.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 30
+    },
+    {
+      "id": "JSEXP010",
+      "question": "What kind of data does localStorage persist?",
+      "options": [
+        "Server-only database rows",
+        "String data stored in the browser across refreshes",
+        "Compiled JavaScript bytecode",
+        "CSS variables only"
+      ],
+      "answer": "String data stored in the browser across refreshes",
+      "explanation": "localStorage stores string data in the user browser until it is cleared or overwritten.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 25
+    },
+    {
+      "id": "JSEXP011",
+      "question": "Which event object property points to the element that triggered the event?",
+      "options": [
+        "event.target",
+        "event.origin",
+        "event.node",
+        "event.child"
+      ],
+      "answer": "event.target",
+      "explanation": "event.target refers to the element that fired the event.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 25
+    },
+    {
+      "id": "JSEXP012",
+      "question": "Why is textContent usually safer than innerHTML for plain user text?",
+      "options": [
+        "It automatically adds colors",
+        "It does not parse the text as HTML",
+        "It saves directly to localStorage",
+        "It creates CSS classes"
+      ],
+      "answer": "It does not parse the text as HTML",
+      "explanation": "textContent treats the value as plain text, which helps avoid accidental HTML injection for untrusted input.",
+      "difficulty": "Intermediate",
+      "category": "JavaScript",
+      "duration": 30
     }
   ],
   "html": [
@@ -2305,6 +2605,156 @@
         "<heading>"
       ],
       "answer": "<header>",
+      "duration": 25
+    },
+    {
+      "id": "HTMLEXP001",
+      "question": "Which HTML element should wrap the primary content of a page?",
+      "options": [
+        "<main>",
+        "<footer>",
+        "<aside>",
+        "<span>"
+      ],
+      "answer": "<main>",
+      "explanation": "main identifies the page primary content and acts as a major landmark for assistive technology.",
+      "difficulty": "easy",
+      "category": "HTML",
+      "duration": 25
+    },
+    {
+      "id": "HTMLEXP002",
+      "question": "When should you use a button instead of a link?",
+      "options": [
+        "When triggering an in-page action",
+        "When linking to another page",
+        "When adding a heading",
+        "When embedding an image"
+      ],
+      "answer": "When triggering an in-page action",
+      "explanation": "Buttons are for actions inside the current page or app, while links are for navigation.",
+      "difficulty": "Intermediate",
+      "category": "HTML",
+      "duration": 30
+    },
+    {
+      "id": "HTMLEXP003",
+      "question": "Which attribute connects a label to its input?",
+      "options": [
+        "for",
+        "href",
+        "src",
+        "class"
+      ],
+      "answer": "for",
+      "explanation": "The label uses the for attribute to match the input id.",
+      "difficulty": "easy",
+      "category": "HTML",
+      "duration": 20
+    },
+    {
+      "id": "HTMLEXP004",
+      "question": "Which element is used to group related form controls?",
+      "options": [
+        "fieldset",
+        "legend",
+        "section",
+        "nav"
+      ],
+      "answer": "fieldset",
+      "explanation": "fieldset groups related controls, and legend provides the group label.",
+      "difficulty": "Intermediate",
+      "category": "HTML",
+      "duration": 25
+    },
+    {
+      "id": "HTMLEXP005",
+      "question": "What should the alt text usually be for a purely decorative image?",
+      "options": [
+        "The file path",
+        "A full paragraph description",
+        "An empty string",
+        "The page title"
+      ],
+      "answer": "An empty string",
+      "explanation": "Decorative images should typically use empty alt text so assistive tech can ignore them.",
+      "difficulty": "Intermediate",
+      "category": "HTML",
+      "duration": 30
+    },
+    {
+      "id": "HTMLEXP006",
+      "question": "Why is placeholder text not a good replacement for a real label?",
+      "options": [
+        "Because placeholders break CSS",
+        "Because placeholder text disappears and is not a persistent accessible label",
+        "Because placeholders only work on mobile",
+        "Because labels are only for search engines"
+      ],
+      "answer": "Because placeholder text disappears and is not a persistent accessible label",
+      "explanation": "Placeholders can help with examples, but they should not replace a visible label tied to the control.",
+      "difficulty": "Intermediate",
+      "category": "HTML",
+      "duration": 30
+    },
+    {
+      "id": "HTMLEXP007",
+      "question": "Which input type gives the browser stronger hints that an email address is expected?",
+      "options": [
+        "email",
+        "string",
+        "password",
+        "textbox"
+      ],
+      "answer": "email",
+      "explanation": "The email input type helps with validation and often gives better mobile keyboard behavior.",
+      "difficulty": "easy",
+      "category": "HTML",
+      "duration": 20
+    },
+    {
+      "id": "HTMLEXP008",
+      "question": "Which HTML element is the best fit for multi-line user input?",
+      "options": [
+        "textarea",
+        "input type radio",
+        "fieldset",
+        "label"
+      ],
+      "answer": "textarea",
+      "explanation": "textarea is designed for longer, multi-line text input.",
+      "difficulty": "easy",
+      "category": "HTML",
+      "duration": 20
+    },
+    {
+      "id": "HTMLEXP009",
+      "question": "Which attribute makes a form field mandatory before submission?",
+      "options": [
+        "required",
+        "checked",
+        "selected",
+        "target"
+      ],
+      "answer": "required",
+      "explanation": "The required attribute enables built-in browser validation for a needed field.",
+      "difficulty": "easy",
+      "category": "HTML",
+      "duration": 20
+    },
+    {
+      "id": "HTMLEXP010",
+      "question": "What is the role of a legend inside a fieldset?",
+      "options": [
+        "It defines the page title",
+        "It labels a group of related form controls",
+        "It styles the submit button",
+        "It creates a link target"
+      ],
+      "answer": "It labels a group of related form controls",
+      "explanation": "legend names the grouped controls inside a fieldset, improving form clarity and accessibility.",
+      "difficulty": "Intermediate",
+      "category": "HTML",
       "duration": 25
     }
   ],
@@ -2931,6 +3381,156 @@
         "apply"
       ],
       "answer": "backdrop-filter",
+      "duration": 25
+    },
+    {
+      "id": "CSSEXP001",
+      "question": "If two CSS rules have the same specificity, which one wins?",
+      "options": [
+        "The earlier one",
+        "The later one",
+        "The one with fewer properties",
+        "Neither one"
+      ],
+      "answer": "The later one",
+      "explanation": "When specificity is equal, the rule that comes later in the stylesheet wins.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
+      "duration": 25
+    },
+    {
+      "id": "CSSEXP002",
+      "question": "Which CSS property adds space inside an element border?",
+      "options": [
+        "padding",
+        "margin",
+        "gap",
+        "outline"
+      ],
+      "answer": "padding",
+      "explanation": "Padding adds internal space between content and the border.",
+      "difficulty": "easy",
+      "category": "CSS",
+      "duration": 20
+    },
+    {
+      "id": "CSSEXP003",
+      "question": "What does the gap property do in flexbox or grid layouts?",
+      "options": [
+        "It changes font size",
+        "It adds space between child items",
+        "It centers text",
+        "It rounds corners"
+      ],
+      "answer": "It adds space between child items",
+      "explanation": "gap controls spacing between items in flex and grid layouts without margin hacks.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
+      "duration": 25
+    },
+    {
+      "id": "CSSEXP004",
+      "question": "Which layout system is usually the better choice for arranging items across rows and columns together?",
+      "options": [
+        "Grid",
+        "Float",
+        "Inline-block",
+        "Text-align"
+      ],
+      "answer": "Grid",
+      "explanation": "CSS Grid is designed for two-dimensional layout across rows and columns.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
+      "duration": 25
+    },
+    {
+      "id": "CSSEXP005",
+      "question": "In a flex container with flex-direction: row, which property usually controls vertical alignment of the children?",
+      "options": [
+        "align-items",
+        "justify-content",
+        "text-align",
+        "line-height"
+      ],
+      "answer": "align-items",
+      "explanation": "With a row main axis, align-items controls alignment across the cross axis, which is vertical.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
+      "duration": 30
+    },
+    {
+      "id": "CSSEXP006",
+      "question": "What does 1fr represent in CSS Grid?",
+      "options": [
+        "One full row",
+        "One fixed pixel",
+        "One fraction of available space",
+        "One font-relative unit"
+      ],
+      "answer": "One fraction of available space",
+      "explanation": "The fr unit divides available space proportionally inside a grid.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
+      "duration": 25
+    },
+    {
+      "id": "CSSEXP007",
+      "question": "Which media query pattern is commonly used in a mobile-first approach?",
+      "options": [
+        "At-rule with min-width",
+        "At-rule with max-height",
+        "Orientation only query",
+        "Color-gamut query"
+      ],
+      "answer": "At-rule with min-width",
+      "explanation": "Mobile-first layouts often start with base styles and then use min-width media queries for larger screens.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
+      "duration": 30
+    },
+    {
+      "id": "CSSEXP008",
+      "question": "Why is max-width: 100% commonly applied to images?",
+      "options": [
+        "To make them black and white",
+        "To prevent them from overflowing their containers",
+        "To center them automatically",
+        "To remove their alt text"
+      ],
+      "answer": "To prevent them from overflowing their containers",
+      "explanation": "max-width 100 percent helps images stay within the width of their parent container.",
+      "difficulty": "easy",
+      "category": "CSS",
+      "duration": 20
+    },
+    {
+      "id": "CSSEXP009",
+      "question": "What is the main benefit of repeat auto-fit with minmax in a grid layout?",
+      "options": [
+        "It creates responsive columns that adapt to available space",
+        "It disables wrapping",
+        "It fixes every column at 16 pixels",
+        "It only works on mobile"
+      ],
+      "answer": "It creates responsive columns that adapt to available space",
+      "explanation": "Auto-fit with minmax creates flexible responsive columns that grow and shrink across screen sizes.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
+      "duration": 35
+    },
+    {
+      "id": "CSSEXP010",
+      "question": "Why are class selectors usually preferred over ID selectors for reusable component styling?",
+      "options": [
+        "Classes are reusable across many elements",
+        "IDs load faster",
+        "Classes are only for JavaScript",
+        "IDs cannot style text"
+      ],
+      "answer": "Classes are reusable across many elements",
+      "explanation": "Classes are designed to be reused, which makes them a better fit for most component-level styling.",
+      "difficulty": "Intermediate",
+      "category": "CSS",
       "duration": 25
     }
   ],

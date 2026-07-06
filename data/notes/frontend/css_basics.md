@@ -1,132 +1,290 @@
 # CSS Basics
 
-You've built structure with HTML. Now you'll make it *beautiful*. **CSS** — Cascading Style Sheets — controls how your HTML looks: colours, fonts, spacing, and layout.
+Once HTML gives your page structure, **CSS decides how that structure feels**. It controls hierarchy, spacing, color, alignment, rhythm, and the difference between a page that feels amateur and one that feels deliberate.
 
-By the end of this lesson you'll understand how a CSS rule works, where styles come from, and the single most important concept for controlling layout: the box model.
+By the end of this lesson, you should understand the mechanics behind CSS well enough to style with intention instead of guesswork.
 
-## HTML is the skeleton, CSS is the style
+## What CSS is responsible for
 
-If HTML is the skeleton of a page, CSS is its skin, clothes, and posture. The same HTML can look like a serious bank or a playful game — the difference is entirely CSS.
+CSS stands for **Cascading Style Sheets**. It handles presentation:
+
+- typography
+- spacing
+- colors
+- borders and shadows
+- alignment and layout
+- responsive adjustments across devices
+
+If HTML answers **what is this?**, CSS answers **what should it look like here?**
 
 :::analogy
-Think of HTML as a plain house — walls, doors, rooms in the right places. CSS is the paint, furniture, and lighting. You can completely redecorate without moving a single wall.
+HTML is the blueprint and room labels. CSS is the interior design system: spacing, furniture arrangement, paint, and lighting.
 :::
 
-## How a CSS rule works
+## The shape of a CSS rule
 
-Every CSS rule has two parts: a **selector** (what to style) and a **declaration block** (how to style it). Each declaration is a `property: value;` pair.
+Every rule has a **selector** and one or more **declarations**.
 
 ```css
-p {
-  color: blue;
-  font-size: 18px;
+.card {
+  background-color: white;
+  padding: 24px;
+  border-radius: 16px;
 }
 ```
 
-Read it as: "find every `<p>` element, and make its text blue and 18 pixels tall." `color` and `font-size` are *properties*; `blue` and `18px` are their *values*.
+Read it as:
+
+- `.card` — target every element with `class="card"`
+- `background-color`, `padding`, `border-radius` — properties
+- `white`, `24px`, `16px` — values
 
 :::fill
-Q: Complete the rule so every heading is centered.
-`h1 { ___: center; }`
+Q: Complete the rule so the paragraph text is centered.
+`p { ___: center; }`
 - text-align *
 - align
-- center
-E: `text-align: center` centers the text inside the element.
+- justify-content
+E: `text-align` controls inline content alignment inside the element.
 :::
 
-## Three ways to apply CSS
+## Where CSS lives
+
+There are three common ways to apply CSS:
 
 ```html
-<!-- 1. Inline: on a single element (use sparingly) -->
-<p style="color: red;">Hi</p>
+<!-- Inline -->
+<p style="color: red;">Hello</p>
 
-<!-- 2. Internal: a <style> block in the page <head> -->
+<!-- Internal -->
 <style>
   p { color: red; }
 </style>
 
-<!-- 3. External: a separate file (recommended) -->
-<link rel="stylesheet" href="main.css" />
+<!-- External -->
+<link rel="stylesheet" href="styles.css" />
 ```
 
-The **external** stylesheet is the professional choice: one file styles your whole site, and it's cached so pages load fast.
+For real projects, prefer **external CSS files**. They keep your HTML cleaner and make styles reusable across pages.
 
-## Selectors: targeting the right elements
+## Selectors you need every day
 
-You'll use three selectors constantly:
+The selectors you'll reach for most:
 
-- **Element** — `p { }` styles *every* paragraph.
-- **Class** — `.btn { }` styles any element with `class="btn"`. Reusable, your everyday workhorse.
-- **ID** — `#header { }` styles the one element with `id="header"`. Unique.
+- **Element selector** — `p {}`
+- **Class selector** — `.button {}`
+- **ID selector** — `#hero {}`
+
+In modern frontend work, **classes do most of the heavy lifting** because they are reusable.
 
 ```css
 .button {
-  background: #6740e8;
+  background: #5b3df5;
   color: white;
-  border-radius: 8px;
 }
 ```
 
 :::quiz
-Q: You want a style you can reuse on many buttons across the site. Which selector fits best?
+Q: You want a style you can reuse on 14 different buttons. Which selector is usually the best choice?
 - An ID selector like `#button`
 - A class selector like `.button` *
-- An element selector like `button`
-E: Classes are reusable — apply `class="button"` to as many elements as you like. IDs must be unique, and styling every `<button>` element is often too broad.
+- A heading selector like `h2`
+E: Classes are reusable by design. IDs are unique and usually too specific for repeated component styling.
 :::
 
-## The box model — the key to layout
+## The cascade, specificity, and inheritance
 
-Here's the concept that unlocks CSS layout. **Every element on a page is a rectangular box**, and that box is made of four layers, from the inside out:
+This is where many learners get stuck — and where styling starts to make sense.
 
-![The CSS box model: content, padding, border, margin](/images/lessons/css-box-model.svg)
+### The cascade
 
-- **Content** — the text or image itself.
-- **Padding** — space *inside* the box, between the content and the border. Think breathing room.
-- **Border** — a line around the padding.
-- **Margin** — space *outside* the box, pushing other elements away.
+If two rules target the same element, the browser decides which wins.
 
-:::analogy
-Picture a framed photo on a wall. The **photo** is the content. The **mount** around it is the padding. The **frame** is the border. The **gap** to the next picture is the margin. Same four layers, every time.
+```css
+p {
+  color: slategray;
+}
+
+p {
+  color: rebeccapurple;
+}
+```
+
+The second rule wins because it comes later and has the same specificity.
+
+### Specificity
+
+More specific selectors beat less specific ones.
+
+```css
+p {
+  color: slategray;
+}
+
+.card p {
+  color: black;
+}
+```
+
+Paragraphs inside `.card` become black because `.card p` is more specific than `p` alone.
+
+### Inheritance
+
+Some properties, like `color` and `font-family`, naturally flow from parent to child.
+
+```css
+body {
+  color: #1e293b;
+  font-family: system-ui, sans-serif;
+}
+```
+
+Most text inside the page inherits those values automatically.
+
+:::key
+If a style "won't apply", ask three questions: am I targeting the right element, is another rule more specific, and does a later rule override it?
 :::
 
-A common beginner confusion: *padding vs margin*. Padding grows the space **inside** (the background colour fills it); margin adds space **outside** (it's always transparent).
+## The box model unlocks spacing
+
+Every element is a box made of four layers:
+
+1. **content**
+2. **padding**
+3. **border**
+4. **margin**
 
 ```css
 .card {
-  padding: 16px;   /* space inside, around the content */
-  border: 2px solid #ddd;
-  margin: 24px;    /* space outside, between this card and others */
+  padding: 16px;
+  border: 1px solid #cbd5e1;
+  margin: 24px;
 }
 ```
 
-:::quiz
-Q: You want more space *between* the content and the edge of its coloured box. Which property?
-- `margin`
-- `padding` *
-- `border`
-E: Padding is the space inside the box, between content and border — and the background colour fills it. Margin would push *other* elements away instead.
+- `padding` adds space **inside** the element
+- `border` wraps the content and padding
+- `margin` adds space **outside** the element
+
+:::reorder
+Q: Put the box model layers in order from inside to outside.
+- content
+- padding
+- border
+- margin
+E: Content sits in the center, then padding, then border, then margin pushes away neighboring boxes.
 :::
 
-## A few properties you'll reach for
+A professional frontend developer becomes excellent at reading pages as **boxes with spacing relationships**.
 
-- **Colour**: `color`, `background-color`
-- **Text**: `font-size`, `font-weight`, `text-align`
-- **Spacing**: `margin`, `padding`
-- **Layout**: `display`, and the modern power tools **flexbox** (`display: flex`) and **grid** (`display: grid`)
+## Units that matter most
 
-:::key
-A CSS rule pairs a **selector** with **declarations**. Prefer reusable **classes** and external stylesheets. And remember the **box model** — content, padding, border, margin — because almost every layout question comes back to it.
+You don't need every CSS unit to get strong results.
+
+Start with these:
+
+- `px` — exact pixels
+- `rem` — relative to the root font size, great for scalable spacing and type
+- `%` — relative to the parent
+- `vh` / `vw` — relative to viewport height/width
+
+Useful examples:
+
+```css
+body {
+  font-size: 1rem;
+}
+
+.hero {
+  min-height: 100vh;
+}
+
+.card {
+  width: 100%;
+  max-width: 32rem;
+}
+```
+
+## DevTools are part of CSS, not optional extras
+
+When styles look wrong, don't guess. Inspect.
+
+Use the browser DevTools to:
+
+- see which rule is winning
+- toggle properties on and off
+- inspect margin and padding visually
+- test colors, font sizes, and layout quickly
+
+:::tip
+The fastest CSS workflow is: change code, inspect in DevTools, confirm the rule, then move the final version back into your stylesheet.
 :::
 
-## Talk about it
+## A practical styling pass
 
-Explain these out loud:
+Suppose you start with this HTML:
 
-> "What are the two parts of a CSS rule? And what's the difference between padding and margin?"
+```html
+<div class="callout">
+  <h2>Ship consistently</h2>
+  <p>Small releases beat giant rewrites.</p>
+</div>
+```
 
-If the padding-vs-margin answer comes easily, you've grasped the single most useful idea in CSS.
+A clean first styling pass might be:
+
+```css
+.callout {
+  max-width: 28rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.callout h2 {
+  margin: 0 0 0.5rem;
+  color: #0f172a;
+}
+
+.callout p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+```
+
+Notice the pattern:
+
+- style the component container first
+- then style inner text elements
+- use spacing intentionally
+- avoid random one-off values
+
+## Common CSS mistakes to avoid
+
+- Styling everything with element selectors only
+- Fighting layout with random margins instead of understanding structure
+- Using IDs for reusable styling
+- Writing huge selectors when a small class would do
+- Guessing why a style lost instead of checking specificity and DevTools
+
+:::warning
+If your spacing decisions feel random, your UI will feel random too. Strong CSS is mostly strong spacing.
+:::
+
+## What good looks like
+
+You should now be able to:
+
+- explain what a selector and declaration are
+- choose between element, class, and ID selectors
+- reason about the cascade and specificity
+- use the box model to control spacing
+- use practical units like `rem`, `%`, and `vh`
+- debug styles with DevTools instead of trial-and-error
 
 ## What's next
 
-You can now structure (HTML) and style (CSS) a page. Next, **JavaScript Basics** adds *behaviour* — making the page respond to the people using it.
+In **CSS Layouts: Flexbox & Grid**, you'll move from styling individual boxes to arranging entire interfaces — rows, columns, card grids, and real page structure.

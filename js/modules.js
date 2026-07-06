@@ -15,7 +15,7 @@ const createLinkedList = (notes) => {
   notes.forEach((note, index) => {
     noteMap.set(
       note.title,
-      new Note(note.title, note.description, note.current)
+      new Note(note.title, note.description, note.current),
     );
   });
 
@@ -70,7 +70,7 @@ function slugifyTitle(title) {
 async function fetchNote(pathName, title) {
   try {
     const response = await fetch(
-      `data/notes/${pathName.toLowerCase()}/${slugifyTitle(title)}.md`
+      `data/notes/${pathName.toLowerCase()}/${slugifyTitle(title)}.md`,
     );
     if (!response.ok) return null;
     return await response.text();
@@ -95,25 +95,35 @@ function mdEscAttr(s) {
 // Inline markdown: code, bold, italic, links, inline images. HTML is escaped
 // first so authored lessons can't inject markup.
 function mdInline(s) {
-  return mdEscHtml(s)
-    .replace(/`([^`]+)`/g, '<code class="gd-code">$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    // Links (but not the "[..](..)" part of an image — keep a non-"!" prefix).
-    .replace(
-      /(^|[^!])\[([^\]]+)\]\(([^)\s]+)\)/g,
-      '$1<a href="$3" target="_blank" rel="noopener" class="font-bold text-brand-600 underline decoration-2 underline-offset-2">$2</a>'
-    );
+  return (
+    mdEscHtml(s)
+      .replace(/`([^`]+)`/g, '<code class="gd-code">$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      // Links (but not the "[..](..)" part of an image — keep a non-"!" prefix).
+      .replace(
+        /(^|[^!])\[([^\]]+)\]\(([^)\s]+)\)/g,
+        '$1<a href="$3" target="_blank" rel="noopener" class="font-bold text-brand-600 underline decoration-2 underline-offset-2">$2</a>',
+      )
+  );
 }
 
 // Friendly, callout-box presets keyed by the `:::type` fence.
 const MD_CALLOUTS = {
   tip: { cls: "gd-callout-tip", icon: "bulb", label: "Tip" },
-  analogy: { cls: "gd-callout-analogy", icon: "puzzle", label: "Think of it like…" },
+  analogy: {
+    cls: "gd-callout-analogy",
+    icon: "puzzle",
+    label: "Think of it like…",
+  },
   warning: { cls: "gd-callout-warning", icon: "alert", label: "Watch out" },
   key: { cls: "gd-callout-key", icon: "key", label: "Key idea" },
   example: { cls: "gd-callout-example", icon: "flask", label: "Example" },
-  project: { cls: "gd-callout-project", icon: "rocket", label: "What you'll build" },
+  project: {
+    cls: "gd-callout-project",
+    icon: "rocket",
+    label: "What you'll build",
+  },
 };
 
 function renderCallout(type, inner) {
@@ -155,8 +165,8 @@ function renderInlineQuiz(buf) {
     .map(
       (o) =>
         `<button type="button" class="lesson-quiz-option gd-option w-full text-left" data-correct="${o.correct}">${mdInline(
-          o.txt
-        )}</button>`
+          o.txt,
+        )}</button>`,
     )
     .join("");
 
@@ -184,7 +194,8 @@ function initLessonQuiz(quizEl) {
       const correct = btn.dataset.correct === "true";
       opts.forEach((o) => {
         o.disabled = true;
-        if (o.dataset.correct === "true") o.classList.add("lesson-quiz-correct");
+        if (o.dataset.correct === "true")
+          o.classList.add("lesson-quiz-correct");
       });
       if (!correct) btn.classList.add("lesson-quiz-wrong");
       feedback.classList.remove("hidden");
@@ -192,9 +203,11 @@ function initLessonQuiz(quizEl) {
       feedback.innerHTML =
         `<span class="inline-flex items-center gap-1 align-text-bottom">${icon(
           correct ? "checkCircle" : "xCircle",
-          "w-4 h-4"
+          "w-4 h-4",
         )} ${correct ? "Correct!" : "Not quite."}</span> ` +
-        (explanation ? `<span class="font-normal text-slate-600">${explanation}</span>` : "");
+        (explanation
+          ? `<span class="font-normal text-slate-600">${explanation}</span>`
+          : "");
     });
   });
 }
@@ -209,7 +222,8 @@ function renderReorder(buf) {
   buf.forEach((l) => {
     const t = l.trim();
     if (/^E:/i.test(t)) explanation = t.replace(/^E:\s*/i, "");
-    else if (/^[-*]\s/.test(l.trimStart())) lines.push(l.replace(/^\s*[-*]\s/, ""));
+    else if (/^[-*]\s/.test(l.trimStart()))
+      lines.push(l.replace(/^\s*[-*]\s/, ""));
     else if (t && !prompt) prompt = t.replace(/^Q:\s*/i, "");
   });
 
@@ -217,7 +231,7 @@ function renderReorder(buf) {
   const chips = shuffle(items)
     .map(
       (it) =>
-        `<button type="button" class="reorder-chip" data-index="${it.index}">${mdEscHtml(it.text)}</button>`
+        `<button type="button" class="reorder-chip" data-index="${it.index}">${mdEscHtml(it.text)}</button>`,
     )
     .join("");
 
@@ -266,8 +280,8 @@ function renderFill(buf) {
     .map(
       (o) =>
         `<button type="button" class="fill-option" data-correct="${o.correct}" data-text="${mdEscAttr(
-          o.txt
-        )}">${mdEscHtml(o.txt)}</button>`
+          o.txt,
+        )}">${mdEscHtml(o.txt)}</button>`,
     )
     .join("");
 
@@ -321,8 +335,8 @@ function renderPredict(buf) {
     .map(
       (o) =>
         `<button type="button" class="lesson-quiz-option gd-option w-full text-left" data-correct="${o.correct}">${mdInline(
-          o.txt
-        )}</button>`
+          o.txt,
+        )}</button>`,
     )
     .join("");
 
@@ -351,7 +365,10 @@ function renderMatch(buf) {
     else if (/^[-*]\s/.test(t) && t.includes("|")) {
       const body = t.replace(/^[-*]\s+/, "");
       const idx = body.indexOf("|");
-      pairs.push({ left: body.slice(0, idx).trim(), right: body.slice(idx + 1).trim() });
+      pairs.push({
+        left: body.slice(0, idx).trim(),
+        right: body.slice(idx + 1).trim(),
+      });
     } else if (/^Q:/i.test(t)) prompt = t.replace(/^Q:\s*/i, "");
     else if (t && prompt === "Match the pairs.") prompt = t;
   });
@@ -359,13 +376,13 @@ function renderMatch(buf) {
   const lefts = pairs
     .map(
       (p, i) =>
-        `<button type="button" class="match-item match-left" data-pair="${i}">${mdInline(p.left)}</button>`
+        `<button type="button" class="match-item match-left" data-pair="${i}">${mdInline(p.left)}</button>`,
     )
     .join("");
   const rights = shuffle(pairs.map((p, i) => ({ i, right: p.right })))
     .map(
       (r) =>
-        `<button type="button" class="match-item match-right" data-pair="${r.i}">${mdInline(r.right)}</button>`
+        `<button type="button" class="match-item match-right" data-pair="${r.i}">${mdInline(r.right)}</button>`,
     )
     .join("");
 
@@ -407,17 +424,23 @@ function initMatch(el) {
       matched++;
       if (matched === total) {
         feedback.classList.remove("hidden");
-        feedback.className = "lesson-match-feedback mt-3 text-sm font-bold text-grass-600";
+        feedback.className =
+          "lesson-match-feedback mt-3 text-sm font-bold text-grass-600";
         feedback.innerHTML =
           "✅ All matched! " +
-          (explanation ? `<span class="font-normal text-slate-600">${explanation}</span>` : "");
+          (explanation
+            ? `<span class="font-normal text-slate-600">${explanation}</span>`
+            : "");
       }
     } else {
       [a, b].forEach((x) => {
         x.classList.remove("match-selected");
         x.classList.add("match-wrong");
       });
-      setTimeout(() => [a, b].forEach((x) => x.classList.remove("match-wrong")), 500);
+      setTimeout(
+        () => [a, b].forEach((x) => x.classList.remove("match-wrong")),
+        500,
+      );
     }
   };
 
@@ -461,14 +484,17 @@ function initFill(el) {
       }
       options.forEach((o) => {
         o.disabled = true;
-        if (o.dataset.correct === "true") o.classList.add("fill-option-correct");
+        if (o.dataset.correct === "true")
+          o.classList.add("fill-option-correct");
       });
       if (!correct) btn.classList.add("fill-option-wrong");
       feedback.classList.remove("hidden");
       feedback.classList.add(correct ? "text-grass-600" : "text-rose-500");
       feedback.innerHTML =
         (correct ? "✅ Correct! " : "❌ Not quite. ") +
-        (explanation ? `<span class="font-normal text-slate-600">${explanation}</span>` : "");
+        (explanation
+          ? `<span class="font-normal text-slate-600">${explanation}</span>`
+          : "");
     });
   });
 }
@@ -494,7 +520,9 @@ function initReorder(el) {
       return;
     }
     if (e.target.closest(".reorder-reset")) {
-      el.querySelectorAll(".reorder-answer .reorder-chip").forEach((c) => source.appendChild(c));
+      el.querySelectorAll(".reorder-answer .reorder-chip").forEach((c) =>
+        source.appendChild(c),
+      );
       clearMarks();
       feedback.classList.add("hidden");
       return;
@@ -511,12 +539,13 @@ function initReorder(el) {
       });
       feedback.classList.remove("hidden");
       feedback.className =
-        "reorder-feedback mt-3 text-sm font-bold " + (correct ? "text-grass-600" : "text-rose-500");
+        "reorder-feedback mt-3 text-sm font-bold " +
+        (correct ? "text-grass-600" : "text-rose-500");
       const msg = correct
         ? "✅ Perfect order!"
         : placed.length < total
-        ? "Place all the lines first."
-        : "❌ Not quite — try again.";
+          ? "Place all the lines first."
+          : "❌ Not quite — try again.";
       feedback.innerHTML =
         msg +
         (correct && explanation
@@ -595,13 +624,13 @@ function markdownToHtml(md) {
       closeLists();
       const cap = img[1]
         ? `<figcaption class="text-center text-sm text-slate-500 mt-2">${mdInline(
-            img[1]
+            img[1],
           )}</figcaption>`
         : "";
       html.push(
         `<figure class="my-6"><img src="${mdEscAttr(
-          img[2]
-        )}" alt="${mdEscAttr(img[1])}" loading="lazy" class="mx-auto rounded-2xl max-w-full" />${cap}</figure>`
+          img[2],
+        )}" alt="${mdEscAttr(img[1])}" loading="lazy" class="mx-auto rounded-2xl max-w-full" />${cap}</figure>`,
       );
       i++;
       continue;
@@ -614,11 +643,16 @@ function markdownToHtml(md) {
     if (heading) {
       closeLists();
       const level = heading[1].length;
-      const sizes = { 1: "text-3xl", 2: "text-2xl", 3: "text-xl", 4: "text-lg" };
+      const sizes = {
+        1: "text-3xl",
+        2: "text-2xl",
+        3: "text-xl",
+        4: "text-lg",
+      };
       html.push(
         `<h${level} class="${sizes[level]} font-extrabold mt-7 mb-3">${mdInline(
-          heading[2]
-        )}</h${level}>`
+          heading[2],
+        )}</h${level}>`,
       );
     } else if (ul) {
       if (inOL) {
@@ -656,10 +690,7 @@ async function scratchPage(htmlEl) {
   const state = await DB.states.where("name").equals("general").last();
   const user = (await DB.users.toArray())[0];
   const pathName = await getActivePath();
-  const notes = await DB.paths
-    .where("path_name")
-    .equals(pathName)
-    .toArray();
+  const notes = await DB.paths.where("path_name").equals(pathName).toArray();
 
   const scratchNotes = createLinkedList(notes);
   // Look up each module's stored record (for is_completed) by title.
@@ -711,7 +742,9 @@ async function scratchPage(htmlEl) {
 
   if (state.current === "scratch") {
     const completedCount = notes.filter((n) => n.is_completed).length;
-    const pct = notes.length ? Math.round((completedCount / notes.length) * 100) : 0;
+    const pct = notes.length
+      ? Math.round((completedCount / notes.length) * 100)
+      : 0;
     htmlEl.innerHTML = `
       <div class="animate-fade-up space-y-6">
         <div class="gd-card">
@@ -806,7 +839,8 @@ function renderQuestMap(ordered, recordByTitle) {
   });
 
   const pathThrough = (slice) => {
-    if (slice.length < 2) return slice.length ? `M ${slice[0].x} ${slice[0].y}` : "";
+    if (slice.length < 2)
+      return slice.length ? `M ${slice[0].x} ${slice[0].y}` : "";
     let d = `M ${slice[0].x} ${slice[0].y}`;
     for (let i = 1; i < slice.length; i++) {
       const p = slice[i - 1];
@@ -840,7 +874,11 @@ function renderQuestMap(ordered, recordByTitle) {
       const current = no.current;
       const titleEsc = no.title.replace(/'/g, "\\'");
 
-      let badge, glyph, onclick, dis = "", labelCls;
+      let badge,
+        glyph,
+        onclick,
+        dis = "",
+        labelCls;
       if (done) {
         badge = "qm-node qm-done";
         glyph = icon("check", "w-6 h-6");
@@ -866,8 +904,8 @@ function renderQuestMap(ordered, recordByTitle) {
             <span class="relative grid h-full w-full place-items-center text-white">${glyph}</span>
           </button>
           <span class="mt-1.5 text-center text-[11px] font-bold leading-tight ${labelCls}">${no.title}${
-        isProject ? ' <span aria-hidden="true">🚀</span>' : ""
-      }</span>
+            isProject ? ' <span aria-hidden="true">🚀</span>' : ""
+          }</span>
         </div>
       </foreignObject>`;
     })
@@ -934,7 +972,8 @@ const WORLDS = [
     name: "Python",
     emoji: "🐍",
     tagline: "Clear, friendly, everywhere",
-    blurb: "From first script to data & AI — the language that reads like English.",
+    blurb:
+      "From first script to data & AI — the language that reads like English.",
   },
   {
     path: "linux",
@@ -967,7 +1006,10 @@ async function WorldsPage(htmlEl) {
   const allPaths = await DB.paths.toArray();
   const stats = {};
   allPaths.forEach((p) => {
-    const s = (stats[p.path_name] = stats[p.path_name] || { total: 0, done: 0 });
+    const s = (stats[p.path_name] = stats[p.path_name] || {
+      total: 0,
+      done: 0,
+    });
     s.total += 1;
     if (p.is_completed) s.done += 1;
   });
@@ -1125,12 +1167,18 @@ async function notePage(htmlEl, requestedTitle) {
           <button id="back-to-modules" class="gd-btn gd-btn-primary">Back to Modules</button>
         </div>
       </div>`;
-    document.querySelector("#back-to-modules").addEventListener("click", backToModules);
+    document
+      .querySelector("#back-to-modules")
+      .addEventListener("click", backToModules);
     return;
   }
 
   const md = await fetchNote(pathName, current.title);
-  const esc = (s) => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const esc = (s) =>
+    (s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
   const body = md
     ? markdownToHtml(md)
@@ -1146,7 +1194,7 @@ async function notePage(htmlEl, requestedTitle) {
            ${resources
              .map(
                (r) =>
-                 `<li><a href="${esc(r.url)}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 font-bold text-brand-700 hover:bg-brand-100 transition-colors">${icon("link", "w-4 h-4 shrink-0")}${esc(r.title)}</a></li>`
+                 `<li><a href="${esc(r.url)}" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 font-bold text-brand-700 hover:bg-brand-100 transition-colors">${icon("link", "w-4 h-4 shrink-0")}${esc(r.title)}</a></li>`,
              )
              .join("")}
          </ul>
@@ -1179,15 +1227,17 @@ async function notePage(htmlEl, requestedTitle) {
             hasQuiz
               ? `Take the Quiz ${icon("arrowRight", "w-4 h-4")}`
               : hasNext
-              ? `Mark Complete & Continue ${icon("arrowRight", "w-4 h-4")}`
-              : `Finish Path ${icon("trophy", "w-4 h-4")}`
+                ? `Mark Complete & Continue ${icon("arrowRight", "w-4 h-4")}`
+                : `Finish Path ${icon("trophy", "w-4 h-4")}`
           }
         </button>`
         }
       </div>
     </article>`;
 
-  document.querySelector("#back-to-modules").addEventListener("click", backToModules);
+  document
+    .querySelector("#back-to-modules")
+    .addEventListener("click", backToModules);
 
   // Activate any inline check-for-understanding quizzes embedded in the lesson.
   htmlEl.querySelectorAll(".lesson-quiz").forEach(initLessonQuiz);
@@ -1216,11 +1266,35 @@ function moduleQuizCategory(title, pathName) {
   if (pathName === "java") return "java";
   if (pathName === "python") return "python";
   if (pathName === "linux") return "linux";
-  if (t.includes("javascript")) return "javascript";
+  if (
+    t.includes("javascript") ||
+    t.includes("dom") ||
+    t.includes("state") ||
+    t.includes("interactive")
+  )
+    return "javascript";
   if (t.includes("python")) return "python";
   if (t.includes("sql") || t.includes("database")) return "sql";
-  if (t.includes("css")) return "css";
-  if (t.includes("html")) return "html";
+  if (t.includes("css") || t.includes("flexbox") || t.includes("grid"))
+    return "css";
+  if (
+    t.includes("html") ||
+    t.includes("semantic") ||
+    t.includes("accessibility") ||
+    t.includes("form") ||
+    t.includes("article")
+  )
+    return "html";
+  if (
+    t.includes("responsive") ||
+    t.includes("landing") ||
+    t.includes("history") ||
+    t.includes("intro to programming") ||
+    t.includes("portfolio") ||
+    t.includes("performance") ||
+    t.includes("seo")
+  )
+    return "frontend";
   return null;
 }
 
@@ -1288,7 +1362,10 @@ const LESSON_QUIZ_PASS = 60;
 // Yourself option renderer and the answer-review builder.
 async function lessonQuizPage(htmlEl, module, pathName, category) {
   const all = await DB.questions.where("category").equals(category).toArray();
-  const quizQuestions = shuffle(all).slice(0, Math.min(LESSON_QUIZ_SIZE, all.length));
+  const quizQuestions = shuffle(all).slice(
+    0,
+    Math.min(LESSON_QUIZ_SIZE, all.length),
+  );
 
   const questionsHtml = quizQuestions
     .map(
@@ -1299,7 +1376,7 @@ async function lessonQuizPage(htmlEl, module, pathName, category) {
           <p class="text-lg font-bold pt-0.5">${escapeHTMLToEntities(q.details.question)}</p>
         </div>
         <form class="space-y-2">${tysRandomizeOptions(q.details.options).join("")}</form>
-      </div>`
+      </div>`,
     )
     .join("");
 
@@ -1319,11 +1396,13 @@ async function lessonQuizPage(htmlEl, module, pathName, category) {
 
   document
     .querySelector("#lq-skip")
-    .addEventListener("click", () => advanceFromModule(module, pathName, htmlEl));
+    .addEventListener("click", () =>
+      advanceFromModule(module, pathName, htmlEl),
+    );
 
   document.querySelector("#lq-submit").addEventListener("click", async () => {
     const selected = [...htmlEl.querySelectorAll(".lq-question")].map(
-      (q) => q.querySelector('input[name="option"]:checked')?.value ?? null
+      (q) => q.querySelector('input[name="option"]:checked')?.value ?? null,
     );
     let numCorrect = 0;
     quizQuestions.forEach((q, i) => {
@@ -1386,11 +1465,18 @@ function lessonQuizResult(htmlEl, module, pathName, result) {
   document
     .querySelector("#lq-retry")
     .addEventListener("click", () =>
-      lessonQuizPage(htmlEl, module, pathName, moduleQuizCategory(module.title))
+      lessonQuizPage(
+        htmlEl,
+        module,
+        pathName,
+        moduleQuizCategory(module.title),
+      ),
     );
   document
     .querySelector("#lq-continue")
-    .addEventListener("click", () => advanceFromModule(module, pathName, htmlEl));
+    .addEventListener("click", () =>
+      advanceFromModule(module, pathName, htmlEl),
+    );
 }
 
 // export { scratchPage };

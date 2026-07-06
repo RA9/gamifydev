@@ -1,106 +1,247 @@
 # Building Interactive JavaScript Websites
 
-You can build a beautiful page — but so far it just sits there. Now you'll make it **interactive**: responding to clicks, updating content on the fly, and reacting to what people type. This is the moment a web *page* becomes a web *app*.
+This is where JavaScript stops feeling like isolated syntax and starts feeling like product development.
 
-By the end of this lesson you'll understand how JavaScript reads and changes the page through the DOM, and you'll trace a small interactive feature end to end.
+Interactive websites are built from a few repeated ideas:
 
-## The DOM: your page as a living tree
+- state changes over time
+- the DOM reflects that state
+- events trigger updates
+- reusable render/update patterns keep code understandable
 
-When the browser loads your HTML, it doesn't just display it — it builds a **live model** of the page in memory called the **DOM** (Document Object Model). Every element becomes a node in a tree.
+By the end of this lesson, you should be able to trace a small interactive feature from user action to updated UI.
 
-![The page is a tree — the DOM](/images/lessons/dom-tree.svg)
+## Interactivity is a loop, not a trick
 
-JavaScript works by reaching into this tree to **find** elements and **change** them. Change a node, and the browser instantly redraws that part of the page.
+Most interactive frontend behavior follows a repeatable loop:
 
-:::analogy
-The DOM is like a puppet. The HTML you wrote is the puppet's starting pose; JavaScript is the hand inside it. Pull a string (change a node) and the puppet moves (the page updates) — instantly, without reloading.
-:::
+1. the user does something
+2. your code receives the event
+3. your state changes
+4. the UI re-renders to match the new state
 
-## The three moves of interactivity
-
-Almost every interactive feature is built from the same three steps:
-
-1. **Select** an element from the DOM.
-2. **Listen** for an event on it.
-3. **Update** the page in response.
-
-```js
-// 1. Select
-const button = document.getElementById("like");
-const count = document.getElementById("count");
-let likes = 0;
-
-// 2. Listen
-button.addEventListener("click", function () {
-  // 3. Update
-  likes = likes + 1;
-  count.textContent = likes;
-});
-```
-
-Every click adds one to `likes` and rewrites the `count` element. That's a working "like" button — and the same pattern scales to entire apps.
-
-:::quiz
-Q: What is the DOM?
-- A separate programming language
-- The browser's live, in-memory tree of the page that JS can change *
-- A CSS layout system
-E: The DOM (Document Object Model) is the browser's living model of the page. JavaScript reads and changes it to make pages interactive.
-:::
-
-## Reading what users type
-
-Interactivity isn't only clicks — you can read input, too:
-
-```html
-<input id="nameField" placeholder="Your name" />
-<button id="greet">Greet me</button>
-<p id="hello"></p>
-```
-
-```js
-const field = document.getElementById("nameField");
-const hello = document.getElementById("hello");
-
-document.getElementById("greet").addEventListener("click", function () {
-  hello.textContent = "Hello, " + field.value + "!";
-});
-```
-
-`field.value` grabs whatever the user typed, and we drop it straight into the page. Read input → process it → update the DOM.
-
-:::tip
-Reach for `textContent` when you're setting plain text — it's safe. Avoid dumping untrusted text into the page as HTML; that's how cross-site scripting bugs sneak in.
-:::
-
-## Thinking in "state"
-
-As features grow, it helps to separate your **data** (often called *state*) from how it's **shown**. In the like button, `likes` is the state; the `count` element is the view. The flow becomes a loop:
-
-> an event changes the **state** → you **re-render** the view from that state.
-
-This tiny idea — keep state, render from it — is the seed of every modern framework like React.
-
-:::quiz
-Q: A user clicks a button to add an item to a list. In the "three moves", what is clicking the button?
-- Selecting an element
-- The event you listen for *
-- Updating the page
-E: The click is the *event*. You select the button first, listen for its click, then update the page (add the item).
-:::
+That loop scales from a tiny counter to a full app.
 
 :::key
-JavaScript makes pages interactive by working on the **DOM** — the live tree of your page. The core pattern is **select → listen → update**, and as apps grow you separate **state** (your data) from the **view** (what's shown).
+Strong frontend code is not a pile of random DOM edits. It is a loop connecting events, state, and rendering.
 :::
 
-## Talk about it
+## The select → listen → update pattern
 
-Explain in your own words:
+At the smallest level, many interactive features look like this:
 
-> "What is the DOM, and what are the three steps behind almost every interactive feature?"
+```js
+const button = document.getElementById("likeBtn");
+const output = document.getElementById("count");
+let likes = 0;
 
-If you can describe the select → listen → update loop with an example, you're ready to build real interactive features.
+button.addEventListener("click", function () {
+  likes = likes + 1;
+  output.textContent = likes;
+});
+```
+
+This is still the core pattern:
+
+- **select** the elements
+- **listen** for an event
+- **update** state or UI
+
+## Rendering from arrays
+
+As soon as you have lists, rendering becomes more interesting.
+
+```js
+const tasks = ["Write intro", "Fix hero spacing", "Test on mobile"];
+const list = document.getElementById("taskList");
+
+function renderTasks() {
+  list.innerHTML = "";
+
+  tasks.forEach(function (task) {
+    const li = document.createElement("li");
+    li.textContent = task;
+    list.appendChild(li);
+  });
+}
+```
+
+This matters because lots of frontend features are just lists with behavior:
+
+- task lists
+- search results
+- comments
+- navigation menus
+- cards
+
+## Events often come from forms and buttons
+
+Two of the most common event sources are:
+
+- buttons with `click`
+- forms with `submit`
+
+A form example:
+
+```js
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  // validate, update state, render feedback
+});
+```
+
+That `preventDefault()` call is often crucial because it stops the browser from doing its normal full-page submission behavior.
+
+:::quiz
+Q: Why is `event.preventDefault()` often used in a form submit handler?
+- To clear all variables
+- To stop the browser's default submit/reload behavior *
+- To create a new DOM node
+E: It lets your JavaScript control the submission flow instead of letting the browser immediately reload or navigate away.
+:::
+
+## UI state examples you should recognize
+
+Interactive sites usually need more than one UI mode.
+
+Common states include:
+
+- loading
+- empty
+- error
+- success
+- active / inactive
+- open / closed
+
+Example:
+
+```js
+const state = {
+  isMenuOpen: false,
+  isSaving: false,
+  error: ""
+};
+```
+
+If you get comfortable modeling these states, frontend problems become much easier to reason about.
+
+## Use classes to reflect state
+
+A helpful pattern is to let CSS own appearance while JavaScript only changes classes or content.
+
+```js
+panel.classList.toggle("hidden", !state.isMenuOpen);
+button.classList.toggle("is-active", state.isMenuOpen);
+```
+
+This is cleaner than stuffing lots of inline style changes into JavaScript.
+
+## Mini feature: live character counter
+
+Imagine a textarea with a 200-character limit.
+
+State and UI flow:
+
+- user types
+- input event fires
+- code reads the value length
+- counter text updates
+- maybe the submit button disables if too long
+
+```js
+const field = document.getElementById("bio");
+const counter = document.getElementById("counter");
+
+field.addEventListener("input", function () {
+  counter.textContent = field.value.length + " / 200";
+});
+```
+
+This is a small but real example of responsive UI behavior.
+
+## Mini feature: toggle panels and menus
+
+Many UIs need open/close behavior.
+
+```js
+const toggleBtn = document.getElementById("faqBtn");
+const answer = document.getElementById("faqAnswer");
+
+let open = false;
+
+toggleBtn.addEventListener("click", function () {
+  open = !open;
+  answer.classList.toggle("hidden", !open);
+});
+```
+
+That same pattern powers:
+
+- accordions
+- dropdown menus
+- modal panels
+- mobile nav
+
+## Render functions keep complexity under control
+
+If your interface has multiple moving parts, a render function helps.
+
+```js
+function render() {
+  saveButton.disabled = state.isSaving;
+  errorBox.textContent = state.error;
+  menu.classList.toggle("hidden", !state.isMenuOpen);
+}
+```
+
+Now your event handlers can focus on changing state, then call `render()`.
+
+This makes code much easier to debug than scattered one-off updates.
+
+:::fill
+Q: Complete the line so the menu is hidden when `state.isMenuOpen` is false.
+`menu.classList.toggle("hidden", ___);`
+- !state.isMenuOpen *
+- state.isMenuOpen
+- menu
+E: If the menu is not open, the `hidden` class should be applied.
+:::
+
+## Architecture mindset for small interactive sites
+
+As features grow, use this sequence:
+
+- define the data you need
+- write the HTML structure
+- select the needed elements
+- write event handlers
+- centralize repeated UI updates into render logic
+
+That is the path from demo-level code to maintainable frontend code.
+
+## Common mistakes to avoid
+
+- updating the DOM in ten different places with no single pattern
+- treating the DOM itself as the source of truth
+- forgetting submit behavior on forms
+- coupling visual styling directly into JS with lots of `.style.*` changes
+- writing giant event handlers that do everything
+
+:::warning
+If you can't explain what the current state of the UI is, the code will eventually become hard to trust.
+:::
+
+## What good looks like
+
+You should now be able to:
+
+- describe the event → state → render loop
+- build small interactive features around state changes
+- render lists from arrays
+- use form and button events intentionally
+- reflect state in the DOM with text and classes
+- recognize common UI states like loading, error, and success
 
 ## What's next
 
-You can now build interactive pages. Next, **Git and GitHub** teaches you how to save your work properly and share it with the world.
+In **Project: Build a Quiz Game**, you'll use these patterns to build a complete mini-app with data, events, score tracking, and a replay flow.

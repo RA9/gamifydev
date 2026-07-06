@@ -27,8 +27,9 @@ all your progress locally — no account required.
   understanding quizzes). Written to be *understood and explained*, not memorised.
 - **Build-along projects** — a dedicated Projects gallery with step-by-step
   builds you tick off as you go, finishing with a "Shipped it!" celebration.
-  Profile Card, Quiz Game & To-Do App (Frontend), Greeting Script (Bash),
-  Number Guessing Game (C), and a Bank Account (Java).
+  Profile Card, Responsive Landing Page, Accessible Signup Form, Quiz Game &
+  To-Do App (Frontend), Greeting Script (Bash), Number Guessing Game (C), and
+  a Bank Account (Java).
 - **Terminal Trainer** — a simulated Bash shell with a virtual filesystem and
   nine hands-on missions, so command-line learning is real practice, not theory.
 - **Spaced repetition** — a Leitner-box review system resurfaces questions you've
@@ -50,7 +51,7 @@ all your progress locally — no account required.
 
 | World | Modules | Highlights |
 | --- | --- | --- |
-| **Frontend** | 12 | History of the Web → HTML/CSS/JS → **Profile Card** & **Quiz Game** projects → Git → Portfolio |
+| **Frontend** | 24 | Web foundations → semantic HTML, forms, accessibility → responsive CSS, flexbox & grid → labs → deeper JavaScript, DOM/state workshop + lab → **Profile Card**, **Quiz Game** & **To-Do App** → Git → Portfolio → performance |
 | **Backend** | 6 | Servers & APIs → Python → Databases/SQL → REST APIs → **To-Do API** → Deploy |
 | **Fullstack** | 4 | The full stack → fetch & APIs → **Notes App** → Career next steps |
 | **C** | 6 | What is C? → basics → control flow → functions → **pointers & memory** → next steps |

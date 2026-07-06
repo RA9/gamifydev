@@ -31,37 +31,97 @@
           },
           {
             "title": "HTML Basics",
-            "description": "Let's learn what HTML is and how it structures every web page.",
+            "description": "Master the structure of a page: document skeleton, text, links, lists, images, and attributes.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Semantic HTML & Accessibility",
+            "previous": "Intro to Programming"
+          },
+          {
+            "title": "Semantic HTML & Accessibility",
+            "description": "Use the right elements, landmarks, heading levels, and accessible names so your pages work for everyone.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "HTML Forms & Validation",
+            "previous": "HTML Basics"
+          },
+          {
+            "title": "HTML Forms & Validation",
+            "description": "Build forms people can actually complete — labels, input types, grouping, and native validation.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Lab: Build a Semantic Article Page",
+            "previous": "Semantic HTML & Accessibility"
+          },
+          {
+            "title": "Lab: Build a Semantic Article Page",
+            "description": "Turn a content brief into a multi-section page with real semantic HTML, media, and a clean document outline.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "CSS Basics",
-            "previous": "Intro to Programming"
+            "previous": "HTML Forms & Validation"
           },
           {
             "title": "CSS Basics",
-            "description": "Create beautiful webpages using CSS.",
+            "description": "Learn selectors, the cascade, inheritance, units, and the box model — the core mechanics of styling.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "CSS Layouts: Flexbox & Grid",
+            "previous": "Lab: Build a Semantic Article Page"
+          },
+          {
+            "title": "CSS Layouts: Flexbox & Grid",
+            "description": "Build modern layouts with the two CSS systems you'll use every day: flexbox and grid.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Responsive Design & Media Queries",
+            "previous": "CSS Basics"
+          },
+          {
+            "title": "Responsive Design & Media Queries",
+            "description": "Make your UI adapt cleanly across phones, tablets, and desktops with mobile-first CSS.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Lab: Build a Responsive Landing Page",
+            "previous": "CSS Layouts: Flexbox & Grid"
+          },
+          {
+            "title": "Lab: Build a Responsive Landing Page",
+            "description": "Apply layout, spacing, and responsive thinking to a real marketing page with a hero, features, and CTA.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Building a Website with HTML and CSS",
-            "previous": "HTML Basics"
+            "previous": "Responsive Design & Media Queries"
           },
           {
             "title": "Building a Website with HTML and CSS",
-            "description": "A hands-on approach to building stunning webpages.",
+            "description": "Plan, structure, style, and QA a multi-section site like a real frontend developer.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Project: Build a Profile Card",
-            "previous": "CSS Basics"
+            "previous": "Lab: Build a Responsive Landing Page"
           },
           {
             "title": "Project: Build a Profile Card",
-            "description": "Your first real build — a polished profile card with HTML and CSS.",
+            "description": "Build a polished profile card with HTML and CSS — spacing, hierarchy, alignment, and hover polish included.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
@@ -71,23 +131,63 @@
           },
           {
             "title": "JavaScript Basics",
-            "description": "Let's learn what JavaScript is and how it works.",
+            "description": "Learn variables, functions, arrays, objects, and the core mental model behind browser-side programming.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "DOM Manipulation & Events",
+            "previous": "Project: Build a Profile Card"
+          },
+          {
+            "title": "DOM Manipulation & Events",
+            "description": "Select elements, listen for events, and update the page from JavaScript with confidence.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Workshop: JavaScript DOM Challenges",
+            "previous": "JavaScript Basics"
+          },
+          {
+            "title": "Workshop: JavaScript DOM Challenges",
+            "description": "Practice the core interaction loop with short DOM exercises: toggles, counters, live feedback, and list updates.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Forms, State, and UI Patterns",
+            "previous": "DOM Manipulation & Events"
+          },
+          {
+            "title": "Forms, State, and UI Patterns",
+            "description": "Model UI with state, validation, feedback, and reusable interaction patterns.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Lab: Build a JavaScript Signup Flow",
+            "previous": "Workshop: JavaScript DOM Challenges"
+          },
+          {
+            "title": "Lab: Build a JavaScript Signup Flow",
+            "description": "Build an interactive form flow with validation, error states, success feedback, and clean state-driven rendering.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Building Interactive JavaScript Websites",
-            "previous": "Project: Build a Profile Card"
+            "previous": "Forms, State, and UI Patterns"
           },
           {
             "title": "Building Interactive JavaScript Websites",
-            "description": "Build interactive websites with lots of features using JavaScript.",
+            "description": "Bring UI to life with DOM rendering, state updates, events, and reusable interaction patterns across mini-apps.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": "Project: Build a Quiz Game",
-            "previous": "JavaScript Basics"
+            "previous": "Lab: Build a JavaScript Signup Flow"
           },
           {
             "title": "Project: Build a Quiz Game",
@@ -96,8 +196,18 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "Git and GitHub",
+            "next": "Project: Build a To-Do App",
             "previous": "Building Interactive JavaScript Websites"
+          },
+          {
+            "title": "Project: Build a To-Do App",
+            "description": "Build a task manager with rendering, toggles, delete actions, and localStorage persistence.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Git and GitHub",
+            "previous": "Project: Build a Quiz Game"
           },
           {
             "title": "Git and GitHub",
@@ -107,7 +217,7 @@
             "is_completed": false,
             "current": false,
             "next": "Building your portfolio website",
-            "previous": "Project: Build a Quiz Game"
+            "previous": "Project: Build a To-Do App"
           },
           {
             "title": "Building your portfolio website",
@@ -116,18 +226,28 @@
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
-            "next": "Next Steps",
+            "next": "Frontend Performance, Accessibility & SEO",
             "previous": "Git and GitHub"
           },
           {
+            "title": "Frontend Performance, Accessibility & SEO",
+            "description": "Ship production-ready pages that are fast, inclusive, and discoverable.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Next Steps",
+            "previous": "Building your portfolio website"
+          },
+          {
             "title": "Next Steps",
-            "description": "A guide to what to do next after completing the Frontend path.",
+            "description": "A guide to what to do next after completing the Frontend path — from fundamentals to professional specialisation.",
             "resources": [],
             "author": "Carlos S. Nah",
             "is_completed": false,
             "current": false,
             "next": null,
-            "previous": "Building your portfolio website"
+            "previous": "Frontend Performance, Accessibility & SEO"
           }
         ]
       },

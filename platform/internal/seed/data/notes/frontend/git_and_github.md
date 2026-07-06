@@ -1,43 +1,79 @@
 # Git and GitHub
 
-You've been building projects — but what happens when a change breaks everything and you can't undo it? Or when you want to back up your work, share it, or collaborate? The answer to all of these is **Git**, the tool professional developers use every single day.
+If you're serious about becoming a developer, Git stops being optional immediately.
 
-By the end of this lesson you'll understand what version control is, the core Git workflow with real commands, and how GitHub fits in.
+It is not just a backup tool. It is how you:
 
-## What version control is — and why you want it
+- record the history of a project
+- experiment safely
+- collaborate with other people
+- review work before it ships
+- recover from mistakes without panic
 
-**Version control** is a system that records changes to your files over time so you can recall any earlier version, see exactly what changed, and work without fear of losing anything.
+By the end of this lesson, you should understand the real day-to-day Git workflow, not just a few commands copied from a tutorial.
 
-Without it, "saving" means overwriting a file and losing what was there before. People end up with folders like `site_final_v2_REALLY_final_v3.zip`. Version control replaces all of that with a clean, searchable history.
+## Git vs GitHub
 
-With Git you create **commits** — labelled snapshots of your whole project. You can:
+These are related, but not the same thing.
 
-- go back to any previous snapshot
-- see exactly what changed, when, and why
-- experiment on a **branch** without risking your working version
-- collaborate with others without emailing files around
+- **Git** is the version-control software running on your machine.
+- **GitHub** is a hosting platform for Git repositories.
 
-## Git vs GitHub — not the same thing
-
-People mix these up constantly, so let's be clear.
-
-- **Git** is a *version control system* — software that runs on your computer and tracks every change to your project. It works completely offline.
-- **GitHub** is a *website* that hosts Git projects online so you can back them up, share them, and collaborate. (GitLab and Bitbucket are alternatives.)
+Git tracks the history.
+GitHub stores and shares that history online.
 
 :::analogy
-Git is like the save-history in a video game — checkpoints you can always return to. GitHub is the cloud save that lets you play from any device and share your progress with friends.
+Git is your save system. GitHub is the shared online vault where those saves can be backed up, reviewed, and collaborated on.
 :::
 
-## One-time setup
+## Why version control matters
 
-Install Git from [git-scm.com](https://git-scm.com), then tell Git who you are. You only do this once per computer:
+Without version control, mistakes feel expensive.
+
+You end up with folders like:
+
+- `portfolio-final`
+- `portfolio-final-2`
+- `portfolio-final-actual-final`
+
+Git replaces that chaos with commits — named snapshots in a structured history.
+
+A good Git workflow gives you:
+
+- confidence to experiment
+- a clear record of changes
+- easier debugging when something breaks
+- cleaner collaboration when more than one person touches the codebase
+
+## The four core areas in Git
+
+When people first learn Git, the hardest part is understanding where changes live.
+
+Think in four places:
+
+1. **Working directory** — your actual files as you edit them
+2. **Staging area** — the changes you've selected for the next snapshot
+3. **Local repository** — the commit history on your machine
+4. **Remote repository** — the copy on GitHub
+
+A normal workflow is:
+
+- edit files
+- check status
+- stage selected changes
+- commit them
+- push them to GitHub
+
+## First-time setup
+
+On a new machine, configure your identity once:
 
 ```bash
 git config --global user.name "Ada Lovelace"
 git config --global user.email "ada@example.com"
 ```
 
-These details get stamped on every commit you make. Check that it worked:
+Check it:
 
 ```bash
 git config --list
@@ -45,186 +81,263 @@ git --version
 ```
 
 :::tip
-Use the same email here that you'll use for your GitHub account. That way GitHub can link your commits to your profile.
+Use the same email address as your GitHub account if you want your commits connected to your profile.
 :::
 
-## The core local workflow
+## Starting a repository
 
-This is the loop you'll repeat thousands of times. Your changes travel through three places: your **working directory** (files as you edit them), the **staging area** (a "ready to save" shelf), and the **repository** (the saved history).
-
-**Start tracking a project.** Inside your project folder, run:
+Inside a project folder:
 
 ```bash
 git init
 ```
 
-This creates a hidden `.git` folder — your project is now a Git repository.
+That creates the `.git` directory and turns the folder into a repository.
 
-**Check what's going on.** `git status` is the command you'll run most. It tells you what's changed and what's staged:
+Then check what Git sees:
 
 ```bash
 git status
 ```
 
-**Stage your changes.** Move the files you want to save onto the staging shelf:
+`git status` is one of the most important commands you will ever learn.
+
+## The everyday command loop
+
+### Stage changes
 
 ```bash
-git add index.html        # stage one specific file
-git add .                  # stage everything that changed
+git add index.html
+git add css/style.css
+git add .
 ```
 
-**Commit the snapshot.** Save the staged changes into history with a message:
+Use targeted adds when you want precise commits. Use `git add .` when everything currently changed belongs together.
+
+### Commit changes
 
 ```bash
-git commit -m "Add homepage hero section"
+git commit -m "Add hero section and CTA styles"
 ```
 
-**Review your history.** See the list of commits you've made:
+A commit should represent one meaningful unit of work.
+
+### Push to GitHub
+
+```bash
+git push
+```
+
+That sends your local commits to the remote repository.
+
+## Connecting to GitHub
+
+After creating a new empty repo on GitHub, connect your local repo to it:
+
+```bash
+git remote add origin https://github.com/yourname/portfolio.git
+git branch -M main
+git push -u origin main
+```
+
+What those do:
+
+- `remote add origin ...` connects your local repo to GitHub
+- `branch -M main` ensures the branch is called `main`
+- `push -u origin main` uploads and remembers the upstream branch
+
+After that, `git push` and `git pull` are usually enough.
+
+## Reading history
+
+A professional workflow includes checking history, not just creating it.
 
 ```bash
 git log
-git log --oneline          # compact, one line per commit
-```
-
-:::example
-A complete first session from scratch:
-
-```bash
-git init
-git add .
-git commit -m "Initial commit: basic HTML and CSS"
-# ...edit some files...
-git add .
-git commit -m "Add navigation bar and footer"
 git log --oneline
-```
-:::
-
-## Writing good commit messages
-
-A commit message explains *what changed and why*. Future-you will thank present-you.
-
-- Write in the present tense, as a command: "Add login form," not "Added" or "Adding."
-- Keep the first line short (around 50 characters) and specific.
-- Describe the change, not the obvious: "Fix broken nav link on mobile" beats "update."
-
-```bash
-git commit -m "Fix footer overlap on small screens"   # good
-git commit -m "stuff"                                  # useless later
+git diff
+git diff --staged
 ```
 
-## Ignoring files with .gitignore
+Use these to answer:
 
-Some files should never be committed — system junk, secrets, huge build folders. Create a file named `.gitignore` in your project root and list patterns to skip:
+- what changed?
+- what is staged right now?
+- what did I commit earlier?
 
-```bash
-# .gitignore
+## Writing useful commit messages
+
+Good commit messages make your project history readable.
+
+Strong examples:
+
+- `Add responsive navigation layout`
+- `Fix quiz score reset bug`
+- `Refactor task rendering into reusable function`
+
+Weak examples:
+
+- `update`
+- `stuff`
+- `changes`
+
+A good commit message should tell a reviewer what this snapshot *does*.
+
+## .gitignore is part of a professional setup
+
+Some files should never be committed.
+
+Common examples:
+
+```text
 node_modules/
-.DS_Store
 .env
+.DS_Store
 dist/
 *.log
 ```
 
-Git will then pretend those files don't exist for tracking purposes. Add `.gitignore` *before* your first commit so the junk never gets in.
+Put them in `.gitignore`.
+
+Why this matters:
+
+- avoids giant unnecessary files
+- avoids committing secrets
+- keeps the repo clean and reviewable
 
 :::warning
-Never commit secrets — API keys, passwords, tokens. Once something is committed and pushed, it lives in the history even if you delete it later. Put secrets in a `.env` file and ignore that file.
+Never commit secrets. If an API key, token, or password reaches Git history and gets pushed, deleting the file afterward does not erase the original exposure.
 :::
 
-## Branches — a quick intro
+## Branches let you work safely
 
-A **branch** lets you work on something new without touching your main version. The default branch is usually called `main`.
+Branches are one of the most important ideas in Git.
 
-```bash
-git branch                 # list branches; * marks the current one
-git switch -c new-feature  # create a new branch AND switch to it
-```
-
-Now you can commit freely on `new-feature`. When the work is good, you **merge** it back into `main`:
+Create and switch to a new branch:
 
 ```bash
-git switch main            # go back to main
-git merge new-feature      # bring the feature's commits into main
+git switch -c feature/contact-form
 ```
 
-:::analogy
-A branch is like writing on a photocopy of your document. You can scribble all over the copy; if it works out, you fold those edits back into the original. If not, you just throw the copy away.
-:::
+Now you can make commits without affecting `main` directly.
 
-## GitHub — putting it online
-
-A **remote** is a copy of your repository hosted elsewhere — on GitHub. Here's how to connect a local project to a new GitHub repo.
-
-1. On GitHub, click **New repository**. Give it a name and **don't** add a README (you already have local files).
-2. GitHub shows you a URL like `https://github.com/yourname/yourrepo.git`.
-3. Connect your local repo to it and push your work up:
+When the work is ready:
 
 ```bash
-git remote add origin https://github.com/yourname/yourrepo.git
-git branch -M main         # make sure your branch is named main
-git push -u origin main    # push and remember this remote+branch
+git switch main
+git merge feature/contact-form
 ```
 
-The `-u` means "set this as the default," so next time you can just type `git push`.
+This is how real teams isolate features, bug fixes, and experiments.
 
-**Cloning** copies an existing GitHub repo down to your machine:
+## Pull requests and code review
 
-```bash
-git clone https://github.com/someone/cool-project.git
-```
+On GitHub, the usual team workflow is:
 
-**Pulling** brings down changes others (or you, from another computer) pushed:
+1. create a branch locally
+2. push the branch to GitHub
+3. open a **pull request**
+4. review the changes
+5. merge when approved
+
+A pull request is more than a merge button. It is a discussion space around code.
+
+A strong PR includes:
+
+- a clear title
+- what changed
+- why it changed
+- screenshots if the UI changed
+- notes for reviewers
+
+Even on solo projects, learning this workflow is worth it because it mirrors real engineering teams.
+
+## Merge conflicts are normal
+
+Sometimes Git can't merge automatically because the same lines changed in different places.
+
+That is a **merge conflict**.
+
+The workflow is:
+
+- open the conflicted file
+- choose the correct final version
+- remove Git's conflict markers
+- stage the resolved file
+- commit the resolution
+
+Conflicts are not proof you broke Git. They are a normal part of collaboration.
+
+## Practical solo-developer workflow
+
+For a personal project, a strong routine looks like this:
 
 ```bash
 git pull
+# do the work
+git status
+git diff
+git add .
+git commit -m "Describe the change clearly"
+git push
 ```
 
-## Your everyday loop
-
-Once set up, your daily rhythm is short and sweet:
+If the change is risky or larger:
 
 ```bash
-git pull                          # get the latest (if collaborating)
-# ...do your work...
-git status                        # see what changed
-git add .                         # stage it
-git commit -m "Describe the change"
-git push                          # send it to GitHub
+git switch -c feature/dashboard-api
+# work, commit, push
 ```
 
+That habit alone will make you look much more professional.
+
+## GitHub profile and repo hygiene
+
+If you're building public work:
+
+- add a clear README
+- use meaningful repo names
+- keep old experimental repos private or archived if they are noisy
+- add screenshots for UI projects
+- pin your strongest repos on your GitHub profile
+
+GitHub is part of your public developer presence.
+
 :::quiz
-Q: What is the difference between Git and GitHub?
-- They are two names for the same program
-- Git is version-control software on your computer; GitHub is a website that hosts Git repos online *
-- Git is online and GitHub runs locally
-E: Git is the local tool that tracks changes (and works offline). GitHub is a hosting service where you store and share those Git repositories.
+Q: What is the main value of a Git branch?
+- It makes CSS load faster
+- It lets you work on changes without risking your main version *
+- It stores passwords securely
+E: Branches isolate work so you can experiment, review, and merge intentionally instead of editing main directly.
 :::
 
 :::quiz
-Q: Which command saves a snapshot of your staged changes into the project history?
-- git add
-- git commit -m "message" *
-- git status
-E: `git add` stages changes onto the shelf, and `git commit` records those staged changes as a permanent snapshot with a message. `git status` only reports state.
+Q: What is the purpose of `git add`?
+- Upload code to GitHub
+- Move selected changes into the staging area *
+- Delete tracked files
+E: `git add` prepares selected changes for the next commit. It does not create a commit or push anything online by itself.
 :::
 
 :::fill
-To upload your local `main` branch to GitHub for the first time and remember the connection, you run `git push ___ origin main`.
-- -u *
-- -m
-- --all
-E: `git push -u origin main` sets `origin/main` as the upstream so future pushes can be just `git push`.
+To inspect changes you have made but have **not staged yet**, use `git ___`.
+- diff *
+- log
+- clone
+E: `git diff` shows unstaged changes in your working directory.
 :::
 
-## Recap
+## What good looks like
 
-- **Version control** records your project's history so you can undo, compare, and collaborate safely.
-- **Git** is local software; **GitHub** is an online host for Git repositories.
-- Configure your identity once with `git config --global`.
-- The core loop: `git init` -> edit -> `git add` -> `git commit -m` -> `git log`.
-- Write clear, present-tense commit messages, and use `.gitignore` to skip junk and secrets.
-- Branches (`git branch`, `git switch -c`, `git merge`) let you work safely in parallel.
-- Connect to GitHub with `git remote add origin`, push with `git push -u origin main`, and use `git clone` / `git pull` to download changes.
+You should now be able to:
 
-**Next up:** Deploying Your Website — getting your project onto a real, public URL.
+- explain the difference between Git and GitHub
+- initialize and connect a repository
+- use status, add, commit, push, pull, and log confidently
+- understand branches and pull requests
+- write useful commit messages
+- avoid common beginner mistakes with ignored files and secrets
+
+## What's next
+
+In **Deploying Your Website**, you'll take that version-controlled project and ship it to a real public URL. After that, you'll use Git and GitHub again to publish and maintain your portfolio.
