@@ -808,18 +808,151 @@ var safeParserSteps = []store.Step{
 	},
 }
 
+// numberStreamSteps — generators and lazy iteration.
+var numberStreamSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Write a **generator** `countdown(n)` that `yield`s the numbers from `n` down to `1`.",
+		Starter:     "def countdown(n):\n    pass\n",
+		Checks:      `[{"text":"countdown(3) yields 3, 2, 1.","test":"list(countdown(3)) == [3, 2, 1]"},{"text":"countdown(1) yields just 1.","test":"list(countdown(1)) == [1]"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write a generator `evens(limit)` that yields the even numbers starting at `0` that are **less than** `limit`.",
+		Starter:     "def evens(limit):\n    pass\n",
+		Checks:      `[{"text":"evens(6) yields 0, 2, 4.","test":"list(evens(6)) == [0, 2, 4]"},{"text":"evens(1) yields just 0.","test":"list(evens(1)) == [0]"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Generators are lazy, so you can pull just a few items. Write `take(gen, k)` that returns a list of the first `k` items from any iterator `gen` (or fewer, if it runs out).",
+		Starter:     "def countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\n\ndef take(gen, k):\n    pass\n",
+		Checks:      `[{"text":"It grabs the first 3.","test":"take(countdown(100), 3) == [100, 99, 98]"},{"text":"It stops early if the stream is short.","test":"take(countdown(2), 5) == [2, 1]"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write an **infinite** generator `naturals()` that yields `1, 2, 3, …` forever. Then your `take` can safely grab the first few.",
+		Starter:     "def take(gen, k):\n    out = []\n    for i, x in enumerate(gen):\n        if i >= k:\n            break\n        out.append(x)\n    return out\n\ndef naturals():\n    pass\n",
+		Checks:      `[{"text":"The first 5 naturals are 1..5.","test":"take(naturals(), 5) == [1, 2, 3, 4, 5]"},{"text":"The first natural is 1.","test":"take(naturals(), 1) == [1]"}]`,
+	},
+}
+
+// decoratorSteps — decorators that wrap and augment functions.
+var decoratorSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "A **decorator** wraps a function to change its behavior. Write `double_result(func)` that returns a wrapper which calls `func` and returns **double** its result.",
+		Starter:     "def double_result(func):\n    pass\n\n@double_result\ndef total(a, b):\n    return a + b\n",
+		Checks:      `[{"text":"total is still callable.","test":"callable(total)"},{"text":"2 + 3, doubled, is 10.","test":"total(2, 3) == 10"},{"text":"0 + 0, doubled, is 0.","test":"total(0, 0) == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `count_calls(func)` — a decorator whose wrapper also tracks how many times it was called on a `.calls` attribute (starting at `0`).",
+		Starter:     "def count_calls(func):\n    pass\n\n@count_calls\ndef ping():\n    return 'pong'\n",
+		Checks:      `[{"text":"The wrapped function still works.","test":"ping() == 'pong'"},{"text":"Calling it 3 times sets .calls to 3.","test":"[p := count_calls(lambda: None), p(), p(), p(), p.calls][4] == 3"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `ensure_positive(func)` whose wrapper returns `0` when the first argument is negative, and otherwise calls `func` normally.",
+		Starter:     "def ensure_positive(func):\n    pass\n\n@ensure_positive\ndef square(n):\n    return n * n\n",
+		Checks:      `[{"text":"A positive input runs normally.","test":"square(4) == 16"},{"text":"A negative input is blocked, returning 0.","test":"square(-3) == 0"}]`,
+	},
+}
+
+// recursionSteps — base cases and recursive cases.
+var recursionSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Write `factorial(n)` **recursively**: `factorial(0)` is `1`, and otherwise `n * factorial(n - 1)`.",
+		Starter:     "def factorial(n):\n    pass\n",
+		Checks:      `[{"text":"factorial(5) is 120.","test":"factorial(5) == 120"},{"text":"factorial(0) is 1 (the base case).","test":"factorial(0) == 1"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `fib(n)` recursively for the Fibonacci sequence, where `fib(0)` is `0`, `fib(1)` is `1`, and each later value is the sum of the two before it.",
+		Starter:     "def fib(n):\n    pass\n",
+		Checks:      `[{"text":"fib(0) is 0.","test":"fib(0) == 0"},{"text":"fib(1) is 1.","test":"fib(1) == 1"},{"text":"fib(7) is 13.","test":"fib(7) == 13"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `power(base, exp)` recursively — `base` multiplied by itself `exp` times. Anything to the power `0` is `1`.",
+		Starter:     "def power(base, exp):\n    pass\n",
+		Checks:      `[{"text":"2 to the 10th is 1024.","test":"power(2, 10) == 1024"},{"text":"5 to the 0th is 1.","test":"power(5, 0) == 1"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `deep_sum(items)` that adds up every number in a **nested** list (lists inside lists, any depth). Hint: if an item is a list, recurse into it.",
+		Starter:     "def deep_sum(items):\n    pass\n",
+		Checks:      `[{"text":"It sums through the nesting.","test":"deep_sum([1, [2, [3, 4]], 5]) == 15"},{"text":"An empty list sums to 0.","test":"deep_sum([]) == 0"}]`,
+	},
+}
+
+// regexSteps — the re module for parsing text.
+var regexSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Write `find_numbers(text)` that returns a list of every run of digits in `text` as strings. Use `re.findall` with the pattern `\\d+`.",
+		Starter:     "import re\n\ndef find_numbers(text):\n    pass\n",
+		Checks:      `[{"text":"It finds both numbers.","test":"find_numbers('hp 30 mp 5') == ['30', '5']"},{"text":"No digits means an empty list.","test":"find_numbers('none here') == []"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "A player tag looks like `#ABC1234` — a `#`, then exactly 3 uppercase letters, then exactly 4 digits. Write `is_valid_tag(s)` that returns `True`/`False` (try `re.fullmatch`, and wrap it in `bool(...)`).",
+		Starter:     "import re\n\ndef is_valid_tag(s):\n    pass\n",
+		Checks:      `[{"text":"A well-formed tag passes.","test":"is_valid_tag('#ABC1234') == True"},{"text":"Lowercase fails.","test":"is_valid_tag('#abc1234') == False"},{"text":"Junk fails.","test":"is_valid_tag('nope') == False"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Given a line like `Zed hit Rex for 42 damage`, write `extract_damage(line)` that returns the damage as an **int**. Use `re.search` with a capture group `(\\d+)`.",
+		Starter:     "import re\n\ndef extract_damage(line):\n    pass\n",
+		Checks:      `[{"text":"It pulls out 42.","test":"extract_damage('Zed hit Rex for 42 damage') == 42"},{"text":"It works on any line.","test":"extract_damage('Boss hit you for 7 damage') == 7"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `redact(text)` that replaces every digit with a `#`. Use `re.sub`.",
+		Starter:     "import re\n\ndef redact(text):\n    pass\n",
+		Checks:      `[{"text":"Digits become hashes.","test":"redact('lvl 12') == 'lvl ##'"},{"text":"Text with no digits is unchanged.","test":"redact('no digits') == 'no digits'"}]`,
+	},
+}
+
+// dataclassSteps — @dataclass for tidy data objects.
+var dataclassSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Dataclasses give you tidy data objects with no boilerplate. Make an `@dataclass` called `Item` with two fields: `name` (a `str`) and `price` (an `int`).",
+		Starter:     "from dataclasses import dataclass\n\n@dataclass\nclass Item:\n    pass\n",
+		Checks:      `[{"text":"Item can be created.","test":"callable(Item)"},{"text":"It keeps the name.","test":"Item('sword', 100).name == 'sword'"},{"text":"It keeps the price.","test":"Item('sword', 100).price == 100"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Add a third field `qty` (an `int`) that **defaults** to `1`. Dataclasses also compare by value for free.",
+		Starter:     "from dataclasses import dataclass\n\n@dataclass\nclass Item:\n    name: str\n    price: int\n    # add qty with a default of 1\n",
+		Checks:      `[{"text":"qty defaults to 1.","test":"Item('a', 5).qty == 1"},{"text":"You can still set qty.","test":"Item('a', 5, 3).qty == 3"},{"text":"Equal fields mean equal items.","test":"Item('a', 5) == Item('a', 5)"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Give `Item` a method `total(self)` that returns `price * qty` — the cost of the whole stack.",
+		Starter:     "from dataclasses import dataclass\n\n@dataclass\nclass Item:\n    name: str\n    price: int\n    qty: int = 1\n\n    def total(self):\n        pass\n",
+		Checks:      `[{"text":"3 items at 5 each is 15.","test":"Item('a', 5, 3).total() == 15"},{"text":"A single item's total is its price.","test":"Item('a', 10).total() == 10"}]`,
+	},
+}
+
 // pythonLabs are the interactive Python labs (run via Pyodide/WASM).
 var pythonLabs = map[string][]store.Step{
-	"workshop_python_warm_up":         pythonWarmupSteps,
-	"workshop_build_an_xp_calculator": xpCalcSteps,
-	"workshop_build_a_loot_inventory": lootInventorySteps,
-	"workshop_score_multipliers":      comboSteps,
-	"workshop_model_a_player":         playerClassSteps,
-	"workshop_build_a_chat_filter":    chatFilterSteps,
-	"workshop_tally_a_scoreboard":     tallySteps,
-	"workshop_render_a_health_bar":    healthBarSteps,
-	"workshop_combat_math":            combatMathSteps,
-	"workshop_safe_stat_parser":       safeParserSteps,
+	"workshop_python_warm_up":             pythonWarmupSteps,
+	"workshop_build_an_xp_calculator":     xpCalcSteps,
+	"workshop_build_a_loot_inventory":     lootInventorySteps,
+	"workshop_score_multipliers":          comboSteps,
+	"workshop_model_a_player":             playerClassSteps,
+	"workshop_build_a_chat_filter":        chatFilterSteps,
+	"workshop_tally_a_scoreboard":         tallySteps,
+	"workshop_render_a_health_bar":        healthBarSteps,
+	"workshop_combat_math":                combatMathSteps,
+	"workshop_safe_stat_parser":           safeParserSteps,
+	"workshop_build_a_number_stream":      numberStreamSteps,
+	"workshop_write_a_decorator":          decoratorSteps,
+	"workshop_recursion_puzzles":          recursionSteps,
+	"workshop_parse_game_logs_with_regex": regexSteps,
+	"workshop_model_with_dataclasses":     dataclassSteps,
 }
 
 // labSteps maps a frontend lesson slug to its interactive steps.
