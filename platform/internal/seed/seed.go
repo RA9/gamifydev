@@ -668,6 +668,146 @@ var playerClassSteps = []store.Step{
 	},
 }
 
+// chatFilterSteps — string methods via a chat command filter.
+var chatFilterSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Chat needs a hype command. Write `shout(msg)` that returns `msg` in UPPERCASE with a `!` added to the end.",
+		Starter:     "def shout(msg):\n    pass\n",
+		Checks:      `[{"text":"shout should be a function.","test":"callable(shout)"},{"text":"shout('hi') should be 'HI!'.","test":"shout('hi') == 'HI!'"},{"text":"shout('go') should be 'GO!'.","test":"shout('go') == 'GO!'"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `is_command(msg)` that returns `True` when `msg` starts with a slash (`/`), otherwise `False`. Try the `.startswith()` string method.",
+		Starter:     "def is_command(msg):\n    pass\n",
+		Checks:      `[{"text":"'/help' is a command.","test":"is_command('/help') == True"},{"text":"'hello' is not a command.","test":"is_command('hello') == False"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `censor(msg, bad)` that returns `msg` with every occurrence of the word `bad` replaced by `***`. The `.replace()` method does this in one call.",
+		Starter:     "def censor(msg, bad):\n    pass\n",
+		Checks:      `[{"text":"The bad word gets starred out.","test":"censor('you noob', 'noob') == 'you ***'"},{"text":"Clean messages are untouched.","test":"censor('gg wp', 'noob') == 'gg wp'"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Finally, write `word_count(msg)` that returns how many words are in `msg`. An empty string has `0` words. Hint: `.split()` breaks text into a list of words.",
+		Starter:     "def word_count(msg):\n    pass\n",
+		Checks:      `[{"text":"Three words counts as 3.","test":"word_count('hello there friend') == 3"},{"text":"An empty message has 0 words.","test":"word_count('') == 0"}]`,
+	},
+}
+
+// tallySteps — dictionaries, aggregation, and sorting via a scoreboard.
+var tallySteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Match results arrive as `(name, points)` pairs. Write `tally(matches)` that returns a dictionary mapping each name to their **total** points across all pairs. An empty list gives an empty dict.",
+		Starter:     "def tally(matches):\n    # matches is a list of (name, points) tuples\n    pass\n",
+		Checks:      `[{"text":"Points add up per player.","test":"tally([('a', 5), ('b', 3), ('a', 2)]) == {'a': 7, 'b': 3}"},{"text":"No matches means an empty scoreboard.","test":"tally([]) == {}"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `leader(totals)` that returns the name with the highest total from a `totals` dictionary.",
+		Starter:     "def leader(totals):\n    pass\n",
+		Checks:      `[{"text":"'a' leads with 7.","test":"leader({'a': 7, 'b': 3}) == 'a'"},{"text":"'y' leads with 9.","test":"leader({'x': 1, 'y': 9}) == 'y'"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `above(totals, n)` that returns the list of names whose total is **greater than** `n`, sorted alphabetically.",
+		Starter:     "def above(totals, n):\n    pass\n",
+		Checks:      `[{"text":"Only players above 5 make the cut.","test":"above({'a': 7, 'b': 3, 'c': 10}, 5) == ['a', 'c']"},{"text":"A high bar can exclude everyone.","test":"above({'a': 7, 'b': 3}, 100) == []"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Print the scoreboard: loop over a `totals` dict and print each `name: points` line.",
+		Starter:     "totals = {'Nova': 7, 'Rex': 3}\n# Print each player and their score, like: Nova: 7\n",
+		Checks:      `[{"text":"Nova's score is printed.","test":"'Nova: 7' in _out"},{"text":"Rex's score is printed.","test":"'Rex: 3' in _out"}]`,
+	},
+}
+
+// healthBarSteps — loops, integer math, and conditionals via a health bar.
+var healthBarSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Draw a health bar. Write `bar(filled, total)` that returns a string of `filled` `#` characters followed by enough `-` characters to reach `total` length.",
+		Starter:     "def bar(filled, total):\n    pass\n",
+		Checks:      `[{"text":"3 of 5 looks like '###--'.","test":"bar(3, 5) == '###--'"},{"text":"An empty bar is all dashes.","test":"bar(0, 4) == '----'"},{"text":"A full bar is all hashes.","test":"bar(5, 5) == '#####'"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `percent(hp, maxhp)` that returns the health percentage as a whole number, rounded **down**. Use integer division (`//`).",
+		Starter:     "def percent(hp, maxhp):\n    pass\n",
+		Checks:      `[{"text":"50 of 200 is 25%.","test":"percent(50, 200) == 25"},{"text":"Full health is 100%.","test":"percent(200, 200) == 100"},{"text":"No health is 0%.","test":"percent(0, 10) == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `status(hp, maxhp)` that returns `'DEAD'` when hp is `0`, `'LOW'` when the percentage is under 25, and `'OK'` otherwise. Check for `0` first.",
+		Starter:     "def status(hp, maxhp):\n    pass\n",
+		Checks:      `[{"text":"0 HP is DEAD.","test":"status(0, 100) == 'DEAD'"},{"text":"10% is LOW.","test":"status(10, 100) == 'LOW'"},{"text":"80% is OK.","test":"status(80, 100) == 'OK'"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Put it together: for `hp = 30`, `maxhp = 100`, print a line that shows the bar and the percentage, like `[###-------] 30%`.",
+		Starter:     "hp = 30\nmaxhp = 100\n# Print a health bar line ending in the percentage, e.g. [###-------] 30%\n",
+		Checks:      `[{"text":"You show the percentage.","test":"'30%' in _out"},{"text":"You draw a bar with # and -.","test":"'#' in _out and '-' in _out"}]`,
+	},
+}
+
+// combatMathSteps — default args, *args, and **kwargs via combat helpers.
+var combatMathSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Write `damage(base, multiplier=1)` that returns `base * multiplier`. The `multiplier` should **default** to `1` when it isn't given.",
+		Starter:     "def damage(base, multiplier=1):\n    pass\n",
+		Checks:      `[{"text":"With no multiplier, damage is the base.","test":"damage(10) == 10"},{"text":"A 2x multiplier doubles it.","test":"damage(10, 2) == 20"},{"text":"You can pass the multiplier by name.","test":"damage(10, multiplier=3) == 30"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "A combo lands several hits. Write `total_damage(*hits)` that returns the sum of **any number** of hit values. No hits totals `0`.",
+		Starter:     "def total_damage(*hits):\n    pass\n",
+		Checks:      `[{"text":"Three hits add up.","test":"total_damage(1, 2, 3) == 6"},{"text":"No hits deal 0.","test":"total_damage() == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `buff(base, **mods)` that returns `base` plus the sum of all the keyword modifier values passed in.",
+		Starter:     "def buff(base, **mods):\n    pass\n",
+		Checks:      `[{"text":"Modifiers stack onto the base.","test":"buff(100, atk=10, spd=5) == 115"},{"text":"No modifiers leaves the base.","test":"buff(100) == 100"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Finally, write `strongest(*hits)` that returns the biggest hit — or `0` when there are no hits.",
+		Starter:     "def strongest(*hits):\n    pass\n",
+		Checks:      `[{"text":"It finds the biggest hit.","test":"strongest(3, 9, 4) == 9"},{"text":"No hits returns 0.","test":"strongest() == 0"}]`,
+	},
+}
+
+// safeParserSteps — try/except and specific exceptions via input parsing.
+var safeParserSteps = []store.Step{
+	{
+		Lang:        "python",
+		Instruction: "Player input is messy. Write `to_int(text)` that returns `int(text)` when it can, but returns `0` if the text isn't a number. Wrap it in `try` / `except ValueError`.",
+		Starter:     "def to_int(text):\n    pass\n",
+		Checks:      `[{"text":"Numbers convert.","test":"to_int('42') == 42"},{"text":"Junk becomes 0.","test":"to_int('abc') == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `safe_div(a, b)` that returns `a / b`, but returns `None` when `b` is `0`. Catch `ZeroDivisionError`.",
+		Starter:     "def safe_div(a, b):\n    pass\n",
+		Checks:      `[{"text":"Normal division works.","test":"safe_div(10, 2) == 5"},{"text":"Dividing by zero is safe.","test":"safe_div(5, 0) is None"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `get_stat(stats, key)` that returns `stats[key]`, or `0` if the key is missing. Catch `KeyError`.",
+		Starter:     "def get_stat(stats, key):\n    pass\n",
+		Checks:      `[{"text":"Existing stats come back.","test":"get_stat({'hp': 10}, 'hp') == 10"},{"text":"Missing stats default to 0.","test":"get_stat({}, 'mp') == 0"}]`,
+	},
+	{
+		Lang:        "python",
+		Instruction: "Write `parse_all(texts)` that turns a list of strings into a list of integers, **skipping** any that aren't numbers. Reuse the idea from `to_int`.",
+		Starter:     "def parse_all(texts):\n    pass\n",
+		Checks:      `[{"text":"Only the numbers survive.","test":"parse_all(['1', 'x', '3']) == [1, 3]"},{"text":"An empty list stays empty.","test":"parse_all([]) == []"}]`,
+	},
+}
+
 // pythonLabs are the interactive Python labs (run via Pyodide/WASM).
 var pythonLabs = map[string][]store.Step{
 	"workshop_python_warm_up":         pythonWarmupSteps,
@@ -675,6 +815,11 @@ var pythonLabs = map[string][]store.Step{
 	"workshop_build_a_loot_inventory": lootInventorySteps,
 	"workshop_score_multipliers":      comboSteps,
 	"workshop_model_a_player":         playerClassSteps,
+	"workshop_build_a_chat_filter":    chatFilterSteps,
+	"workshop_tally_a_scoreboard":     tallySteps,
+	"workshop_render_a_health_bar":    healthBarSteps,
+	"workshop_combat_math":            combatMathSteps,
+	"workshop_safe_stat_parser":       safeParserSteps,
 }
 
 // labSteps maps a frontend lesson slug to its interactive steps.

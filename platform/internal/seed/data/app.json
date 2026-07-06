@@ -754,6 +754,18 @@
             "kind": "theory"
           },
           {
+            "title": "Workshop: Build a Chat Filter",
+            "description": "Practice string methods — case, slicing, replace, and split — by building a chat command filter.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Working with Data",
+            "kind": "lab"
+          },
+          {
             "title": "Numbers, Math, and Booleans",
             "description": "Integers, floats, arithmetic, and the True/False logic that powers every decision your code makes.",
             "resources": [],
@@ -814,6 +826,18 @@
             "kind": "lab"
           },
           {
+            "title": "Workshop: Tally a Scoreboard",
+            "description": "Aggregate scores into a dictionary, find the leader, and sort the results.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Collections",
+            "kind": "lab"
+          },
+          {
             "title": "Control Flow in Python",
             "description": "Make decisions with if / elif / else and the comparison logic behind them.",
             "resources": [],
@@ -836,6 +860,18 @@
             "previous": null,
             "section": "Control Flow",
             "kind": "theory"
+          },
+          {
+            "title": "Workshop: Render a Health Bar",
+            "description": "Build a text health bar with loops, integer math, and status thresholds.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Control Flow",
+            "kind": "lab"
           },
           {
             "title": "Comprehensions",
@@ -886,6 +922,18 @@
             "kind": "theory"
           },
           {
+            "title": "Workshop: Combat Math",
+            "description": "Master default arguments, *args, and **kwargs with a set of combat helpers.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Functions & Modules",
+            "kind": "lab"
+          },
+          {
             "title": "Modules and the Standard Library",
             "description": "Split code across modules and unlock Python's huge built-in standard library.",
             "resources": [],
@@ -908,6 +956,18 @@
             "previous": null,
             "section": "Objects & Errors",
             "kind": "theory"
+          },
+          {
+            "title": "Workshop: Safe Stat Parser",
+            "description": "Parse messy input safely with try/except and specific exception types.",
+            "resources": [],
+            "author": "",
+            "is_completed": false,
+            "current": false,
+            "next": "",
+            "previous": null,
+            "section": "Objects & Errors",
+            "kind": "lab"
           },
           {
             "title": "Classes and Objects",
