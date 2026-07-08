@@ -42,6 +42,36 @@ Selected by the `CODE_EXEC` env var on the main app:
 The HTTP endpoint (`POST /api/run`) adds auth (login required), a per-user
 minimum interval, a global concurrency cap, and a 64 KB program-size limit.
 
+## Boot self-test (proves the sandbox actually works)
+
+Configuring bwrap isn't the same as bwrap *working* — unprivileged user
+namespaces can be disabled by the host kernel or a container runtime, in which
+case bwrap silently degrades. So `execd` runs a **containment self-test at
+boot**: it executes a probe through its own sandbox and checks that outbound
+network is blocked, the host filesystem (`/etc/hosts`) is hidden, and the run is
+under the bwrap mount. With `EXECD_REQUIRE_SANDBOX=1` (the container default) a
+failed self-test is **fatal — execd refuses to serve** rather than run untrusted
+code unsandboxed. It fails closed: a timeout or unparseable probe never reads as
+safe. The same probe backs `execd selftest` (exit 0 = sandboxed, 1 = not),
+wired as the container `HEALTHCHECK`, so an unhealthy `execd` means "the sandbox
+isn't containing code on this host."
+
+## One-command deploy (execution enabled)
+
+`docker-compose.yml` stands up the app plus a sandboxed `execd`, wired with a
+shared secret:
+
+```bash
+echo "EXEC_TOKEN=$(openssl rand -hex 32)" > .env
+echo "DATABASE_URL=libsql://<db>.turso.io?authToken=<t>" >> .env
+docker compose up --build
+```
+
+The app comes up with `CODE_EXEC=remote` pointed at `execd`; `execd` only
+becomes healthy once its self-test passes. If your host has unprivileged user
+namespaces disabled, `execd` stays unhealthy (fail closed) — enable them
+(`sysctl kernel.unprivileged_userns_clone=1`) or run `execd` under gVisor/Kata.
+
 ## What `bwrap` adds (and why remote is the prod answer)
 
 Limits and timeouts stop resource abuse, but a *plain* subprocess can still read

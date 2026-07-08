@@ -1,0 +1,62 @@
+# Turnkey deployment of GamifyDev with server-side code execution ENABLED.
+#
+#   1. Create a token:   echo "EXEC_TOKEN=$(openssl rand -hex 32)" > .env
+#   2. Set your DB:      echo "DATABASE_URL=libsql://<db>.turso.io?authToken=<t>" >> .env
+#   3. Bring it up:      docker compose up --build
+#
+# The app talks to a separate, sandboxed `execd` service over an internal
+# network with a shared bearer secret. execd refuses to start unless its
+# boot self-test proves bubblewrap is actually containing code (see
+# EXECD_REQUIRE_SANDBOX), so a misconfigured host fails closed instead of
+# running untrusted code unsandboxed.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Point the app at the sandboxed executor. Turning execution on is just
+      # these three lines — the whole reason this file exists.
+      CODE_EXEC: remote
+      CODE_EXEC_SANDBOX_URL: http://execd:9090
+      CODE_EXEC_SANDBOX_TOKEN: ${EXEC_TOKEN:?set EXEC_TOKEN in .env (openssl rand -hex 32)}
+      # Production DB. Turso is recommended (no volume/permission fuss); a
+      # SQLite file works too but the distroless app runs as a non-root user,
+      # so the file's directory must be writable by it.
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env}
+      SEED: ${SEED:-0}
+    ports:
+      - "8080:8080"
+    depends_on:
+      execd:
+        condition: service_healthy
+    restart: unless-stopped
+
+  execd:
+    build:
+      context: .
+      dockerfile: Dockerfile.execd
+    environment:
+      EXECD_TOKEN: ${EXEC_TOKEN:?set EXEC_TOKEN in .env}
+      EXECD_REQUIRE_SANDBOX: "1"   # fail closed if the sandbox can't be verified
+    # bubblewrap builds user/network/pid namespaces via unshare/clone, which the
+    # default Docker seccomp profile restricts — allow them, but nothing else.
+    security_opt:
+      - seccomp=unconfined
+      - no-new-privileges=true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/sandbox
+    pids_limit: 256
+    mem_limit: 512m
+    cpus: 1.0
+    # Internal only — never published to the host. Only `app` can reach it.
+    expose:
+      - "9090"
+    restart: unless-stopped
+    # If this container is unhealthy, bubblewrap isn't isolating on your host
+    # (often: unprivileged user namespaces are disabled). Enable them
+    # (sysctl kernel.unprivileged_userns_clone=1) or run execd under gVisor/Kata.
