@@ -9,6 +9,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -20,6 +21,13 @@ import (
 )
 
 func main() {
+	// `execd selftest` runs the containment probe once and exits 0 (sandboxed)
+	// or 1 (not) — for CI, health checks, and manual validation on a real host.
+	if len(os.Args) > 1 && os.Args[1] == "selftest" {
+		runSelftest()
+		return
+	}
+
 	addr := envOr("EXECD_ADDR", ":9090")
 	token := os.Getenv("EXECD_TOKEN")
 	if token == "" && os.Getenv("EXECD_ALLOW_NOAUTH") != "1" {
@@ -36,6 +44,26 @@ func main() {
 	})
 	if err != nil {
 		log.Fatalf("execd: %v", err)
+	}
+
+	// Prove, at boot, that untrusted code is actually contained. This is the
+	// difference between "we configured a sandbox" and "the sandbox works on
+	// THIS host/kernel". If a sandbox is required (the container default) and
+	// the probe can't confirm containment, refuse to serve — fail closed.
+	requireSandbox := envOr("EXECD_REQUIRE_SANDBOX", "0") == "1"
+	if envOr("EXECD_SELFTEST", "1") == "1" {
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		rep, perr := runner.Probe(ctx, exec)
+		cancel()
+		switch {
+		case perr == nil && rep.Sandboxed:
+			log.Printf("execd: sandbox self-test PASSED — network blocked, host FS hidden, bwrap mount active")
+		case requireSandbox:
+			log.Fatalf("execd: sandbox self-test FAILED and EXECD_REQUIRE_SANDBOX=1 — refusing to serve untrusted code unsandboxed. Reasons: %v (raw: %s)", rep.Reasons, rep.Raw)
+		default:
+			log.Printf("execd: WARNING — sandbox self-test did NOT confirm containment: %v. "+
+				"Set EXECD_REQUIRE_SANDBOX=1 to make this fatal. Do not expose to the public internet like this.", rep.Reasons)
+		}
 	}
 
 	// Bound how many runs execute at once so a burst can't fork-bomb the box.
@@ -76,15 +104,29 @@ func main() {
 		_ = json.NewEncoder(w).Encode(res)
 	})
 
-	if runner.SandboxAvailable() {
-		log.Printf("execd: bubblewrap sandbox active (network off, read-only root)")
-	} else {
-		log.Printf("execd: WARNING — no bubblewrap on PATH; runs are NOT namespace-isolated. " +
-			"Only run this where the container itself is the security boundary.")
+	if !runner.SandboxAvailable() {
+		log.Printf("execd: note — no bubblewrap on PATH; see the self-test result above for containment status")
 	}
 	log.Printf("execd listening on %s (max concurrency %d)", addr, maxConc)
 	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	log.Fatal(srv.ListenAndServe())
+}
+
+// runSelftest runs the containment probe and exits with a status code so it can
+// gate a container's readiness/health check: 0 = sandboxed, 1 = not.
+func runSelftest() {
+	exec, err := runner.New(runner.Config{Mode: "local", PythonPath: envOr("PYTHON", "python3"), AllowUnsafe: true})
+	if err != nil {
+		log.Fatalf("selftest: %v", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	rep, err := runner.Probe(ctx, exec)
+	out, _ := json.MarshalIndent(rep, "", "  ")
+	os.Stdout.Write(append(out, '\n'))
+	if err != nil || !rep.Sandboxed {
+		os.Exit(1)
+	}
 }
 
 func envOr(k, d string) string {

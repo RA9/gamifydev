@@ -43,8 +43,17 @@ COPY --from=build /app/execd /usr/local/bin/execd
 # Run as an unprivileged user; execd never needs root.
 RUN useradd --create-home --uid 10001 sandbox
 USER sandbox
+# EXECD_REQUIRE_SANDBOX=1 makes the boot self-test authoritative: if bubblewrap
+# can't actually contain code on this host/kernel (e.g. unprivileged user
+# namespaces are disabled), execd refuses to start instead of running untrusted
+# code unsandboxed. Fail closed.
 ENV EXECD_ADDR=:9090 \
     PYTHON=python3 \
-    EXECD_MAX_CONCURRENCY=4
+    EXECD_MAX_CONCURRENCY=4 \
+    EXECD_REQUIRE_SANDBOX=1
 EXPOSE 9090
+# The health check re-runs the containment probe; the container is only healthy
+# while the sandbox is provably working.
+HEALTHCHECK --interval=30s --timeout=20s --start-period=10s --retries=3 \
+    CMD ["execd", "selftest"]
 ENTRYPOINT ["execd"]

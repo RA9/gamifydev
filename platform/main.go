@@ -96,6 +96,26 @@ func main() {
 	}
 	log.Printf("code exec: mode=%s enabled=%v", exec.Kind(), exec.Enabled())
 
+	// If we're running code in-process (local mode), prove the sandbox actually
+	// contains it before serving. runner.New already blocks local-in-prod
+	// without bwrap; this also catches "bwrap is present but not isolating"
+	// (e.g. user namespaces disabled). Remote mode self-tests inside execd.
+	if exec.Enabled() && exec.Kind() == "local" {
+		pctx, pcancel := context.WithTimeout(ctx, 15*time.Second)
+		rep, _ := runner.Probe(pctx, exec)
+		pcancel()
+		deployed := os.Getenv("RAILWAY_ENVIRONMENT") != ""
+		unsafe := os.Getenv("CODE_EXEC_UNSAFE") == "1"
+		switch {
+		case rep.Sandboxed:
+			log.Printf("code exec: sandbox self-test PASSED")
+		case deployed && !unsafe:
+			log.Fatalf("code exec: sandbox self-test FAILED in a deployed environment — refusing to run untrusted code unsandboxed. Reasons: %v", rep.Reasons)
+		default:
+			log.Printf("code exec: WARNING — no verified sandbox (%v); fine for local dev, never for public traffic", rep.Reasons)
+		}
+	}
+
 	srv, err := server.New(st, rc, mailer, exec, secure)
 	if err != nil {
 		log.Fatalf("server: %v", err)
