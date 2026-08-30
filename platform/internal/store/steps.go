@@ -198,3 +198,47 @@ func (s *Store) StepProgressByLesson(ctx context.Context, userID, courseID int64
 	}
 	return out, rows.Err()
 }
+
+// ContinueLesson is the lesson a learner most recently made progress on, for
+// the dashboard's "pick up where you left off" card.
+type ContinueLesson struct {
+	CourseSlug, CourseTitle string
+	LessonSlug, LessonTitle string
+	Section                 string
+	Done, Total, Pct        int
+}
+
+// ContinueLearning finds the step-based lesson the user most recently
+// completed a step in (nil if they've never completed one). The lesson URL
+// alone is enough to resume: renderStepLab already opens a lesson on the
+// first incomplete step, or the last one if all are done.
+func (s *Store) ContinueLearning(ctx context.Context, userID int64) (*ContinueLesson, error) {
+	var cl ContinueLesson
+	var lessonID int64
+	err := s.db.QueryRowContext(ctx, `
+		SELECT l.id, c.slug, c.title, l.slug, l.title, l.section
+		FROM step_progress p
+		JOIN lesson_steps s ON s.id = p.step_id
+		JOIN lessons l ON l.id = s.lesson_id
+		JOIN courses c ON c.id = l.course_id
+		WHERE p.user_id = ?
+		ORDER BY p.completed_at DESC
+		LIMIT 1`, userID).Scan(&lessonID, &cl.CourseSlug, &cl.CourseTitle, &cl.LessonSlug, &cl.LessonTitle, &cl.Section)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if err := s.db.QueryRowContext(ctx, `
+		SELECT COUNT(*), COUNT(p2.step_id)
+		FROM lesson_steps s2
+		LEFT JOIN step_progress p2 ON p2.step_id = s2.id AND p2.user_id = ?
+		WHERE s2.lesson_id = ?`, userID, lessonID).Scan(&cl.Total, &cl.Done); err != nil {
+		return nil, err
+	}
+	if cl.Total > 0 {
+		cl.Pct = cl.Done * 100 / cl.Total
+	}
+	return &cl, nil
+}

@@ -4,7 +4,7 @@
     <div>
       <h1>Welcome back, {{ .User.Name }} 👋</h1>
       <p class="muted">
-        Your learning home — keep the streak going.
+        Your learning home — pick up where you left off.
         <span class="live-badge" data-live-status title="Live updates">
           <span class="live-dot" aria-hidden="true"></span>Live
         </span>
@@ -15,6 +15,25 @@
       <a href="/assignments" class="btn btn-primary btn-sm">{{ icon "clipboard" }} Assignments</a>
     </div>
   </div>
+
+  {{ $cl := index .Data "continue" }}
+  <section class="card continue-card{{ if not $cl }} continue-empty{{ end }}">
+    {{ if $cl }}
+    <span class="continue-eyebrow">Pick up where you left off</span>
+    <h2 class="continue-title">{{ $cl.LessonTitle }}</h2>
+    <p class="muted continue-sub">{{ $cl.CourseTitle }}{{ if $cl.Section }} · {{ $cl.Section }}{{ end }}</p>
+    <div class="continue-progress">
+      <span class="continue-bar"><span class="continue-bar-fill" style="width:{{ $cl.Pct }}%"></span></span>
+      <span class="continue-pct">{{ $cl.Done }} / {{ $cl.Total }} · {{ $cl.Pct }}%</span>
+    </div>
+    <a class="btn btn-primary continue-btn" href="/courses/{{ $cl.CourseSlug }}/{{ $cl.LessonSlug }}">Continue {{ icon "arrowright" }}</a>
+    {{ else }}
+    <span class="continue-eyebrow">Get started</span>
+    <h2 class="continue-title">Start your first interactive lesson</h2>
+    <p class="muted continue-sub">Complete a step in any hands-on lesson and it'll show up here so you can jump back in.</p>
+    <a class="btn btn-primary continue-btn" href="/courses">Browse courses {{ icon "arrowright" }}</a>
+    {{ end }}
+  </section>
 
   <!-- Realtime region: refreshed by htmx when the WebSocket pushes a signal. -->
   <div id="dash-live" hx-get="/dashboard/live" hx-trigger="refresh from:body" hx-swap="innerHTML">

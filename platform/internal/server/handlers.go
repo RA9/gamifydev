@@ -130,6 +130,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not load your dashboard", http.StatusInternalServerError)
 		return
 	}
+	data["bodyClass"] = "dash-dark"
 	s.render(w, r, "dashboard.html", ViewData{Title: "Your dashboard", Data: data})
 }
 
@@ -168,6 +169,7 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 	if len(paths) > 4 {
 		paths = paths[:4]
 	}
+	continueLesson, _ := s.st.ContinueLearning(ctx, u.ID)
 
 	periodTotal := 0
 	for _, d := range series {
@@ -195,6 +197,7 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 		"segments":    segments,
 		"recent":      recent,
 		"paths":       paths,
+		"continue":    continueLesson,
 	}, nil
 }
 

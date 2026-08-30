@@ -3991,3 +3991,76 @@ body.portal.lesson-lab,
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.84rem;
     line-height: 1.5; background: #0f172a; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; }
 .pg-err { color: #fca5a5; }
+
+/* ===== Learner dashboard — dark theme =====
+   Scoped to body.dash-dark (set only by handleDashboard) so the identical
+   .card/.stat-card/.table/.donut-* classes on the admin overview and every
+   other page keep their existing light styling. The header/nav and footer
+   are intentionally left untouched — they're real, working navigation, not
+   part of this page's own content. */
+body.portal.dash-dark { background: #0a1622; }
+.dash-dark .dash-head h1 { color: #f1f6fb; }
+.dash-dark .dash-head .muted { color: #6b8aa8; }
+.dash-dark .live-badge { background: rgba(255, 255, 255, 0.06); color: #6b8aa8; }
+.dash-dark .live-badge .live-dot { background: #3c5a76; }
+
+/* "Pick up where you left off" — the one net-new card, built from the real
+   step_progress table (ContinueLearning), not fabricated. */
+.dash-dark .continue-card {
+    background: linear-gradient(135deg, #0d2138, #0a1622);
+    border: 1px solid #173350;
+}
+.dash-dark .continue-eyebrow {
+    display: block; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #38bdf8; margin-bottom: 8px;
+}
+.dash-dark .continue-title { margin: 0 0 4px; font-size: 1.4rem; color: #f1f6fb; letter-spacing: -0.01em; }
+.dash-dark .continue-sub { margin: 0 0 16px; }
+.dash-dark .continue-progress { display: flex; align-items: center; gap: 12px; max-width: 420px; margin-bottom: 18px; }
+.dash-dark .continue-bar { flex: 1; height: 8px; border-radius: 999px; background: #173350; overflow: hidden; }
+.dash-dark .continue-bar-fill { display: block; height: 100%; border-radius: 999px; background: #38bdf8; transition: width 0.25s; }
+.dash-dark .continue-pct { font-size: 0.8rem; font-weight: 800; color: #6b8aa8; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dash-dark .continue-empty .continue-eyebrow { color: #6b8aa8; }
+
+.dash-dark .stat-card { background: #0d2138; border-color: #173350; box-shadow: none; }
+.dash-dark .stat-card::after { opacity: 0.7; }
+.dash-dark .stat-value { color: #f1f6fb; }
+.dash-dark .stat-label { color: #b9cbe0; }
+.dash-dark .stat-sub { color: #6b8aa8; }
+.dash-dark .ic-brand { background: rgba(56, 189, 248, 0.12); color: #38bdf8; }
+.dash-dark .ic-grass { background: rgba(74, 222, 128, 0.12); color: #4ade80; }
+.dash-dark .ic-amber { background: rgba(251, 191, 36, 0.12); color: #fbbf24; }
+.dash-dark .ic-rose { background: rgba(251, 113, 133, 0.12); color: #fb7185; }
+.dash-dark .trend-flat { background: rgba(255, 255, 255, 0.06); color: #6b8aa8; }
+
+.dash-dark .card { background: #0d2138; border-color: #173350; box-shadow: none; }
+.dash-dark .card-head h3 { color: #f1f6fb; }
+.dash-dark .card-head .muted { color: #6b8aa8; }
+.dash-dark .card-link { color: #38bdf8; }
+.dash-dark .metric-value { color: #38bdf8; }
+.dash-dark .metric-label { color: #6b8aa8; }
+.dash-dark .staff-strip { border-top: 1px solid #173350; padding-top: 18px; }
+.dash-dark .staff-strip strong { color: #f1f6fb; }
+
+.dash-dark .chart-grid { stroke: #173350; }
+.dash-dark .chart-line { stroke: #38bdf8; }
+.dash-dark .chart-grad-top { stop-color: #38bdf8; stop-opacity: 0.28; }
+.dash-dark .chart-grad-bottom { stop-color: #38bdf8; stop-opacity: 0; }
+.dash-dark .chart-dot { fill: #38bdf8; }
+.dash-dark .chart-dot-halo { fill: #38bdf8; opacity: 0.3; }
+.dash-dark .chart-xlabel { fill: #6b8aa8; }
+.dash-dark .donut-track { stroke: #173350; }
+.dash-dark .donut-total { fill: #f1f6fb; }
+.dash-dark .donut-sub { fill: #6b8aa8; }
+.dash-dark .legend-label { color: #b9cbe0; }
+.dash-dark .legend-val { color: #6b8aa8; }
+
+.dash-dark .table th { color: #6b8aa8; border-bottom-color: #173350; }
+.dash-dark .table td { border-bottom-color: #12283e; }
+.dash-dark .member-name { color: #f1f6fb; }
+.dash-dark .member-email { color: #6b8aa8; }
+
+.dash-dark .mini-list li { border-bottom-color: #12283e; }
+.dash-dark .mini-ic { background: rgba(56, 189, 248, 0.12); color: #38bdf8; }
+.dash-dark .mini-name { color: #f1f6fb; }
+.dash-dark .mini-sub { color: #6b8aa8; }
