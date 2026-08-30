@@ -32,7 +32,23 @@ type appJSON struct {
 }
 
 var courseMeta = map[string]struct{ Emoji, Tagline string }{
-	"frontend":  {"🎨", "Build what users see and touch"},
+	// Frontend path courses
+	"web_fundamentals":               {"🌐", "How the web works and your first page"},
+	"html_mastery":                   {"📄", "Structure every page with semantic, accessible HTML"},
+	"css_fundamentals":               {"🎨", "Style pages with selectors, the box model, and visual effects"},
+	"css_layout":                     {"📐", "Flexbox, Grid, responsive design, and motion"},
+	"project_build_a_landing_page":   {"🚀", "Plan, build, and ship a responsive marketing page"},
+	"javascript_fundamentals":        {"⚡", "Variables, functions, arrays, objects, and closures"},
+	"javascript_and_the_dom":         {"🖱️", "Select, change, and react to the page with JavaScript"},
+	"project_build_a_quiz_game":      {"🎯", "Build a working quiz with state, scoring, and results"},
+	"interactive_javascript":         {"🧩", "State management, localStorage, and real UI features"},
+	"async_javascript_and_apis":      {"🔄", "Promises, async/await, fetch, and real API integrations"},
+	"project_build_real_apps":        {"🏗️", "Ship five portfolio-ready frontend applications"},
+	"developer_tooling_and_workflow": {"🛠️", "DevTools, Git, GitHub, and deployment"},
+	"capstone_build_your_portfolio":  {"💼", "Build and launch your professional portfolio"},
+	// Legacy
+	"frontend": {"🎨", "Build what users see and touch"},
+	// Other paths
 	"backend":   {"🗄️", "Power apps from behind the scenes"},
 	"fullstack": {"🔗", "Connect front and back into apps"},
 	"c":         {"⚙️", "Program close to the metal"},
@@ -56,14 +72,28 @@ var seedPaths = []struct {
 	Courses                                         []string
 }{
 	{"frontend-developer", "Frontend Developer", "Build what users see and touch", "🎨", "Beginner",
-		"Go from zero to building modern, responsive, interactive web interfaces.",
-		[]string{"frontend"}},
+		"Go from zero to building modern, responsive, interactive web interfaces — 13 courses, projects at every stage, and a capstone portfolio.",
+		[]string{
+			"web_fundamentals",
+			"html_mastery",
+			"css_fundamentals",
+			"css_layout",
+			"project_build_a_landing_page",
+			"javascript_fundamentals",
+			"javascript_and_the_dom",
+			"project_build_a_quiz_game",
+			"interactive_javascript",
+			"async_javascript_and_apis",
+			"project_build_real_apps",
+			"developer_tooling_and_workflow",
+			"capstone_build_your_portfolio",
+		}},
 	{"backend-developer", "Backend Developer", "Power apps from behind the scenes", "🗄️", "Intermediate",
 		"Design APIs, model data, and ship reliable server-side systems — with the Linux skills to run them.",
 		[]string{"backend", "python", "linux"}},
 	{"fullstack-developer", "Full-Stack Developer", "Own the whole stack, front to back", "🔗", "Intermediate",
 		"Combine frontend and backend skills to build complete applications end to end.",
-		[]string{"frontend", "backend", "fullstack"}},
+		[]string{"html_mastery", "css_fundamentals", "css_layout", "javascript_fundamentals", "javascript_and_the_dom", "async_javascript_and_apis", "backend", "fullstack"}},
 	{"cs-foundations", "Computer Science Foundations", "Program close to the metal", "⚙️", "Beginner",
 		"Build durable fundamentals with C, Java, and the Linux command line.",
 		[]string{"c", "java", "linux"}},
@@ -624,8 +654,35 @@ var pythonWarmupSteps = []store.Step{
 // courseLabs maps a course slug to that course's interactive lab lessons
 // (lesson slug → steps).
 var courseLabs = map[string]map[string][]store.Step{
+	// Frontend path — labs split across courses
+	"html_mastery": {
+		"workshop_build_a_game_launch_page": gameLaunchSteps,
+		"workshop_build_a_sign_up_form":     signupFormSteps,
+	},
+	"css_fundamentals": {
+		"workshop_style_a_business_card":      businessCardSteps,
+		"workshop_build_a_pricing_card":       pricingCardSteps,
+		"workshop_build_an_achievement_badge": achievementBadgeSteps,
+		"workshop_build_an_xp_progress_bar":   xpBarSteps,
+	},
+	"css_layout": {
+		"workshop_build_a_nav_bar_with_flexbox":     navBarSteps,
+		"workshop_build_a_leaderboard_row":          leaderboardRowSteps,
+		"workshop_build_an_image_gallery_with_grid": gridGallerySteps,
+	},
+	"javascript_fundamentals": {
+		"workshop_code_a_level_up_system":   levelUpSteps,
+		"workshop_build_an_inventory":       inventorySteps,
+		"workshop_filter_a_product_catalog": productCatalogSteps,
+	},
+	"javascript_and_the_dom": {
+		"workshop_build_a_like_button":             likeButtonSteps,
+		"workshop_build_a_password_strength_meter": passwordStrengthSteps,
+	},
+	// Legacy course — keep for existing DBs
 	"frontend": labSteps,
-	"python":   pythonLabs,
+	// Python
+	"python": pythonLabs,
 }
 
 // xpCalcSteps — numbers, functions, and f-strings via an XP calculator.
