@@ -172,6 +172,7 @@ func (s *Server) renderStepLab(w http.ResponseWriter, r *http.Request, course *s
 	}
 
 	s.render(w, r, "lesson_steps.html", ViewData{Title: lesson.Title, Data: map[string]any{
+		"bodyClass":   "lesson-lab",
 		"course":      course,
 		"lesson":      lesson,
 		"step":        step,

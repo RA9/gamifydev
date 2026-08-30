@@ -11,7 +11,33 @@
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     <script type="module" src="/static/js/code-editor.js"></script>
   </head>
-  <body class="portal">
+  {{ $lab := eq (index .Data "bodyClass") "lesson-lab" }}
+  <body class="portal {{ index .Data "bodyClass" }}">
+    {{ if $lab }}
+    {{ $labCourse := index .Data "course" }}
+    {{ $labLesson := index .Data "lesson" }}
+    <header class="app-header lab-header">
+      <div class="lab-topbar">
+        <a href="/dashboard" class="brand app-brand lab-brand">Gamify<span>Dev</span></a>
+        <nav class="lab-crumb" aria-label="Breadcrumb">
+          <a href="/dashboard">~/dashboard</a>
+          <span class="lab-crumb-sep">/</span>
+          <a href="/courses/{{ $labCourse.Slug }}">{{ $labCourse.Title }}</a>
+          <span class="lab-crumb-sep">/</span>
+          <span class="lab-crumb-current">{{ $labLesson.Title }}</span>
+        </nav>
+        <div class="lab-topbar-right">
+          <a href="/dashboard" class="lab-icon-btn" title="Dashboard">{{ icon "grid" }}</a>
+          <a href="/forum" class="lab-icon-btn" title="Forum">{{ icon "chat" }}</a>
+          {{ if .User.IsAdmin }}<a href="/admin" class="lab-icon-btn" title="Admin">{{ icon "shield" }}</a>{{ end }}
+          <span class="avatar avatar-sm" title="{{ .User.Name }}">{{ initials .User.Name }}</span>
+          <form method="post" action="/logout" class="inline">
+            <button class="lab-icon-btn" type="submit" title="Sign out" aria-label="Sign out">{{ icon "logout" }}</button>
+          </form>
+        </div>
+      </div>
+    </header>
+    {{ else }}
     <header class="app-header">
       <!-- Focusable, visually-hidden checkbox drives the mobile menu (keyboard: Tab + Space). -->
       <input type="checkbox" id="appNav" class="app-nav-cb visually-hidden" />
@@ -43,12 +69,14 @@
         </div>
       </div>
     </header>
+    {{ end }}
 
     <main class="main app-main">
       {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
       {{ block "content" . }}{{ end }}
     </main>
 
+    {{ if not $lab }}
     <footer class="app-footer">
       <div class="app-footer-inner">
         <div class="app-footer-brand">
@@ -67,5 +95,6 @@
         <span class="muted">Built for builders 🚀</span>
       </div>
     </footer>
+    {{ end }}
   </body>
 </html>

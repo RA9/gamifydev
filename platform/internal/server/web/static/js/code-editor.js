@@ -16,7 +16,10 @@ import { describe, build, html } from "https://cdn.jsdelivr.net/gh/RA9/tan-compo
 build(
   "gd-code-editor",
   describe({
-    props: { lang: { type: "string", default: "code" } },
+    props: {
+      lang: { type: "string", default: "code" },
+      theme: { type: "string", default: "light" },
+    },
     template: ({ props }) => html`
       <style>
         :host { display:block; }
@@ -33,6 +36,17 @@ build(
         ::slotted(textarea) { flex:1; border:none !important; outline:none !important; resize:none !important;
           padding:14px !important; margin:0; line-height:1.65; font-size:.88rem; font-family:inherit;
           color:#0f172a; background:#fff; min-height:0 !important; overflow:hidden; }
+
+        /* Dark (IDE) theme — used inside the lesson lab. :host(...) is required
+           (rather than an inner .ed-dark class) for the ::slotted() override to
+           reliably win the cascade against the light-mode ::slotted rule above. */
+        :host([theme="dark"]) .ed { border-color:#173350; background:#0a1622; max-height:none; }
+        :host([theme="dark"]) .ed:focus-within { border-color:#38bdf8; }
+        :host([theme="dark"]) .ed-bar { background:#0d2138; border-bottom-color:#173350; }
+        :host([theme="dark"]) .ed-lang { color:#38bdf8; }
+        :host([theme="dark"]) .ed-lines { color:#5c7d99; }
+        :host([theme="dark"]) .ed-gutter { background:#0a1622; color:#3c5a76; border-right-color:#173350; }
+        :host([theme="dark"]) ::slotted(textarea) { color:#dbe7f3 !important; background:#0a1622 !important; }
       </style>
       <div class="ed">
         <div class="ed-bar"><span class="ed-lang">${props.lang}</span><span class="ed-lines"></span></div>

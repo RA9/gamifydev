@@ -123,6 +123,13 @@ var funcMap = template.FuncMap{
 		return strings.ToUpper(s[:1]) + s[1:]
 	},
 	"hasprefix": strings.HasPrefix,
+	"seq": func(n int) []int {
+		s := make([]int, n)
+		for i := range s {
+			s[i] = i + 1
+		}
+		return s
+	},
 }
 
 // render writes a full page (page template + layout) for the request.
@@ -140,6 +147,11 @@ func (s *Server) render(w http.ResponseWriter, req *http.Request, page string, v
 	// So the nav can show the Playground link only when it's usable.
 	if _, ok := vd.Data["execEnabled"]; !ok {
 		vd.Data["execEnabled"] = s.exec != nil && s.exec.Enabled()
+	}
+	// So the layout can switch shells (e.g. the lesson lab's dark, chrome-free
+	// header) without every other page having to opt in with a nil check.
+	if _, ok := vd.Data["bodyClass"]; !ok {
+		vd.Data["bodyClass"] = ""
 	}
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, chooseLayout(page, vd.User != nil), vd); err != nil {

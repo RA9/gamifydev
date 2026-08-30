@@ -19,9 +19,30 @@
   const consoleEl = document.getElementById("stepConsole");
   const checkBtn = document.getElementById("checkBtn");
   const nextBtn = document.getElementById("nextBtn");
+  const resetBtn = document.getElementById("resetBtn");
   const msg = document.getElementById("stepMsg");
   const items = [...document.querySelectorAll("#stepChecks li")];
   if (!ta) return; // `frame` is absent in Python mode (no preview iframe)
+
+  // Label reference code blocks in the instructions like a little file tab,
+  // e.g. "● go" for a ```go fenced block.
+  document.querySelectorAll(".step-instructions .prose pre").forEach((pre) => {
+    const code = pre.querySelector("code");
+    const cls = code && [...code.classList].find((c) => c.startsWith("language-"));
+    const lang = cls ? cls.slice("language-".length) : "code";
+    const tab = document.createElement("div");
+    tab.className = "code-chrome";
+    tab.innerHTML = '<span class="code-chrome-dot" aria-hidden="true"></span><span>' + lang + "</span>";
+    pre.parentNode.insertBefore(tab, pre);
+  });
+
+  if (resetBtn && ta) {
+    resetBtn.addEventListener("click", () => {
+      ta.value = ta.dataset.starter || "";
+      ta.dispatchEvent(new Event("input", { bubbles: true }));
+      ta.focus();
+    });
+  }
 
   const lang = ["js", "python", "pyserver"].includes(lab.dataset.lang) ? lab.dataset.lang : "html";
   const completeURL = lab.dataset.completeUrl;

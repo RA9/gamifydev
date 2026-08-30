@@ -2,6 +2,8 @@
 {{ $course := index .Data "course" }}
 {{ $lesson := index .Data "lesson" }}
 {{ $step := index .Data "step" }}
+{{ $idx := index .Data "index" }}
+{{ $total := index .Data "total" }}
 <div class="step-lab"
      data-lang="{{ $step.Lang }}"
      data-scaffold="{{ $step.Scaffold }}"
@@ -10,69 +12,85 @@
      data-next-url="{{ index .Data "nextURL" }}"
      data-completed="{{ if index .Data "completed" }}1{{ else }}0{{ end }}"
      data-is-last="{{ if index .Data "isLast" }}1{{ else }}0{{ end }}">
-  <div class="step-head">
-    <a class="back" href="/courses/{{ $course.Slug }}">← {{ $lesson.Title }}</a>
-    <div class="step-progress">
-      <span class="step-counter">Step {{ index .Data "index" }} of {{ index .Data "total" }}</span>
-      <span class="step-bar"><span class="step-bar-fill" style="width:{{ index .Data "progressPct" }}%"></span></span>
-    </div>
-  </div>
 
   <div class="step-grid">
-    <div class="step-panel step-instructions card">
+    <div class="step-panel step-instructions">
+      <div class="step-kicker">
+        <span class="step-counter">Step {{ $idx }} of {{ $total }}</span>
+      </div>
+
+      <h1 class="step-title">{{ $lesson.Title }}</h1>
+
       <div class="prose">{{ index .Data "instruction" }}</div>
 
-      <ul class="step-checks" id="stepChecks">
-        {{ range index .Data "checks" }}
-        <li data-test="{{ .Test }}"><span class="check-mark" aria-hidden="true">○</span> <span>{{ .Text }}</span></li>
-        {{ end }}
-      </ul>
+      <div class="step-exercise">
+        <div class="step-exercise-head"><span aria-hidden="true">&gt;_</span> Exercise</div>
 
-      <p class="step-msg" id="stepMsg" role="status"></p>
+        <ul class="step-checks" id="stepChecks">
+          {{ range index .Data "checks" }}
+          <li data-test="{{ .Test }}"><span class="check-mark" aria-hidden="true">○</span> <span>{{ .Text }}</span></li>
+          {{ end }}
+        </ul>
 
-      <div class="step-actions">
-        {{ with index .Data "prevURL" }}<a class="btn btn-secondary btn-sm" href="{{ . }}">← Back</a>{{ end }}
-        <button id="checkBtn" class="btn btn-primary btn-sm" type="button">Check my code</button>
-        <a id="nextBtn" class="btn btn-primary btn-sm" href="{{ index .Data "nextURL" }}" {{ if not (index .Data "completed") }}hidden{{ end }}>
-          {{ if index .Data "isLast" }}Finish ✓{{ else }}Next step →{{ end }}
-        </a>
+        <p class="step-msg" id="stepMsg" role="status"></p>
       </div>
     </div>
 
     <div class="step-panel step-work">
-      <gd-code-editor lang="{{ if eq $step.Lang "js" }}javascript{{ else if or (eq $step.Lang "python") (eq $step.Lang "pyserver") }}python{{ else }}html{{ end }}">
-        <textarea id="stepCode" class="gd-editor-ta" spellcheck="false">{{ $step.Starter }}</textarea>
-      </gd-code-editor>
-      {{ if eq $step.Lang "pyserver" }}
-      <div class="step-preview-wrap">
-        <span class="step-preview-label">Server output</span>
+      <div class="step-editor-card">
+        <div class="step-editor-bar">
+          <span class="step-editor-tag">
+            {{ if eq $step.Lang "js" }}JavaScript{{ else if eq $step.Lang "python" }}Python{{ else if eq $step.Lang "pyserver" }}Python{{ else }}HTML{{ end }}
+          </span>
+          <button id="resetBtn" type="button" class="step-tool-btn" title="Reset to the starting code">{{ icon "refresh" }}<span>Reset</span></button>
+        </div>
+        <gd-code-editor theme="dark" lang="{{ if eq $step.Lang "js" }}javascript{{ else if or (eq $step.Lang "python") (eq $step.Lang "pyserver") }}python{{ else }}html{{ end }}">
+          <textarea id="stepCode" class="gd-editor-ta" spellcheck="false" data-starter="{{ $step.Starter }}">{{ $step.Starter }}</textarea>
+        </gd-code-editor>
+      </div>
+
+      <div class="step-output-card">
+        <div class="step-output-bar">
+          <span class="step-output-label">Output</span>
+          <button id="checkBtn" class="btn btn-primary btn-sm" type="button">Check my code</button>
+        </div>
+
+        {{ if eq $step.Lang "pyserver" }}
         <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run it on the server and see output here.</div></div>
-      </div>
-      {{ else if eq $step.Lang "python" }}
-      <div class="step-preview-wrap">
-        <span class="step-preview-label">Output</span>
+        {{ else if eq $step.Lang "python" }}
         <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run your Python and see its output here.</div></div>
-      </div>
-      {{ else if eq $step.Lang "js" }}
-      {{ if $step.Scaffold }}
-      <div class="step-preview-wrap">
-        <span class="step-preview-label">Result</span>
-        <iframe id="stepPreview" class="step-preview" title="Result" sandbox="allow-scripts"></iframe>
-      </div>
-      {{ else }}
-      <iframe id="stepPreview" title="Code runner" sandbox="allow-scripts" hidden></iframe>
-      {{ end }}
-      <div class="step-preview-wrap">
-        <span class="step-preview-label">Console</span>
+        {{ else if eq $step.Lang "js" }}
+        {{ if $step.Scaffold }}
+        <div class="step-preview-wrap">
+          <span class="step-preview-label">Result</span>
+          <iframe id="stepPreview" class="step-preview" title="Result" sandbox="allow-scripts"></iframe>
+        </div>
+        {{ else }}
+        <iframe id="stepPreview" title="Code runner" sandbox="allow-scripts" hidden></iframe>
+        {{ end }}
         <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run it and see output here.</div></div>
+        {{ else }}
+        <div class="step-preview-wrap">
+          <span class="step-preview-label">Preview</span>
+          <iframe id="stepPreview" class="step-preview" title="Live preview" sandbox="allow-same-origin"></iframe>
+        </div>
+        {{ end }}
       </div>
-      {{ else }}
-      <div class="step-preview-wrap">
-        <span class="step-preview-label">Preview</span>
-        <iframe id="stepPreview" class="step-preview" title="Live preview" sandbox="allow-same-origin"></iframe>
-      </div>
+    </div>
+  </div>
+
+  <div class="step-footer">
+    {{ with index .Data "prevURL" }}<a class="step-nav-btn" href="{{ . }}">{{ icon "arrowleft" }}<span>Back</span></a>{{ else }}<span></span>{{ end }}
+
+    <div class="step-dots" role="img" aria-label="Step {{ $idx }} of {{ $total }}">
+      {{ range $n := seq $total }}
+      <span class="step-dot{{ if lt $n $idx }} is-done{{ else if eq $n $idx }} is-current{{ end }}"></span>
       {{ end }}
     </div>
+
+    <a id="nextBtn" class="step-nav-btn step-nav-next" href="{{ index .Data "nextURL" }}" {{ if not (index .Data "completed") }}hidden{{ end }}>
+      <span>{{ if index .Data "isLast" }}Finish{{ else }}Next{{ end }}</span>{{ icon "chevright" }}
+    </a>
   </div>
 </div>
 <script type="module" src="/static/js/step-runner.js"></script>
