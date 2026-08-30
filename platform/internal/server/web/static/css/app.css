@@ -4068,3 +4068,41 @@ body.portal.dash-dark { background: #0a1622; }
 .dash-dark .mini-ic { background: rgba(56, 189, 248, 0.12); color: #38bdf8; }
 .dash-dark .mini-name { color: #f1f6fb; }
 .dash-dark .mini-sub { color: #6b8aa8; }
+
+/* ===== Career paths (/paths, /paths/:slug) — dark theme =====
+   Scoped to body.paths-dark (set only by handlePaths/handlePath) so the
+   shared .card/.chip/.grid-cards/.course-meta/etc. classes keep their light
+   styling on every other page (courses, course detail, admin, ...). Guests
+   still see the public marketing shell (layout.html), which never sets this
+   class, so this only affects the signed-in view. */
+body.portal.paths-dark { background: #0a1622; }
+.paths-dark .page-head h1 { color: #f1f6fb; }
+.paths-dark .page-head .muted { color: #6b8aa8; }
+.paths-dark .page-head .muted a { color: #38bdf8; }
+.paths-dark .chip { background: rgba(56, 189, 248, 0.14); color: #38bdf8; }
+
+.paths-dark .card.path-card,
+.paths-dark .card.path-about,
+.paths-dark .card.path-step {
+    background: #0d2138;
+    border-color: #173350;
+    box-shadow: none;
+}
+.paths-dark .path-card:hover { border-color: #38bdf8; }
+.paths-dark .linkcard h3 { color: #f1f6fb; }
+.paths-dark .linkcard p { color: #b9cbe0; }
+.paths-dark .course-meta { color: #a78bfa; }
+
+.paths-dark .back { color: #6b8aa8; }
+.paths-dark .back:hover { color: #38bdf8; }
+.paths-dark .course-head h1 { color: #f1f6fb; }
+.paths-dark .path-about { color: #b9cbe0; }
+.paths-dark .path-about a { color: #38bdf8; }
+.paths-dark .path-curriculum-title { color: #f1f6fb; }
+
+.paths-dark .path-step-no { color: #a78bfa; background: rgba(139, 109, 243, 0.16); }
+.paths-dark .path-step-title { color: #f1f6fb; }
+.paths-dark .path-step-title:hover { color: #38bdf8; }
+.paths-dark .path-step .muted { color: #6b8aa8; }
+.paths-dark .path-step.is-locked .path-step-no { color: #6b8aa8; background: rgba(255, 255, 255, 0.06); }
+.paths-dark .path-step.is-done .path-step-no { color: #4ade80; background: rgba(74, 222, 128, 0.16); }

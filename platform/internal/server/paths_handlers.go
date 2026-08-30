@@ -18,7 +18,7 @@ func (s *Server) handlePaths(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not load career paths", http.StatusInternalServerError)
 		return
 	}
-	s.render(w, r, "paths.html", ViewData{Title: "Career paths", Data: map[string]any{"paths": paths}})
+	s.render(w, r, "paths.html", ViewData{Title: "Career paths", Data: map[string]any{"paths": paths, "bodyClass": "paths-dark"}})
 }
 
 // pathStep is a course in a path plus the viewing learner's progression state.
@@ -57,10 +57,11 @@ func (s *Server) handlePath(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "path.html", ViewData{
 		Title: p.Title,
 		Data: map[string]any{
-			"path":     p,
-			"steps":    steps,
-			"signedIn": u != nil,
-			"about":    content.RenderSafe(p.Description),
+			"path":      p,
+			"steps":     steps,
+			"signedIn":  u != nil,
+			"about":     content.RenderSafe(p.Description),
+			"bodyClass": "paths-dark",
 		},
 	})
 }
