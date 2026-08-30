@@ -37,16 +37,35 @@ build(
           padding:14px !important; margin:0; line-height:1.65; font-size:.88rem; font-family:inherit;
           color:#0f172a; background:#fff; min-height:0 !important; overflow:hidden; }
 
-        /* Dark (IDE) theme — used inside the lesson lab. :host(...) is required
-           (rather than an inner .ed-dark class) for the ::slotted() override to
-           reliably win the cascade against the light-mode ::slotted rule above. */
-        :host([theme="dark"]) .ed { border-color:#173350; background:#0a1622; max-height:none; }
+        /* Dark (IDE) theme — used inside the lesson lab, where the editor sits in
+           a flex panel and should fill it (not shrink-wrap to content) like a
+           real IDE pane. :host(...) is required (rather than an inner .ed-dark
+           class) for the ::slotted() override to reliably win the cascade
+           against the light-mode ::slotted rule above.
+           Every level from the host down to the textarea is an explicit flex
+           column/row with flex:1 + min-height:0 — a plain block child (like the
+           default .ed) does NOT inherit a stretched flex parent's height, so
+           each level has to opt in itself. */
+        :host([theme="dark"]) { display:flex; flex-direction:column; min-height:0; }
+        /* tan-compose wraps the template root in its own .container div, which
+           sits between :host and .ed — that wrapper needs to join the flex
+           chain too, or .ed's flex:1 has no effect (its real parent would
+           still be a plain block box). */
+        :host([theme="dark"]) .container { display:flex; flex-direction:column; flex:1; min-height:0; }
+        :host([theme="dark"]) .ed {
+          display:flex; flex-direction:column; flex:1; min-height:0;
+          border-color:#173350; background:#0a1622; max-height:none;
+        }
         :host([theme="dark"]) .ed:focus-within { border-color:#38bdf8; }
-        :host([theme="dark"]) .ed-bar { background:#0d2138; border-bottom-color:#173350; }
+        :host([theme="dark"]) .ed-bar { flex:0 0 auto; background:#0d2138; border-bottom-color:#173350; }
         :host([theme="dark"]) .ed-lang { color:#38bdf8; }
         :host([theme="dark"]) .ed-lines { color:#5c7d99; }
+        :host([theme="dark"]) .ed-body { flex:1; min-height:0; max-height:none; }
         :host([theme="dark"]) .ed-gutter { background:#0a1622; color:#3c5a76; border-right-color:#173350; }
-        :host([theme="dark"]) ::slotted(textarea) { color:#dbe7f3 !important; background:#0a1622 !important; }
+        :host([theme="dark"]) ::slotted(textarea) {
+          color:#dbe7f3 !important; background:#0a1622 !important;
+          height:100% !important; overflow:auto !important;
+        }
       </style>
       <div class="ed">
         <div class="ed-bar"><span class="ed-lang">${props.lang}</span><span class="ed-lines"></span></div>
@@ -59,6 +78,9 @@ build(
       if (!ta || !sr) return;
       const gutter = sr.querySelector(".ed-gutter");
       const lines = sr.querySelector(".ed-lines");
+      // Dark/IDE mode fills its panel (CSS height:100%) and scrolls internally
+      // instead of growing with content, so skip the auto-grow measurement.
+      const fill = host.getAttribute("theme") === "dark";
 
       const refresh = () => {
         const n = ta.value.split("\n").length || 1;
@@ -66,8 +88,10 @@ build(
         for (let i = 1; i <= n; i++) g += i + "\n";
         gutter.textContent = g;
         lines.textContent = n + (n === 1 ? " line" : " lines");
-        ta.style.height = "auto";
-        ta.style.height = ta.scrollHeight + "px";
+        if (!fill) {
+          ta.style.height = "auto";
+          ta.style.height = ta.scrollHeight + "px";
+        }
       };
 
       ta.addEventListener("input", refresh);

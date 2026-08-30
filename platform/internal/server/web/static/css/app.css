@@ -3900,9 +3900,11 @@ body.portal.lesson-lab,
 }
 .step-tool-btn .ic { width: 15px; height: 15px; }
 .step-tool-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--lab-text); }
-.step-editor-card gd-code-editor { flex: 1 1 auto; display: flex; }
-.step-editor-card gd-code-editor .ed,
-.step-editor-card .ed { height: 100%; }
+/* display:flex for the shadow-DOM fill layout is set inside code-editor.js's
+   own :host([theme="dark"]) rule — a page stylesheet can't reach .ed etc.
+   across the shadow boundary, so only flex:1 (how the *parent* treats this
+   element) belongs here. */
+.step-editor-card gd-code-editor { flex: 1 1 auto; min-height: 0; }
 
 .step-output-card { display: flex; flex-direction: column; flex: 0 0 auto; min-height: 200px; max-height: 42vh; }
 .step-output-bar {
