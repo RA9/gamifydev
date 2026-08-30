@@ -1877,9 +1877,9 @@ body.portal {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: #fff;
-    border-bottom: 1px solid var(--slate-200);
-    box-shadow: 0 1px 0 rgba(31, 23, 72, 0.02);
+    background: #0d2138;
+    border-bottom: 1px solid #173350;
+    box-shadow: none;
     -webkit-tap-highlight-color: transparent;
 }
 .app-nav {
@@ -1894,11 +1894,11 @@ body.portal {
 }
 .app-brand {
     font-size: 1.25rem;
-    color: var(--slate-900);
+    color: #f1f6fb;
     flex-shrink: 0;
 }
 .app-brand span {
-    color: var(--brand-600);
+    color: var(--brand-400);
 }
 
 .app-links {
@@ -1912,7 +1912,7 @@ body.portal {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    color: var(--slate-500);
+    color: #6b8aa8;
     font-weight: 700;
     font-size: 0.92rem;
     padding: 8px 13px;
@@ -1929,18 +1929,18 @@ body.portal {
     opacity: 0.8;
 }
 .app-links a:hover {
-    background: var(--slate-100);
-    color: var(--slate-900);
+    background: rgba(255, 255, 255, 0.06);
+    color: #f1f6fb;
 }
 .app-links a.active {
-    background: var(--brand-50);
-    color: var(--brand-700);
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
 }
 .app-links a.active .ic {
     opacity: 1;
 }
 .app-links a:focus-visible {
-    outline: 2px solid var(--brand-500);
+    outline: 2px solid #38bdf8;
     outline-offset: 2px;
 }
 
@@ -1957,18 +1957,18 @@ body.portal {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    color: var(--slate-500);
-    background: var(--slate-100);
+    color: #6b8aa8;
+    background: rgba(255, 255, 255, 0.06);
     touch-action: manipulation;
 }
 .app-staff:hover {
-    background: var(--brand-50);
-    color: var(--brand-700);
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
 }
 .app-staff:focus-visible,
 .app-signout:focus-visible,
 .app-burger:focus-within {
-    outline: 2px solid var(--brand-500);
+    outline: 2px solid #38bdf8;
     outline-offset: 2px;
 }
 .app-signout {
@@ -1980,12 +1980,12 @@ body.portal {
     cursor: pointer;
     border-radius: 10px;
     background: transparent;
-    color: var(--slate-400);
+    color: #6b8aa8;
     touch-action: manipulation;
 }
 .app-signout:hover {
-    background: #fff1f2;
-    color: var(--rose-500);
+    background: rgba(251, 113, 133, 0.12);
+    color: #fb7185;
 }
 
 /* Hamburger toggle — hidden on desktop, shown on mobile */
@@ -1996,8 +1996,8 @@ body.portal {
     height: 40px;
     border-radius: 10px;
     cursor: pointer;
-    color: var(--slate-600);
-    background: var(--slate-100);
+    color: #dbe7f3;
+    background: rgba(255, 255, 255, 0.06);
     touch-action: manipulation;
 }
 .app-burger .ic {
@@ -2076,9 +2076,9 @@ body.portal {
         flex-direction: column;
         align-items: stretch;
         gap: 2px;
-        background: #fff;
-        border-bottom: 1px solid var(--slate-200);
-        box-shadow: var(--shadow-md);
+        background: #0d2138;
+        border-bottom: 1px solid #173350;
+        box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.5);
         padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
         max-height: calc(100vh - 62px);
         overflow-y: auto;
@@ -2094,7 +2094,7 @@ body.portal {
         border-radius: 10px;
     }
     .app-links a:hover {
-        background: var(--slate-50);
+        background: rgba(255, 255, 255, 0.06);
     }
     /* Swap burger glyph when open */
     .app-nav-cb:checked + .app-nav .app-burger-open {
@@ -2353,8 +2353,8 @@ body.portal {
 /* ===== Learner portal footer ===== */
 .app-footer {
     margin-top: auto;
-    background: #fff;
-    border-top: 1px solid var(--slate-200);
+    background: #0a1622;
+    border-top: 1px solid #173350;
     width: 100%;
 }
 .app-footer-inner {
@@ -2368,14 +2368,15 @@ body.portal {
 }
 .app-footer-logo {
     font-size: 1.2rem;
-    color: var(--slate-900);
+    color: #f1f6fb;
 }
 .app-footer-logo span {
-    color: var(--brand-600);
+    color: var(--brand-400);
 }
 .app-footer-brand p {
     margin: 6px 0 0;
     font-size: 0.9rem;
+    color: #6b8aa8;
 }
 .app-footer-links {
     display: flex;
@@ -2383,29 +2384,32 @@ body.portal {
     gap: 8px 22px;
 }
 .app-footer-links a {
-    color: var(--slate-500);
+    color: #6b8aa8;
     font-weight: 700;
     font-size: 0.9rem;
 }
 .app-footer-links a:hover {
-    color: var(--brand-600);
+    color: #38bdf8;
 }
 .app-footer-links a:focus-visible {
-    outline: 2px solid var(--brand-500);
+    outline: 2px solid #38bdf8;
     outline-offset: 2px;
     border-radius: 4px;
+}
+.app-footer .muted {
+    color: #6b8aa8;
 }
 .app-footer-bottom {
     margin: 0 auto;
     padding: 14px 20px max(16px, env(safe-area-inset-bottom));
-    border-top: 1px solid var(--slate-100);
+    border-top: 1px solid #12283e;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     flex-wrap: wrap;
     font-size: 0.82rem;
-    color: var(--slate-400);
+    color: #6b8aa8;
 }
 @media (max-width: 720px) {
     .app-footer-inner {
