@@ -3,10 +3,12 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RA9/gamifydev/platform/internal/email"
@@ -19,6 +21,7 @@ import (
 )
 
 func main() {
+	loadDotEnv(".env")
 	addr := envOr("ADDR", ":8080")
 	// Railway (and most PaaS) inject the port to bind via $PORT.
 	if port := os.Getenv("PORT"); port != "" {
@@ -137,4 +140,42 @@ func envOr(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// loadDotEnv reads simple KEY=VALUE lines from path (if present) into the
+// process environment. Real environment variables always win — a var already
+// set (e.g. by the shell, systemd, or a PaaS) is never overwritten — so .env
+// is purely a local-dev convenience, not a config layer that can mask deploy
+// config. Blank lines and lines starting with # are ignored; values may be
+// wrapped in matching single or double quotes.
+func loadDotEnv(path string) {
+	f, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+		if len(val) >= 2 {
+			if (val[0] == '"' && val[len(val)-1] == '"') || (val[0] == '\'' && val[len(val)-1] == '\'') {
+				val = val[1 : len(val)-1]
+			}
+		}
+		if key == "" {
+			continue
+		}
+		if _, set := os.LookupEnv(key); !set {
+			os.Setenv(key, val)
+		}
+	}
 }
