@@ -2595,6 +2595,578 @@
             "previous": "Bash Scripting Basics"
           }
         ]
+      },
+      {
+        "name": "Data Structures",
+        "modules": [
+          {
+            "title": "Why Data Structures Matter",
+            "description": "What a data structure really is, and why choosing the right one changes everything.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Arrays",
+            "previous": null,
+            "section": "Linear Structures",
+            "kind": "theory"
+          },
+          {
+            "title": "Arrays",
+            "description": "Contiguous memory, O(1) indexing, and the real cost of inserting in the middle.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Linked Lists",
+            "previous": "Why Data Structures Matter",
+            "section": "Linear Structures",
+            "kind": "theory"
+          },
+          {
+            "title": "Linked Lists",
+            "description": "Nodes and pointers: cheap inserts, no random access, and when that trade is worth it.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Stacks",
+            "previous": "Arrays",
+            "section": "Linear Structures",
+            "kind": "theory"
+          },
+          {
+            "title": "Stacks",
+            "description": "Last in, first out — the structure behind undo, back buttons, and the call stack.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Queues",
+            "previous": "Linked Lists",
+            "section": "Linear Structures",
+            "kind": "theory"
+          },
+          {
+            "title": "Queues",
+            "description": "First in, first out — plus deques and circular buffers.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Hash Tables",
+            "previous": "Stacks",
+            "section": "Linear Structures",
+            "kind": "theory"
+          },
+          {
+            "title": "Hash Tables",
+            "description": "Hashing, buckets, collisions, and how you get average O(1) lookup.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Trees and Terminology",
+            "previous": "Queues",
+            "section": "Linear Structures",
+            "kind": "theory"
+          },
+          {
+            "title": "Trees and Terminology",
+            "description": "Roots, children, height, depth — the vocabulary every tree topic assumes you know.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Binary Trees and Binary Search Trees",
+            "previous": "Hash Tables",
+            "section": "Trees",
+            "kind": "theory"
+          },
+          {
+            "title": "Binary Trees and Binary Search Trees",
+            "description": "Full, complete and balanced binary trees, and the ordering rule that makes a BST searchable.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Heaps and Priority Queues",
+            "previous": "Trees and Terminology",
+            "section": "Trees",
+            "kind": "theory"
+          },
+          {
+            "title": "Heaps and Priority Queues",
+            "description": "The heap property, sift up and sift down, and how a heap backs a priority queue.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Balanced Search Trees",
+            "previous": "Binary Trees and Binary Search Trees",
+            "section": "Trees",
+            "kind": "theory"
+          },
+          {
+            "title": "Balanced Search Trees",
+            "description": "Why unbalanced trees degrade to lists, and how AVL, red-black and B-trees prevent it.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Tries",
+            "previous": "Heaps and Priority Queues",
+            "section": "Trees",
+            "kind": "theory"
+          },
+          {
+            "title": "Tries",
+            "description": "Prefix trees: how autocomplete and spell-checkers search text fast.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Graphs and How to Represent Them",
+            "previous": "Balanced Search Trees",
+            "section": "Trees",
+            "kind": "theory"
+          },
+          {
+            "title": "Graphs and How to Represent Them",
+            "description": "Directed, undirected and weighted graphs, plus adjacency lists versus adjacency matrices.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Tries",
+            "section": "Graphs",
+            "kind": "theory"
+          }
+        ]
+      },
+      {
+        "name": "Complexity and Analysis",
+        "modules": [
+          {
+            "title": "Why Complexity Matters",
+            "description": "Measuring algorithms by growth rate instead of by stopwatch.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Big O Notation",
+            "previous": null,
+            "section": "Measuring Cost",
+            "kind": "theory"
+          },
+          {
+            "title": "Big O Notation",
+            "description": "Upper bounds, dropping constants, and reading O(n) like a sentence.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Big-Theta, Big Omega and the Small Variants",
+            "previous": "Why Complexity Matters",
+            "section": "Measuring Cost",
+            "kind": "theory"
+          },
+          {
+            "title": "Big-Theta, Big Omega and the Small Variants",
+            "description": "The full family of asymptotic bounds and what each one actually claims.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "The Common Runtimes",
+            "previous": "Big O Notation",
+            "section": "Measuring Cost",
+            "kind": "theory"
+          },
+          {
+            "title": "The Common Runtimes",
+            "description": "Constant, logarithmic, linear, polynomial, exponential and factorial — with a feel for each.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Analyzing Loops and Recursion",
+            "previous": "Big-Theta, Big Omega and the Small Variants",
+            "section": "Common Runtimes",
+            "kind": "theory"
+          },
+          {
+            "title": "Analyzing Loops and Recursion",
+            "description": "Counting work in nested loops, and solving simple recurrences for recursive code.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Space Complexity",
+            "previous": "The Common Runtimes",
+            "section": "Common Runtimes",
+            "kind": "theory"
+          },
+          {
+            "title": "Space Complexity",
+            "description": "Memory as a budget: auxiliary space, in-place algorithms, and the time-space trade-off.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Complexity Classes P and NP",
+            "previous": "Analyzing Loops and Recursion",
+            "section": "Common Runtimes",
+            "kind": "theory"
+          },
+          {
+            "title": "Complexity Classes P and NP",
+            "description": "P, NP, NP-hard, NP-complete, co-NP and the P = NP question — in plain language.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "The Math You Actually Need",
+            "previous": "Space Complexity",
+            "section": "Hard Problems",
+            "kind": "theory"
+          },
+          {
+            "title": "The Math You Actually Need",
+            "description": "The probability and combinatorics that show up in algorithm analysis.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Complexity Classes P and NP",
+            "section": "Hard Problems",
+            "kind": "theory"
+          }
+        ]
+      },
+      {
+        "name": "Algorithms",
+        "modules": [
+          {
+            "title": "What Makes a Good Algorithm",
+            "description": "Correctness, efficiency and clarity — how to judge and describe an algorithm.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "Recursion and Tail Recursion",
+            "previous": null,
+            "section": "Foundations",
+            "kind": "theory"
+          },
+          {
+            "title": "Recursion and Tail Recursion",
+            "description": "Base cases, the call stack, and why tail calls can be optimized away.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Linear and Binary Search",
+            "previous": "What Makes a Good Algorithm",
+            "section": "Foundations",
+            "kind": "theory"
+          },
+          {
+            "title": "Linear and Binary Search",
+            "description": "Scanning versus halving, and the sorted-input precondition binary search depends on.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Bubble, Selection and Insertion Sort",
+            "previous": "Recursion and Tail Recursion",
+            "section": "Searching",
+            "kind": "theory"
+          },
+          {
+            "title": "Bubble, Selection and Insertion Sort",
+            "description": "The three quadratic sorts, why they're slow, and where insertion sort still wins.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Merge Sort",
+            "previous": "Linear and Binary Search",
+            "section": "Sorting",
+            "kind": "theory"
+          },
+          {
+            "title": "Merge Sort",
+            "description": "Divide and conquer, the merge step, and guaranteed O(n log n).",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Quick Sort",
+            "previous": "Bubble, Selection and Insertion Sort",
+            "section": "Sorting",
+            "kind": "theory"
+          },
+          {
+            "title": "Quick Sort",
+            "description": "Partitioning, pivot choice, and why the average case beats its worst case in practice.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Heap Sort",
+            "previous": "Merge Sort",
+            "section": "Sorting",
+            "kind": "theory"
+          },
+          {
+            "title": "Heap Sort",
+            "description": "Sorting in place by repeatedly extracting the max from a heap.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Tree Traversals",
+            "previous": "Quick Sort",
+            "section": "Sorting",
+            "kind": "theory"
+          },
+          {
+            "title": "Tree Traversals",
+            "description": "Pre-order, in-order and post-order — and what each one is good for.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Graph Traversal: BFS and DFS",
+            "previous": "Heap Sort",
+            "section": "Trees and Graphs",
+            "kind": "theory"
+          },
+          {
+            "title": "Graph Traversal: BFS and DFS",
+            "description": "Queues versus stacks, visited sets, and the two ways to explore any graph.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Shortest Paths: Dijkstra and Bellman-Ford",
+            "previous": "Tree Traversals",
+            "section": "Trees and Graphs",
+            "kind": "theory"
+          },
+          {
+            "title": "Shortest Paths: Dijkstra and Bellman-Ford",
+            "description": "Greedy relaxation, negative edges, and picking the right shortest-path algorithm.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "A-Star and Heuristic Search",
+            "previous": "Graph Traversal: BFS and DFS",
+            "section": "Trees and Graphs",
+            "kind": "theory"
+          },
+          {
+            "title": "A-Star and Heuristic Search",
+            "description": "Adding a heuristic to Dijkstra to search toward a goal instead of in all directions.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Minimum Spanning Trees: Prim and Kruskal",
+            "previous": "Shortest Paths: Dijkstra and Bellman-Ford",
+            "section": "Trees and Graphs",
+            "kind": "theory"
+          },
+          {
+            "title": "Minimum Spanning Trees: Prim and Kruskal",
+            "description": "Connecting every node for the least total weight, two different ways.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Greedy Algorithms",
+            "previous": "A-Star and Heuristic Search",
+            "section": "Trees and Graphs",
+            "kind": "theory"
+          },
+          {
+            "title": "Greedy Algorithms",
+            "description": "Taking the locally best step — when it provably works, and when it fails.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Backtracking",
+            "previous": "Minimum Spanning Trees: Prim and Kruskal",
+            "section": "Strategies",
+            "kind": "theory"
+          },
+          {
+            "title": "Backtracking",
+            "description": "Systematic trial and error: N-Queens, maze solving and the knight's tour.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "String Search Algorithms",
+            "previous": "Greedy Algorithms",
+            "section": "Strategies",
+            "kind": "theory"
+          },
+          {
+            "title": "String Search Algorithms",
+            "description": "Brute force, Rabin-Karp, Knuth-Morris-Pratt and Boyer-Moore.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Caching Strategies",
+            "previous": "Backtracking",
+            "section": "Strategies",
+            "kind": "theory"
+          },
+          {
+            "title": "Caching Strategies",
+            "description": "LRU, LFU and MFU eviction, and why caches need a replacement policy at all.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "String Search Algorithms",
+            "section": "Strategies",
+            "kind": "theory"
+          }
+        ]
+      },
+      {
+        "name": "How Computers Work",
+        "modules": [
+          {
+            "title": "From Source Code to Running Program",
+            "description": "Compilers, assemblers, linkers and loaders — the journey from text to process.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": true,
+            "next": "How a CPU Executes a Program",
+            "previous": null,
+            "section": "Inside the Machine",
+            "kind": "theory"
+          },
+          {
+            "title": "How a CPU Executes a Program",
+            "description": "The fetch-decode-execute cycle, the clock, and what a core really does.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Instructions and Machine Code",
+            "previous": "From Source Code to Running Program",
+            "section": "Inside the Machine",
+            "kind": "theory"
+          },
+          {
+            "title": "Instructions and Machine Code",
+            "description": "Opcodes, operands, instruction sets, and how assembly maps to bits.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Registers, RAM and the Memory Hierarchy",
+            "previous": "How a CPU Executes a Program",
+            "section": "Inside the Machine",
+            "kind": "theory"
+          },
+          {
+            "title": "Registers, RAM and the Memory Hierarchy",
+            "description": "Why memory comes in layers, from registers to disk, and what that costs you.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "CPU Cache",
+            "previous": "Instructions and Machine Code",
+            "section": "Inside the Machine",
+            "kind": "theory"
+          },
+          {
+            "title": "CPU Cache",
+            "description": "Cache lines, locality, hits and misses — and how to write cache-friendly code.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "How Computers Calculate",
+            "previous": "Registers, RAM and the Memory Hierarchy",
+            "section": "Inside the Machine",
+            "kind": "theory"
+          },
+          {
+            "title": "How Computers Calculate",
+            "description": "Binary, two's complement, and the adder circuits behind integer arithmetic.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Character Encodings: ASCII and Unicode",
+            "previous": "CPU Cache",
+            "section": "Representing Data",
+            "kind": "theory"
+          },
+          {
+            "title": "Character Encodings: ASCII and Unicode",
+            "description": "Bytes to text: ASCII, code points, UTF-8, and why emoji break naive string code.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Floating Point Math",
+            "previous": "How Computers Calculate",
+            "section": "Representing Data",
+            "kind": "theory"
+          },
+          {
+            "title": "Floating Point Math",
+            "description": "IEEE 754, why 0.1 + 0.2 isn't 0.3, and how to compare floats safely.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Endianness",
+            "previous": "Character Encodings: ASCII and Unicode",
+            "section": "Representing Data",
+            "kind": "theory"
+          },
+          {
+            "title": "Endianness",
+            "description": "Big-endian versus little-endian byte order, and where it bites you.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": "Bitwise Operators",
+            "previous": "Floating Point Math",
+            "section": "Representing Data",
+            "kind": "theory"
+          },
+          {
+            "title": "Bitwise Operators",
+            "description": "AND, OR, XOR, NOT and shifts — plus masks, flags and the tricks they enable.",
+            "resources": [],
+            "author": "Carlos S. Nah",
+            "is_completed": false,
+            "current": false,
+            "next": null,
+            "previous": "Endianness",
+            "section": "Representing Data",
+            "kind": "theory"
+          }
+        ]
       }
     ]
   }

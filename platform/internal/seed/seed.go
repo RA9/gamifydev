@@ -55,6 +55,11 @@ var courseMeta = map[string]struct{ Emoji, Tagline string }{
 	"java":      {"☕", "Robust, portable applications"},
 	"python":    {"🐍", "Clear, friendly, everywhere"},
 	"linux":     {"🐧", "Command the machine directly"},
+	// CS Foundations path courses (structure follows roadmap.sh/computer-science)
+	"data_structures":         {"🗃️", "Arrays, lists, trees, heaps, hash tables, and graphs"},
+	"complexity_and_analysis": {"📈", "Big O, the common runtimes, and P vs NP"},
+	"algorithms":              {"🧮", "Sorting, searching, graphs, greedy, and backtracking"},
+	"how_computers_work":      {"🔬", "CPUs, memory, caches, and how data is represented"},
 }
 
 var nonSlug = regexp.MustCompile(`[^a-z0-9]+`)
@@ -94,9 +99,17 @@ var seedPaths = []struct {
 	{"fullstack-developer", "Full-Stack Developer", "Own the whole stack, front to back", "🔗", "Intermediate",
 		"Combine frontend and backend skills to build complete applications end to end.",
 		[]string{"html_mastery", "css_fundamentals", "css_layout", "javascript_fundamentals", "javascript_and_the_dom", "async_javascript_and_apis", "backend", "fullstack"}},
-	{"cs-foundations", "Computer Science Foundations", "Program close to the metal", "⚙️", "Beginner",
-		"Build durable fundamentals with C, Java, and the Linux command line.",
-		[]string{"c", "java", "linux"}},
+	{"cs-foundations", "Computer Science Foundations", "The fundamentals behind every language", "⚙️", "Beginner",
+		"The core of a computer science education, structured after roadmap.sh/computer-science: pick a language, then learn data structures, complexity analysis, algorithms, and how the machine underneath actually works.",
+		[]string{
+			"c",
+			"java",
+			"data_structures",
+			"complexity_and_analysis",
+			"algorithms",
+			"how_computers_work",
+			"linux",
+		}},
 }
 
 // RunIfEmpty seeds content only when there are no courses yet (a fresh DB).
