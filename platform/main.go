@@ -5,13 +5,17 @@ package main
 import (
 	"bufio"
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/RA9/gamifydev/platform/internal/email"
+	"github.com/RA9/gamifydev/platform/internal/jobs"
 	"github.com/RA9/gamifydev/platform/internal/rdb"
 	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/seed"
@@ -119,9 +123,28 @@ func main() {
 		}
 	}
 
-	srv, err := server.New(st, rc, mailer, exec, secure)
+	// Scheduled work (standup windows, activity rollup, sanction expiry). The
+	// runner takes a per-job database lease, so running more than one instance
+	// is safe. Disable with JOBS=off for one-shot/CLI-style runs.
+	runner := jobs.New(st, os.Getenv("INSTANCE_ID"))
+	if os.Getenv("JOBS") == "off" {
+		log.Printf("jobs: disabled (JOBS=off)")
+		runner = nil
+	} else {
+		jobs.Register(runner, st)
+	}
+
+	srv, err := server.New(st, rc, mailer, exec, runner, secure)
 	if err != nil {
 		log.Fatalf("server: %v", err)
+	}
+
+	// One context governs background work; cancelled on SIGINT/SIGTERM so the
+	// runner finishes its in-flight job instead of being killed mid-write.
+	bgCtx, stopBG := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stopBG()
+	if runner != nil {
+		runner.Start(bgCtx)
 	}
 
 	httpServer := &http.Server{
@@ -129,10 +152,32 @@ func main() {
 		Handler:           srv.Routes(),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
-	log.Printf("GamifyDev platform listening on %s (db: %s)", addr, dsn)
-	if err := httpServer.ListenAndServe(); err != nil {
+
+	// Serve until a signal arrives, then drain.
+	serveErr := make(chan error, 1)
+	go func() {
+		log.Printf("GamifyDev platform listening on %s (db: %s)", addr, dsn)
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serveErr <- err
+		}
+	}()
+
+	select {
+	case err := <-serveErr:
 		log.Fatal(err)
+	case <-bgCtx.Done():
+		log.Printf("shutting down…")
 	}
+
+	shutCtx, cancelShut := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancelShut()
+	if err := httpServer.Shutdown(shutCtx); err != nil {
+		log.Printf("http shutdown: %v", err)
+	}
+	if runner != nil {
+		runner.Stop() // waits for the current job to finish
+	}
+	log.Printf("stopped")
 }
 
 func envOr(key, def string) string {

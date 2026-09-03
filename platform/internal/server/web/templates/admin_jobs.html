@@ -1,0 +1,75 @@
+{{ define "content" }}
+<div class="page-head">
+  <h1>Scheduled work</h1>
+  <p class="muted">Background jobs that run on a cadence — activity rollup, sanction expiry, and housekeeping. Each job takes a database lease, so running more than one instance is safe.</p>
+</div>
+
+{{ if index .Data "disabled" }}
+  <div class="card job-off">
+    <p><strong>Scheduled work is disabled</strong> on this instance (<code>JOBS=off</code>). Nothing runs on a timer until it's re-enabled.</p>
+  </div>
+{{ end }}
+
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr>
+        <th>Job</th>
+        <th>Cadence</th>
+        <th>Last run</th>
+        <th class="ta-right">24h</th>
+        <th class="ta-right">Run</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "jobs" }}
+      <tr>
+        <td>
+          <span class="job-dot {{ if not .HasRun }}is-idle{{ else if .LastOK }}is-ok{{ else }}is-bad{{ end }}"
+                title="{{ if not .HasRun }}Not run yet{{ else if .LastOK }}Last run succeeded{{ else }}Last run failed{{ end }}"></span>
+          <span class="slug">{{ .Name }}</span>
+        </td>
+        <td class="muted">{{ .Every }}</td>
+        <td class="muted">{{ if .HasRun }}{{ reltime .LastRun }}{{ else }}—{{ end }}</td>
+        <td class="ta-right">
+          {{ .Runs24h }}{{ if gt .Fails24h 0 }} <span class="badge badge-warn">{{ .Fails24h }} failed</span>{{ end }}
+        </td>
+        <td class="ta-right">
+          <form method="post" action="/admin/jobs/{{ .Name }}/run" class="inline">
+            <button class="btn btn-secondary btn-sm" type="submit">Run now</button>
+          </form>
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">No jobs registered.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="path-curriculum-title">Recent runs</h2>
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead>
+      <tr><th>Job</th><th>Started</th><th>Result</th><th class="ta-right">Took</th></tr>
+    </thead>
+    <tbody>
+      {{ range index .Data "runs" }}
+      <tr>
+        <td><span class="slug">{{ .Name }}</span></td>
+        <td class="muted">{{ reltime .StartedAt }}</td>
+        <td>
+          {{ if .Running }}<span class="badge badge-info">running</span>
+          {{ else if .Failed }}<span class="badge badge-warn">failed</span>
+          {{ else }}<span class="badge badge-ok">ok</span>{{ end }}
+          {{ if .Detail }}<span class="muted job-detail">{{ .Detail }}</span>{{ end }}
+        </td>
+        <td class="ta-right muted">{{ if .DurationMS.Valid }}{{ .DurationMS.Int64 }} ms{{ else }}—{{ end }}</td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="4" class="muted">Nothing has run yet.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

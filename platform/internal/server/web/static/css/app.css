@@ -4064,6 +4064,18 @@ body.portal.dash-dark { background: #0a1622; }
 .dash-dark .member-name { color: #f1f6fb; }
 .dash-dark .member-email { color: #6b8aa8; }
 
+/* ===== Admin: scheduled work ===== */
+.job-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 9px; vertical-align: 1px; background: var(--slate-300);
+}
+.job-dot.is-ok { background: var(--grass-500); }
+.job-dot.is-bad { background: var(--rose-500); }
+.job-dot.is-idle { background: var(--slate-300); }
+.job-detail { margin-left: 8px; font-size: 0.85em; }
+.job-off { border-left: 3px solid var(--amber-500); margin-bottom: 18px; }
+.job-off p { margin: 0; }
+
 .dash-dark .mini-list li { border-bottom-color: #12283e; }
 .dash-dark .mini-ic { background: rgba(56, 189, 248, 0.12); color: #38bdf8; }
 .dash-dark .mini-name { color: #f1f6fb; }

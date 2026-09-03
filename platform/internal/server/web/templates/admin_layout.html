@@ -34,6 +34,7 @@
           <a href="/admin/competitions" class="{{ if eq $p "/admin/competitions" }}active{{ end }}">{{ icon "trophy" }}<span>Competitions</span></a>
           <a href="/admin/forum" class="{{ if eq $p "/admin/forum" }}active{{ end }}">{{ icon "chat" }}<span>Forum</span></a>
           <a href="/admin/blog" class="{{ if hasprefix $p "/admin/blog" }}active{{ end }}">{{ icon "file" }}<span>Blog</span></a>
+          <a href="/admin/jobs" class="{{ if hasprefix $p "/admin/jobs" }}active{{ end }}">{{ icon "activity" }}<span>Scheduled work</span></a>
         </nav>
         <div class="sidebar-foot">
           <a href="/dashboard" class="sidebar-foot-link">{{ icon "arrowleft" }}<span>Learner view</span></a>

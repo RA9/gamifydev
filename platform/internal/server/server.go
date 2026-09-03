@@ -6,6 +6,7 @@ import (
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/email"
+	"github.com/RA9/gamifydev/platform/internal/jobs"
 	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/store"
 	"github.com/redis/go-redis/v9"
@@ -18,11 +19,12 @@ type Server struct {
 	hub    *hub          // realtime WebSocket fan-out
 	rnd    *renderer
 	exec   runner.Executor // server-side code execution; disabled by default
+	jobs   *jobs.Runner    // scheduled work; nil when JOBS=off
 	runlim *runLimiter     // throttles /api/run
 	secure bool            // set Secure cookies (true in production/HTTPS)
 }
 
-func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Executor, secure bool) (*Server, error) {
+func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Executor, jr *jobs.Runner, secure bool) (*Server, error) {
 	rnd, err := newRenderer()
 	if err != nil {
 		return nil, err
@@ -35,7 +37,7 @@ func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Exec
 	}
 	return &Server{
 		st: st, rdb: rc, mail: mail, hub: newHub(), rnd: rnd,
-		exec: exec, runlim: newRunLimiter(4, 1500), secure: secure,
+		exec: exec, jobs: jr, runlim: newRunLimiter(4, 1500), secure: secure,
 	}, nil
 }
 
@@ -90,6 +92,8 @@ func (s *Server) Routes() http.Handler {
 	// Admin
 	admin := s.requireRole("admin")
 	mux.Handle("GET /admin", admin(http.HandlerFunc(s.handleAdminHome)))
+	mux.Handle("GET /admin/jobs", admin(http.HandlerFunc(s.handleAdminJobs)))
+	mux.Handle("POST /admin/jobs/{name}/run", admin(http.HandlerFunc(s.handleAdminJobRun)))
 	mux.Handle("GET /admin/users", admin(http.HandlerFunc(s.handleAdminUsers)))
 	mux.Handle("GET /admin/users/new", admin(http.HandlerFunc(s.handleAdminInviteForm)))
 	mux.Handle("POST /admin/users/invite", admin(http.HandlerFunc(s.handleAdminInvite)))
