@@ -121,6 +121,10 @@ func (s *Server) handleLesson(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		data["body"] = content.Render(lesson.Body)
+		// A reading lesson has no steps to finish, so it needs an explicit
+		// "done" — otherwise it can never be cleared off the schedule.
+		data["done"], _ = s.st.LessonComplete(r.Context(), u.ID, lesson.ID)
+		data["completeURL"] = "/lessons/" + strconv.FormatInt(lesson.ID, 10) + "/complete"
 	}
 	s.render(w, r, "lesson.html", ViewData{Title: lesson.Title, Data: data})
 }
@@ -205,7 +209,34 @@ func (s *Server) handleStepComplete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not save progress", http.StatusInternalServerError)
 		return
 	}
+	// Finishing the last step finishes the lesson. Without this a learner who
+	// worked through every step would still see the lesson as outstanding on
+	// their schedule, and would have to confirm it a second time.
+	if st, err := s.st.GetStep(r.Context(), id); err == nil {
+		_, _ = s.st.MarkLessonCompleteIfStepsDone(r.Context(), u.ID, st.LessonID)
+	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// handleLessonComplete marks a reading lesson finished.
+func (s *Server) handleLessonComplete(w http.ResponseWriter, r *http.Request) {
+	u := auth.CurrentUser(r.Context())
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	lesson, err := s.st.GetLessonByID(r.Context(), id)
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	if err := s.st.MarkLessonComplete(r.Context(), u.ID, id); err != nil {
+		http.Error(w, "could not save progress", http.StatusInternalServerError)
+		return
+	}
+	course, err := s.st.GetCourseByID(r.Context(), lesson.CourseID)
+	if err != nil {
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/courses/"+course.Slug+"/"+lesson.Slug, http.StatusSeeOther)
 }
 
 // --- Admin ------------------------------------------------------------------

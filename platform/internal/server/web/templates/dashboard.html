@@ -4,7 +4,7 @@
     <div>
       <h1>Welcome back, {{ .User.Name }} 👋</h1>
       <p class="muted">
-        Your learning home — pick up where you left off.
+        {{ if index .Data "cohort" }}Your cohort is on week {{ (index .Data "schedule").Sprint }} — here's today.{{ else }}Your learning home — pick up where you left off.{{ end }}
         <span class="live-badge" data-live-status title="Live updates">
           <span class="live-dot" aria-hidden="true"></span>Live
         </span>
@@ -32,6 +32,41 @@
   {{ end }}
 
   {{ $cl := index .Data "continue" }}
+  {{ $sched := index .Data "schedule" }}
+  {{ if index .Data "cohort" }}
+  <section class="card continue-card sc-dash">
+    <div class="sc-dash-head">
+      <div>
+        <span class="continue-eyebrow">Due today</span>
+        <h2 class="continue-title">
+          {{ with index .Data "dueToday" }}{{ len . }} item{{ if ne (len .) 1 }}s{{ end }} on your plan{{ else }}Rest day{{ end }}
+        </h2>
+      </div>
+      <span class="sc-week">Week {{ $sched.Sprint }} of {{ $sched.TotalSprints }}</span>
+    </div>
+    {{ with index .Data "dueToday" }}
+    <ul class="sc-list sc-list-compact">
+      {{ range . }}
+      <li class="sc-item{{ if .Done }} is-done{{ end }}{{ if .Exempt }} is-exempt{{ end }}">
+        <span class="sc-tick">{{ if .Done }}✓{{ else if .Exempt }}—{{ else }}○{{ end }}</span>
+        <a class="sc-what" href="{{ .URL }}">
+          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else }}{{ .Lesson }}{{ end }}
+          <span class="pl-fine">{{ .Course }}{{ if .Exempt }} · skipped by your placement{{ end }}</span>
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+    {{ else }}
+    <p class="muted continue-sub">Nothing due today — the plan runs Monday to Friday. Rest counts.</p>
+    {{ end }}
+    {{ with index .Data "overdue" }}
+    <p class="sc-behind">{{ len . }} item{{ if ne (len .) 1 }}s{{ end }} behind · <a href="/schedule">see your schedule</a></p>
+    {{ else }}
+    <a class="sc-dash-link" href="/schedule">See the whole plan →</a>
+    {{ end }}
+  </section>
+  {{ end }}
+
   {{ if not (index .Data "placed") }}
   <section class="card continue-card continue-placement">
     <span class="continue-eyebrow">First step</span>
@@ -46,7 +81,7 @@
     <p class="muted continue-sub">Your diagnostic is done. Pick the path you'll start on to get going.</p>
     <a class="btn btn-primary continue-btn" href="/placement/result">See my placement {{ icon "arrowright" }}</a>
   </section>
-  {{ else }}
+  {{ else if not (index .Data "cohort") }}
   <section class="card continue-card{{ if not $cl }} continue-empty{{ end }}">
     {{ if $cl }}
     <span class="continue-eyebrow">Pick up where you left off</span>

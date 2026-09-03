@@ -1,0 +1,75 @@
+{{ define "content" }}
+{{ $p := index .Data "progress" }}
+<div class="co-wrap">
+  <header class="co-head">
+    <span class="pl-eyebrow">Your schedule</span>
+    <h1 class="co-title">{{ (index .Data "cohort").Name }}</h1>
+    <p class="co-sub">
+      Week {{ $p.Sprint }} of {{ $p.TotalSprints }} · day {{ add $p.DayIndex 1 }} of {{ $p.TotalDays }}
+      · {{ $p.Done }} of {{ $p.Owed }} done
+      {{ if gt $p.Exempt 0 }}· {{ $p.Exempt }} skipped by your placement{{ end }}
+    </p>
+    <div class="sc-bar"><span class="sc-bar-fill" style="width:{{ $p.Pct }}%"></span></div>
+  </header>
+
+  {{ with index .Data "overdue" }}
+  <section class="co-card sc-overdue">
+    <h2 class="pl-h2">Behind — {{ len . }} item{{ if ne (len .) 1 }}s{{ end }}</h2>
+    <p class="pl-fine">Not a penalty. Work through these when you can; tell your cohort at standup if something's in the way.</p>
+    <ul class="sc-list">
+      {{ range . }}
+      <li class="sc-item is-late">
+        <span class="sc-when">{{ fmtdate .DueOn }}</span>
+        <a class="sc-what" href="{{ .URL }}">
+          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else }}{{ .Lesson }}{{ end }}
+          <span class="pl-fine">{{ .Course }}</span>
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+  </section>
+  {{ end }}
+
+  <section class="co-card sc-today">
+    <h2 class="pl-h2">Due today</h2>
+    {{ with index .Data "today" }}
+    <ul class="sc-list">
+      {{ range . }}
+      <li class="sc-item{{ if .Done }} is-done{{ end }}{{ if .Exempt }} is-exempt{{ end }}">
+        <span class="sc-tick">{{ if .Done }}✓{{ else if .Exempt }}—{{ else }}○{{ end }}</span>
+        <a class="sc-what" href="{{ .URL }}">
+          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else }}{{ .Lesson }}{{ end }}
+          <span class="pl-fine">{{ .Course }}{{ if .Exempt }} · skipped by your placement{{ end }}</span>
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+    {{ else }}
+    <p class="muted">Nothing scheduled today — it's a rest day. The plan runs Monday to Friday.</p>
+    {{ end }}
+  </section>
+
+  <h2 class="path-curriculum-title sc-h2">The whole path</h2>
+  {{ range index .Data "sprints" }}
+  <section class="co-card sc-sprint">
+    <h3 class="sc-sprint-title">Week {{ .Sprint }}</h3>
+    <ul class="sc-list">
+      {{ range .Items }}
+      <li class="sc-item{{ if .Done }} is-done{{ end }}{{ if .Exempt }} is-exempt{{ end }}{{ if and .Overdue (not .Done) }} is-late{{ end }}">
+        <span class="sc-tick">{{ if .Done }}✓{{ else if .Exempt }}—{{ else }}○{{ end }}</span>
+        <span class="sc-when">{{ fmtdate .DueOn }}</span>
+        <a class="sc-what" href="{{ .URL }}">
+          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else }}{{ .Lesson }}{{ end }}
+          <span class="pl-fine">{{ .Course }}</span>
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+  </section>
+  {{ else }}
+  <section class="co-card">
+    <p class="muted">Your cohort's plan is still being built. It appears within a few minutes of the cohort forming.</p>
+  </section>
+  {{ end }}
+</div>
+{{ end }}

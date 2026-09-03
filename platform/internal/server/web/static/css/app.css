@@ -4333,3 +4333,51 @@ body.portal.cohort-dark { background: #0a1622; }
     max-width: 420px; border: 1px solid #1d3d5c; background: #0a1622; color: #dbe7f3;
 }
 .pl-band-select:focus { outline: none; border-color: #38bdf8; }
+
+/* ===== Schedule (phase 4) ===== */
+.sc-bar { height: 6px; border-radius: 999px; background: #173350; overflow: hidden; margin-top: 14px; max-width: 460px; }
+.sc-bar-fill { display: block; height: 100%; background: #38bdf8; border-radius: 999px; }
+.sc-h2 { color: #f1f6fb; }
+.sc-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.sc-list-compact { margin-top: 14px; }
+.sc-item {
+    display: flex; align-items: baseline; gap: 12px; padding: 10px 12px;
+    border-radius: 10px; transition: background 0.12s;
+}
+.sc-item:hover { background: rgba(255, 255, 255, 0.03); }
+.sc-tick { flex: 0 0 1em; color: #4a688a; font-weight: 800; }
+.sc-item.is-done .sc-tick { color: #4ade80; }
+.sc-item.is-done .sc-what { color: #6b8aa8; text-decoration: line-through; text-decoration-color: #2d4a67; }
+.sc-item.is-exempt { opacity: 0.55; }
+.sc-item.is-late .sc-tick { color: #fbbf24; }
+.sc-when { flex: 0 0 92px; font-size: 0.8rem; color: #6b8aa8; font-variant-numeric: tabular-nums; }
+.sc-what { display: flex; flex-direction: column; gap: 1px; color: #dbe7f3; font-weight: 600; min-width: 0; }
+.sc-what:hover { color: #38bdf8; }
+.sc-kind {
+    display: inline-block; margin-right: 7px; font-size: 0.62rem; font-weight: 800;
+    letter-spacing: 0.07em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px;
+    background: rgba(167, 139, 250, 0.18); color: #a78bfa; vertical-align: 1px;
+}
+.sc-overdue { border-left: 3px solid #fbbf24; }
+.sc-sprint { padding: 18px 20px; }
+.sc-sprint-title { margin: 0; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.09em;
+    text-transform: uppercase; color: #6b8aa8; }
+.sc-dash-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.sc-week {
+    flex: 0 0 auto; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em;
+    text-transform: uppercase; padding: 5px 11px; border-radius: 999px;
+    background: rgba(56, 189, 248, 0.14); color: #38bdf8; white-space: nowrap;
+}
+.sc-behind { margin: 14px 0 0; font-size: 0.88rem; color: #fbbf24; }
+.sc-behind a { color: #fbbf24; text-decoration: underline; }
+.sc-dash-link { display: inline-block; margin-top: 14px; font-weight: 700; font-size: 0.9rem; color: #38bdf8; }
+
+/* Mark-as-done on a reading lesson */
+.lesson-done {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    margin: 28px 0 0; padding: 16px 18px; border-radius: 12px;
+    border: 1px solid var(--slate-200); background: var(--slate-50);
+}
+.lesson-done p { margin: 0; font-weight: 600; color: var(--slate-600); }
+.lesson-done.is-done { border-color: #bbf7d0; background: #f0fdf4; }
+.lesson-done.is-done p { color: #15803d; }

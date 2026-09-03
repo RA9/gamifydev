@@ -143,6 +143,38 @@ func registerCohortJobs(r *Runner, st *store.Store) {
 		},
 	})
 
+	// schedule:materialize expands a cohort's path into dated work.
+	//
+	// Runs shortly after formation rather than inside it: a cohort exists the
+	// moment it is formed, and a plan that fails to build must not roll back the
+	// grouping. Cheap to re-run — a scheduled cohort short-circuits.
+	r.Register(Job{
+		Name:    "schedule:materialize",
+		Every:   10 * time.Minute,
+		Timeout: 2 * time.Minute,
+		Run: func(ctx context.Context) (string, error) {
+			ids, err := st.UnscheduledCohorts(ctx)
+			if err != nil {
+				return "", err
+			}
+			total, built := 0, 0
+			for _, id := range ids {
+				n, err := st.MaterializeSchedule(ctx, id)
+				if err != nil {
+					return "", err
+				}
+				if n > 0 {
+					built++
+					total += n
+				}
+			}
+			if built == 0 {
+				return "", nil
+			}
+			return fmt.Sprintf("scheduled %d cohort(s), %d item(s)", built, total), nil
+		},
+	})
+
 	// standup:close shuts windows whose time has passed.
 	//
 	// Phase 5 will hang attendance resolution off this; for now closing the

@@ -86,6 +86,8 @@ func (s *Server) Routes() http.Handler {
 	// Cohort space and the daily standup.
 	mux.Handle("GET /cohort", in(http.HandlerFunc(s.handleCohort)))
 	mux.Handle("POST /cohort/standup", in(http.HandlerFunc(s.handleStandupPost)))
+	mux.Handle("GET /schedule", in(http.HandlerFunc(s.handleSchedule)))
+	mux.Handle("POST /lessons/{id}/complete", in(http.HandlerFunc(s.handleLessonComplete)))
 	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
 	mux.Handle("GET /dashboard/live", in(http.HandlerFunc(s.handleDashboardLive)))
 	mux.Handle("GET /ws", in(http.HandlerFunc(s.handleWS)))

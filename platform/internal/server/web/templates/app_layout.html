@@ -47,6 +47,7 @@
         {{ $p := .Path }}
         <nav class="app-links" aria-label="Learner navigation">
           <a href="/dashboard" class="{{ if eq $p "/dashboard" }}active{{ end }}">{{ icon "grid" }}<span>Dashboard</span></a>
+          <a href="/schedule" class="{{ if hasprefix $p "/schedule" }}active{{ end }}">{{ icon "calendar" }}<span>Schedule</span></a>
           <a href="/cohort" class="{{ if hasprefix $p "/cohort" }}active{{ end }}">{{ icon "users" }}<span>Cohort</span></a>
           <a href="/paths" class="{{ if or (hasprefix $p "/paths") (hasprefix $p "/courses") }}active{{ end }}">{{ icon "compass" }}<span>Curriculum</span></a>
           <a href="/assignments" class="{{ if hasprefix $p "/assignments" }}active{{ end }}">{{ icon "clipboard" }}<span>Assignments</span></a>

@@ -28,6 +28,19 @@
       {{ index .Data "body" }}
     </div>
 
+    {{ if index .Data "completeURL" }}
+    <div class="lesson-done{{ if index .Data "done" }} is-done{{ end }}">
+      {{ if index .Data "done" }}
+        <p>✓ You've marked this lesson done.</p>
+      {{ else }}
+        <p>Finished reading? Mark it done so it clears off your schedule.</p>
+        <form method="post" action="{{ index .Data "completeURL" }}" class="inline">
+          <button class="btn btn-primary btn-sm" type="submit">Mark as done</button>
+        </form>
+      {{ end }}
+    </div>
+    {{ end }}
+
     <nav class="lesson-nav">
       {{ with index .Data "prev" }}
         <a class="btn btn-secondary" href="/courses/{{ $course.Slug }}/{{ .Slug }}">← {{ .Title }}</a>

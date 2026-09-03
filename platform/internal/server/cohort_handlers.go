@@ -169,3 +169,45 @@ func (s *Server) handleAdminCohorts(w http.ResponseWriter, r *http.Request) {
 		"minViable": cohort.MinViable,
 	}})
 }
+
+// handleSchedule renders the cohort's full plan for this learner: what's due
+// today, what slipped, and the sprint-by-sprint map of the path ahead.
+func (s *Server) handleSchedule(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	u := auth.CurrentUser(ctx)
+
+	c, err := s.st.CohortForUser(ctx, u.ID)
+	if err != nil || c == nil {
+		http.Redirect(w, r, "/cohort", http.StatusSeeOther)
+		return
+	}
+	today := time.Now().UTC().Format("2006-01-02")
+	due, _ := s.st.DueOn(ctx, c.ID, u.ID, today)
+	overdue, _ := s.st.Overdue(ctx, c.ID, u.ID, 20)
+	all, _ := s.st.CohortSchedule(ctx, c.ID, u.ID)
+	prog, _ := s.st.Progress(ctx, c.ID, u.ID)
+
+	// Group the plan by sprint so the page reads as a map rather than a list.
+	type sprintGroup struct {
+		Sprint int
+		Items  []store.ScheduleItem
+	}
+	var sprints []sprintGroup
+	for _, it := range all {
+		if len(sprints) == 0 || sprints[len(sprints)-1].Sprint != it.Sprint {
+			sprints = append(sprints, sprintGroup{Sprint: it.Sprint})
+		}
+		g := &sprints[len(sprints)-1]
+		g.Items = append(g.Items, it)
+	}
+
+	s.render(w, r, "schedule.html", ViewData{Title: "Your schedule", Data: map[string]any{
+		"bodyClass": "cohort-dark",
+		"cohort":    c,
+		"today":     due,
+		"overdue":   overdue,
+		"sprints":   sprints,
+		"progress":  prog,
+		"todayDate": today,
+	}})
+}
