@@ -76,6 +76,9 @@ func Register(r *Runner, st *store.Store) {
 		},
 	})
 
+	// Phase 3: cohort formation, repacking, and the daily standup window.
+	registerCohortJobs(r, st)
+
 	// jobs:prune keeps run history bounded.
 	r.Register(Job{
 		Name:    "jobs:prune",

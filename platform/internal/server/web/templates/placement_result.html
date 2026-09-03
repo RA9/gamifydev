@@ -49,6 +49,14 @@
       <p class="pl-note">All paths are open to you. We suggest <strong>{{ if $rec }}{{ $rec.Title }}{{ else }}the one that fits your goals{{ end }}</strong>.</p>
     {{ end }}
 
+    <div class="pl-band">
+      <label class="pl-band-label" for="bandPick">Where are you, roughly?</label>
+      <select id="bandPick" class="pl-band-select">
+        {{ range index $.Data "bands" }}<option value="{{ .Key }}">{{ .Label }}</option>{{ end }}
+      </select>
+      <p class="pl-fine">We group you with people in nearby hours so the daily standup lands while you're awake.</p>
+    </div>
+
     <ul class="pl-paths">
       {{ $required := $res.FoundationsRequired }}
       {{ range index .Data "paths" }}
@@ -62,8 +70,9 @@
         {{ if $locked }}
           <span class="pl-path-go is-locked">{{ icon "lock" }} Locked</span>
         {{ else }}
-          <form method="post" action="/enroll" class="inline">
+          <form method="post" action="/enroll" class="inline pl-enroll">
             <input type="hidden" name="path" value="{{ .Slug }}" />
+            <input type="hidden" name="band" class="pl-band-field" value="europe_africa" />
             <button class="btn btn-primary btn-sm" type="submit">Start this path</button>
           </form>
         {{ end }}
@@ -72,4 +81,5 @@
     </ul>
   </div>
 </div>
+<script src="/static/js/band.js" defer></script>
 {{ end }}

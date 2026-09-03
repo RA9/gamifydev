@@ -83,6 +83,9 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /placement/result", in(http.HandlerFunc(s.handlePlacementResult)))
 	mux.Handle("GET /placement/review", in(http.HandlerFunc(s.handlePlacementReview)))
 	mux.Handle("POST /enroll", in(http.HandlerFunc(s.handleEnroll)))
+	// Cohort space and the daily standup.
+	mux.Handle("GET /cohort", in(http.HandlerFunc(s.handleCohort)))
+	mux.Handle("POST /cohort/standup", in(http.HandlerFunc(s.handleStandupPost)))
 	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
 	mux.Handle("GET /dashboard/live", in(http.HandlerFunc(s.handleDashboardLive)))
 	mux.Handle("GET /ws", in(http.HandlerFunc(s.handleWS)))
@@ -99,6 +102,7 @@ func (s *Server) Routes() http.Handler {
 	// Admin
 	admin := s.requireRole("admin")
 	mux.Handle("GET /admin", admin(http.HandlerFunc(s.handleAdminHome)))
+	mux.Handle("GET /admin/cohorts", admin(http.HandlerFunc(s.handleAdminCohorts)))
 	mux.Handle("GET /admin/jobs", admin(http.HandlerFunc(s.handleAdminJobs)))
 	mux.Handle("POST /admin/jobs/{name}/run", admin(http.HandlerFunc(s.handleAdminJobRun)))
 	mux.Handle("GET /admin/users", admin(http.HandlerFunc(s.handleAdminUsers)))

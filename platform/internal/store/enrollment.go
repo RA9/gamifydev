@@ -107,13 +107,16 @@ type Enrollment struct {
 	PlacedAt  sql.NullString
 	StartedAt sql.NullString
 	EndedAt   sql.NullString
+	// Set once cohort formation places the learner (phase 3).
+	CohortID sql.NullInt64
+	TZBand   string
 }
 
-const enrollCols = `id, user_id, path_id, state, reason, placed_at, started_at, ended_at`
+const enrollCols = `id, user_id, path_id, state, reason, placed_at, started_at, ended_at, cohort_id, tz_band`
 
 func scanEnrollment(row interface{ Scan(...any) error }) (*Enrollment, error) {
 	var e Enrollment
-	err := row.Scan(&e.ID, &e.UserID, &e.PathID, &e.State, &e.Reason, &e.PlacedAt, &e.StartedAt, &e.EndedAt)
+	err := row.Scan(&e.ID, &e.UserID, &e.PathID, &e.State, &e.Reason, &e.PlacedAt, &e.StartedAt, &e.EndedAt, &e.CohortID, &e.TZBand)
 	if err != nil {
 		return nil, err
 	}

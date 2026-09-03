@@ -16,6 +16,21 @@
     </div>
   </div>
 
+  {{ with index .Data "cohort" }}
+  <section class="card continue-card co-dash{{ if index $.Data "standupDone" }} is-done{{ end }}">
+    <span class="continue-eyebrow">Your cohort</span>
+    <h2 class="continue-title">{{ .Name }}</h2>
+    <p class="muted continue-sub">
+      {{ if index $.Data "standupDone" }}You've checked in today — nice.
+      {{ else if index $.Data "standupOpen" }}Today's standup is open and waiting on you.
+      {{ else }}{{ .ActiveMembers }} learner{{ if ne .ActiveMembers 1 }}s{{ end }} on this path with you.{{ end }}
+    </p>
+    <a class="btn {{ if index $.Data "standupDone" }}btn-secondary{{ else }}btn-primary{{ end }} continue-btn" href="/cohort">
+      {{ if index $.Data "standupDone" }}Open cohort{{ else }}Post standup{{ end }} {{ icon "arrowright" }}
+    </a>
+  </section>
+  {{ end }}
+
   {{ $cl := index .Data "continue" }}
   {{ if not (index .Data "placed") }}
   <section class="card continue-card continue-placement">

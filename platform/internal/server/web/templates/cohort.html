@@ -1,0 +1,121 @@
+{{ define "content" }}
+{{ $c := index .Data "cohort" }}
+{{ $su := index .Data "standup" }}
+{{ $posted := index .Data "posted" }}
+<div class="co-wrap">
+
+  <header class="co-head">
+    <span class="pl-eyebrow">Your cohort</span>
+    <h1 class="co-title">{{ $c.Name }}</h1>
+    <p class="co-sub">
+      {{ $c.ActiveMembers }} learner{{ if ne $c.ActiveMembers 1 }}s{{ end }}
+      · {{ (index .Data "band").Label }}
+      · started {{ fmtdate $c.StartsOn }}
+    </p>
+  </header>
+
+  <div class="co-grid">
+    <main class="co-main">
+      {{ if $su }}
+        <section class="co-card co-standup{{ if $su.IsOpen }} is-open{{ end }}">
+          <div class="co-standup-head">
+            <div>
+              <h2 class="pl-h2">Today's standup</h2>
+              <p class="co-prompt">{{ $su.Prompt }}</p>
+            </div>
+            <span class="co-window{{ if not $su.IsOpen }} is-shut{{ end }}">
+              {{ if $su.IsOpen }}open until {{ fmttime $su.ClosesAt }}{{ else if $su.Closed }}closed{{ else }}opens {{ fmttime $su.OpensAt }}{{ end }}
+            </span>
+          </div>
+
+          {{ if $posted }}
+            <p class="co-done">✓ You've checked in today.</p>
+          {{ else if $su.Closed }}
+            <p class="co-missed">Today's window has closed without a check-in from you. The next one opens tomorrow morning.</p>
+          {{ else }}
+            <form method="post" action="/cohort/standup" class="co-form">
+              <label class="co-label">What did you get done since last time?
+                <textarea name="yesterday" rows="2" placeholder="Finished the arrays lesson…"></textarea>
+              </label>
+              <label class="co-label">What are you working on today? <span class="co-req">required</span>
+                <textarea name="today" rows="2" required placeholder="Starting on linked lists…"></textarea>
+              </label>
+              <label class="co-label">Anything blocking you?
+                <textarea name="blockers" rows="2" placeholder="Stuck on why my loop runs one extra time…"></textarea>
+              </label>
+              <button class="btn btn-primary" type="submit">Post standup</button>
+            </form>
+          {{ end }}
+        </section>
+
+        {{ with index .Data "blockers" }}
+        <section class="co-card co-blockers">
+          <h2 class="pl-h2">Blockers today</h2>
+          <ul class="co-blocker-list">
+            {{ range . }}
+            <li><strong>{{ .UserName }}</strong> — {{ .Blockers }}</li>
+            {{ end }}
+          </ul>
+          <p class="pl-fine">Your mentor sees these. If you can help a teammate, say so in your own standup.</p>
+        </section>
+        {{ end }}
+
+        <section class="co-card">
+          <h2 class="pl-h2">Today's check-ins</h2>
+          {{ range index .Data "entries" }}
+          <article class="co-entry">
+            <div class="co-entry-head">
+              <span class="avatar avatar-sm">{{ initials .UserName }}</span>
+              <span class="co-entry-name">{{ .UserName }}{{ if .IsBot }} <span class="pl-tag">mentor</span>{{ end }}</span>
+              <span class="co-entry-time">{{ reltime .PostedAt }}{{ if .Late }} · late{{ end }}</span>
+            </div>
+            {{ if .Yesterday }}<p class="co-line"><span class="co-line-k">Done</span>{{ .Yesterday }}</p>{{ end }}
+            <p class="co-line"><span class="co-line-k">Today</span>{{ .Today }}</p>
+            {{ if .Blockers }}<p class="co-line co-line-blocked"><span class="co-line-k">Blocked</span>{{ .Blockers }}</p>{{ end }}
+          </article>
+          {{ else }}
+          <p class="muted">Nobody has checked in yet today. Be the first.</p>
+          {{ end }}
+        </section>
+      {{ else }}
+        <section class="co-card">
+          <h2 class="pl-h2">Today's standup</h2>
+          <p class="muted">Today's standup hasn't opened yet. It opens each morning in your cohort's timezone.</p>
+        </section>
+      {{ end }}
+
+      {{ with index .Data "history" }}
+      <section class="co-card">
+        <h2 class="pl-h2">Earlier this week</h2>
+        <ul class="co-history">
+          {{ range . }}
+          <li><span class="co-history-day">{{ fmtdate .Day }}</span><span class="pl-fine">{{ .Prompt }}</span></li>
+          {{ end }}
+        </ul>
+      </section>
+      {{ end }}
+    </main>
+
+    <aside class="co-side">
+      <section class="co-card">
+        <h2 class="pl-h2">Who's here</h2>
+        <ul class="co-members">
+          {{ range index .Data "members" }}
+          <li class="co-member{{ if .IsMentor }} is-mentor{{ end }}">
+            <span class="avatar avatar-sm">{{ initials .Name }}</span>
+            <span class="co-member-meta">
+              <span class="co-member-name">{{ .Name }}</span>
+              <span class="pl-fine">{{ if .IsMentor }}Mentor{{ else if .PostedToday }}Checked in{{ else }}Not yet today{{ end }}</span>
+            </span>
+            {{ if not .IsMentor }}<span class="co-dot{{ if .PostedToday }} is-in{{ end }}" aria-hidden="true"></span>{{ end }}
+          </li>
+          {{ end }}
+        </ul>
+        {{ if lt $c.ActiveMembers 3 }}
+        <p class="pl-fine co-thin">Your group is small right now. We'll merge you with another cohort on the same path so you're not learning alone.</p>
+        {{ end }}
+      </section>
+    </aside>
+  </div>
+</div>
+{{ end }}

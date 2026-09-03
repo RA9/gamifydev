@@ -1,0 +1,24 @@
+{{ define "content" }}
+<div class="co-wrap co-wait">
+  <span class="pl-eyebrow">Your cohort</span>
+  {{ if not (index .Data "placed") }}
+    <h1 class="co-title">Take the diagnostic first</h1>
+    <p class="co-sub">Your cohort is formed from the path you're placed on, so the diagnostic comes first.</p>
+    <a class="btn btn-primary" href="/placement">Start the diagnostic</a>
+  {{ else if not (index .Data "enrollment").PathID.Valid }}
+    <h1 class="co-title">Choose your path</h1>
+    <p class="co-sub">Once you pick a path we'll group you with others starting the same one.</p>
+    <a class="btn btn-primary" href="/placement/result">See my placement</a>
+  {{ else }}
+    <h1 class="co-title">Finding your cohort</h1>
+    <p class="co-sub">
+      You're in the queue. We group people by path and timezone so the daily standup
+      lands while you're awake — usually {{ index .Data "target" }} to a group.
+    </p>
+    <div class="co-card co-wait-card">
+      <p>You'll be placed as soon as enough people are queued for your path and hours. If that takes a while, we'll start you with a mentor rather than leave you waiting.</p>
+      <p class="pl-fine">Nothing to do meanwhile — you'll see your cohort here, and on your dashboard, the moment it forms.</p>
+    </div>
+  {{ end }}
+</div>
+{{ end }}

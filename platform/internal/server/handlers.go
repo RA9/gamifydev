@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
+	"github.com/RA9/gamifydev/platform/internal/cohort"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
@@ -180,6 +181,19 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 		enrolledPath, _ = s.st.GetPathByID(ctx, enrollment.PathID.Int64)
 	}
 
+	// Cohort state: whether today's standup is still waiting on this learner is
+	// the single most actionable thing the dashboard can say.
+	myCohort, _ := s.st.CohortForUser(ctx, u.ID)
+	standupDone, standupOpen := false, false
+	if myCohort != nil {
+		band := cohort.LookupBand(myCohort.TZBand)
+		day := cohort.LocalDay(time.Now().UTC(), band).Format("2006-01-02")
+		if su, _ := s.st.TodayStandup(ctx, myCohort.ID, day); su != nil {
+			standupOpen = su.IsOpen
+			standupDone, _ = s.st.HasPosted(ctx, su.ID, u.ID)
+		}
+	}
+
 	periodTotal := 0
 	for _, d := range series {
 		periodTotal += d.Count
@@ -210,6 +224,9 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 		"enrollment":   enrollment,
 		"placed":       placed != nil,
 		"enrolledPath": enrolledPath,
+		"cohort":       myCohort,
+		"standupDone":  standupDone,
+		"standupOpen":  standupOpen,
 	}, nil
 }
 

@@ -115,6 +115,7 @@ var funcMap = template.FuncMap{
 	"icon":     icon,
 	"initials": initials,
 	"fmtdate":  fmtDate,
+	"fmttime":  fmtTime,
 	"reltime":  relTime,
 	"titlecase": func(s string) string {
 		if s == "" {

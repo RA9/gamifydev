@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
+	"github.com/RA9/gamifydev/platform/internal/cohort"
 	"github.com/RA9/gamifydev/platform/internal/placement"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
@@ -217,6 +218,7 @@ func (s *Server) renderPlacementResult(w http.ResponseWriter, r *http.Request, f
 		"recommended": recommended,
 		"exemptions":  exemptions,
 		"enrollment":  enr,
+		"bands":       cohort.Bands(),
 		"review":      nil, // review is a separate, opt-in page
 	}})
 }
@@ -298,8 +300,16 @@ func (s *Server) handleEnroll(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
+	// The band decides which cohort the learner can be grouped into, and when
+	// their standup window opens. An unrecognised value falls back rather than
+	// failing the enrollment — LookupBand guarantees a usable default.
+	band := cohort.LookupBand(r.FormValue("band")).Key
 	if err := s.st.PlaceEnrollment(ctx, enr.ID, p.ID, "placement diagnostic"); err != nil {
 		http.Error(w, "could not enroll you", http.StatusInternalServerError)
+		return
+	}
+	if err := s.st.SetEnrollmentBand(ctx, enr.ID, band); err != nil {
+		http.Error(w, "could not save your timezone", http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)

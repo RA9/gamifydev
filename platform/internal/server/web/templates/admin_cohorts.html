@@ -1,0 +1,75 @@
+{{ define "content" }}
+{{ $s := index .Data "stats" }}
+<div class="page-head">
+  <h1>Cohorts</h1>
+  <p class="muted">Groups form at {{ index .Data "target" }} learners per path and timezone band, or sooner if someone has waited too long. Below {{ index .Data "minViable" }} active learners a cohort is merged into another.</p>
+</div>
+
+<section class="stat-grid" aria-label="Cohort stats">
+  <article class="stat-card">
+    <div class="stat-top"><span class="stat-ic ic-brand">{{ icon "users" }}</span></div>
+    <p class="stat-value" data-numeric>{{ $s.Active }}</p>
+    <p class="stat-label">Active cohorts</p>
+    <p class="stat-sub">{{ $s.Archived }} archived after merging</p>
+  </article>
+  <article class="stat-card">
+    <div class="stat-top"><span class="stat-ic ic-grass">{{ icon "check" }}</span></div>
+    <p class="stat-value" data-numeric>{{ $s.Learners }}</p>
+    <p class="stat-label">Learners in a cohort</p>
+    <p class="stat-sub">across all active groups</p>
+  </article>
+  <article class="stat-card">
+    <div class="stat-top"><span class="stat-ic ic-amber">{{ icon "activity" }}</span></div>
+    <p class="stat-value" data-numeric>{{ $s.Queued }}</p>
+    <p class="stat-label">Waiting to be placed</p>
+    <p class="stat-sub">placed, not yet grouped</p>
+  </article>
+</section>
+
+<h2 class="path-curriculum-title">Formation queue</h2>
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>Path</th><th>Band</th><th class="ta-right">Waiting</th><th class="ta-right">Longest wait</th><th class="ta-right">Status</th></tr></thead>
+    <tbody>
+      {{ range index .Data "queue" }}
+      <tr>
+        <td><strong>{{ .Path }}</strong></td>
+        <td class="muted">{{ .Band }}</td>
+        <td class="ta-right">{{ .Waiting }}</td>
+        <td class="ta-right muted">{{ .WaitedFor }}</td>
+        <td class="ta-right">
+          {{ if .Ready }}<span class="badge badge-ok">forms next run</span>
+          {{ else }}<span class="badge badge-info">waiting</span>{{ end }}
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">Nobody is waiting — every placed learner is in a cohort.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="path-curriculum-title">All cohorts</h2>
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>Cohort</th><th>Path</th><th>Band</th><th class="ta-right">Learners</th><th class="ta-right">State</th></tr></thead>
+    <tbody>
+      {{ range index .Data "cohorts" }}
+      <tr>
+        <td><strong>{{ .Name }}</strong><br /><span class="muted">started {{ fmtdate .StartsOn }}</span></td>
+        <td class="muted">{{ .PathTitle }}</td>
+        <td class="muted"><span class="slug">{{ .TZBand }}</span></td>
+        <td class="ta-right">{{ .ActiveMembers }}</td>
+        <td class="ta-right">
+          {{ if eq .State "active" }}<span class="badge badge-ok">active</span>
+          {{ else if eq .State "archived" }}<span class="badge">archived</span>
+          {{ else }}<span class="badge badge-info">{{ .State }}</span>{{ end }}
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="5" class="muted">No cohorts yet. They form once learners are placed on a path.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

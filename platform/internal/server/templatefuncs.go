@@ -40,6 +40,16 @@ func fmtDate(s string) string {
 	return s
 }
 
+// fmtTime renders just the clock part of a stored instant, for standup windows.
+// The stored value is UTC; the label around it names the cohort's band, so this
+// stays honest without pretending to know the viewer's own clock.
+func fmtTime(s string) string {
+	if t, ok := parseDBTime(s); ok {
+		return t.Format("15:04") + " UTC"
+	}
+	return s
+}
+
 // relTime renders a compact "time ago" string (e.g. "3h ago", "just now").
 func relTime(s string) string {
 	t, ok := parseDBTime(s)
