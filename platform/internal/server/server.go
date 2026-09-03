@@ -76,6 +76,13 @@ func (s *Server) Routes() http.Handler {
 	in := s.requireAuth
 	mux.Handle("POST /steps/{id}/complete", in(http.HandlerFunc(s.handleStepComplete)))
 	mux.Handle("POST /steps/{id}/run", in(http.HandlerFunc(s.handleStepRun)))
+	// Placement diagnostic and the enrollment gate it feeds.
+	mux.Handle("GET /placement", in(http.HandlerFunc(s.handlePlacement)))
+	mux.Handle("POST /placement/start", in(http.HandlerFunc(s.handlePlacementStart)))
+	mux.Handle("POST /placement/submit", in(http.HandlerFunc(s.handlePlacementSubmit)))
+	mux.Handle("GET /placement/result", in(http.HandlerFunc(s.handlePlacementResult)))
+	mux.Handle("GET /placement/review", in(http.HandlerFunc(s.handlePlacementReview)))
+	mux.Handle("POST /enroll", in(http.HandlerFunc(s.handleEnroll)))
 	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
 	mux.Handle("GET /dashboard/live", in(http.HandlerFunc(s.handleDashboardLive)))
 	mux.Handle("GET /ws", in(http.HandlerFunc(s.handleWS)))

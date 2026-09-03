@@ -1,0 +1,36 @@
+{{ define "content" }}
+<div class="pl-wrap pl-paper" data-expires="{{ index .Data "expiresAt" }}">
+  <div class="pl-bar">
+    <div>
+      <span class="pl-eyebrow">Placement diagnostic</span>
+      <p class="pl-count"><span id="plAnswered">0</span> of {{ index .Data "total" }} answered</p>
+    </div>
+    <div class="pl-timer" id="plTimer" role="timer" aria-live="off">--:--</div>
+  </div>
+  <div class="pl-progress"><span class="pl-progress-fill" id="plProgress"></span></div>
+
+  <form method="post" action="/placement/submit" id="plForm">
+    {{ range $i, $it := index .Data "items" }}
+    <fieldset class="pl-q" data-q>
+      <legend class="pl-q-num">Question {{ add $i 1 }}</legend>
+      <p class="pl-q-prompt">{{ $it.Prompt }}</p>
+      {{ if $it.Code }}<pre class="pl-code"><code>{{ $it.Code }}</code></pre>{{ end }}
+      <div class="pl-options">
+        {{ range $oi, $opt := $it.Options }}
+        <label class="pl-option">
+          <input type="radio" name="q{{ $it.ID }}" value="{{ $oi }}" />
+          <span>{{ $opt }}</span>
+        </label>
+        {{ end }}
+      </div>
+    </fieldset>
+    {{ end }}
+
+    <div class="pl-submit">
+      <button class="btn btn-primary btn-lg" type="submit">Submit diagnostic</button>
+      <p class="pl-fine">Unanswered questions are marked wrong. You can submit early.</p>
+    </div>
+  </form>
+</div>
+<script src="/static/js/placement.js" defer></script>
+{{ end }}

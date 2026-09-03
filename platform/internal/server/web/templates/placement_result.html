@@ -1,0 +1,75 @@
+{{ define "content" }}
+{{ $res := index .Data "result" }}
+{{ $rec := index .Data "recommended" }}
+{{ $core := index .Data "coreScore" }}
+<div class="pl-wrap">
+  <span class="pl-eyebrow">Your placement</span>
+  <h1 class="pl-title">
+    {{ if $res.FoundationsRequired }}You're starting with the fundamentals{{ else }}Your fundamentals are solid{{ end }}
+  </h1>
+
+  <div class="pl-score">
+    <div class="pl-score-num">{{ $core }}<span>%</span></div>
+    <div>
+      <p class="pl-score-label">Core computer science</p>
+      <p class="pl-fine">Averaged across the five fundamentals topics. {{ index .Data "threshold" }}% opens the other paths.</p>
+    </div>
+  </div>
+
+  <div class="pl-card">
+    <h2 class="pl-h2">How you scored</h2>
+    <ul class="pl-topics">
+      {{ range index .Data "topics" }}
+      <li class="pl-topic{{ if not .Core }} is-aside{{ end }}">
+        <span class="pl-topic-name">{{ .Label }}{{ if not .Core }} <span class="pl-tag">preference</span>{{ end }}</span>
+        <span class="pl-meter"><span class="pl-meter-fill" style="width:{{ .Score }}%"></span></span>
+        <span class="pl-topic-score">{{ .Score }}%</span>
+      </li>
+      {{ end }}
+    </ul>
+    <p class="pl-fine">The two “preference” rows don't affect whether foundations are required — they only suggest which specialization suits you.</p>
+    <a class="pl-review-link" href="/placement/review">Review your answers →</a>
+  </div>
+
+  {{ with index .Data "exemptions" }}
+  <div class="pl-card pl-exempt">
+    <h2 class="pl-h2">You can skip these in your schedule</h2>
+    <ul class="pl-chips">
+      {{ range . }}<li class="pl-chip">{{ if .Emoji }}{{ .Emoji }} {{ end }}{{ .Title }}</li>{{ end }}
+    </ul>
+    <p class="pl-fine">You scored high enough that we won't schedule these. The lessons stay open to read any time, and you'll still take each course's checkpoint if you want it counted.</p>
+  </div>
+  {{ end }}
+
+  <div class="pl-card">
+    <h2 class="pl-h2">Choose your path</h2>
+    {{ if $res.FoundationsRequired }}
+      <p class="pl-note">Computer Science Foundations is required before the specializations open up. Finish it and every other path unlocks.</p>
+    {{ else }}
+      <p class="pl-note">All paths are open to you. We suggest <strong>{{ if $rec }}{{ $rec.Title }}{{ else }}the one that fits your goals{{ end }}</strong>.</p>
+    {{ end }}
+
+    <ul class="pl-paths">
+      {{ $required := $res.FoundationsRequired }}
+      {{ range index .Data "paths" }}
+      {{ $locked := and $required (ne .Slug "cs-foundations") }}
+      <li class="pl-path{{ if $locked }} is-locked{{ end }}{{ if and $rec (eq .ID $rec.ID) }} is-rec{{ end }}">
+        <span class="pl-path-emoji">{{ if .Emoji }}{{ .Emoji }}{{ else }}🧭{{ end }}</span>
+        <span class="pl-path-meta">
+          <span class="pl-path-title">{{ .Title }}{{ if and $rec (eq .ID $rec.ID) }} <span class="pl-tag pl-tag-rec">suggested</span>{{ end }}</span>
+          <span class="pl-fine">{{ .Tagline }} · {{ .CourseCount }} course{{ if ne .CourseCount 1 }}s{{ end }}</span>
+        </span>
+        {{ if $locked }}
+          <span class="pl-path-go is-locked">{{ icon "lock" }} Locked</span>
+        {{ else }}
+          <form method="post" action="/enroll" class="inline">
+            <input type="hidden" name="path" value="{{ .Slug }}" />
+            <button class="btn btn-primary btn-sm" type="submit">Start this path</button>
+          </form>
+        {{ end }}
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+</div>
+{{ end }}

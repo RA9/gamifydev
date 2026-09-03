@@ -17,6 +17,21 @@
   </div>
 
   {{ $cl := index .Data "continue" }}
+  {{ if not (index .Data "placed") }}
+  <section class="card continue-card continue-placement">
+    <span class="continue-eyebrow">First step</span>
+    <h2 class="continue-title">Take the placement diagnostic</h2>
+    <p class="muted continue-sub">It decides where you start — and which courses you can skip. You'll choose a path straight after.</p>
+    <a class="btn btn-primary continue-btn" href="/placement">Start the diagnostic {{ icon "arrowright" }}</a>
+  </section>
+  {{ else if not (index .Data "enrolledPath") }}
+  <section class="card continue-card continue-placement">
+    <span class="continue-eyebrow">Almost there</span>
+    <h2 class="continue-title">Choose your path</h2>
+    <p class="muted continue-sub">Your diagnostic is done. Pick the path you'll start on to get going.</p>
+    <a class="btn btn-primary continue-btn" href="/placement/result">See my placement {{ icon "arrowright" }}</a>
+  </section>
+  {{ else }}
   <section class="card continue-card{{ if not $cl }} continue-empty{{ end }}">
     {{ if $cl }}
     <span class="continue-eyebrow">Pick up where you left off</span>
@@ -34,6 +49,7 @@
     <a class="btn btn-primary continue-btn" href="/courses">Browse courses {{ icon "arrowright" }}</a>
     {{ end }}
   </section>
+  {{ end }}
 
   <!-- Realtime region: refreshed by htmx when the WebSocket pushes a signal. -->
   <div id="dash-live" hx-get="/dashboard/live" hx-trigger="refresh from:body" hx-swap="innerHTML">

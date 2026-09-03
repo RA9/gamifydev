@@ -1,0 +1,10 @@
+{{ define "content" }}
+<div class="pl-wrap">
+  <span class="pl-eyebrow">Placement diagnostic</span>
+  <h1 class="pl-title">Time ran out</h1>
+  <p class="pl-lede">That sitting expired before it was submitted, so it wasn't scored. Nothing is held against you — start a fresh one whenever you're ready.</p>
+  <form method="post" action="/placement/start">
+    <button class="btn btn-primary btn-lg" type="submit">Start again</button>
+  </form>
+</div>
+{{ end }}

@@ -1,0 +1,28 @@
+{{ define "content" }}
+<div class="pl-wrap">
+  <a class="back" href="/placement/result">← Back to your placement</a>
+  <h1 class="pl-title">Your answers</h1>
+  <p class="pl-lede">Worth reading even where you scored well — the explanations are the point, not the score.</p>
+
+  {{ range $i, $q := index .Data "review" }}
+  <div class="pl-card pl-rev{{ if $q.Correct }} is-right{{ else }} is-wrong{{ end }}">
+    <div class="pl-rev-head">
+      <span class="pl-rev-mark">{{ if $q.Correct }}✓{{ else }}✗{{ end }}</span>
+      <span class="pl-q-num">Question {{ add $i 1 }}</span>
+    </div>
+    <p class="pl-q-prompt">{{ $q.Prompt }}</p>
+    <ul class="pl-rev-options">
+      {{ range $oi, $opt := $q.Options }}
+      <li class="{{ if eq $oi $q.Answer }}is-answer{{ else if and $q.Response.Valid (eq (int64 $oi) $q.Response.Int64) }}is-chosen{{ end }}">
+        {{ if eq $oi $q.Answer }}<span class="pl-rev-tag">correct</span>
+        {{ else if and $q.Response.Valid (eq (int64 $oi) $q.Response.Int64) }}<span class="pl-rev-tag">you chose</span>{{ end }}
+        {{ $opt }}
+      </li>
+      {{ end }}
+    </ul>
+    {{ if not $q.Response.Valid }}<p class="pl-fine">You left this one blank.</p>{{ end }}
+    {{ if $q.Explanation }}<p class="pl-rev-why">{{ $q.Explanation }}</p>{{ end }}
+  </div>
+  {{ end }}
+</div>
+{{ end }}

@@ -171,6 +171,15 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 	}
 	continueLesson, _ := s.st.ContinueLearning(ctx, u.ID)
 
+	// Placement state drives the dashboard's top card: an unplaced learner is
+	// pointed at the diagnostic rather than at content they cannot yet enroll in.
+	enrollment, _ := s.st.EnsureEnrollment(ctx, u.ID)
+	placed, _ := s.st.LatestPlacement(ctx, u.ID)
+	var enrolledPath *store.Path
+	if enrollment != nil && enrollment.PathID.Valid {
+		enrolledPath, _ = s.st.GetPathByID(ctx, enrollment.PathID.Int64)
+	}
+
 	periodTotal := 0
 	for _, d := range series {
 		periodTotal += d.Count
@@ -190,14 +199,17 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 	}
 
 	return map[string]any{
-		"stats":       st,
-		"chart":       areaChartSVG(series),
-		"periodTotal": periodTotal,
-		"donut":       donutSVG(st.TotalSubmissions, "submissions", segments),
-		"segments":    segments,
-		"recent":      recent,
-		"paths":       paths,
-		"continue":    continueLesson,
+		"stats":        st,
+		"chart":        areaChartSVG(series),
+		"periodTotal":  periodTotal,
+		"donut":        donutSVG(st.TotalSubmissions, "submissions", segments),
+		"segments":     segments,
+		"recent":       recent,
+		"paths":        paths,
+		"continue":     continueLesson,
+		"enrollment":   enrollment,
+		"placed":       placed != nil,
+		"enrolledPath": enrolledPath,
 	}, nil
 }
 

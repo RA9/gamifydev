@@ -56,6 +56,26 @@ func Register(r *Runner, st *store.Store) {
 		},
 	})
 
+	// placement:expire closes out sittings that ran past their deadline without
+	// a submission, so "you have a diagnostic in progress" cannot stick forever.
+	// The submit path already refuses an expired attempt; this is what lets the
+	// learner start a fresh one.
+	r.Register(Job{
+		Name:    "placement:expire",
+		Every:   10 * time.Minute,
+		Timeout: 30 * time.Second,
+		Run: func(ctx context.Context) (string, error) {
+			n, err := st.ExpireAbandonedAttempts(ctx)
+			if err != nil {
+				return "", err
+			}
+			if n == 0 {
+				return "", nil
+			}
+			return fmt.Sprintf("closed %d expired sitting(s)", n), nil
+		},
+	})
+
 	// jobs:prune keeps run history bounded.
 	r.Register(Job{
 		Name:    "jobs:prune",
