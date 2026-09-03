@@ -14,7 +14,7 @@ import (
 // standup, attendance and sanction jobs named in the PRD are added by their own
 // phases rather than being stubbed here — a registered job that does nothing is
 // worse than an absent one, because it reports healthy.
-func Register(r *Runner, st *store.Store) {
+func Register(r *Runner, st *store.Store, enforceAttendance bool) {
 	// activity:rollup materializes activity_days from step completions and
 	// submissions. It re-scans a trailing window rather than only "since last
 	// run" so a missed run, a clock skew, or a late-arriving row still lands;
@@ -78,6 +78,10 @@ func Register(r *Runner, st *store.Store) {
 
 	// Phase 3: cohort formation, repacking, and the daily standup window.
 	registerCohortJobs(r, st)
+
+	// Phase 5: attendance resolution and the rolling-window evaluator. Ships in
+	// shadow mode; see internal/jobs/attendance.go.
+	registerAttendanceJobs(r, st, enforceAttendance)
 
 	// jobs:prune keeps run history bounded.
 	r.Register(Job{

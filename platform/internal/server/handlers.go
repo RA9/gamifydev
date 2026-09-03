@@ -187,6 +187,7 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 	standupDone, standupOpen := false, false
 	var dueToday, overdue []store.ScheduleItem
 	var progress store.ScheduleProgress
+	var attend attendanceSummary
 	if myCohort != nil {
 		// Phase 4: the dashboard leads with today's work rather than "pick up
 		// where you left off" — that is what ending self-pacing looks like.
@@ -194,6 +195,7 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 		dueToday, _ = s.st.DueOn(ctx, myCohort.ID, u.ID, today)
 		overdue, _ = s.st.Overdue(ctx, myCohort.ID, u.ID, 5)
 		progress, _ = s.st.Progress(ctx, myCohort.ID, u.ID)
+		attend = s.attendanceFor(ctx, u.ID)
 		band := cohort.LookupBand(myCohort.TZBand)
 		day := cohort.LocalDay(time.Now().UTC(), band).Format("2006-01-02")
 		if su, _ := s.st.TodayStandup(ctx, myCohort.ID, day); su != nil {
@@ -238,6 +240,7 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 		"dueToday":     dueToday,
 		"overdue":      overdue,
 		"schedule":     progress,
+		"attendance":   attend,
 	}, nil
 }
 

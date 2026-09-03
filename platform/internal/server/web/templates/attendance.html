@@ -1,0 +1,108 @@
+{{ define "content" }}
+{{ $run := index .Data "currentRun" }}
+{{ $limit := index .Data "limit" }}
+{{ $sanction := index .Data "sanction" }}
+<div class="co-wrap at-wrap">
+  <header class="co-head">
+    <span class="pl-eyebrow">Your attendance</span>
+    <h1 class="co-title">Where you stand</h1>
+    <p class="co-sub">
+      Attendance is counted on scheduled days only — weekends and rest days don't count against you.
+      Telling us you'll be out always counts as attending.
+    </p>
+  </header>
+
+  {{ if $sanction }}
+  <section class="co-card at-sanction{{ if $sanction.Shadow }} is-shadow{{ end }}">
+    {{ if $sanction.Shadow }}
+      <h2 class="pl-h2">Flagged — but nothing has happened</h2>
+      <p>Our attendance rule is still being calibrated, so it isn't being enforced. This is a record only: <strong>you have not been removed from anything.</strong></p>
+    {{ else }}
+      <h2 class="pl-h2">You've been removed from your cohort</h2>
+      <p>{{ $sanction.Reason }}</p>
+      <p class="pl-fine">This is a drop, not a ban. Your account is intact and you can apply to join a later cohort.</p>
+    {{ end }}
+    <p class="pl-fine">Window: {{ fmtdate $sanction.WindowFrom }} – {{ fmtdate $sanction.WindowTo }}</p>
+
+    {{ if eq $sanction.AppealState "" }}
+    <form method="post" action="/attendance/appeal" class="at-appeal">
+      <input type="hidden" name="sanction" value="{{ $sanction.ID }}" />
+      <label class="co-label">Think this is wrong? Tell us what happened — a person reads every appeal.
+        <textarea name="body" rows="3" required placeholder="I was in hospital from the 3rd and couldn't get online…"></textarea>
+      </label>
+      <button class="btn btn-secondary btn-sm" type="submit">Appeal this</button>
+    </form>
+    {{ else if eq $sanction.AppealState "open" }}
+      <p class="at-note">Your appeal is with a human reviewer.</p>
+    {{ else if eq $sanction.AppealState "granted" }}
+      <p class="at-note is-good">Your appeal was granted and this was reversed.</p>
+    {{ else }}
+      <p class="at-note">Your appeal was reviewed and the decision stands.</p>
+    {{ end }}
+  </section>
+  {{ end }}
+
+  <div class="at-stats">
+    <div class="at-stat">
+      <span class="at-stat-num">{{ index .Data "rate" }}%</span>
+      <span class="at-stat-label">Attended</span>
+      <span class="pl-fine">present or excused</span>
+    </div>
+    <div class="at-stat">
+      <span class="at-stat-num">{{ index .Data "budgetLeft" }}</span>
+      <span class="at-stat-label">Excused days left</span>
+      <span class="pl-fine">of {{ index .Data "budget" }} this cohort</span>
+    </div>
+    <div class="at-stat{{ if ge $run.Length $limit }} is-bad{{ else if gt $run.Length 0 }} is-warn{{ end }}">
+      <span class="at-stat-num">{{ $run.Length }}</span>
+      <span class="at-stat-label">Days missed in a row</span>
+      <span class="pl-fine">{{ $limit }} in a row would flag you</span>
+    </div>
+  </div>
+
+  <section class="co-card">
+    <h2 class="pl-h2">Let us know you'll be away</h2>
+    <p class="pl-fine">No proof needed, and it's fine to file after the fact. The only thing that counts against you is going quiet without a word.</p>
+    <form method="post" action="/attendance/absence" class="at-form">
+      <label class="co-label">From
+        <input type="date" name="from" required value="{{ index .Data "today" }}" />
+      </label>
+      <label class="co-label">To <span class="pl-fine">(leave blank for one day)</span>
+        <input type="date" name="to" />
+      </label>
+      <label class="co-label at-reason">Reason <span class="pl-fine">(optional)</span>
+        <input type="text" name="reason" placeholder="Exams, travel, family…" />
+      </label>
+      <button class="btn btn-primary" type="submit">File notice</button>
+    </form>
+
+    {{ with index .Data "notices" }}
+    <ul class="at-notices">
+      {{ range . }}
+      <li>
+        <span class="at-notice-days">{{ fmtdate .FromDay }}{{ if ne .FromDay .ToDay }} – {{ fmtdate .ToDay }}{{ end }}</span>
+        <span class="pl-fine">{{ if .Reason }}{{ .Reason }}{{ else }}No reason given{{ end }}</span>
+      </li>
+      {{ end }}
+    </ul>
+    {{ end }}
+  </section>
+
+  <section class="co-card">
+    <h2 class="pl-h2">Recent days</h2>
+    {{ with index .Data "days" }}
+    <ul class="at-days">
+      {{ range . }}
+      <li class="at-day is-{{ .State }}">
+        <span class="at-day-dot"></span>
+        <span class="at-day-date">{{ fmtdate .Day }}</span>
+        <span class="at-day-state">{{ .State }}</span>
+      </li>
+      {{ end }}
+    </ul>
+    {{ else }}
+    <p class="muted">Nothing to show yet. Days appear here once your cohort's schedule starts.</p>
+    {{ end }}
+  </section>
+</div>
+{{ end }}

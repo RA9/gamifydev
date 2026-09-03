@@ -16,6 +16,19 @@
     </div>
   </div>
 
+  {{ $at := index .Data "attendance" }}
+  {{ if and $at.AtRisk (not $at.Sanction) }}
+  <section class="card at-nudge">
+    <span class="continue-eyebrow">Checking in</span>
+    <h2 class="continue-title">You've missed {{ $at.RunLength }} scheduled day{{ if ne $at.RunLength 1 }}s{{ end }} in a row</h2>
+    <p class="muted continue-sub">
+      If life is in the way, just say so — filing a notice counts as attending, needs no proof,
+      and you have {{ $at.BudgetLeft }} excused day{{ if ne $at.BudgetLeft 1 }}s{{ end }} left.
+    </p>
+    <a class="btn btn-primary continue-btn" href="/attendance">Let us know {{ icon "arrowright" }}</a>
+  </section>
+  {{ end }}
+
   {{ with index .Data "cohort" }}
   <section class="card continue-card co-dash{{ if index $.Data "standupDone" }} is-done{{ end }}">
     <span class="continue-eyebrow">Your cohort</span>

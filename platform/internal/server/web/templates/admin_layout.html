@@ -35,6 +35,7 @@
           <a href="/admin/forum" class="{{ if eq $p "/admin/forum" }}active{{ end }}">{{ icon "chat" }}<span>Forum</span></a>
           <a href="/admin/blog" class="{{ if hasprefix $p "/admin/blog" }}active{{ end }}">{{ icon "file" }}<span>Blog</span></a>
           <a href="/admin/cohorts" class="{{ if hasprefix $p "/admin/cohorts" }}active{{ end }}">{{ icon "users" }}<span>Cohorts</span></a>
+          <a href="/admin/attendance" class="{{ if hasprefix $p "/admin/attendance" }}active{{ end }}">{{ icon "check" }}<span>Attendance</span></a>
           <a href="/admin/jobs" class="{{ if hasprefix $p "/admin/jobs" }}active{{ end }}">{{ icon "activity" }}<span>Scheduled work</span></a>
         </nav>
         <div class="sidebar-foot">

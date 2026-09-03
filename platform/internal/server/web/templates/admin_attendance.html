@@ -1,0 +1,101 @@
+{{ define "content" }}
+{{ $s := index .Data "stats" }}
+<div class="page-head">
+  <h1>Attendance</h1>
+  <p class="muted">The rolling window flags a learner after {{ index .Data "limit" }} consecutive scheduled days of silence. Filing an absence notice excuses a day; each learner has {{ index .Data "budget" }} excused days per cohort.</p>
+</div>
+
+{{ if index .Data "enforced" }}
+<div class="card at-banner is-live">
+  <p><strong>Enforcement is ON.</strong> Sanctions below marked “applied” have removed learners from their cohorts. Appeals are reviewed by a person.</p>
+</div>
+{{ else }}
+<div class="card at-banner">
+  <p><strong>Shadow mode — nothing is being applied.</strong> Everything below is what the rule <em>would</em> have done. Run at least one full cohort this way, check the flagged learners are the ones you'd actually want to lose, then set <code>ENFORCE_ATTENDANCE=1</code>.</p>
+</div>
+{{ end }}
+
+<section class="stat-grid" aria-label="Attendance stats">
+  <article class="stat-card">
+    <div class="stat-top"><span class="stat-ic ic-grass">{{ icon "check" }}</span></div>
+    <p class="stat-value" data-numeric>{{ $s.Present }}</p>
+    <p class="stat-label">Days present</p>
+    <p class="stat-sub">{{ $s.Excused }} excused · {{ $s.Absent }} absent</p>
+  </article>
+  <article class="stat-card">
+    <div class="stat-top"><span class="stat-ic ic-amber">{{ icon "activity" }}</span></div>
+    <p class="stat-value" data-numeric>{{ $s.ShadowSanctions }}</p>
+    <p class="stat-label">Would-be sanctions</p>
+    <p class="stat-sub">recorded, not applied</p>
+  </article>
+  <article class="stat-card">
+    <div class="stat-top"><span class="stat-ic ic-rose">{{ icon "shield" }}</span></div>
+    <p class="stat-value" data-numeric>{{ $s.RealSanctions }}</p>
+    <p class="stat-label">Applied sanctions</p>
+    <p class="stat-sub">learners actually dropped</p>
+  </article>
+  <article class="stat-card">
+    <div class="stat-top"><span class="stat-ic ic-brand">{{ icon "chat" }}</span></div>
+    <p class="stat-value" data-numeric>{{ $s.OpenAppeals }}</p>
+    <p class="stat-label">Open appeals</p>
+    <p class="stat-sub">awaiting a human</p>
+  </article>
+</section>
+
+{{ with index .Data "appeals" }}
+<h2 class="path-curriculum-title">Appeals awaiting a decision</h2>
+{{ range . }}
+<div class="card at-appeal-card">
+  <div class="at-appeal-head">
+    <strong>{{ .UserName }}</strong>
+    <span class="muted">{{ .SanctionKind }} · {{ fmtdate .WindowFrom }} – {{ fmtdate .WindowTo }}{{ if .Shadow }} · shadow{{ end }}</span>
+  </div>
+  <p class="at-appeal-body">{{ .Body }}</p>
+  <p class="muted at-appeal-reason">Flagged for: {{ .SanctionReason }}</p>
+  <form method="post" action="/admin/appeals/{{ .ID }}" class="at-decide">
+    <input type="text" name="note" placeholder="Note for the learner (optional)" />
+    <button class="btn btn-primary btn-sm" type="submit" name="decision" value="grant">Grant</button>
+    <button class="btn btn-secondary btn-sm" type="submit" name="decision" value="uphold">Uphold</button>
+  </form>
+</div>
+{{ end }}
+{{ end }}
+
+<h2 class="path-curriculum-title">Would-be sanctions</h2>
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>Learner</th><th>Window</th><th>Reason</th><th class="ta-right">Appeal</th></tr></thead>
+    <tbody>
+      {{ range index .Data "shadow" }}
+      <tr>
+        <td><strong>{{ .UserName }}</strong></td>
+        <td class="muted">{{ fmtdate .WindowFrom }} – {{ fmtdate .WindowTo }}</td>
+        <td class="muted">{{ .Reason }}</td>
+        <td class="ta-right">{{ if .AppealState }}<span class="badge badge-info">{{ .AppealState }}</span>{{ else }}—{{ end }}</td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="4" class="muted">Nobody has hit the threshold. Either attendance is healthy or the schedule hasn't run long enough yet.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="path-curriculum-title">Applied sanctions</h2>
+<div class="card table-card">
+  <table class="table table-activity">
+    <thead><tr><th>Learner</th><th>Kind</th><th>Window</th><th class="ta-right">Appeal</th></tr></thead>
+    <tbody>
+      {{ range index .Data "real" }}
+      <tr>
+        <td><strong>{{ .UserName }}</strong></td>
+        <td><span class="badge badge-warn">{{ .Kind }}</span></td>
+        <td class="muted">{{ fmtdate .WindowFrom }} – {{ fmtdate .WindowTo }}</td>
+        <td class="ta-right">{{ if .AppealState }}<span class="badge badge-info">{{ .AppealState }}</span>{{ else }}—{{ end }}</td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="4" class="muted">Nothing has been applied — enforcement is off.</td></tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}

@@ -21,10 +21,13 @@ type Server struct {
 	exec   runner.Executor // server-side code execution; disabled by default
 	jobs   *jobs.Runner    // scheduled work; nil when JOBS=off
 	runlim *runLimiter     // throttles /api/run
-	secure bool            // set Secure cookies (true in production/HTTPS)
+	// Attendance enforcement; false means sanctions are recorded but never
+	// applied. Mirrors what was passed to jobs.Register.
+	enforceAttendance bool
+	secure            bool // set Secure cookies (true in production/HTTPS)
 }
 
-func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Executor, jr *jobs.Runner, secure bool) (*Server, error) {
+func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Executor, jr *jobs.Runner, enforceAttendance, secure bool) (*Server, error) {
 	rnd, err := newRenderer()
 	if err != nil {
 		return nil, err
@@ -37,7 +40,8 @@ func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Exec
 	}
 	return &Server{
 		st: st, rdb: rc, mail: mail, hub: newHub(), rnd: rnd,
-		exec: exec, jobs: jr, runlim: newRunLimiter(4, 1500), secure: secure,
+		exec: exec, jobs: jr, runlim: newRunLimiter(4, 1500),
+		enforceAttendance: enforceAttendance, secure: secure,
 	}, nil
 }
 
@@ -87,6 +91,9 @@ func (s *Server) Routes() http.Handler {
 	mux.Handle("GET /cohort", in(http.HandlerFunc(s.handleCohort)))
 	mux.Handle("POST /cohort/standup", in(http.HandlerFunc(s.handleStandupPost)))
 	mux.Handle("GET /schedule", in(http.HandlerFunc(s.handleSchedule)))
+	mux.Handle("GET /attendance", in(http.HandlerFunc(s.handleAttendance)))
+	mux.Handle("POST /attendance/absence", in(http.HandlerFunc(s.handleAbsenceFile)))
+	mux.Handle("POST /attendance/appeal", in(http.HandlerFunc(s.handleAppealFile)))
 	mux.Handle("POST /lessons/{id}/complete", in(http.HandlerFunc(s.handleLessonComplete)))
 	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
 	mux.Handle("GET /dashboard/live", in(http.HandlerFunc(s.handleDashboardLive)))
@@ -105,6 +112,8 @@ func (s *Server) Routes() http.Handler {
 	admin := s.requireRole("admin")
 	mux.Handle("GET /admin", admin(http.HandlerFunc(s.handleAdminHome)))
 	mux.Handle("GET /admin/cohorts", admin(http.HandlerFunc(s.handleAdminCohorts)))
+	mux.Handle("GET /admin/attendance", admin(http.HandlerFunc(s.handleAdminAttendance)))
+	mux.Handle("POST /admin/appeals/{id}", admin(http.HandlerFunc(s.handleAdminAppealDecide)))
 	mux.Handle("GET /admin/jobs", admin(http.HandlerFunc(s.handleAdminJobs)))
 	mux.Handle("POST /admin/jobs/{name}/run", admin(http.HandlerFunc(s.handleAdminJobRun)))
 	mux.Handle("GET /admin/users", admin(http.HandlerFunc(s.handleAdminUsers)))

@@ -220,6 +220,10 @@ func (s *Store) PlaceEnrollment(ctx context.Context, id, pathID int64, reason st
 // Signals counted as "showed up and did something":
 //   - completing a lesson step  (step_progress.completed_at)
 //   - submitting an assignment  (submissions.created_at)
+//   - finishing a lesson        (lesson_progress.completed_at)
+//
+// Standup posts are written straight to the ledger by PostStandup rather than
+// rolled up, since they have no other durable home.
 //
 // Returns the number of (user, day) rows inserted. Idempotent — re-running over
 // the same window inserts nothing new, so the job can safely overlap windows.
@@ -237,10 +241,14 @@ func (s *Store) RollupActivity(ctx context.Context, since string) (int, error) {
 			SELECT sub.user_id, date(sub.created_at), 'submission'
 			FROM submissions sub
 			WHERE date(sub.created_at) >= date(?)
+			UNION ALL
+			SELECT lp.user_id, date(lp.completed_at), 'lesson'
+			FROM lesson_progress lp
+			WHERE date(lp.completed_at) >= date(?)
 		)
 		GROUP BY user_id, day
 		ON CONFLICT(user_id, day) DO NOTHING`
-	res, err := s.db.ExecContext(ctx, q, since, since)
+	res, err := s.db.ExecContext(ctx, q, since, since, since)
 	if err != nil {
 		return 0, err
 	}

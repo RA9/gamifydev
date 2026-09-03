@@ -131,10 +131,12 @@ func main() {
 		log.Printf("jobs: disabled (JOBS=off)")
 		runner = nil
 	} else {
-		jobs.Register(runner, st)
+		// Attendance enforcement is off unless explicitly switched on. The PRD
+		// requires a calibration period in shadow mode first.
+		jobs.Register(runner, st, os.Getenv("ENFORCE_ATTENDANCE") == "1")
 	}
 
-	srv, err := server.New(st, rc, mailer, exec, runner, secure)
+	srv, err := server.New(st, rc, mailer, exec, runner, os.Getenv("ENFORCE_ATTENDANCE") == "1", secure)
 	if err != nil {
 		log.Fatalf("server: %v", err)
 	}
