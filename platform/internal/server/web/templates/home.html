@@ -1,139 +1,168 @@
 {{ define "content" }}
 {{ $s := index .Data "stats" }}
-<main class="lp-main">
-
-  <section class="lp-hero lp-hero--plain">
-    <div class="lp-hero-grid lp-hero-grid--single">
-      <div class="lp-hero-inner">
-        <p class="lp-eyebrow">Free · Structured · Not self-paced</p>
-        <h1>A free CS program that expects you to <span>show&nbsp;up</span>.</h1>
+<div class="lp-home">
+  <section class="lp-hero">
+    <div class="lp-hero-grid">
+      <div class="lp-hero-copy">
+        <p class="lp-eyebrow"><span></span> Free · cohort-based · built for follow-through</p>
+        <h1>Learn computer science with a program that expects you to <em>show up.</em></h1>
         <p class="lp-sub">
-          You sit a placement test, get a path, and join a cohort on a shared
-          schedule. Your code is graded automatically in a sandbox, and the next
-          course stays locked until it passes.
-        </p>
-        <p class="lp-sub lp-sub--tight">
-          Miss {{ index .Data "missedLimit" }} scheduled days without a word and you leave your cohort.
-          That rule is the price of it being free.
+          Take a placement test, follow a structured path, and move through it
+          with a small cohort. You write real code at every checkpoint — not just
+          watch another tutorial.
         </p>
         <div class="lp-hero-cta">
           {{ if .User }}
-          <a class="btn btn-lg lp-btn-primary" href="/dashboard">Go to your dashboard</a>
+          <a class="btn btn-lg lp-btn-primary" href="/dashboard">Go to your dashboard {{ icon "arrowright" }}</a>
           {{ else }}
-          <a class="btn btn-lg lp-btn-primary" href="/register">Start the placement test</a>
+          <a class="btn btn-lg lp-btn-primary" href="/register">Take the placement test {{ icon "arrowright" }}</a>
           {{ end }}
-          <a class="btn btn-lg lp-btn-ghost" href="/paths">Read the curriculum first</a>
+          <a class="lp-text-link" href="/paths">Explore the curriculum {{ icon "arrowright" }}</a>
         </div>
-        <p class="lp-hero-count">
-          <strong>{{ $s.Paths }}</strong> paths ·
-          <strong>{{ $s.Courses }}</strong> courses ·
-          <strong>{{ $s.Lessons }}</strong> lessons — all readable before you sign up
-        </p>
+        <div class="lp-proof" aria-label="Published curriculum totals">
+          <div><strong>{{ $s.Paths }}</strong><span>learning paths</span></div>
+          <div><strong>{{ $s.Courses }}</strong><span>courses</span></div>
+          <div><strong>{{ $s.Lessons }}</strong><span>lessons</span></div>
+        </div>
+        <p class="lp-proof-note">Browse every published lesson before you create an account.</p>
+      </div>
+
+      <div class="lp-product" aria-label="Example GamifyDev checkpoint">
+        <div class="lp-product-bar">
+          <span class="lp-product-dot"></span>
+          <span class="lp-product-dot"></span>
+          <span class="lp-product-dot"></span>
+          <span class="lp-product-label">gamifydev / checkpoint</span>
+        </div>
+        <div class="lp-product-body">
+          <div class="lp-product-topline">
+            <span>CS Foundations · Week 04</span>
+            <span class="lp-live"><i></i> Cohort active</span>
+          </div>
+          <p class="lp-product-kicker">Required checkpoint</p>
+          <h2>Build a command-line log parser</h2>
+          <p class="lp-product-desc">Read input, group events by severity, and return a clean summary.</p>
+          <div class="lp-code-window" aria-hidden="true">
+            <div><span>1</span><code><b>def</b> summarize(events):</code></div>
+            <div><span>2</span><code>&nbsp;&nbsp;counts = {}</code></div>
+            <div><span>3</span><code>&nbsp;&nbsp;<b>for</b> event <b>in</b> events:</code></div>
+            <div><span>4</span><code>&nbsp;&nbsp;&nbsp;&nbsp;level = event[<i>"level"</i>]</code></div>
+            <div><span>5</span><code>&nbsp;&nbsp;&nbsp;&nbsp;counts[level] = counts.get(level, 0) + 1</code></div>
+          </div>
+          <div class="lp-checks">
+            <span>{{ icon "check" }} Parses valid input</span>
+            <span>{{ icon "check" }} Handles an empty file</span>
+            <span class="is-running"><i></i> Running hidden checks</span>
+          </div>
+        </div>
+        <div class="lp-product-foot">
+          <span>{{ icon "lock" }} Next course unlocks when this passes</span>
+          <strong>3 / 4 checks</strong>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="lp-section">
-    <div class="lp-section-inner">
-      <div class="lp-section-head">
-        <h2 class="lp-h2">How it works</h2>
+  <section class="lp-principles" aria-label="Program principles">
+    <div class="lp-principles-inner">
+      <p><span>01</span><strong>Start at your level</strong>Placement decides your starting point, never your eligibility.</p>
+      <p><span>02</span><strong>Learn on a schedule</strong>Your cohort works through one shared plan together.</p>
+      <p><span>03</span><strong>Prove it with code</strong>Courses unlock when your checkpoint passes.</p>
+    </div>
+  </section>
+
+  <section class="lp-section lp-how">
+    <div class="lp-section-inner lp-split-head">
+      <div class="lp-section-intro">
+        <p class="lp-section-label">The process</p>
+        <h2 class="lp-h2">A clear path from “where do I start?” to shipping working code.</h2>
+        <p>No content maze. No skipping the hard parts. Every stage tells you exactly what comes next.</p>
+        <a class="lp-inline-link" href="/about">Why we built it this way {{ icon "arrowright" }}</a>
       </div>
       <ol class="lp-steps">
         <li>
-          <span class="lp-step-n">1</span>
-          <div>
-            <h3>Sit the placement test</h3>
-            <p>
-              A short diagnostic across the core topics. It decides where you
-              start — not whether you're allowed in.
-            </p>
-          </div>
+          <span class="lp-step-n">01</span>
+          <div><h3>Take the diagnostic</h3><p>A short test across core topics finds the right starting point for you.</p></div>
         </li>
         <li>
-          <span class="lp-step-n">2</span>
-          <div>
-            <h3>Get your path</h3>
-            <p>
-              Score well and you choose your direction. Fall below the line and
-              Computer Science Foundations is compulsory first — because the
-              rest doesn't stick without it.
-            </p>
-          </div>
+          <span class="lp-step-n">02</span>
+          <div><h3>Follow your assigned path</h3><p>If your foundations need work, you build them first. Strong fundamentals unlock more specialised paths.</p></div>
         </li>
         <li>
-          <span class="lp-step-n">3</span>
-          <div>
-            <h3>Join a cohort</h3>
-            <p>
-              Up to {{ index .Data "cohortMax" }} learners on the same path, one shared schedule, and a
-              daily standup. You are not doing this alone, and you are not
-              doing it whenever you feel like it.
-            </p>
-          </div>
+          <span class="lp-step-n">03</span>
+          <div><h3>Join a focused cohort</h3><p>Up to {{ index .Data "cohortMax" }} learners share a schedule, post daily standups, and keep each other moving.</p></div>
         </li>
         <li>
-          <span class="lp-step-n">4</span>
-          <div>
-            <h3>Clear the checkpoints</h3>
-            <p>
-              Every course ends in one. You write real code, it runs in a
-              sandbox against tests written for that course, and you get the
-              result in seconds. Pass and the next course opens. There is no
-              way to skip it.
-            </p>
-          </div>
+          <span class="lp-step-n">04</span>
+          <div><h3>Pass real checkpoints</h3><p>Your work is verified with sandboxed tests where supported, or reviewed by a mentor. Pass to open the next course.</p></div>
         </li>
       </ol>
     </div>
   </section>
 
-  <section class="lp-section lp-section--muted">
-    <div class="lp-section-inner lp-terms">
-      <div class="lp-terms-head">
-        <h2 class="lp-h2">What it asks of you</h2>
-        <p class="lp-terms-lede">
-          Worth reading before you sign up rather than after.
-        </p>
+  <section class="lp-section lp-program">
+    <div class="lp-section-inner">
+      <div class="lp-section-head lp-section-head--wide">
+        <div><p class="lp-section-label">What makes it different</p><h2 class="lp-h2">Free does not have to mean unstructured.</h2></div>
+        <p>GamifyDev provides the constraints that self-paced learning usually removes — a sequence, a standard, and people who notice when you disappear.</p>
       </div>
-      <ul class="lp-terms-list">
-        <li>
-          <strong>Show up on scheduled days.</strong>
-          Post your standup, or get your scheduled work done. Either counts.
-        </li>
-        <li>
-          <strong>Can't make it? Say so.</strong>
-          File an absence notice and the day is excused — {{ index .Data "excusedBudget" }} of them per cohort,
-          enough for illness, exams and travel.
-        </li>
-        <li>
-          <strong>Going quiet is the problem, not being away.</strong>
-          {{ index .Data "missedLimit" }} scheduled days of silence and you leave the cohort. Weekends and
-          rest days don't count against you.
-        </li>
-        <li>
-          <strong>Leaving isn't a ban.</strong>
-          You can reapply after {{ index .Data "reapplyDays" }} days and join a fresh cohort. The point is a
-          group that moves together, not a punishment.
-        </li>
-      </ul>
-      <p class="lp-terms-why">
-        Places are finite and it costs nothing to take one. These rules exist so
-        the people who want a seat can have it.
-      </p>
+      <div class="lp-feature-grid">
+        <article class="lp-feature-card lp-feature-card--large">
+          <span class="lp-feature-icon">{{ icon "calendar" }}</span>
+          <p class="lp-feature-no">01 / PACE</p>
+          <h3>A schedule you can plan around</h3>
+          <p>Know what you are working on now, what is due next, and who is progressing beside you.</p>
+          <div class="lp-week" aria-hidden="true">
+            <span class="is-done">M<i></i></span><span class="is-done">T<i></i></span><span class="is-today">W<i></i></span><span>T<i></i></span><span>F<i></i></span>
+          </div>
+        </article>
+        <article class="lp-feature-card">
+          <span class="lp-feature-icon">{{ icon "terminal" }}</span>
+          <p class="lp-feature-no">02 / PRACTICE</p>
+          <h3>Code is the proof</h3>
+          <p>Checkpoints ask you to build and debug. Watching the lesson is never the finish line.</p>
+        </article>
+        <article class="lp-feature-card">
+          <span class="lp-feature-icon">{{ icon "users" }}</span>
+          <p class="lp-feature-no">03 / COMMUNITY</p>
+          <h3>Small cohorts, visible progress</h3>
+          <p>Daily standups make the work social enough to sustain, without turning it into a popularity contest.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="lp-commitment">
+    <div class="lp-section-inner">
+      <div class="lp-commitment-head">
+        <p class="lp-section-label">The commitment</p>
+        <h2>What we ask in return.</h2>
+        <p>There is no fee. Your side of the agreement is communication and consistent effort.</p>
+      </div>
+      <div class="lp-commitment-grid">
+        <article><span>01</span><h3>Show up</h3><p>Post your standup or complete scheduled work. Either one counts for the day.</p></article>
+        <article><span>02</span><h3>Say when you cannot</h3><p>File an absence notice. You have {{ index .Data "excusedBudget" }} excused days per cohort for real life.</p></article>
+        <article><span>03</span><h3>Do not disappear</h3><p>{{ index .Data "missedLimit" }} scheduled days of silence means leaving the cohort. Rest days never count.</p></article>
+        <article><span>04</span><h3>Return when ready</h3><p>Leaving is not a ban. Reapply after {{ index .Data "reapplyDays" }} days and join a fresh cohort.</p></article>
+      </div>
+      <p class="lp-commitment-note">Places are finite and free. These rules keep seats available for people ready to use them.</p>
     </div>
   </section>
 
   <section class="lp-cta-band">
     <div class="lp-cta-inner">
-      <h2>Still here?</h2>
-      <p>Then you're probably the sort of person this was built for.</p>
-      {{ if .User }}
-      <a class="btn btn-lg lp-btn-light" href="/dashboard">Go to your dashboard</a>
-      {{ else }}
-      <a class="btn btn-lg lp-btn-light" href="/register">Start the placement test</a>
-      {{ end }}
+      <p class="lp-section-label">Your first step</p>
+      <h2>Find out where you should start.</h2>
+      <p>The placement test is a diagnostic, not a gate. It gives you a path that fits what you know today.</p>
+      <div class="lp-cta-actions">
+        {{ if .User }}
+        <a class="btn btn-lg lp-btn-light" href="/dashboard">Go to your dashboard {{ icon "arrowright" }}</a>
+        {{ else }}
+        <a class="btn btn-lg lp-btn-light" href="/register">Take the placement test {{ icon "arrowright" }}</a>
+        {{ end }}
+        <a href="/paths">Browse {{ $s.Paths }} learning paths</a>
+      </div>
     </div>
   </section>
-
-</main>
+</div>
 {{ end }}
