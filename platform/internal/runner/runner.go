@@ -41,10 +41,17 @@ type Request struct {
 	// Lang selects the toolchain. "" and "python" run Python; "c" compiles the
 	// source with a C compiler and runs the resulting binary. Anything else is
 	// rejected rather than silently treated as Python.
-	Lang      string `json:"lang,omitempty"`
-	Code      string `json:"code"`
-	Stdin     string `json:"stdin,omitempty"`
-	TimeoutMs int    `json:"timeout_ms,omitempty"` // wall-clock; clamped to limits
+	Lang  string `json:"lang,omitempty"`
+	Code  string `json:"code"`
+	Stdin string `json:"stdin,omitempty"`
+	// Files are fixture files written into the scratch directory before the
+	// program runs, keyed by filename. A Linux checkpoint is usually "do
+	// something with these files", which is impossible without them.
+	//
+	// Names are validated: a plain filename only, so a fixture cannot be used
+	// to write outside the sandbox.
+	Files     map[string]string `json:"files,omitempty"`
+	TimeoutMs int               `json:"timeout_ms,omitempty"` // wall-clock; clamped to limits
 }
 
 // Result is the outcome of a run. Error carries harness failures (the sandbox
@@ -68,6 +75,9 @@ type Result struct {
 const (
 	LangPython = "python"
 	LangC      = "c"
+	// LangShell runs a shell script. The Linux course teaches bash, so bash is
+	// used when present and POSIX sh is the fallback.
+	LangShell = "shell"
 )
 
 // NormalizeLang maps an empty language to Python (the historical default) and
@@ -78,6 +88,8 @@ func NormalizeLang(lang string) (string, bool) {
 		return LangPython, true
 	case LangC:
 		return LangC, true
+	case LangShell:
+		return LangShell, true
 	}
 	return lang, false
 }
@@ -116,6 +128,7 @@ type Config struct {
 	Mode         string // "off" | "local" | "remote"
 	PythonPath   string // local mode; defaults to "python3" on PATH
 	CCPath       string // local mode; C compiler, defaults to "cc" on PATH
+	ShellPath    string // local mode; defaults to "bash", falling back to "sh"
 	SandboxURL   string // remote mode; the execd service base URL
 	SandboxToken string // remote mode; shared bearer secret
 	Deployed     bool   // true in prod (e.g. RAILWAY_ENVIRONMENT set)

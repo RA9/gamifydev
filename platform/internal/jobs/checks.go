@@ -73,13 +73,21 @@ func runChecks(ctx context.Context, st *store.Store, exec runner.Executor, subID
 		return false, nil
 	}
 
+	// Fixture files the program is meant to operate on, if the author set any.
+	files, err := st.FileMap(ctx, sub.AssignmentID)
+	if err != nil {
+		return false, err
+	}
+
 	var passedIDs map[int64]bool
 	var output string
 	switch sub.Language {
-	case runner.LangC:
-		passedIDs, output, err = runC(ctx, exec, sub.Code, checks)
+	case runner.LangC, runner.LangShell:
+		// Neither leaves a namespace to inspect, so both are checked by
+		// asserting over what the program printed for a given input.
+		passedIDs, output, err = runByOutput(ctx, exec, sub.Language, sub.Code, files, checks)
 	default:
-		passedIDs, output, err = runPython(ctx, exec, sub.Code, checks)
+		passedIDs, output, err = runPython(ctx, exec, sub.Code, files, checks)
 	}
 	if err != nil {
 		return false, err
@@ -89,12 +97,12 @@ func runChecks(ctx context.Context, st *store.Store, exec runner.Executor, subID
 
 // runPython verifies an interpreted submission: one run, with every check
 // evaluated against the namespace the learner's program left behind.
-func runPython(ctx context.Context, exec runner.Executor, code string, checks []store.Check) (map[int64]bool, string, error) {
+func runPython(ctx context.Context, exec runner.Executor, code string, files map[string]string, checks []store.Check) (map[int64]bool, string, error) {
 	tests := make([]string, len(checks))
 	for i, c := range checks {
 		tests[i] = c.Test
 	}
-	res, err := exec.Run(ctx, runner.Request{Lang: runner.LangPython, Code: pyharness.Build(code, tests)})
+	res, err := exec.Run(ctx, runner.Request{Lang: runner.LangPython, Code: pyharness.Build(code, tests), Files: files})
 	if err != nil {
 		return nil, "", err
 	}
@@ -108,13 +116,13 @@ func runPython(ctx context.Context, exec runner.Executor, code string, checks []
 	return passed, learnerOutput(strings.Join(logs, "\n"), res), nil
 }
 
-// runC verifies a compiled submission.
+// runByOutput verifies a submission that leaves no inspectable namespace —
+// a compiled program or a shell script.
 //
-// A C program leaves no namespace to inspect, so each check asserts over what
-// the program printed for a given input. Checks are grouped by stdin so a
-// checkpoint whose assertions share one input compiles once rather than once
-// per check.
-func runC(ctx context.Context, exec runner.Executor, code string, checks []store.Check) (map[int64]bool, string, error) {
+// Each check asserts over what the program printed for a given input. Checks
+// are grouped by stdin so a checkpoint whose assertions share one input runs
+// once rather than once per check.
+func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check) (map[int64]bool, string, error) {
 	// Preserve author order within each group, and group order by first
 	// appearance, so the output a learner sees is stable between runs.
 	var order []string
@@ -130,7 +138,7 @@ func runC(ctx context.Context, exec runner.Executor, code string, checks []store
 	var out strings.Builder
 	for _, stdin := range order {
 		group := groups[stdin]
-		res, err := exec.Run(ctx, runner.Request{Lang: runner.LangC, Code: code, Stdin: stdin})
+		res, err := exec.Run(ctx, runner.Request{Lang: lang, Code: code, Stdin: stdin, Files: files})
 		if err != nil {
 			return nil, "", err
 		}
@@ -162,7 +170,7 @@ func runC(ctx context.Context, exec runner.Executor, code string, checks []store
 		// Show the learner what their program actually printed for each input —
 		// for a stdin-driven exercise that is the whole debugging story.
 		if len(order) > 1 && strings.TrimSpace(stdin) != "" {
-			out.WriteString("$ echo " + strconv.Quote(strings.TrimSpace(stdin)) + " | ./prog\n")
+			out.WriteString("$ echo " + strconv.Quote(strings.TrimSpace(stdin)) + " | " + progName(lang) + "\n")
 		}
 		out.WriteString(strings.TrimRight(res.Stdout, "\n"))
 		if s := strings.TrimSpace(res.Stderr); s != "" {
@@ -174,6 +182,15 @@ func runC(ctx context.Context, exec runner.Executor, code string, checks []store
 		out.WriteString("\n")
 	}
 	return passed, strings.TrimSpace(out.String()), nil
+}
+
+// progName is how the learner's program is referred to in the transcript shown
+// beneath the checks.
+func progName(lang string) string {
+	if lang == runner.LangShell {
+		return "./main.sh"
+	}
+	return "./prog"
 }
 
 // learnerOutput assembles what to show beneath the check list: the program's

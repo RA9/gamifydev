@@ -36,8 +36,133 @@
       <label class="field"><span>Pass score <span class="muted">(min to pass; 0 = any graded)</span></span>
         <input type="number" name="pass_points" value="{{ if $a }}{{ $a.PassPoints }}{{ else }}0{{ end }}" min="0" /></label>
     </div>
+
+    {{ if $a }}
+    <div class="field ck-admin">
+      <span>Automated checks
+        <span class="muted">— these decide pass/fail. Every check worth 1+ point must pass to grade the submission; a check worth <strong>0</strong> is advisory (shown to the learner, but it doesn't block). Mark a check <strong>hidden</strong> to withhold its wording until they pass, so the spec can't be read off the failure list.</span>
+      </span>
+
+      {{ if index .Data "autoGradable" }}
+        {{ if index .Data "execEnabled" }}
+          <p class="ck-note is-on">✓ These run automatically on every submission.</p>
+        {{ else }}
+          <p class="ck-note is-off">Checks are saved, but code execution is switched off on this instance, so they won't run. This checkpoint falls back to mentor grading.</p>
+        {{ end }}
+      {{ else }}
+        <p class="ck-note is-off">The sandbox runs <strong>python</strong>, <strong>c</strong> and <strong>shell</strong>. This assignment's language is <strong>{{ $a.Language }}</strong>, so checks here document the spec but will never run — it falls back to mentor grading.</p>
+      {{ end }}
+
+      <p class="muted ck-hint">
+        A test is a <strong>Python boolean expression</strong> whatever the assignment's language.
+        <strong>Python:</strong> it runs in the learner's namespace — use their functions and variables, plus <code>_code</code> (their source).
+        <strong>C and shell:</strong> the program runs first, then you assert over <code>_out</code> (stdout), <code>_err</code> (stderr), <code>_exit</code> (exit status), <code>_in</code> (the input you gave it) and <code>_code</code> — e.g. <code>_out.strip() == "9"</code>.
+      </p>
+
+      <div id="checkRows" class="ck-rows">
+        {{ range $i, $c := index .Data "checks" }}
+        <div class="ck-row">
+          <input name="check_label" value="{{ $c.Label }}" placeholder="What this proves, in the learner's words" />
+          <input name="check_test" value="{{ $c.Test }}" class="code-area" placeholder="Python boolean expression" spellcheck="false" />
+          <textarea name="check_stdin" rows="1" class="code-area" placeholder="stdin (C/shell only)" spellcheck="false">{{ $c.Stdin }}</textarea>
+          <input type="number" name="check_points" value="{{ $c.Points }}" min="0" title="Points — 0 makes it advisory" />
+          <label class="ck-hidden" title="Withhold the wording until they pass">
+            <input type="checkbox" name="check_hidden" value="{{ $i }}" {{ if $c.Hidden }}checked{{ end }} /> hide
+          </label>
+          <button type="button" class="btn btn-secondary btn-sm btn-danger ck-del">✕</button>
+        </div>
+        {{ end }}
+      </div>
+      <button type="button" id="addCheck" class="btn btn-secondary btn-sm" style="margin-top:8px">+ Add check</button>
+
+      {{ with index .Data "health" }}
+      <div class="ck-health">
+        <p class="ck-health-title">How these are going</p>
+        <ul>
+          {{ range . }}
+          <li>
+            <span class="ck-health-label">{{ .Label }}</span>
+            <span class="muted">{{ .Fails }} of {{ .Runs }} submissions failed it</span>
+          </li>
+          {{ end }}
+        </ul>
+        <p class="muted">One check failing far more than its siblings usually means it's worded badly, not that everyone got it wrong.</p>
+      </div>
+      {{ end }}
+    </div>
+
+    <div class="field ck-admin">
+      <span>Fixture files
+        <span class="muted">— written into the sandbox next to the learner's program before it runs, then thrown away. This is what makes "do something with these files" checkpoints possible. Plain filenames only.</span>
+      </span>
+      <div id="fileRows" class="ck-rows">
+        {{ range index .Data "files" }}
+        <div class="ck-row ck-row-file">
+          <input name="file_name" value="{{ .Name }}" placeholder="data.txt" />
+          <textarea name="file_content" rows="3" class="code-area" spellcheck="false">{{ .Content }}</textarea>
+          <button type="button" class="btn btn-secondary btn-sm btn-danger ck-del">✕</button>
+        </div>
+        {{ end }}
+      </div>
+      <button type="button" id="addFile" class="btn btn-secondary btn-sm" style="margin-top:8px">+ Add file</button>
+    </div>
+    {{ else }}
+    <p class="muted">Save the assignment first, then add automated checks and fixture files.</p>
+    {{ end }}
+
     <label class="check"><input type="checkbox" name="published" value="1" {{ if not $a }}checked{{ else if $a.Published }}checked{{ end }} /> Published</label>
     <button class="btn btn-primary" type="submit">{{ if $a }}Save changes{{ else }}Create assignment{{ end }}</button>
   </form>
 </div>
+
+<template id="ckRowTpl">
+  <div class="ck-row">
+    <input name="check_label" placeholder="What this proves, in the learner's words" />
+    <input name="check_test" class="code-area" placeholder="Python boolean expression" spellcheck="false" />
+    <textarea name="check_stdin" rows="1" class="code-area" placeholder="stdin (C/shell only)" spellcheck="false"></textarea>
+    <input type="number" name="check_points" value="1" min="0" title="Points — 0 makes it advisory" />
+    <label class="ck-hidden" title="Withhold the wording until they pass">
+      <input type="checkbox" name="check_hidden" value="" /> hide
+    </label>
+    <button type="button" class="btn btn-secondary btn-sm btn-danger ck-del">✕</button>
+  </div>
+</template>
+<template id="fileRowTpl">
+  <div class="ck-row ck-row-file">
+    <input name="file_name" placeholder="data.txt" />
+    <textarea name="file_content" rows="3" class="code-area" spellcheck="false"></textarea>
+    <button type="button" class="btn btn-secondary btn-sm btn-danger ck-del">✕</button>
+  </div>
+</template>
+<script>
+  (function () {
+    function wire(rowsId, tplId, addId) {
+      var rows = document.getElementById(rowsId);
+      if (!rows) return;
+      var tpl = document.getElementById(tplId);
+      document.getElementById(addId).addEventListener("click", function () {
+        rows.appendChild(tpl.content.cloneNode(true));
+        renumber(rows);
+      });
+      rows.addEventListener("click", function (e) {
+        if (e.target.classList.contains("ck-del")) {
+          e.target.closest(".ck-row").remove();
+          renumber(rows);
+        }
+      });
+    }
+    // A checkbox only submits when ticked, so its value has to carry the row
+    // index — otherwise the server cannot tell which row was hidden.
+    function renumber(rows) {
+      [].forEach.call(rows.querySelectorAll(".ck-row"), function (row, i) {
+        var box = row.querySelector('input[name="check_hidden"]');
+        if (box) box.value = String(i);
+      });
+    }
+    wire("checkRows", "ckRowTpl", "addCheck");
+    wire("fileRows", "fileRowTpl", "addFile");
+    var cr = document.getElementById("checkRows");
+    if (cr) renumber(cr);
+  })();
+</script>
 {{ end }}

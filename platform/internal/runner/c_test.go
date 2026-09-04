@@ -149,3 +149,74 @@ func TestUnknownLanguageIsRejected(t *testing.T) {
 		t.Fatal("NormalizeLang accepted java")
 	}
 }
+
+func TestShellRuns(t *testing.T) {
+	e := newCTestExecutor(t)
+	res, err := e.Run(context.Background(), Request{
+		Lang: LangShell,
+		Code: "echo \"lines: $(wc -l < data.txt | tr -d ' ')\"",
+		Files: map[string]string{"data.txt": "alpha\nbeta\ngamma\n"},
+	})
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if strings.TrimSpace(res.Stdout) != "lines: 3" {
+		t.Fatalf("stdout = %q (stderr %q)", res.Stdout, res.Stderr)
+	}
+}
+
+func TestShellReadsStdinAndReportsExit(t *testing.T) {
+	e := newCTestExecutor(t)
+	res, err := e.Run(context.Background(), Request{
+		Lang:  LangShell,
+		Stdin: "one\ntwo\nthree\n",
+		Code:  "wc -l | tr -d ' '\nexit 3",
+	})
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if strings.TrimSpace(res.Stdout) != "3" {
+		t.Fatalf("stdout = %q", res.Stdout)
+	}
+	// A script's exit status is often the thing being checked.
+	if res.ExitCode != 3 {
+		t.Fatalf("exit = %d, want 3", res.ExitCode)
+	}
+}
+
+func TestFixturesCannotEscapeTheScratchDir(t *testing.T) {
+	// Authored content is trusted, but a traversing filename would be written
+	// before the sandbox even starts — so it is rejected outright.
+	e := newCTestExecutor(t)
+	for _, bad := range []string{"../escape.txt", "sub/dir.txt", "/etc/passwd", "main.py"} {
+		res, err := e.Run(context.Background(), Request{
+			Lang: LangShell, Code: "echo hi", Files: map[string]string{bad: "x"},
+		})
+		if err != nil {
+			t.Fatalf("run %q: %v", bad, err)
+		}
+		if res.Error == "" {
+			t.Fatalf("fixture name %q was accepted", bad)
+		}
+	}
+}
+
+func TestFixturesDoNotLeakBetweenRuns(t *testing.T) {
+	// Each run gets a fresh scratch dir; a file written by one submission must
+	// not be visible to the next.
+	e := newCTestExecutor(t)
+	if _, err := e.Run(context.Background(), Request{
+		Lang: LangShell, Code: "echo secret > leaked.txt",
+	}); err != nil {
+		t.Fatalf("first run: %v", err)
+	}
+	res, err := e.Run(context.Background(), Request{
+		Lang: LangShell, Code: "cat leaked.txt 2>/dev/null || echo clean",
+	})
+	if err != nil {
+		t.Fatalf("second run: %v", err)
+	}
+	if !strings.Contains(res.Stdout, "clean") {
+		t.Fatalf("a file leaked between runs: %q", res.Stdout)
+	}
+}

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/RA9/gamifydev/platform/internal/content"
+	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
@@ -342,7 +343,19 @@ func (s *Server) handleAdminAssignmentEdit(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	courses, _ := s.st.ListCourses(r.Context(), true)
-	s.render(w, r, "admin_assignment_form.html", ViewData{Title: "Edit assignment", Data: map[string]any{"courses": courses, "assignment": a, "action": "/admin/assignments/" + r.PathValue("id")}})
+	checks, _ := s.st.ListChecks(r.Context(), id)
+	files, _ := s.st.ListFiles(r.Context(), id)
+	// How often each check fails is the signal that a checkpoint is worded
+	// badly rather than the learners being wrong.
+	health, _ := s.st.AssignmentCheckHealth(r.Context(), id)
+	auto, _ := s.st.AutoGradable(r.Context(), id)
+	s.render(w, r, "admin_assignment_form.html", ViewData{Title: "Edit assignment", Data: map[string]any{
+		"courses": courses, "assignment": a, "action": "/admin/assignments/" + r.PathValue("id"),
+		"checks": checks, "files": files, "health": health,
+		"autoGradable": auto,
+		"execEnabled":  s.exec != nil && s.exec.Enabled(),
+		"runnable":     runnableLanguages(),
+	}})
 }
 
 func (s *Server) handleAdminAssignmentUpdate(w http.ResponseWriter, r *http.Request) {
@@ -350,6 +363,14 @@ func (s *Server) handleAdminAssignmentUpdate(w http.ResponseWriter, r *http.Requ
 	a := assignmentFromForm(r)
 	if err := s.st.UpdateAssignment(r.Context(), id, a); err != nil {
 		http.Error(w, "could not update assignment", http.StatusInternalServerError)
+		return
+	}
+	if err := s.st.ReplaceChecks(r.Context(), id, checksFromForm(r)); err != nil {
+		http.Error(w, "could not save the checks", http.StatusInternalServerError)
+		return
+	}
+	if err := s.st.ReplaceFiles(r.Context(), id, filesFromForm(r)); err != nil {
+		http.Error(w, "could not save the fixture files", http.StatusInternalServerError)
 		return
 	}
 	// Return to the owning course's manager when the assignment belongs to one.
@@ -448,4 +469,82 @@ func assignmentFromForm(r *http.Request) store.Assignment {
 		Required:   r.FormValue("required") == "1",
 		PassPoints: passPts,
 	}
+}
+
+// runnableLanguages are the languages the sandbox can actually execute, for the
+// authoring UI to tell an author whether their checks will ever run.
+func runnableLanguages() []string {
+	return []string{runner.LangPython, runner.LangC, runner.LangShell}
+}
+
+// checksFromForm reads the repeated check rows off the assignment form.
+//
+// Rows are aligned by index across the parallel fields, and a row with neither
+// a label nor a test is dropped — the form always renders one empty row, and
+// submitting it should not create a blank check.
+func checksFromForm(r *http.Request) []store.Check {
+	labels := r.Form["check_label"]
+	tests := r.Form["check_test"]
+	stdins := r.Form["check_stdin"]
+	points := r.Form["check_points"]
+	hidden := r.Form["check_hidden"]
+
+	at := func(list []string, i int) string {
+		if i < len(list) {
+			return list[i]
+		}
+		return ""
+	}
+	var out []store.Check
+	for i := range labels {
+		label := strings.TrimSpace(at(labels, i))
+		test := strings.TrimSpace(at(tests, i))
+		if label == "" && test == "" {
+			continue
+		}
+		pts := 1
+		if v, err := strconv.Atoi(at(points, i)); err == nil && v >= 0 {
+			pts = v
+		}
+		out = append(out, store.Check{
+			Label: label,
+			Test:  test,
+			// Newlines matter for a program reading stdin, so only trim the
+			// trailing whitespace a textarea adds.
+			Stdin:  strings.TrimRight(at(stdins, i), " \t"),
+			Points: pts,
+			// A checkbox only submits when ticked, so its value carries the row
+			// index rather than "1".
+			Hidden: contains(hidden, strconv.Itoa(i)),
+		})
+	}
+	return out
+}
+
+func contains(list []string, v string) bool {
+	for _, s := range list {
+		if s == v {
+			return true
+		}
+	}
+	return false
+}
+
+// filesFromForm reads the repeated fixture-file rows off the assignment form.
+func filesFromForm(r *http.Request) []store.File {
+	names := r.Form["file_name"]
+	contents := r.Form["file_content"]
+	var out []store.File
+	for i, name := range names {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		content := ""
+		if i < len(contents) {
+			content = contents[i]
+		}
+		out = append(out, store.File{Name: name, Content: content})
+	}
+	return out
 }

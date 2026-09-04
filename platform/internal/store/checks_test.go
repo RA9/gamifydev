@@ -66,6 +66,32 @@ func TestAutoGradableRequiresPythonAndChecks(t *testing.T) {
 	}
 }
 
+func TestEveryRunnableLanguageIsAutoGradable(t *testing.T) {
+	// Shell was added to the runner but not to a hardcoded list here, which
+	// silently left every shell checkpoint ungradable. This asserts the two
+	// stay in agreement.
+	ctx := context.Background()
+	st := newTestStore(t)
+	checks := []Check{{Label: "x", Test: "True", Points: 1}}
+	for _, lang := range []string{"python", "c", "shell"} {
+		id := mkAssignment(t, st, "a-"+lang, lang, 0)
+		if err := st.ReplaceChecks(ctx, id, checks); err != nil {
+			t.Fatalf("%s: %v", lang, err)
+		}
+		if ok, _ := st.AutoGradable(ctx, id); !ok {
+			t.Fatalf("%s is runnable in the sandbox but was not marked auto-gradable", lang)
+		}
+	}
+	// And a language the sandbox cannot run still is not.
+	id := mkAssignment(t, st, "a-java", "java", 0)
+	if err := st.ReplaceChecks(ctx, id, checks); err != nil {
+		t.Fatalf("java: %v", err)
+	}
+	if ok, _ := st.AutoGradable(ctx, id); ok {
+		t.Fatal("java was marked auto-gradable; the sandbox cannot run it")
+	}
+}
+
 func TestAllWeightedChecksMustPassToGrade(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t)

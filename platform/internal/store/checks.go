@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
+	"github.com/RA9/gamifydev/platform/internal/runner"
 )
 
 // Automated checks on assignments: the machine's half of a checkpoint verdict.
@@ -11,6 +13,19 @@ import (
 // The design rule (see the peer-review design doc): checks answer "does it
 // work?" and gate progression. Peers answer "is it any good?" and never gate.
 // Nothing in this file records a human judgment.
+
+// Runnable reports whether the sandbox can execute an assignment's language,
+// and therefore whether its checks will ever actually run.
+//
+// Delegates to the runner so the two cannot disagree: when shell support was
+// added, a hardcoded copy of this list here left every shell checkpoint marked
+// ungradable.
+func Runnable(language string) bool {
+	_, ok := runner.NormalizeLang(language)
+	// An empty language would normalize to Python, but an assignment with no
+	// language set is not a deliberate Python checkpoint.
+	return ok && language != ""
+}
 
 // Check is one authored assertion about a submission.
 type Check struct {
@@ -90,11 +105,20 @@ func (s *Store) ReplaceChecks(ctx context.Context, assignmentID int64, checks []
 			return err
 		}
 	}
-	if _, err := tx.ExecContext(ctx, `
-		UPDATE assignments SET auto_gradable = CASE
-			WHEN language IN ('python', 'c') AND ? > 0 THEN 1 ELSE 0 END,
-			updated_at = datetime('now')
-		WHERE id = ?`, len(checks), assignmentID); err != nil {
+	// Which languages are runnable is the runner's fact, not this query's —
+	// hardcoding the list here is how it silently drifted when shell was added.
+	var lang string
+	if err := tx.QueryRowContext(ctx,
+		`SELECT language FROM assignments WHERE id = ?`, assignmentID).Scan(&lang); err != nil {
+		return err
+	}
+	auto := 0
+	if len(checks) > 0 && Runnable(lang) {
+		auto = 1
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE assignments SET auto_gradable = ?, updated_at = datetime('now') WHERE id = ?`,
+		auto, assignmentID); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -337,4 +361,71 @@ func (s *Store) AssignmentCheckHealth(ctx context.Context, assignmentID int64) (
 		out = append(out, h)
 	}
 	return out, rows.Err()
+}
+
+// --- Fixture files -----------------------------------------------------------
+
+// File is an authored fixture written into the sandbox before a submission runs.
+type File struct {
+	Name    string
+	Content string
+}
+
+// ListFiles returns an assignment's fixture files in author order.
+func (s *Store) ListFiles(ctx context.Context, assignmentID int64) ([]File, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT name, content FROM assignment_files WHERE assignment_id = ? ORDER BY sort, id`,
+		assignmentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []File
+	for rows.Next() {
+		var f File
+		if err := rows.Scan(&f.Name, &f.Content); err != nil {
+			return nil, err
+		}
+		out = append(out, f)
+	}
+	return out, rows.Err()
+}
+
+// FileMap returns an assignment's fixtures shaped for a runner request.
+func (s *Store) FileMap(ctx context.Context, assignmentID int64) (map[string]string, error) {
+	files, err := s.ListFiles(ctx, assignmentID)
+	if err != nil || len(files) == 0 {
+		return nil, err
+	}
+	out := make(map[string]string, len(files))
+	for _, f := range files {
+		out[f.Name] = f.Content
+	}
+	return out, nil
+}
+
+// ReplaceFiles swaps an assignment's fixture files for the given set.
+func (s *Store) ReplaceFiles(ctx context.Context, assignmentID int64, files []File) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM assignment_files WHERE assignment_id = ?`, assignmentID); err != nil {
+		return err
+	}
+	seen := map[string]bool{}
+	for i, f := range files {
+		if f.Name == "" || seen[f.Name] {
+			continue // a blank row, or a duplicate name the unique index would reject
+		}
+		seen[f.Name] = true
+		if _, err := tx.ExecContext(ctx,
+			`INSERT INTO assignment_files (assignment_id, sort, name, content) VALUES (?, ?, ?, ?)`,
+			assignmentID, i, f.Name, f.Content); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }

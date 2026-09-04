@@ -4463,3 +4463,32 @@ body.portal.cohort-dark { background: #0a1622; }
 .ck-output pre { margin: 8px 0 0; padding: 12px 14px; border-radius: 10px; overflow-x: auto;
     background: #0f172a; color: #e2e8f0; font-size: 0.82rem; line-height: 1.5;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
+
+/* ===== Admin: authoring checks and fixtures ===== */
+.ck-admin { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--slate-200); }
+.ck-note { margin: 10px 0 0; padding: 9px 12px; border-radius: 9px; font-size: 0.88rem; font-weight: 600; }
+.ck-note.is-on { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.ck-note.is-off { background: #fff7ed; color: #b45309; border: 1px solid #fed7aa; }
+.ck-hint { font-size: 0.85rem; margin: 10px 0 12px; }
+.ck-rows { display: flex; flex-direction: column; gap: 8px; }
+.ck-row { display: grid; grid-template-columns: 1.4fr 1.6fr 0.9fr 68px auto auto; gap: 8px; align-items: start; }
+.ck-row-file { grid-template-columns: 1fr 3fr auto; }
+.ck-row input, .ck-row textarea {
+    font-family: inherit; font-size: 0.88rem; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--slate-300); width: 100%;
+}
+.ck-row .code-area { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; }
+.ck-row textarea { resize: vertical; }
+.ck-hidden { display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem;
+    color: var(--slate-500); white-space: nowrap; padding-top: 9px; }
+.ck-del { align-self: start; }
+.ck-health { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: var(--slate-50);
+    border: 1px solid var(--slate-200); }
+.ck-health-title { margin: 0 0 8px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--slate-400); }
+.ck-health ul { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.ck-health li { display: flex; justify-content: space-between; gap: 14px; font-size: 0.88rem; }
+.ck-health-label { font-weight: 600; color: var(--slate-700); }
+@media (max-width: 900px) {
+    .ck-row, .ck-row-file { grid-template-columns: 1fr; }
+}

@@ -20,6 +20,7 @@ import (
 type localExecutor struct {
 	python    string
 	cc        string
+	shell     string
 	limits    Limits
 	sandboxed bool // true when wrapping with bwrap (real namespace isolation)
 }
@@ -29,7 +30,38 @@ func newLocal(cfg Config, sandboxed bool) *localExecutor {
 	if cc == "" {
 		cc = "cc"
 	}
-	return &localExecutor{python: cfg.PythonPath, cc: cc, limits: cfg.Limits, sandboxed: sandboxed}
+	sh := cfg.ShellPath
+	if sh == "" {
+		// The Linux course teaches bash; fall back to POSIX sh where it is
+		// absent rather than failing every shell submission.
+		if _, err := exec.LookPath("bash"); err == nil {
+			sh = "bash"
+		} else {
+			sh = "sh"
+		}
+	}
+	return &localExecutor{python: cfg.PythonPath, cc: cc, shell: sh, limits: cfg.Limits, sandboxed: sandboxed}
+}
+
+// writeFixtures lays the authored fixture files into the scratch directory.
+//
+// Names are restricted to a plain filename. Authored content is trusted, but a
+// path like "../../etc/passwd" in a fixture would escape the scratch directory
+// before the sandbox ever starts — the one place a fixture could do damage.
+func writeFixtures(dir string, files map[string]string) error {
+	for name, content := range files {
+		if name == "" || name != filepath.Base(name) || strings.HasPrefix(name, ".") {
+			return fmt.Errorf("invalid fixture filename %q", name)
+		}
+		switch name {
+		case "main.py", "main.c", "main.sh", "prog", "build.log":
+			return fmt.Errorf("fixture %q would overwrite the program", name)
+		}
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600); err != nil {
+			return fmt.Errorf("write fixture %s: %w", name, err)
+		}
+	}
+	return nil
 }
 
 // compileFailMarker is written to stderr by the C build script when the
@@ -73,11 +105,17 @@ func (e *localExecutor) Run(ctx context.Context, req Request) (Result, error) {
 		return Result{Error: "unsupported language: " + req.Lang}, nil
 	}
 	srcName := "main.py"
-	if lang == LangC {
+	switch lang {
+	case LangC:
 		srcName = "main.c"
+	case LangShell:
+		srcName = "main.sh"
 	}
 	if err := os.WriteFile(filepath.Join(dir, srcName), []byte(req.Code), 0o600); err != nil {
 		return Result{}, fmt.Errorf("write program: %w", err)
+	}
+	if err := writeFixtures(dir, req.Files); err != nil {
+		return Result{Error: err.Error()}, nil
 	}
 
 	timeout := time.Duration(clampTimeout(req.TimeoutMs, e.limits)) * time.Millisecond
@@ -195,6 +233,12 @@ func (e *localExecutor) script(lang string, cpuSecs int, withUlimits bool) strin
 		b.WriteString(" || { printf '%s' " + shellQuote(compileFailMarker) + " >&2; cat build.log >&2; exit 97; }")
 		b.WriteString("; cat build.log >&2") // warnings from a successful build
 		b.WriteString("; exec ./prog")
+		return b.String()
+	}
+	if lang == LangShell {
+		// The script is the program. It runs in the scratch dir, so any files it
+		// creates stay inside the sandbox and vanish with it.
+		b.WriteString("exec " + shellQuote(e.shell) + " main.sh")
 		return b.String()
 	}
 	b.WriteString("exec " + shellQuote(e.python) + " -I -B main.py")
