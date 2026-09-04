@@ -2,7 +2,6 @@ package seed
 
 import (
 	"os/exec"
-	"strings"
 	"testing"
 
 	"github.com/RA9/gamifydev/platform/internal/jobs"
@@ -281,10 +280,11 @@ func TestSeededCheckpointsAcceptACorrectSolution(t *testing.T) {
 					"nothing proves a learner can pass it", a.slug)
 			}
 			checks, files := materialize(a)
-			passed, output, err := jobs.Grade(t.Context(), e, a.lang, ref.correct, files, checks)
+			res, err := jobs.Grade(t.Context(), e, a.lang, ref.correct, files, checks)
 			if err != nil {
 				t.Fatalf("grade: %v", err)
 			}
+			passed, output := res.Passed, res.Output
 			for _, c := range checks {
 				if !passed[c.ID] {
 					t.Errorf("a correct solution failed %q\nprogram output:\n%s", c.Label, output)
@@ -304,10 +304,11 @@ func TestSeededCheckpointsRejectTheMistakeTheyExistToCatch(t *testing.T) {
 			t.Parallel()
 			ref := refSolutions[a.slug]
 			checks, files := materialize(a)
-			passed, output, err := jobs.Grade(t.Context(), e, a.lang, ref.wrong, files, checks)
+			res, err := jobs.Grade(t.Context(), e, a.lang, ref.wrong, files, checks)
 			if err != nil {
 				t.Fatalf("grade: %v", err)
 			}
+			passed, output := res.Passed, res.Output
 			var target *store.Check
 			for i := range checks {
 				if checks[i].Label == ref.wrongFails {
@@ -330,7 +331,7 @@ func TestSeededCheckpointsRejectTheMistakeTheyExistToCatch(t *testing.T) {
 					anyPassed = true
 				}
 			}
-			if !anyPassed && !strings.Contains(output, "didn't compile") {
+			if !anyPassed && !res.CompileFailed {
 				t.Errorf("the wrong solution failed every check, so %q wasn't "+
 					"shown to be what caught it\nprogram output:\n%s", ref.wrongFails, output)
 			}

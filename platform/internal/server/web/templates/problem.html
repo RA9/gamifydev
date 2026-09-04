@@ -1,0 +1,110 @@
+{{ define "content" }}
+{{ $p := index .Data "problem" }}
+{{ $sub := index .Data "submission" }}
+<article class="pb-page">
+  <a class="back" href="/problems">← Problems</a>
+  <h1 class="lesson-h1">{{ $p.Title }}</h1>
+  <p class="muted">
+    <span class="pb-diff pb-diff-{{ $p.Difficulty }}">{{ titlecase $p.Difficulty }}</span>
+    {{ with $p.Topic }} · {{ . }}{{ end }}
+    · {{ $p.TimeLimitMs }}ms limit
+  </p>
+
+  <div class="prose">{{ index .Data "statement" }}</div>
+
+  {{ with index .Data "samples" }}
+  <div class="pb-samples">
+    <p class="fx-title">What's checked</p>
+    <ul class="pb-sample-list">
+      {{ range . }}
+      <li>
+        <span class="pb-sample-label">{{ .Label }}</span>
+        {{ with .Stdin }}<code class="pb-sample-in">input: {{ . }}</code>{{ end }}
+      </li>
+      {{ end }}
+    </ul>
+    <p class="muted pb-hidden-note">
+      Hidden tests run too — passing the ones listed here isn't the same as solving it.
+    </p>
+  </div>
+  {{ end }}
+
+  {{ if index .Data "judgeable" }}
+  <form class="pb-form"
+        hx-post="/problems/{{ $p.Slug }}/submit"
+        hx-target="#pb-result"
+        hx-swap="innerHTML"
+        hx-disabled-elt="find button[type=submit]">
+    {{ $langs := index .Data "languages" }}
+    <div class="pb-form-head">
+      {{ if gt (len $langs) 1 }}
+        <label class="pb-lang">
+          <span class="visually-hidden">Language</span>
+          <select name="language" id="pb-lang">
+            {{ range $langs }}
+              <option value="{{ . }}"{{ if and $sub (eq $sub.Language .) }} selected{{ end }}>{{ titlecase . }}</option>
+            {{ end }}
+          </select>
+        </label>
+      {{ else }}
+        <input type="hidden" name="language" value="{{ index $langs 0 }}" />
+        <span class="lang-tag">{{ index $langs 0 }}</span>
+      {{ end }}
+      <button class="btn btn-primary btn-sm" type="submit">Run tests</button>
+    </div>
+
+    <gd-code-editor id="pb-editor" lang="{{ if $sub }}{{ $sub.Language }}{{ else }}{{ index $langs 0 }}{{ end }}">
+      <textarea name="code" id="pb-code" class="gd-editor-ta" rows="16" spellcheck="false" required
+        >{{ if $sub }}{{ $sub.Code }}{{ else }}{{ index (index $.Data "starters") (index $langs 0) }}{{ end }}</textarea>
+    </gd-code-editor>
+
+    {{/* The starters the picker swaps between. Read with JSON.parse, never
+         evaluated — see problems.js. */}}
+    <script type="application/json" id="pb-starters">{{ json (index .Data "starters") }}</script>
+  </form>
+  {{ end }}
+
+  <div id="pb-result" class="pb-result-slot" aria-live="polite">
+    {{ with index .Data "result" }}{{ template "result" . }}{{ end }}
+  </div>
+</article>
+<script src="/static/js/problems.js" type="module"></script>
+{{ end }}
+
+
+{{/* The verdict panel. Swapped in by the submit request, and re-fetched by the
+     poll below while a submission is still with the background judge. */}}
+{{ define "result" }}
+  {{ with index . "message" }}
+    <div class="flash flash-warn">{{ . }}</div>
+  {{ end }}
+  {{ with index . "sub" }}
+    {{ if index $ "pending" }}
+      <div class="pb-verdict is-pending"
+           hx-get="/problems/result/{{ .ID }}"
+           hx-trigger="load delay:2s"
+           hx-target="#pb-result"
+           hx-swap="innerHTML">
+        <span class="pb-spinner" aria-hidden="true"></span>
+        <div>
+          <strong>Judging…</strong>
+          <p class="muted">Your submission is queued. This page updates on its own.</p>
+        </div>
+      </div>
+    {{ else }}
+      <div class="pb-verdict {{ if index $ "ok" }}is-ok{{ else }}is-bad{{ end }}">
+        <div class="pb-verdict-head">
+          <strong>{{ index $ "headline" }}</strong>
+          {{ if .Total }}<span class="pb-count">{{ .Passed }}/{{ .Total }} tests</span>{{ end }}
+          {{ if .RuntimeMs }}<span class="muted">{{ .RuntimeMs }}ms</span>{{ end }}
+        </div>
+        {{ if index $ "ok" }}
+          <p class="muted">Every test passed. Nicely done.</p>
+        {{ else if .FailedLabel }}
+          <p class="pb-failed">First failure: <strong>{{ .FailedLabel }}</strong></p>
+        {{ end }}
+        {{ with .Output }}<pre class="pb-output">{{ . }}</pre>{{ end }}
+      </div>
+    {{ end }}
+  {{ end }}
+{{ end }}

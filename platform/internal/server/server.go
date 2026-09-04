@@ -73,6 +73,12 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /forum/{id}", s.handleForumThread)
 	mux.HandleFunc("GET /competitions", s.handleCompetitions)
 	mux.HandleFunc("GET /competitions/{slug}", s.handleCompetition)
+	// The practice-problem bank. Open to anyone, signed in or not — a visitor
+	// can solve problems as a guest and keep the work when they register.
+	mux.HandleFunc("GET /problems", s.handleProblems)
+	mux.HandleFunc("GET /problems/result/{id}", s.handleProblemResult)
+	mux.HandleFunc("GET /problems/{slug}", s.handleProblem)
+	mux.HandleFunc("POST /problems/{slug}/submit", s.handleProblemSubmit)
 	mux.HandleFunc("GET /blog", s.handleBlog)
 	mux.HandleFunc("GET /blog/{slug}", s.handleBlogPost)
 	mux.HandleFunc("GET /login", s.handleLoginForm)

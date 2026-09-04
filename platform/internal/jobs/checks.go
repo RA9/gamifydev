@@ -79,41 +79,71 @@ func runChecks(ctx context.Context, st *store.Store, exec runner.Executor, subID
 		return false, err
 	}
 
-	passedIDs, output, err := Grade(ctx, exec, sub.Language, sub.Code, files, checks)
+	res, err := Grade(ctx, exec, sub.Language, sub.Code, files, checks)
 	if err != nil {
 		return false, err
 	}
-	return st.RecordCheckRun(ctx, subID, passedIDs, output, sub.MaxPoints, sub.PassPoints)
+	return st.RecordCheckRun(ctx, subID, res.Passed, res.Output, sub.MaxPoints, sub.PassPoints)
 }
 
-// Grade runs a set of checks against one program and reports which passed,
-// along with the transcript the learner is shown.
+// GradeResult is what one graded program yields.
+//
+// It carries why a run went wrong, not just which checks failed, because the
+// two callers want different things from it: a checkpoint shows the learner a
+// transcript, while the problem judge has to name a verdict — and "didn't
+// compile" and "ran too long" are different verdicts, indistinguishable from a
+// list of failed checks alone.
+type GradeResult struct {
+	Passed        map[int64]bool
+	Output        string
+	CompileFailed bool
+	TimedOut      bool
+	// Crashed means the program itself died before it could be judged, rather
+	// than answering wrongly. Only claimed when we actually know: a non-zero
+	// exit for a compiled program, or a Python run that never reached the first
+	// check because it raised on the way there.
+	Crashed    bool
+	DurationMs int64
+}
+
+// Grade runs a set of checks against one program.
 //
 // Separated from the job loop and exported so a checkpoint can be graded
 // without a database or a submission behind it — which is what lets a test
 // prove that an authored checkpoint is actually solvable, rather than waiting
 // for a learner to discover that it isn't.
-func Grade(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check) (map[int64]bool, string, error) {
+func Grade(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check) (GradeResult, error) {
+	return GradeWithin(ctx, exec, lang, code, files, checks, 0)
+}
+
+// GradeWithin is Grade with an explicit wall-clock budget for the learner's
+// program, in milliseconds; 0 means the runner's own default.
+//
+// A checkpoint doesn't need this — it asks whether the learner understood
+// something, and the runner's default is a generous backstop. A practice
+// problem does: "fast enough" is part of the exercise, so each problem sets the
+// limit its intended solution comfortably fits and a brute force does not.
+func GradeWithin(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check, timeoutMs int) (GradeResult, error) {
 	switch lang {
 	case runner.LangC, runner.LangShell:
 		// Neither leaves a namespace to inspect, so both are checked by
 		// asserting over what the program printed for a given input.
-		return runByOutput(ctx, exec, lang, code, files, checks)
+		return runByOutput(ctx, exec, lang, code, files, checks, timeoutMs)
 	default:
-		return runPython(ctx, exec, code, files, checks)
+		return runPython(ctx, exec, code, files, checks, timeoutMs)
 	}
 }
 
 // runPython verifies an interpreted submission: one run, with every check
 // evaluated against the namespace the learner's program left behind.
-func runPython(ctx context.Context, exec runner.Executor, code string, files map[string]string, checks []store.Check) (map[int64]bool, string, error) {
+func runPython(ctx context.Context, exec runner.Executor, code string, files map[string]string, checks []store.Check, timeoutMs int) (GradeResult, error) {
 	tests := make([]string, len(checks))
 	for i, c := range checks {
 		tests[i] = c.Test
 	}
-	res, err := exec.Run(ctx, runner.Request{Lang: runner.LangPython, Code: pyharness.Build(code, tests), Files: files})
+	res, err := exec.Run(ctx, runner.Request{Lang: runner.LangPython, Code: pyharness.Build(code, tests), Files: files, TimeoutMs: timeoutMs})
 	if err != nil {
-		return nil, "", err
+		return GradeResult{}, err
 	}
 	results, logs := pyharness.ParseOutput(res.Stdout, len(tests))
 	passed := make(map[int64]bool, len(checks))
@@ -122,7 +152,15 @@ func runPython(ctx context.Context, exec runner.Executor, code string, files map
 			passed[c.ID] = results[i]
 		}
 	}
-	return passed, learnerOutput(strings.Join(logs, "\n"), res), nil
+	return GradeResult{
+		Passed:   passed,
+		Output:   learnerOutput(strings.Join(logs, "\n"), res),
+		TimedOut: res.TimedOut,
+		// Not one check reported, yet the program had something to say on
+		// stderr: it raised before the harness ever ran.
+		Crashed:    !res.TimedOut && !strings.Contains(res.Stdout, pyharness.ResultMarker) && strings.TrimSpace(res.Stderr) != "",
+		DurationMs: res.DurationMs,
+	}, nil
 }
 
 // runByOutput verifies a submission that leaves no inspectable namespace —
@@ -131,7 +169,7 @@ func runPython(ctx context.Context, exec runner.Executor, code string, files map
 // Each check asserts over what the program printed for a given input. Checks
 // are grouped by stdin so a checkpoint whose assertions share one input runs
 // once rather than once per check.
-func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check) (map[int64]bool, string, error) {
+func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check, timeoutMs int) (GradeResult, error) {
 	// Preserve author order within each group, and group order by first
 	// appearance, so the output a learner sees is stable between runs.
 	var order []string
@@ -143,18 +181,25 @@ func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, f
 		groups[c.Stdin] = append(groups[c.Stdin], c)
 	}
 
-	passed := make(map[int64]bool, len(checks))
-	var out strings.Builder
+	out := GradeResult{Passed: make(map[int64]bool, len(checks))}
+	var transcript strings.Builder
 	for _, stdin := range order {
 		group := groups[stdin]
-		res, err := exec.Run(ctx, runner.Request{Lang: lang, Code: code, Stdin: stdin, Files: files})
+		res, err := exec.Run(ctx, runner.Request{Lang: lang, Code: code, Stdin: stdin, Files: files, TimeoutMs: timeoutMs})
 		if err != nil {
-			return nil, "", err
+			return GradeResult{}, err
 		}
+		// Only the learner's own program counts toward the reported runtime —
+		// the assertion pass is our overhead, not theirs.
+		out.DurationMs += res.DurationMs
+		out.TimedOut = out.TimedOut || res.TimedOut
+		out.Crashed = out.Crashed || (!res.TimedOut && !res.CompileFailed && res.ExitCode != 0)
 		if res.CompileFailed {
 			// Nothing ran, so every check fails — but the compiler's message is
 			// the only useful thing to show, not a wall of failed assertions.
-			return passed, "Your program didn't compile:\n\n" + strings.TrimSpace(res.Stderr), nil
+			out.CompileFailed = true
+			out.Output = "Your program didn't compile:\n\n" + strings.TrimSpace(res.Stderr)
+			return out, nil
 		}
 
 		tests := make([]string, len(group))
@@ -167,30 +212,31 @@ func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, f
 			tests)
 		ares, err := exec.Run(ctx, runner.Request{Lang: runner.LangPython, Code: prog})
 		if err != nil {
-			return nil, "", err
+			return GradeResult{}, err
 		}
 		results, _ := pyharness.ParseOutput(ares.Stdout, len(tests))
 		for i, c := range group {
 			if i < len(results) {
-				passed[c.ID] = results[i]
+				out.Passed[c.ID] = results[i]
 			}
 		}
 
 		// Show the learner what their program actually printed for each input —
 		// for a stdin-driven exercise that is the whole debugging story.
 		if len(order) > 1 && strings.TrimSpace(stdin) != "" {
-			out.WriteString("$ echo " + strconv.Quote(strings.TrimSpace(stdin)) + " | " + progName(lang) + "\n")
+			transcript.WriteString("$ echo " + strconv.Quote(strings.TrimSpace(stdin)) + " | " + progName(lang) + "\n")
 		}
-		out.WriteString(strings.TrimRight(res.Stdout, "\n"))
+		transcript.WriteString(strings.TrimRight(res.Stdout, "\n"))
 		if s := strings.TrimSpace(res.Stderr); s != "" {
-			out.WriteString("\n" + s)
+			transcript.WriteString("\n" + s)
 		}
 		if res.TimedOut {
-			out.WriteString("\n⚠ Timed out — check for a loop that never ends.")
+			transcript.WriteString("\n⚠ Timed out — check for a loop that never ends.")
 		}
-		out.WriteString("\n")
+		transcript.WriteString("\n")
 	}
-	return passed, strings.TrimSpace(out.String()), nil
+	out.Output = strings.TrimSpace(transcript.String())
+	return out, nil
 }
 
 // progName is how the learner's program is referred to in the transcript shown

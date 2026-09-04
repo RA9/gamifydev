@@ -69,7 +69,7 @@ func slugify(s string) string {
 }
 
 // Counts returned by Run.
-type Result struct{ Courses, Lessons, Assignments, Paths, Items int }
+type Result struct{ Courses, Lessons, Assignments, Paths, Items, Problems int }
 
 // seedPaths are the initial career paths, each an ordered list of course slugs.
 var seedPaths = []struct {
@@ -239,6 +239,13 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		return res, err
 	}
 	res.Items = items
+
+	// The practice problem bank.
+	problems, err := seedProblemBank(ctx, st)
+	if err != nil {
+		return res, err
+	}
+	res.Problems = problems
 
 	return res, nil
 }

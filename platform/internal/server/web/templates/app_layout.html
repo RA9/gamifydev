@@ -51,6 +51,7 @@
           <a href="/cohort" class="{{ if hasprefix $p "/cohort" }}active{{ end }}">{{ icon "users" }}<span>Cohort</span></a>
           <a href="/paths" class="{{ if or (hasprefix $p "/paths") (hasprefix $p "/courses") }}active{{ end }}">{{ icon "compass" }}<span>Curriculum</span></a>
           <a href="/assignments" class="{{ if hasprefix $p "/assignments" }}active{{ end }}">{{ icon "clipboard" }}<span>Assignments</span></a>
+          <a href="/problems" class="{{ if hasprefix $p "/problems" }}active{{ end }}">{{ icon "terminal" }}<span>Practice</span></a>
           {{ if index .Data "execEnabled" }}<a href="/playground" class="{{ if eq $p "/playground" }}active{{ end }}">{{ icon "terminal" }}<span>Playground</span></a>{{ end }}
           <a href="/competitions" class="{{ if hasprefix $p "/competitions" }}active{{ end }}">{{ icon "trophy" }}<span>Competitions</span></a>
           <a href="/forum" class="{{ if hasprefix $p "/forum" }}active{{ end }}">{{ icon "chat" }}<span>Forum</span></a>
@@ -88,6 +89,7 @@
         <nav class="app-footer-links" aria-label="Footer">
           <a href="/courses">Courses</a>
           <a href="/assignments">Assignments</a>
+          <a href="/problems">Practice</a>
           <a href="/competitions">Competitions</a>
           <a href="/forum">Forum</a>
         </nav>

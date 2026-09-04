@@ -145,6 +145,10 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) startSession(w http.ResponseWriter, r *http.Request, u *store.User) {
+	// Anything they solved as a guest becomes theirs, before the guest cookie
+	// stops being the thing that identifies them.
+	s.claimGuestWork(w, r, u.ID)
+
 	token, err := auth.NewToken()
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)

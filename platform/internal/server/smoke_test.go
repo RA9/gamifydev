@@ -177,6 +177,12 @@ func isPublic(p string) bool {
 		"/static/", "/healthz", "/about", "/paths", "/courses", "/forum",
 		"/competitions", "/blog", "/login", "/register", "/forgot", "/reset/",
 		"/invite/", "/logout",
+		// The practice bank is open to anyone by design — solving problems
+		// without an account is the point of it. What it does not expose is
+		// other people's work: /problems/result/{id} answers only the solver
+		// who wrote the submission, which TestASubmissionIsNotReadableByItsID
+		// is what actually holds that line.
+		"/problems",
 	} {
 		if p == prefix || strings.HasPrefix(p, prefix) {
 			return true

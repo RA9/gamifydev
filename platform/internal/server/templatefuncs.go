@@ -1,10 +1,33 @@
 package server
 
 import (
+	"encoding/json"
+	"html/template"
 	"strconv"
 	"strings"
 	"time"
 )
+
+// jsonValue embeds a Go value as JSON inside a data- attribute.
+//
+// Returns template.JS rather than a string so html/template doesn't escape the
+// quotes into entities; the value is ours (starter code an admin authored), and
+// it is read back with JSON.parse rather than evaluated.
+func jsonValue(v any) template.JS {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return template.JS("null")
+	}
+	return template.JS(b)
+}
+
+// pct renders a/b as a whole percentage, and 0 rather than a panic when b is 0.
+func pct(a, b int) int {
+	if b <= 0 {
+		return 0
+	}
+	return a * 100 / b
+}
 
 // initials returns up to two uppercase initials for a display name, used for
 // avatar chips in the admin UI.

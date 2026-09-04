@@ -1,0 +1,57 @@
+{{ define "content" }}
+<div class="page-head">
+  <span class="chip">Practice</span>
+  <h1>Problems</h1>
+  <p class="muted">
+    Small, self-contained exercises with tests that run the moment you submit.
+    No account needed — start solving, and keep what you solve.
+  </p>
+</div>
+
+{{ if not (index .Data "judgeable") }}
+  <div class="flash flash-warn">
+    Code execution is switched off on this server, so submissions can't be judged
+    right now. You can still read the problems.
+  </div>
+{{ end }}
+
+{{ $problems := index .Data "problems" }}
+{{ $solved := index .Data "solved" }}
+{{ if $problems }}
+  <div class="pb-progress">
+    <div class="pb-progress-head">
+      <strong>{{ $solved }} of {{ len $problems }} solved</strong>
+      <span class="muted">{{ pct $solved (len $problems) }}%</span>
+    </div>
+    <div class="pb-bar" role="progressbar" aria-valuenow="{{ $solved }}" aria-valuemin="0" aria-valuemax="{{ len $problems }}">
+      <span style="width:{{ pct $solved (len $problems) }}%"></span>
+    </div>
+  </div>
+{{ end }}
+
+{{ if index .Data "guestSolved" }}
+  <div class="pb-claim">
+    <p>
+      <strong>You've solved {{ $solved }} {{ if eq $solved 1 }}problem{{ else }}problems{{ end }} as a guest.</strong>
+      Create an account and they come with you — nothing is lost and nothing is re-done.
+    </p>
+    <a class="btn btn-primary btn-sm" href="/register">Keep my work</a>
+  </div>
+{{ end }}
+
+<div class="pb-list">
+  {{ range $problems }}
+    <a class="pb-row{{ if .Solved }} is-solved{{ end }}" href="/problems/{{ .Slug }}">
+      <span class="pb-mark" aria-hidden="true">{{ if .Solved }}✓{{ else }}○{{ end }}</span>
+      <span class="pb-title">
+        {{ .Title }}
+        {{ if .Solved }}<span class="visually-hidden">— solved</span>{{ end }}
+      </span>
+      {{ with .Topic }}<span class="pb-topic">{{ . }}</span>{{ end }}
+      <span class="pb-diff pb-diff-{{ .Difficulty }}">{{ titlecase .Difficulty }}</span>
+    </a>
+  {{ else }}
+    <p class="muted">No problems are published yet.</p>
+  {{ end }}
+</div>
+{{ end }}

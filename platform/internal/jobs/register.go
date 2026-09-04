@@ -84,6 +84,10 @@ func Register(r *Runner, st *store.Store, exec runner.Executor, enforceAttendanc
 	// actually execute code; see registerCheckJobs.
 	registerCheckJobs(r, st, exec)
 
+	// The practice-problem judge. Like checkpoint grading, only registered when
+	// the sandbox can actually execute code; see registerJudgeJobs.
+	registerJudgeJobs(r, st, exec)
+
 	// Phase 5: attendance resolution and the rolling-window evaluator. Ships in
 	// shadow mode; see internal/jobs/attendance.go.
 	registerAttendanceJobs(r, st, enforceAttendance)
@@ -104,10 +108,17 @@ func Register(r *Runner, st *store.Store, exec runner.Executor, enforceAttendanc
 			if err != nil {
 				return "", err
 			}
-			if runs == 0 && resets == 0 {
+			// A guest who never came back and never signed up. Given generously
+			// long — the whole promise of the problem bank is that you can try
+			// it, close the tab, and find your work still there.
+			guests, err := st.PruneGuestSessions(ctx, 90*24*time.Hour)
+			if err != nil {
+				return "", err
+			}
+			if runs == 0 && resets == 0 && guests == 0 {
 				return "", nil
 			}
-			return fmt.Sprintf("pruned %d old run(s), %d dead reset token(s)", runs, resets), nil
+			return fmt.Sprintf("pruned %d old run(s), %d dead reset token(s), %d stale guest(s)", runs, resets, guests), nil
 		},
 	})
 }
