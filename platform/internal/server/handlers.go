@@ -9,13 +9,31 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RA9/gamifydev/platform/internal/attendance"
 	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/cohort"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
 func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
-	s.render(w, r, "home.html", ViewData{Title: "GamifyDev — Learn to code by building"})
+	// The curriculum figures come from the database so the page cannot drift
+	// from the thing it describes.
+	stats, err := s.st.PublicCurriculumStats(r.Context())
+	if err != nil {
+		log.Printf("home: curriculum stats: %v", err)
+	}
+	s.render(w, r, "home.html", ViewData{
+		Title: "GamifyDev — a free CS program that expects you to show up",
+		Data: map[string]any{
+			"stats": stats,
+			// Stated on the page, so they are read from the policy packages
+			// rather than retyped into the copy where they would rot.
+			"cohortMax":     cohort.MaxSize,
+			"missedLimit":   attendance.UnexcusedLimit,
+			"excusedBudget": attendance.ExcusedBudget,
+			"reapplyDays":   int(attendance.ReapplyAfter.Hours() / 24),
+		},
+	})
 }
 
 func (s *Server) handleAbout(w http.ResponseWriter, r *http.Request) {

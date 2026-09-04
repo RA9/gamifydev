@@ -144,3 +144,36 @@ func (s *Store) RecentUsers(ctx context.Context, limit int) ([]User, error) {
 func signedDays(n int) string {
 	return strconv.Itoa(n) + " days"
 }
+
+// PublicStats are the few figures the landing page states about the
+// curriculum.
+//
+// Queried rather than written into the template, because the previous landing
+// page hardcoded "7 learning tracks" against a database holding four, and a
+// number nobody can update is a number that will be wrong.
+type PublicStats struct {
+	Paths   int
+	Courses int
+	Lessons int
+}
+
+// PublicCurriculumStats counts only published material — what a visitor could
+// actually go and read.
+func (s *Store) PublicCurriculumStats(ctx context.Context) (PublicStats, error) {
+	var st PublicStats
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM paths WHERE published = 1`).Scan(&st.Paths); err != nil {
+		return st, err
+	}
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM courses WHERE published = 1`).Scan(&st.Courses); err != nil {
+		return st, err
+	}
+	if err := s.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM lessons l
+		JOIN courses c ON c.id = l.course_id
+		WHERE c.published = 1`).Scan(&st.Lessons); err != nil {
+		return st, err
+	}
+	return st, nil
+}

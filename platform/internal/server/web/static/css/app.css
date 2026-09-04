@@ -4509,3 +4509,75 @@ body.portal.cohort-dark { background: #0a1622; }
 .field-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .field-aside { font-size: 0.8rem; font-weight: 600; color: var(--brand, #6d3bf5); text-decoration: none; }
 .field-aside:hover { text-decoration: underline; }
+
+/* ===== Landing: the honest entry page =====
+   The hero is sized by its content. The old one forced 100svh and left a
+   quarter of the first screen empty below the copy. */
+.lp-hero--plain { min-height: 0; padding: 132px 20px 96px; }
+.lp-hero-grid--single { grid-template-columns: 1fr; max-width: 780px; }
+.lp-hero-grid--single .lp-hero-inner { max-width: none; }
+
+.lp-eyebrow {
+    margin: 0 0 18px; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(255, 255, 255, 0.72);
+}
+.lp-sub--tight { margin-top: -6px; color: rgba(255, 255, 255, 0.82); }
+.lp-hero-count {
+    margin: 26px 0 0; font-size: 0.92rem; color: rgba(255, 255, 255, 0.75);
+}
+.lp-hero-count strong { color: #fff; font-weight: 800; }
+
+/* Numbered because it genuinely is a sequence — you cannot reach step 4
+   without step 1. */
+.lp-steps {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: 28px; max-width: 760px; margin-inline: auto;
+}
+.lp-steps li { display: flex; gap: 20px; align-items: flex-start; }
+.lp-step-n {
+    flex: 0 0 auto; display: grid; place-items: center;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--brand-50, #f1ecff); color: var(--brand-600, #6d3bf5);
+    font-weight: 900; font-size: 1rem;
+}
+.lp-steps h3 { margin: 6px 0 6px; font-size: 1.12rem; color: var(--slate-900); }
+.lp-steps p { margin: 0; color: var(--slate-600); line-height: 1.65; }
+
+.lp-section--muted { background: var(--slate-50, #f7f8fb); }
+.lp-terms { max-width: 760px; }
+.lp-terms-head { text-align: center; margin-bottom: 34px; }
+.lp-terms-lede { margin: 10px 0 0; color: var(--slate-500); }
+.lp-terms-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.lp-terms-list li {
+    background: #fff; border: 1px solid var(--slate-200); border-radius: 14px;
+    padding: 18px 20px; color: var(--slate-600); line-height: 1.65;
+}
+.lp-terms-list strong { display: block; color: var(--slate-900); margin-bottom: 3px; }
+.lp-terms-why {
+    margin: 26px 0 0; text-align: center; color: var(--slate-500);
+    font-size: 0.95rem; line-height: 1.7;
+}
+
+@media (max-width: 640px) {
+    .lp-hero--plain { padding: 108px 20px 72px; }
+    .lp-steps li { gap: 14px; }
+}
+
+/* ===== Landing: prose sections (about) ===== */
+.lp-prose { max-width: 720px; }
+.lp-h2--left { text-align: left; margin-inline: 0; max-width: none; }
+.lp-prose h3 {
+    margin: 34px 0 8px; font-size: 1.12rem; color: var(--slate-900);
+}
+.lp-prose p { margin: 0 0 14px; color: var(--slate-600); line-height: 1.75; }
+.lp-prose > h2:not(:first-child) { margin-top: 52px; }
+.lp-prose a { color: var(--brand-600, #6d3bf5); font-weight: 700; }
+
+/* Single-column statement hero: centre it, or the copy hugs the left of an
+   invisible box and the right half reads as an accident. */
+.lp-hero-grid--single .lp-hero-inner {
+    max-width: 680px; margin-inline: auto; text-align: center;
+}
+.lp-hero-grid--single .lp-sub { margin-inline: auto; }
+.lp-hero-grid--single .lp-hero-cta { justify-content: center; }
+.lp-hero h1 { text-wrap: balance; }
