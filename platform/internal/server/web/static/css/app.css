@@ -5837,3 +5837,30 @@ body.landing {
         transform: none;
     }
 }
+
+/* Practice problem filters. Plain links, not a widget: a filtered view has its
+   own URL, so it can be shared and the back button behaves. */
+.pb-facets { max-width: 760px; margin: 0 0 20px; }
+.pb-facet-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.pb-facet-label {
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--slate-400); width: 74px; flex: 0 0 auto;
+}
+.pb-facet {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--slate-200); background: #fff;
+    font-size: 0.8rem; font-weight: 700; color: var(--slate-600); text-decoration: none;
+    transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.pb-facet span { font-weight: 700; color: var(--slate-400); font-size: 0.72rem; }
+.pb-facet:hover { border-color: var(--brand-200); background: var(--brand-50); }
+.pb-facet.is-on { background: var(--brand-600); border-color: var(--brand-600); color: #fff; }
+.pb-facet.is-on span { color: var(--brand-200); }
+.pb-facet-clear { margin: 4px 0 0; font-size: 0.82rem; color: var(--slate-500); }
+
+@media (max-width: 640px) {
+    .pb-facet-label { width: 100%; }
+}

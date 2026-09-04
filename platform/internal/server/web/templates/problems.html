@@ -17,14 +17,15 @@
 
 {{ $problems := index .Data "problems" }}
 {{ $solved := index .Data "solved" }}
-{{ if $problems }}
+{{ $total := index .Data "total" }}
+{{ if $total }}
   <div class="pb-progress">
     <div class="pb-progress-head">
-      <strong>{{ $solved }} of {{ len $problems }} solved</strong>
-      <span class="muted">{{ pct $solved (len $problems) }}%</span>
+      <strong>{{ $solved }} of {{ $total }} solved</strong>
+      <span class="muted">{{ pct $solved $total }}%</span>
     </div>
-    <div class="pb-bar" role="progressbar" aria-valuenow="{{ $solved }}" aria-valuemin="0" aria-valuemax="{{ len $problems }}">
-      <span style="width:{{ pct $solved (len $problems) }}%"></span>
+    <div class="pb-bar" role="progressbar" aria-valuenow="{{ $solved }}" aria-valuemin="0" aria-valuemax="{{ $total }}">
+      <span style="width:{{ pct $solved $total }}%"></span>
     </div>
   </div>
 {{ end }}
@@ -39,6 +40,28 @@
   </div>
 {{ end }}
 
+<nav class="pb-facets" aria-label="Filter problems">
+  <div class="pb-facet-row">
+    <span class="pb-facet-label">Difficulty</span>
+    {{ range index .Data "difficulties" }}
+      <a class="pb-facet{{ if .Active }} is-on{{ end }}" href="{{ .Query }}"
+         {{ if .Active }}aria-current="true"{{ end }}>{{ titlecase .Name }} <span>{{ .Count }}</span></a>
+    {{ end }}
+  </div>
+  <div class="pb-facet-row">
+    <span class="pb-facet-label">Topic</span>
+    {{ range index .Data "topics" }}
+      <a class="pb-facet{{ if .Active }} is-on{{ end }}" href="{{ .Query }}"
+         {{ if .Active }}aria-current="true"{{ end }}>{{ .Name }} <span>{{ .Count }}</span></a>
+    {{ end }}
+  </div>
+  {{ if index .Data "filtered" }}
+    <p class="pb-facet-clear">
+      Showing {{ len $problems }} of {{ $total }} — <a href="/problems">show everything</a>
+    </p>
+  {{ end }}
+</nav>
+
 <div class="pb-list">
   {{ range $problems }}
     <a class="pb-row{{ if .Solved }} is-solved{{ end }}" href="/problems/{{ .Slug }}">
@@ -51,7 +74,7 @@
       <span class="pb-diff pb-diff-{{ .Difficulty }}">{{ titlecase .Difficulty }}</span>
     </a>
   {{ else }}
-    <p class="muted">No problems are published yet.</p>
+    <p class="muted">Nothing matches that combination. <a href="/problems">Show everything</a>.</p>
   {{ end }}
 </div>
 {{ end }}

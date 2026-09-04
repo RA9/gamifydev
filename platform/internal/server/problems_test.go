@@ -48,7 +48,7 @@ func (ts *testServer) solve(t *testing.T, slug string, by store.Solver) int64 {
 
 func TestTheProblemBankIsReadableWithoutAnAccount(t *testing.T) {
 	ts := newTestServer(t)
-	for _, path := range []string{"/problems", "/problems/two-sum"} {
+	for _, path := range []string{"/problems", "/problems/affordable-pairs"} {
 		w := ts.do(t, http.MethodGet, path, nil)
 		if w.Code != http.StatusOK {
 			t.Errorf("%s: status %d, want 200 — the bank exists to be tried without signing up", path, w.Code)
@@ -75,7 +75,7 @@ func TestASubmissionIsNotReadableByItsID(t *testing.T) {
 	ts := newTestServer(t)
 	mine, myID := ts.guest(t)
 	theirs, _ := ts.guest(t)
-	subID := ts.solve(t, "two-sum", myID)
+	subID := ts.solve(t, "affordable-pairs", myID)
 	path := "/problems/result/" + strconv.FormatInt(subID, 10)
 
 	if w := ts.do(t, http.MethodGet, path, nil, mine); w.Code != http.StatusOK {
@@ -100,8 +100,8 @@ func TestSigningUpKeepsWhatYouSolvedAsAGuest(t *testing.T) {
 	ts := newTestServer(t)
 	ts.register(t, "admin@example.com") // the first account takes the admin role
 	cookie, by := ts.guest(t)
-	ts.solve(t, "two-sum", by)
-	ts.solve(t, "sum-a-list", by)
+	ts.solve(t, "affordable-pairs", by)
+	ts.solve(t, "double-tiles", by)
 
 	w := ts.do(t, http.MethodPost, "/register", url.Values{
 		"name": {"Guest Turned Learner"}, "email": {"keeper@example.com"},
@@ -146,7 +146,7 @@ func TestSigningInAlsoClaimsGuestWork(t *testing.T) {
 	ts.register(t, "returning@example.com")
 
 	cookie, by := ts.guest(t)
-	ts.solve(t, "two-sum", by)
+	ts.solve(t, "affordable-pairs", by)
 
 	w := ts.do(t, http.MethodPost, "/login", url.Values{
 		"email": {"returning@example.com"}, "password": {"averysafepassword"},
@@ -174,7 +174,7 @@ func TestTheListShowsAGuestWhatTheyWouldKeep(t *testing.T) {
 		t.Errorf("a guest who has solved nothing is being asked to save nothing")
 	}
 
-	ts.solve(t, "two-sum", by)
+	ts.solve(t, "affordable-pairs", by)
 	after := ts.do(t, http.MethodGet, "/problems", nil, cookie).Body.String()
 	if !strings.Contains(after, "Keep my work") {
 		t.Errorf("a guest with work to lose is not being told they can keep it")
@@ -189,7 +189,7 @@ func TestTheListShowsAGuestWhatTheyWouldKeep(t *testing.T) {
 // language would fail for reasons that have nothing to do with the learner.
 func TestASubmissionCannotNameALanguageTheProblemDoesNotAccept(t *testing.T) {
 	ts := newTestServer(t)
-	p, err := ts.st.GetProblemBySlug(t.Context(), "two-sum")
+	p, err := ts.st.GetProblemBySlug(t.Context(), "affordable-pairs")
 	if err != nil {
 		t.Fatalf("get problem: %v", err)
 	}

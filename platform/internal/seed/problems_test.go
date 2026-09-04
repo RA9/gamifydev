@@ -6,6 +6,7 @@ import (
 
 	"github.com/RA9/gamifydev/platform/internal/jobs"
 	"github.com/RA9/gamifydev/platform/internal/runner"
+	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
 func newPythonExecutor(t *testing.T) runner.Executor {
@@ -32,16 +33,11 @@ func TestEverySeededProblemIsSolvableByItsOwnSolution(t *testing.T) {
 			if p.solution == "" {
 				t.Fatalf("problem %q ships no reference solution, so nothing proves it can be solved", p.slug)
 			}
-			// Give the tests the ids the store would have; Grade reports by id.
-			tests := p.tests
-			for i := range tests {
-				tests[i].ID = int64(i + 1)
-			}
-			res, err := jobs.GradeWithin(t.Context(), e, "python", p.solution, nil, tests, p.timeLimitMs)
+			res, err := jobs.GradeWithin(t.Context(), e, "python", p.solution, nil, withIDs(p.tests), p.timeLimitMs)
 			if err != nil {
 				t.Fatalf("grade: %v", err)
 			}
-			for _, c := range tests {
+			for _, c := range withIDs(p.tests) {
 				if !res.Passed[c.ID] {
 					t.Errorf("the reference solution failed %q\noutput:\n%s", c.Label, res.Output)
 				}
@@ -55,48 +51,22 @@ func TestEverySeededProblemIsSolvableByItsOwnSolution(t *testing.T) {
 	}
 }
 
-// Two problems tell the learner outright that the obvious approach is too slow.
-// That is a promise about the time limit, and a limit generous enough to let a
-// quadratic solution through turns the lesson into a lie.
-func TestTheProblemsThatPromiseBruteForceIsTooSlowMeanIt(t *testing.T) {
+// A problem whose statement says the obvious approach is too slow declares that
+// approach beside it, and this holds the claim to account. A limit generous
+// enough to let the slow approach through turns the lesson into a lie, and the
+// learner who writes the clever solution never finds out it mattered.
+func TestTheApproachesAProblemCallsTooSlowReallyAre(t *testing.T) {
 	e := newPythonExecutor(t)
-	bruteForce := map[string]string{
-		"two-sum": `def two_sum(nums, target):
-    for i in range(len(nums)):
-        for j in range(i + 1, len(nums)):
-            if nums[i] + nums[j] == target:
-                return (i, j)
-    return None
-`,
-		"group-anagrams": `def group_anagrams(words):
-    groups = []
-    for w in words:
-        for g in groups:
-            if sorted(g[0]) == sorted(w):
-                g.append(w)
-                break
-        else:
-            groups.append([w])
-    return groups
-`,
-	}
-	for slug, code := range bruteForce {
-		t.Run(slug, func(t *testing.T) {
+	claimed := 0
+	for _, p := range seedProblems {
+		if p.tooSlow == "" {
+			continue
+		}
+		claimed++
+		t.Run(p.slug, func(t *testing.T) {
 			t.Parallel()
-			var p seedProblem
-			for _, sp := range seedProblems {
-				if sp.slug == slug {
-					p = sp
-				}
-			}
-			if p.slug == "" {
-				t.Fatalf("no seeded problem %q — it was renamed or removed", slug)
-			}
-			tests := p.tests
-			for i := range tests {
-				tests[i].ID = int64(i + 1)
-			}
-			res, err := jobs.GradeWithin(t.Context(), e, "python", code, nil, tests, p.timeLimitMs)
+			tests := withIDs(p.tests)
+			res, err := jobs.GradeWithin(t.Context(), e, "python", p.tooSlow, nil, tests, p.timeLimitMs)
 			if err != nil {
 				t.Fatalf("grade: %v", err)
 			}
@@ -107,14 +77,108 @@ func TestTheProblemsThatPromiseBruteForceIsTooSlowMeanIt(t *testing.T) {
 				}
 			}
 			if passedAll {
-				t.Errorf("the brute-force solution passed everything inside %dms, so the "+
-					"statement's claim that it is too slow is not true", p.timeLimitMs)
+				t.Errorf("the slow approach passed everything inside %dms, so the "+
+					"statement's claim that it will not finish is not true", p.timeLimitMs)
 			}
-			// It should be the speed that stopped it, not a wrong answer —
-			// brute force here is correct, only slow.
+			// And it should be the clock that stopped it, not a wrong answer:
+			// the approach the statement warns about is correct, only slow.
 			if !res.TimedOut {
-				t.Errorf("brute force failed for some reason other than the time limit\noutput:\n%s", res.Output)
+				t.Errorf("the slow approach failed for some reason other than the time "+
+					"limit, so it is not the example the statement thinks it is\noutput:\n%s",
+					res.Output)
 			}
 		})
+	}
+	if claimed == 0 {
+		t.Error("no problem in the bank declares an approach that is too slow, so " +
+			"nothing here is testing the time limits at all")
+	}
+}
+
+// withIDs gives the checks the ids the store would have assigned, since Grade
+// reports results by id.
+func withIDs(checks []store.Check) []store.Check {
+	out := make([]store.Check, len(checks))
+	copy(out, checks)
+	for i := range out {
+		out[i].ID = int64(i + 1)
+	}
+	return out
+}
+
+// Slugs are the bank's public URLs and its upsert key. Two problems sharing one
+// would mean the second silently overwrites the first at seed time — no error,
+// just a problem that quietly stopped existing.
+func TestEveryProblemHasItsOwnSlug(t *testing.T) {
+	seen := map[string]bool{}
+	for _, p := range seedProblems {
+		if seen[p.slug] {
+			t.Errorf("two problems share the slug %q", p.slug)
+		}
+		seen[p.slug] = true
+	}
+}
+
+// Content rules the bank relies on, checked here rather than discovered by a
+// learner opening a half-written problem.
+func TestEveryProblemIsCompletelyAuthored(t *testing.T) {
+	for _, p := range seedProblems {
+		t.Run(p.slug, func(t *testing.T) {
+			if p.title == "" || p.statement == "" || p.topic == "" {
+				t.Error("missing a title, statement or topic")
+			}
+			switch p.difficulty {
+			case "easy", "medium", "hard":
+			default:
+				t.Errorf("difficulty %q is not one the database accepts", p.difficulty)
+			}
+			if p.timeLimitMs <= 0 {
+				t.Error("no time limit, so the judge would use the runner's default")
+			}
+			if len(p.starters) == 0 {
+				t.Error("no starter, so the editor would offer no language at all")
+			}
+			if len(p.tests) < 3 {
+				t.Errorf("only %d test(s) — too few to distinguish a solution from a guess", len(p.tests))
+			}
+			hidden := 0
+			for _, c := range p.tests {
+				if c.Hidden {
+					hidden++
+				}
+			}
+			if hidden == 0 {
+				t.Error("every test is visible, so a solution can be written to match the " +
+					"examples without solving anything")
+			}
+			if hidden == len(p.tests) {
+				t.Error("every test is hidden, so a learner is told nothing about what is checked")
+			}
+		})
+	}
+}
+
+// The bank has to be big enough, and spread widely enough, to be worth opening
+// twice. A single accidental deletion that halved it, or quietly left only the
+// hard ones, would still pass every other test in this file.
+func TestTheBankIsBigAndVariedEnoughToBrowse(t *testing.T) {
+	byDifficulty := map[string]int{}
+	byTopic := map[string]int{}
+	for _, p := range seedProblems {
+		byDifficulty[p.difficulty]++
+		byTopic[p.topic]++
+	}
+	if len(seedProblems) < 80 {
+		t.Errorf("only %d problems — too thin a bank to come back to", len(seedProblems))
+	}
+	// Somebody on their first week and somebody preparing for interviews have
+	// to both find something here, or the bank serves neither.
+	for _, d := range []string{"easy", "medium", "hard"} {
+		if byDifficulty[d] < 10 {
+			t.Errorf("only %d %s problems — not enough for anyone working at that level", byDifficulty[d], d)
+		}
+	}
+	if len(byTopic) < 10 {
+		t.Errorf("only %d topics — the bank teaches too narrow a range", len(byTopic))
 	}
 }

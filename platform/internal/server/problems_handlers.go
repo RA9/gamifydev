@@ -5,7 +5,9 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"net/url"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -108,30 +110,132 @@ func (s *Server) claimGuestWork(w http.ResponseWriter, r *http.Request, userID i
 
 // --- pages ------------------------------------------------------------------
 
+// facet is one filter chip: a value, how many problems carry it, and whether
+// it is the filter currently applied.
+type facet struct {
+	Name   string
+	Count  int
+	Active bool
+	Query  string // the querystring that applies (or clears) this filter
+}
+
 func (s *Server) handleProblems(w http.ResponseWriter, r *http.Request) {
 	by := s.solver(r)
-	list, err := s.st.ListProblems(r.Context(), by)
+	all, err := s.st.ListProblems(r.Context(), by)
 	if err != nil {
 		http.Error(w, "could not load the problems", http.StatusInternalServerError)
 		return
 	}
+
+	// Progress is always over the whole bank. A filtered "3 of 6 solved" would
+	// read as progress through the bank when it is progress through a slice of
+	// it, and would jump around every time the reader changed a filter.
 	solved := 0
-	for _, p := range list {
+	for _, p := range all {
 		if p.Solved {
 			solved++
 		}
 	}
+
+	wantDifficulty := r.URL.Query().Get("difficulty")
+	wantTopic := r.URL.Query().Get("topic")
+	shown := make([]store.Problem, 0, len(all))
+	for _, p := range all {
+		if wantDifficulty != "" && p.Difficulty != wantDifficulty {
+			continue
+		}
+		if wantTopic != "" && p.Topic != wantTopic {
+			continue
+		}
+		shown = append(shown, p)
+	}
+
 	s.render(w, r, "problems.html", ViewData{
 		Title: "Practice problems",
 		Data: map[string]any{
-			"problems": list,
-			"solved":   solved,
+			"problems":     shown,
+			"total":        len(all),
+			"solved":       solved,
+			"filtered":     wantDifficulty != "" || wantTopic != "",
+			"difficulties": difficultyFacets(all, wantDifficulty, wantTopic),
+			"topics":       topicFacets(all, wantDifficulty, wantTopic),
 			// A guest with work to lose is the only one who should be nudged to
 			// sign up, and they should be told exactly what they'd be keeping.
 			"guestSolved": by.GuestID != 0 && solved > 0,
 			"judgeable":   s.exec != nil && s.exec.Enabled(),
 		},
 	})
+}
+
+// difficultyFacets builds the difficulty chips in the order a learner would
+// climb them, rather than alphabetically — "easy, hard, medium" is a list that
+// has to be read rather than glanced at.
+func difficultyFacets(all []store.Problem, active, topic string) []facet {
+	counts := map[string]int{}
+	for _, p := range all {
+		if topic == "" || p.Topic == topic {
+			counts[p.Difficulty]++
+		}
+	}
+	out := make([]facet, 0, 3)
+	for _, d := range []string{"easy", "medium", "hard"} {
+		if counts[d] == 0 {
+			continue
+		}
+		out = append(out, facet{
+			Name: d, Count: counts[d], Active: d == active,
+			// Clicking the active chip clears it, so a filter is never a
+			// one-way door that needs the browser's back button.
+			Query: facetQuery(pickUnless(d, active), topic),
+		})
+	}
+	return out
+}
+
+func topicFacets(all []store.Problem, difficulty, active string) []facet {
+	counts := map[string]int{}
+	var order []string
+	for _, p := range all {
+		if difficulty != "" && p.Difficulty != difficulty {
+			continue
+		}
+		if counts[p.Topic] == 0 {
+			order = append(order, p.Topic)
+		}
+		counts[p.Topic]++
+	}
+	sort.Strings(order)
+	out := make([]facet, 0, len(order))
+	for _, t := range order {
+		out = append(out, facet{
+			Name: t, Count: counts[t], Active: t == active,
+			Query: facetQuery(difficulty, pickUnless(t, active)),
+		})
+	}
+	return out
+}
+
+// pickUnless returns want, unless it is already what's applied — in which case
+// the chip clears the filter instead of re-applying it.
+func pickUnless(want, current string) string {
+	if want == current {
+		return ""
+	}
+	return want
+}
+
+func facetQuery(difficulty, topic string) string {
+	q := url.Values{}
+	if difficulty != "" {
+		q.Set("difficulty", difficulty)
+	}
+	if topic != "" {
+		q.Set("topic", topic)
+	}
+	if len(q) == 0 {
+		return "/problems"
+	}
+	return "/problems?" + q.Encode()
 }
 
 func (s *Server) handleProblem(w http.ResponseWriter, r *http.Request) {
