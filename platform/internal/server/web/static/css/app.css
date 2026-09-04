@@ -4224,12 +4224,9 @@ body.portal.placement-dark { background: #0a1622; }
 .dash-dark .mini-name { color: #f1f6fb; }
 .dash-dark .mini-sub { color: #6b8aa8; }
 
-/* ===== Career paths (/paths, /paths/:slug) — dark theme =====
-   Scoped to body.paths-dark (set only by handlePaths/handlePath) so the
-   shared .card/.chip/.grid-cards/.course-meta/etc. classes keep their light
-   styling on every other page (courses, course detail, admin, ...). Guests
-   still see the public marketing shell (layout.html), which never sets this
-   class, so this only affects the signed-in view. */
+/* ===== Career path detail (/paths/:slug) — dark portal theme =====
+   Scoped to body.paths-dark so shared card and metadata styles stay light on
+   other pages. The redesigned /paths index uses its own paths-* components. */
 body.portal.paths-dark { background: #0a1622; }
 .paths-dark .page-head h1 { color: #f1f6fb; }
 .paths-dark .page-head .muted { color: #6b8aa8; }
@@ -6001,4 +5998,508 @@ body.landing {
 
 @media (max-width: 640px) {
     .pb-facet-label { width: 100%; }
+}
+
+/* ============================================================
+   Career path index
+   ============================================================ */
+body.portal.paths-index {
+    background: #f5f6fa;
+}
+.paths-index .app-main {
+    padding-top: 28px;
+}
+.paths-page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px 96px;
+}
+.portal .paths-page {
+    padding: 0 0 68px;
+}
+.paths-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(360px, 0.72fr);
+    gap: clamp(44px, 7vw, 88px);
+    align-items: center;
+    padding: clamp(48px, 7vw, 84px);
+    overflow: hidden;
+    border-radius: 28px;
+    background: #101323;
+    color: #fff;
+}
+.paths-hero::before {
+    content: "";
+    position: absolute;
+    top: -170px;
+    right: -120px;
+    width: 430px;
+    height: 430px;
+    border: 1px solid rgba(183, 243, 74, 0.12);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 54px rgba(183, 243, 74, 0.025),
+        0 0 0 108px rgba(183, 243, 74, 0.018);
+    pointer-events: none;
+}
+.paths-hero-copy,
+.paths-method {
+    position: relative;
+    z-index: 1;
+}
+.paths-eyebrow,
+.paths-section-label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 16px;
+    color: #b7f34a;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+.paths-eyebrow > span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #b7f34a;
+    box-shadow: 0 0 0 5px rgba(183, 243, 74, 0.1);
+}
+.paths-hero h1 {
+    max-width: 690px;
+    margin: 0;
+    color: #fff;
+    font-size: clamp(2.7rem, 5.6vw, 4.8rem);
+    font-weight: 900;
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+}
+.paths-hero h1 em {
+    color: #b7f34a;
+    font-style: normal;
+}
+.paths-hero-copy > p:not(.paths-eyebrow) {
+    max-width: 610px;
+    margin: 24px 0 30px;
+    color: #aab5c7;
+    font-size: 1.05rem;
+    line-height: 1.72;
+}
+.paths-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.paths-hero-actions .btn {
+    border-radius: 11px;
+    background: #b7f34a;
+    border-color: #b7f34a;
+    color: #17210a;
+}
+.paths-hero-actions .btn:hover {
+    background: #c7fa68;
+    border-color: #c7fa68;
+    color: #17210a;
+}
+.paths-hero-actions .ic,
+.paths-guide-btn .ic,
+.paths-card-foot .ic {
+    width: 1rem;
+    height: 1rem;
+}
+.paths-text-link {
+    color: #fff;
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-color: rgba(255,255,255,.3);
+    text-underline-offset: 5px;
+}
+.paths-text-link:hover {
+    color: #b7f34a;
+    text-decoration-color: #b7f34a;
+}
+.paths-method {
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 18px;
+    background: rgba(255,255,255,.055);
+    box-shadow: 0 28px 70px -36px rgba(0,0,0,.9);
+}
+.paths-method-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.paths-method-head span {
+    color: #7f8a9d;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+.paths-method-head strong {
+    color: #b7f34a;
+    font-size: 0.72rem;
+}
+.paths-method ol {
+    list-style: none;
+    margin: 0;
+    padding: 8px 18px;
+}
+.paths-method li {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.paths-method li:last-child {
+    border-bottom: 0;
+}
+.paths-method li > span {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(183,243,74,.25);
+    border-radius: 9px;
+    color: #b7f34a;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.64rem;
+    font-weight: 900;
+}
+.paths-method li strong {
+    display: block;
+    color: #fff;
+    font-size: 0.9rem;
+}
+.paths-method li small {
+    display: block;
+    margin-top: 3px;
+    color: #8793a6;
+    font-size: 0.76rem;
+    line-height: 1.45;
+}
+.paths-method > p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 14px 18px;
+    background: rgba(0,0,0,.16);
+    color: #98a4b7;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.paths-method > p .ic {
+    width: 0.85rem;
+    height: 0.85rem;
+    color: #b7f34a;
+}
+
+.paths-catalog {
+    padding: 104px 0 92px;
+}
+.paths-section-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.55fr);
+    gap: 60px;
+    align-items: end;
+    margin-bottom: 42px;
+}
+.paths-section-label {
+    color: var(--brand-600);
+}
+.paths-section-head h2,
+.paths-guide h2 {
+    max-width: 680px;
+    margin: 0;
+    color: var(--slate-900);
+    font-size: clamp(2rem, 4.2vw, 3.35rem);
+    font-weight: 900;
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+}
+.paths-section-head > p {
+    margin: 0;
+    color: var(--slate-500);
+    line-height: 1.72;
+}
+.paths-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+.paths-card {
+    position: relative;
+    display: flex;
+    min-height: 360px;
+    flex-direction: column;
+    padding: 30px;
+    overflow: hidden;
+    border: 1px solid var(--slate-200);
+    border-radius: 19px;
+    background: #fff;
+    color: var(--slate-700);
+    box-shadow: 0 12px 34px -26px rgba(15,23,42,.28);
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.paths-card::after {
+    content: "";
+    position: absolute;
+    top: -54px;
+    right: -54px;
+    width: 150px;
+    height: 150px;
+    border: 24px solid var(--brand-50);
+    border-radius: 50%;
+    opacity: .8;
+    transition: transform .25s ease;
+}
+.paths-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--brand-300, #a996ff);
+    color: var(--slate-700);
+    box-shadow: 0 24px 46px -28px rgba(87,49,200,.34);
+}
+.paths-card:hover::after {
+    transform: scale(1.08);
+}
+.paths-card-head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.paths-card-index {
+    color: var(--slate-300);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+.paths-card-level {
+    padding: 5px 9px;
+    border: 1px solid var(--slate-200);
+    border-radius: 8px;
+    background: var(--slate-50);
+    color: var(--slate-500);
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+.paths-card-icon {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    margin: 30px 0 20px;
+    border-radius: 15px;
+    background: var(--brand-50);
+    font-size: 1.65rem;
+}
+.paths-card h3 {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    color: var(--slate-900);
+    font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+}
+.paths-card > p {
+    position: relative;
+    z-index: 1;
+    margin: 9px 0 0;
+    color: var(--slate-500);
+    line-height: 1.55;
+}
+.paths-card-map {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    margin: auto 0 22px;
+    padding-top: 30px;
+}
+.paths-card-map i {
+    flex: 1 1 0;
+    min-width: 4px;
+    max-width: 30px;
+    height: 5px;
+    border-radius: 99px;
+    background: var(--brand-200);
+}
+.paths-card-map i:first-child {
+    background: var(--brand-600);
+}
+.paths-card-foot {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-top: 18px;
+    border-top: 1px solid var(--slate-200);
+    color: var(--slate-500);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+.paths-card-foot span,
+.paths-card-foot strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.paths-card-foot strong {
+    margin-left: auto;
+    color: var(--brand-700);
+}
+.paths-empty {
+    grid-column: 1 / -1;
+    padding: 64px 30px;
+    border: 1px dashed var(--slate-300);
+    border-radius: 18px;
+    text-align: center;
+}
+.paths-empty > span {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 15px;
+    border-radius: 14px;
+    background: var(--brand-50);
+    color: var(--brand-600);
+}
+.paths-empty h3 { margin: 0; color: var(--slate-900); }
+.paths-empty p { margin: 7px 0 20px; color: var(--slate-500); }
+
+.paths-guide {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 44px;
+    padding: 48px 54px;
+    border: 1px solid var(--brand-200);
+    border-radius: 22px;
+    background: var(--brand-50);
+}
+.paths-guide > div {
+    max-width: 690px;
+}
+.paths-guide h2 {
+    font-size: clamp(1.7rem, 3.5vw, 2.65rem);
+}
+.paths-guide > div > p:last-child {
+    margin: 16px 0 0;
+    color: var(--slate-600);
+    line-height: 1.7;
+}
+.paths-guide-btn {
+    flex: 0 0 auto;
+    border-radius: 11px;
+    background: var(--brand-600);
+    border-color: var(--brand-700);
+    color: #fff;
+}
+.paths-guide-btn:hover {
+    color: #fff;
+}
+
+@media (max-width: 900px) {
+    .paths-hero {
+        grid-template-columns: 1fr;
+    }
+    .paths-method {
+        max-width: 620px;
+    }
+    .paths-section-head {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .paths-section-head > p {
+        max-width: 640px;
+    }
+    .paths-guide {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 680px) {
+    .paths-page {
+        padding: 18px 16px 68px;
+    }
+    .portal .paths-page {
+        padding-bottom: 48px;
+    }
+    .paths-hero {
+        gap: 38px;
+        padding: 42px 24px;
+        border-radius: 20px;
+    }
+    .paths-hero h1 {
+        font-size: clamp(2.45rem, 13vw, 3.6rem);
+    }
+    .paths-hero-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .paths-hero-actions .btn {
+        width: 100%;
+    }
+    .paths-text-link {
+        padding: 5px 0;
+        text-align: center;
+    }
+    .paths-catalog {
+        padding: 74px 0 68px;
+    }
+    .paths-grid {
+        grid-template-columns: 1fr;
+    }
+    .paths-card {
+        min-height: 340px;
+        padding: 24px;
+    }
+    .paths-card-foot {
+        flex-wrap: wrap;
+    }
+    .paths-card-foot strong {
+        width: 100%;
+        margin: 2px 0 0;
+    }
+    .paths-guide {
+        padding: 34px 26px;
+    }
+    .paths-guide-btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .paths-card,
+    .paths-card::after {
+        transition: none;
+    }
+    .paths-card:hover {
+        transform: none;
+    }
 }

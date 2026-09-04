@@ -1,23 +1,88 @@
 {{ define "content" }}
-<div class="page-head">
-  <span class="chip">Curriculum</span>
-  <h1>Choose your path</h1>
-  <p class="muted">A career path is a guided curriculum of courses — follow it top to bottom to go from beginner to job-ready. Or <a href="/courses">browse all courses →</a></p>
-</div>
-
-<div class="grid-cards">
-  {{ range index .Data "paths" }}
-    <a class="card linkcard path-card" href="/paths/{{ .Slug }}">
-      <div class="path-card-top">
-        <div class="course-emoji">{{ if .Emoji }}{{ .Emoji }}{{ else }}🧭{{ end }}</div>
-        <span class="badge badge-info">{{ .Level }}</span>
+{{ $paths := index .Data "paths" }}
+<div class="paths-page">
+  <section class="paths-hero">
+    <div class="paths-hero-copy">
+      <p class="paths-eyebrow"><span></span> Structured learning paths</p>
+      <h1>Pick a direction.<br><em>Keep the sequence.</em></h1>
+      <p>
+        Each path is an ordered curriculum built around practical work and required
+        checkpoints. Start at the beginning or use placement to find the right entry point.
+      </p>
+      <div class="paths-hero-actions">
+        {{ if .User }}
+          <a class="btn btn-primary" href="/dashboard">Return to dashboard {{ icon "arrowright" }}</a>
+        {{ else }}
+          <a class="btn btn-primary" href="/register">Find my starting point {{ icon "arrowright" }}</a>
+        {{ end }}
+        <a class="paths-text-link" href="/courses">Browse individual courses</a>
       </div>
-      <h3>{{ .Title }}</h3>
-      <p class="muted">{{ .Tagline }}</p>
-      <span class="course-meta">{{ .CourseCount }} course{{ if ne .CourseCount 1 }}s{{ end }} · {{ .LessonCount }} lesson{{ if ne .LessonCount 1 }}s{{ end }}</span>
-    </a>
-  {{ else }}
-    <p class="muted">No career paths are published yet. Browse the <a href="/courses">course catalog</a> instead.</p>
-  {{ end }}
+    </div>
+
+    <aside class="paths-method" aria-label="How a learning path works">
+      <div class="paths-method-head">
+        <span>THE GAMIFYDEV METHOD</span>
+        <strong>{{ len $paths }} published path{{ if ne (len $paths) 1 }}s{{ end }}</strong>
+      </div>
+      <ol>
+        <li><span>01</span><div><strong>Learn the concept</strong><small>Focused lessons, in a deliberate order.</small></div></li>
+        <li><span>02</span><div><strong>Practise the skill</strong><small>Exercises turn reading into working knowledge.</small></div></li>
+        <li><span>03</span><div><strong>Clear the checkpoint</strong><small>Build something that proves you can use it.</small></div></li>
+      </ol>
+      <p>{{ icon "lock" }} The next course opens when the required work passes.</p>
+    </aside>
+  </section>
+
+  <section class="paths-catalog" aria-labelledby="paths-title">
+    <div class="paths-section-head">
+      <div>
+        <p class="paths-section-label">Explore the curriculum</p>
+        <h2 id="paths-title">Choose what you want to build toward.</h2>
+      </div>
+      <p>Every published lesson is open to browse. Create an account when you are ready to track progress and join a cohort.</p>
+    </div>
+
+    <div class="paths-grid">
+      {{ range $i, $path := $paths }}
+        <a class="paths-card" href="/paths/{{ $path.Slug }}">
+          <div class="paths-card-head">
+            <span class="paths-card-index">0{{ add $i 1 }}</span>
+            <span class="paths-card-level">{{ $path.Level }}</span>
+          </div>
+          <div class="paths-card-icon" aria-hidden="true">{{ if $path.Emoji }}{{ $path.Emoji }}{{ else }}🧭{{ end }}</div>
+          <h3>{{ $path.Title }}</h3>
+          <p>{{ $path.Tagline }}</p>
+          <div class="paths-card-map" aria-hidden="true">
+            {{ range seq $path.CourseCount }}<i></i>{{ end }}
+          </div>
+          <div class="paths-card-foot">
+            <span>{{ icon "layers" }} {{ $path.CourseCount }} course{{ if ne $path.CourseCount 1 }}s{{ end }}</span>
+            <span>{{ icon "book" }} {{ $path.LessonCount }} lesson{{ if ne $path.LessonCount 1 }}s{{ end }}</span>
+            <strong>View path {{ icon "arrowright" }}</strong>
+          </div>
+        </a>
+      {{ else }}
+        <div class="paths-empty">
+          <span>{{ icon "compass" }}</span>
+          <h3>Paths are being prepared.</h3>
+          <p>There are no published paths yet. You can still explore the course library.</p>
+          <a class="btn btn-primary" href="/courses">Browse all courses</a>
+        </div>
+      {{ end }}
+    </div>
+  </section>
+
+  <section class="paths-guide">
+    <div>
+      <p class="paths-section-label">Not sure which one fits?</p>
+      <h2>You do not have to guess your level.</h2>
+      <p>The placement diagnostic checks your fundamentals and recommends where to begin. It decides your starting point, not whether you are allowed to learn.</p>
+    </div>
+    {{ if .User }}
+      <a class="btn paths-guide-btn" href="/dashboard">View my recommendation {{ icon "arrowright" }}</a>
+    {{ else }}
+      <a class="btn paths-guide-btn" href="/register">Take the placement test {{ icon "arrowright" }}</a>
+    {{ end }}
+  </section>
 </div>
 {{ end }}

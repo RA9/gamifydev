@@ -99,6 +99,8 @@ func chooseLayout(page string, signedIn bool) string {
 	switch {
 	case page == "home.html" || page == "about.html":
 		return layoutLanding
+	case !signedIn && page == "paths.html":
+		return layoutLanding
 	case authPages[page]:
 		return layoutAuth
 	case strings.HasPrefix(page, "admin_"):
