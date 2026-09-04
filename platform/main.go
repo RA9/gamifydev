@@ -50,21 +50,17 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	// Seed the embedded course content on a fresh database (or when SEED=1 is
-	// set to force a re-seed). Non-fatal: a content issue shouldn't down the app.
-	if os.Getenv("SEED") == "1" {
-		if r, err := seed.Run(ctx, st); err != nil {
-			log.Printf("seed (forced): %v", err)
-		} else {
-			log.Printf("seed (forced): %d courses, %d lessons, %d assignments, %d paths, %d diagnostic items, %d problems",
-				r.Courses, r.Lessons, r.Assignments, r.Paths, r.Items, r.Problems)
-		}
-	} else if r, seeded, err := seed.RunIfEmpty(ctx, st); err != nil {
-		log.Printf("seed: %v", err)
-	} else if seeded {
-		log.Printf("seed: fresh database — %d courses, %d lessons, %d assignments, %d paths, %d diagnostic items, %d problems",
-			r.Courses, r.Lessons, r.Assignments, r.Paths, r.Items, r.Problems)
+	// Synchronize embedded content after every migration run. Seed writes are
+	// idempotent (stable slugs are upserted and child collections are replaced),
+	// so every instance can do this at boot without creating duplicate rows. A
+	// seed failure is fatal: serving with partially synchronized curriculum data
+	// is no safer than serving against a partially migrated schema.
+	r, err := seed.Run(ctx, st)
+	if err != nil {
+		log.Fatalf("seed: %v", err)
 	}
+	log.Printf("seed: synchronized %d courses, %d lessons, %d assignments, %d paths, %d diagnostic items, %d problems",
+		r.Courses, r.Lessons, r.Assignments, r.Paths, r.Items, r.Problems)
 
 	// Redis is optional — connect only if REDIS_URL is configured. Future
 	// features (caching, rate limiting, live competition pub/sub) will use it.

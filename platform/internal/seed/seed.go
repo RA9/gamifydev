@@ -112,21 +112,10 @@ var seedPaths = []struct {
 		}},
 }
 
-// RunIfEmpty seeds content only when there are no courses yet (a fresh DB).
-func RunIfEmpty(ctx context.Context, st *store.Store) (Result, bool, error) {
-	courses, err := st.ListCourses(ctx, true)
-	if err != nil {
-		return Result{}, false, err
-	}
-	if len(courses) > 0 {
-		return Result{}, false, nil
-	}
-	r, err := Run(ctx, st)
-	return r, true, err
-}
-
-// Run (idempotently) upserts all embedded courses, lessons, and sample
-// assignments into the store.
+// Run synchronizes all embedded content with the store. It is safe to call at
+// every process start: top-level records are upserted by stable slug and ordered
+// child collections are replaced transactionally, so a second run updates the
+// existing content instead of appending duplicates.
 func Run(ctx context.Context, st *store.Store) (Result, error) {
 	var res Result
 	raw, err := contentFS.ReadFile("data/app.json")

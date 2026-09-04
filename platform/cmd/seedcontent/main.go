@@ -1,6 +1,6 @@
-// Command seedcontent (idempotently) seeds the embedded course content into a
-// database. The app also auto-seeds a fresh DB on boot, so this is mainly for
-// manually (re)seeding a specific database, e.g. production:
+// Command seedcontent idempotently synchronizes the embedded course content
+// into a database. The server performs the same synchronization on every boot;
+// this command is useful for running it without starting the HTTP server:
 //
 //	go run ./cmd/seedcontent                                  # local gamifydev.db
 //	DATABASE_URL=libsql://...?authToken=... go run ./cmd/seedcontent   # Turso
@@ -34,5 +34,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("seed: %v", err)
 	}
-	log.Printf("seeded %d courses, %d lessons, %d assignments", r.Courses, r.Lessons, r.Assignments)
+	log.Printf("seeded %d courses, %d lessons, %d assignments, %d paths, %d diagnostic items, %d problems",
+		r.Courses, r.Lessons, r.Assignments, r.Paths, r.Items, r.Problems)
 }
