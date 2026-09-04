@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
@@ -14,7 +15,7 @@ import (
 // standup, attendance and sanction jobs named in the PRD are added by their own
 // phases rather than being stubbed here — a registered job that does nothing is
 // worse than an absent one, because it reports healthy.
-func Register(r *Runner, st *store.Store, enforceAttendance bool) {
+func Register(r *Runner, st *store.Store, exec runner.Executor, enforceAttendance bool) {
 	// activity:rollup materializes activity_days from step completions and
 	// submissions. It re-scans a trailing window rather than only "since last
 	// run" so a missed run, a clock skew, or a late-arriving row still lands;
@@ -78,6 +79,10 @@ func Register(r *Runner, st *store.Store, enforceAttendance bool) {
 
 	// Phase 3: cohort formation, repacking, and the daily standup window.
 	registerCohortJobs(r, st)
+
+	// Automated checkpoint grading. Only registered when the sandbox can
+	// actually execute code; see registerCheckJobs.
+	registerCheckJobs(r, st, exec)
 
 	// Phase 5: attendance resolution and the rolling-window evaluator. Ships in
 	// shadow mode; see internal/jobs/attendance.go.

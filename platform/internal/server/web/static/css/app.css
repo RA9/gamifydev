@@ -1904,18 +1904,18 @@ body.portal {
 .app-links {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     flex: 1;
     min-width: 0;
 }
 .app-links a {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     color: #6b8aa8;
     font-weight: 700;
-    font-size: 0.92rem;
-    padding: 8px 13px;
+    font-size: 0.89rem;
+    padding: 8px 10px;
     border-radius: 10px;
     transition:
         background 0.12s,
@@ -2063,10 +2063,11 @@ body.portal {
     .lab-crumb .lab-crumb-sep { display: none; }
 }
 
-/* The learner nav grew with the cohort program (schedule, cohort), so it
-   collapses into the burger earlier than the old 860px breakpoint — otherwise
-   the last links overrun the avatar and sign-out. */
-@media (max-width: 1080px) {
+/* The learner nav grew with the cohort program (schedule, cohort), and gains a
+   ninth item when code execution is enabled and the Playground link appears.
+   Sized for that worst case: below this it collapses into the burger, because
+   otherwise the last links overrun the avatar and sign-out. */
+@media (max-width: 1300px) {
     .app-burger {
         display: grid;
     }
@@ -4441,3 +4442,24 @@ body.portal.cohort-dark { background: #0a1622; }
 .at-decide { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .at-decide input { flex: 1; min-width: 200px; }
 .co-attend-link { display: inline-block; margin-top: 14px; font-weight: 700; font-size: 0.88rem; color: #38bdf8; }
+
+/* ===== Automated checkpoint checks ===== */
+.ck-panel { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--slate-200); }
+.ck-title { margin: 0 0 10px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--slate-400); }
+.ck-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ck { display: flex; align-items: flex-start; gap: 9px; padding: 8px 11px; border-radius: 9px;
+    font-size: 0.9rem; border: 1px solid var(--slate-200); background: var(--slate-50); }
+.ck-mark { font-weight: 800; line-height: 1.4; color: var(--slate-400); }
+.ck.is-pass { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
+.ck.is-pass .ck-mark { color: #22c55e; }
+.ck.is-fail { border-color: #fecaca; background: #fef2f2; color: #991b1b; }
+.ck.is-fail .ck-mark { color: #ef4444; }
+.ck.is-pending { opacity: 0.7; }
+.ck-advisory { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--slate-400); margin-left: 6px; }
+.ck-output { margin-top: 12px; }
+.ck-output summary { cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--slate-500); }
+.ck-output pre { margin: 8px 0 0; padding: 12px 14px; border-radius: 10px; overflow-x: auto;
+    background: #0f172a; color: #e2e8f0; font-size: 0.82rem; line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }

@@ -37,6 +37,11 @@ type Submission struct {
 	GraderName string
 	GradedAt   string
 	CreatedAt  string
+	// Automated check results, populated where the caller asked for them.
+	ChecksRanAt  sql.NullString
+	ChecksPassed int
+	ChecksTotal  int
+	ChecksOutput string
 }
 
 func (s Submission) IsGraded() bool { return s.Status == "graded" }
@@ -218,11 +223,14 @@ func (s *Store) CreateSubmission(ctx context.Context, assignmentID, userID int64
 // LatestSubmission returns a learner's most recent submission for an assignment.
 func (s *Store) LatestSubmission(ctx context.Context, assignmentID, userID int64) (*Submission, error) {
 	row := s.db.QueryRowContext(ctx, `
-		SELECT id, code, note, status, score, feedback, graded_at, created_at
+		SELECT id, code, note, status, score, feedback, COALESCE(graded_at,''), created_at,
+		       checks_ran_at, checks_passed, checks_total, checks_output
 		FROM submissions WHERE assignment_id = ? AND user_id = ? ORDER BY created_at DESC LIMIT 1`,
 		assignmentID, userID)
 	var sub Submission
-	err := row.Scan(&sub.ID, &sub.Code, &sub.Note, &sub.Status, &sub.Score, &sub.Feedback, &sub.GradedAt, &sub.CreatedAt)
+	err := row.Scan(&sub.ID, &sub.Code, &sub.Note, &sub.Status, &sub.Score, &sub.Feedback,
+		&sub.GradedAt, &sub.CreatedAt,
+		&sub.ChecksRanAt, &sub.ChecksPassed, &sub.ChecksTotal, &sub.ChecksOutput)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -269,7 +277,7 @@ func (s *Store) GradingQueue(ctx context.Context, onlyPending bool) ([]Submissio
 func (s *Store) GetSubmission(ctx context.Context, id int64) (*Submission, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT sub.id, sub.user_id, sub.code, sub.note, sub.status, sub.score, sub.feedback,
-		       sub.graded_at, sub.created_at, u.name, u.email,
+		       COALESCE(sub.graded_at,''), sub.created_at, u.name, u.email,
 		       a.id, a.slug, a.title, a.language, a.prompt, a.max_points,
 		       COALESCE(g.name,'')
 		FROM submissions sub

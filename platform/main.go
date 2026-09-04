@@ -133,7 +133,7 @@ func main() {
 	} else {
 		// Attendance enforcement is off unless explicitly switched on. The PRD
 		// requires a calibration period in shadow mode first.
-		jobs.Register(runner, st, os.Getenv("ENFORCE_ATTENDANCE") == "1")
+		jobs.Register(runner, st, exec, os.Getenv("ENFORCE_ATTENDANCE") == "1")
 	}
 
 	srv, err := server.New(st, rc, mailer, exec, runner, os.Getenv("ENFORCE_ATTENDANCE") == "1", secure)

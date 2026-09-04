@@ -50,7 +50,16 @@ func (s *Server) handleAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 	if sub, err := s.st.LatestSubmission(r.Context(), a.ID, u.ID); err == nil {
 		data["submission"] = sub
+		// Automated check results, so a learner sees exactly which requirement
+		// failed rather than waiting on a human to tell them.
+		if results, err := s.st.SubmissionCheckResults(r.Context(), sub.ID); err == nil && len(results) > 0 {
+			data["checks"] = results
+		}
 	}
+	// Whether this checkpoint is machine-gradable at all shapes what we promise
+	// the learner about how fast they'll hear back.
+	auto, _ := s.st.AutoGradable(r.Context(), a.ID)
+	data["autoGraded"] = auto && s.exec != nil && s.exec.Enabled()
 	s.render(w, r, "assignment.html", ViewData{Title: a.Title, Data: data})
 }
 

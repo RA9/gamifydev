@@ -26,8 +26,34 @@
           <p>{{ .Feedback }}</p>
         </div>
       {{ else if ne .Status "graded" }}
-        <p class="muted">Waiting for a mentor to review it.</p>
+        {{ if index $.Data "autoGraded" }}
+          <p class="muted">Your checks run automatically — results appear here within a minute.</p>
+        {{ else }}
+          <p class="muted">Waiting for a mentor to review it.</p>
+        {{ end }}
       {{ end }}
+
+      {{ with index $.Data "checks" }}
+      <div class="ck-panel">
+        <p class="ck-title">Automated checks</p>
+        <ul class="ck-list">
+          {{ range . }}
+          <li class="ck{{ if not .Ran }} is-pending{{ else if .Passed }} is-pass{{ else }} is-fail{{ end }}">
+            <span class="ck-mark">{{ if not .Ran }}○{{ else if .Passed }}✓{{ else }}✗{{ end }}</span>
+            <span class="ck-label">{{ .Label }}{{ if eq .Points 0 }} <span class="ck-advisory">advisory</span>{{ end }}</span>
+          </li>
+          {{ end }}
+        </ul>
+        {{ with $.Data }}{{ end }}
+      </div>
+      {{ end }}
+
+      {{ with index $.Data "submission" }}{{ if .ChecksOutput }}
+      <details class="ck-output">
+        <summary>Program output</summary>
+        <pre>{{ .ChecksOutput }}</pre>
+      </details>
+      {{ end }}{{ end }}
     </div>
   {{ end }}
 
