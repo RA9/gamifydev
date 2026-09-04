@@ -1,0 +1,38 @@
+{{ define "content" }}
+<div class="auth-split">
+  <div class="auth-split-form">
+    <div class="auth-split-form-inner">
+      <a href="/" class="brand auth-brand">Gamify<span>Dev</span></a>
+      {{ if index .Data "sent" }}
+        <h1>Check your inbox</h1>
+        <p class="muted">If <strong>{{ index .Data "email" }}</strong> has an account, a reset link is on its way. It works once and expires in an hour.</p>
+        <p class="muted">Nothing arrived? Check spam, then try again — and make sure it's the address you signed up with.</p>
+        <p class="auth-alt"><a href="/login">Back to sign in</a></p>
+      {{ else }}
+        <h1>Reset your password</h1>
+        <p class="muted">Enter the email you signed up with and we'll send you a link.</p>
+        {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
+        <form method="post" action="/forgot" class="form">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" value="{{ index .Data "email" }}" required autofocus />
+          </label>
+          <button type="submit" class="btn btn-primary btn-block auth-submit">
+            <span class="auth-submit-text">Send the link</span>
+            <span class="auth-submit-spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+        <p class="auth-alt">Remembered it? <a href="/login">Sign in</a></p>
+      {{ end }}
+    </div>
+  </div>
+  <div class="auth-split-visual">
+    <div class="auth-split-overlay">
+      <div class="auth-split-cta">
+        <h2>It happens.</h2>
+        <p>One link and you're back to where you left off.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

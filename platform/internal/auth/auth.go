@@ -27,6 +27,28 @@ func CheckPassword(hash, plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(plain)) == nil
 }
 
+// dummyHash is a bcrypt hash of a value nobody knows, generated once at start.
+// It exists only to be compared against.
+var dummyHash = func() string {
+	secret, err := NewToken()
+	if err != nil {
+		secret = "gamifydev-fallback-comparison-secret"
+	}
+	h, _ := HashPassword(secret)
+	return h
+}()
+
+// BurnPasswordCheck spends the time a real password comparison would, and
+// always fails.
+//
+// Sign-in for an address with no account otherwise returns in microseconds
+// while a wrong password takes the ~60ms bcrypt costs. That gap is measurable
+// over the network, and it turns the login form into a way to ask which email
+// addresses are registered here.
+func BurnPasswordCheck(plain string) {
+	_ = CheckPassword(dummyHash, plain)
+}
+
 // NewToken returns a cryptographically random session token.
 func NewToken() (string, error) {
 	b := make([]byte, 32)

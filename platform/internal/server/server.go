@@ -3,6 +3,7 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/email"
@@ -21,6 +22,9 @@ type Server struct {
 	exec   runner.Executor // server-side code execution; disabled by default
 	jobs   *jobs.Runner    // scheduled work; nil when JOBS=off
 	runlim *runLimiter     // throttles /api/run
+	// authlim throttles failed sign-ins and reset requests. Separate from
+	// runlim because its keys are attacker-supplied rather than user ids.
+	authlim *attemptLimiter
 	// Attendance enforcement; false means sanctions are recorded but never
 	// applied. Mirrors what was passed to jobs.Register.
 	enforceAttendance bool
@@ -41,6 +45,10 @@ func New(st *store.Store, rc *redis.Client, mail *email.Mailer, exec runner.Exec
 	return &Server{
 		st: st, rdb: rc, mail: mail, hub: newHub(), rnd: rnd,
 		exec: exec, jobs: jr, runlim: newRunLimiter(4, 1500),
+		// Five misses inside fifteen minutes, then a fifteen-minute cool-off:
+		// generous for a person who forgot which password they used, ruinous
+		// for anything working through a list.
+		authlim:           newAttemptLimiter(5, 15*time.Minute, 15*time.Minute),
 		enforceAttendance: enforceAttendance, secure: secure,
 	}, nil
 }
@@ -71,6 +79,10 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /login", s.handleLogin)
 	mux.HandleFunc("GET /register", s.handleRegisterForm)
 	mux.HandleFunc("POST /register", s.handleRegister)
+	mux.HandleFunc("GET /forgot", s.handleForgotForm)
+	mux.HandleFunc("POST /forgot", s.handleForgot)
+	mux.HandleFunc("GET /reset/{token}", s.handleResetForm)
+	mux.HandleFunc("POST /reset/{token}", s.handleReset)
 	mux.HandleFunc("POST /logout", s.handleLogout)
 	// Invitation acceptance (public — the invitee has no account yet).
 	mux.HandleFunc("GET /invite/{token}", s.handleInvite)

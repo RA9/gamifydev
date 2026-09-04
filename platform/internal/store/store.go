@@ -227,6 +227,11 @@ func (s *Store) scanUser(row *sql.Row) (*User, error) {
 
 const userCols = `id, email, password_hash, name, role, bio, avatar_url, created_at`
 
+// userColsPrefixed is userCols qualified for a join, where a bare `id` would be
+// ambiguous. Kept beside userCols so the two can't fall out of step and leave
+// scanUser reading columns in the wrong order.
+const userColsPrefixed = `u.id, u.email, u.password_hash, u.name, u.role, u.bio, u.avatar_url, u.created_at`
+
 func (s *Store) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	return s.scanUser(s.db.QueryRowContext(ctx,
 		`SELECT `+userCols+` FROM users WHERE email = ?`, strings.ToLower(strings.TrimSpace(email))))

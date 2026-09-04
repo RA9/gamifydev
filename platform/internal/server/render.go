@@ -56,8 +56,11 @@ var alwaysPublic = map[string]bool{
 
 // authPages use the dedicated auth layout (no header/footer).
 var authPages = map[string]bool{
-	"register.html": true,
-	"login.html":    true,
+	"register.html":      true,
+	"login.html":         true,
+	"forgot.html":        true,
+	"reset.html":         true,
+	"reset_invalid.html": true,
 }
 
 type renderer struct {

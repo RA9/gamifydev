@@ -88,20 +88,26 @@ func Register(r *Runner, st *store.Store, exec runner.Executor, enforceAttendanc
 	// shadow mode; see internal/jobs/attendance.go.
 	registerAttendanceJobs(r, st, enforceAttendance)
 
-	// jobs:prune keeps run history bounded.
+	// jobs:prune keeps run history and spent reset tokens bounded. Password
+	// resets are requested from a public form, so that table grows with
+	// traffic rather than with the number of accounts.
 	r.Register(Job{
 		Name:    "jobs:prune",
 		Every:   24 * time.Hour,
 		Timeout: 30 * time.Second,
 		Run: func(ctx context.Context) (string, error) {
-			n, err := st.PruneJobRuns(ctx, 30)
+			runs, err := st.PruneJobRuns(ctx, 30)
 			if err != nil {
 				return "", err
 			}
-			if n == 0 {
+			resets, err := st.PruneExpiredResets(ctx, 7*24*time.Hour)
+			if err != nil {
+				return "", err
+			}
+			if runs == 0 && resets == 0 {
 				return "", nil
 			}
-			return fmt.Sprintf("pruned %d old run(s)", n), nil
+			return fmt.Sprintf("pruned %d old run(s), %d dead reset token(s)", runs, resets), nil
 		},
 	})
 }

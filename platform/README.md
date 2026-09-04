@@ -73,6 +73,29 @@ internal/server/                # routes, middleware, handlers, rendering
   web/static/                   # css / js assets (embedded)
 ```
 
+## Accounts and sign-in
+
+The first account to register becomes the admin, so a fresh deploy is
+reachable without touching the database.
+
+**Password reset** is at `/forgot`. Tokens are stored as a SHA-256 hash, last an
+hour, work once, and requesting a new one invalidates the old. Completing a
+reset deletes every session that user has — the point of a reset is usually that
+someone else has one. When `SMTP_HOST` is unset the link goes to the server log
+for an operator to retrieve; it is never shown in the browser, since the form
+accepts any address.
+
+**Failed sign-ins and reset requests are throttled** — five inside fifteen
+minutes trips a fifteen-minute cool-off. Two keys are counted: the email being
+tried and the caller's address, so neither one account under sustained attack
+nor one host spraying many accounts gets through. A correct password clears the
+count. `X-Forwarded-For` is trusted only when the app knows it is behind a proxy
+(the signal that also enables Secure cookies).
+
+Both `/login` and `/forgot` answer identically whether or not an account exists,
+including timing — a miss burns the same bcrypt work a real comparison would, so
+the form can't be used to enumerate who is registered.
+
 ## Checkpoints
 
 A checkpoint is an assignment marked **required**: passing it opens the next

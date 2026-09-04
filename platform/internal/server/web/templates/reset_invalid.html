@@ -1,0 +1,22 @@
+{{ define "content" }}
+<div class="auth-split">
+  <div class="auth-split-form">
+    <div class="auth-split-form-inner">
+      <a href="/" class="brand auth-brand">Gamify<span>Dev</span></a>
+      <h1>That link's no good</h1>
+      <p class="muted">Reset links work once and last an hour. This one has been used already, or it's older than that.</p>
+      <p class="muted">Nothing's wrong with your account — ask for a fresh link and it'll work.</p>
+      <a class="btn btn-primary btn-block auth-submit" href="/forgot">Send a new link</a>
+      <p class="auth-alt"><a href="/login">Back to sign in</a></p>
+    </div>
+  </div>
+  <div class="auth-split-visual">
+    <div class="auth-split-overlay">
+      <div class="auth-split-cta">
+        <h2>Links expire on purpose.</h2>
+        <p>A reset link is a key to your account, so it doesn't stay lying around.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

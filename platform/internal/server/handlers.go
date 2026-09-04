@@ -29,18 +29,49 @@ func (s *Server) handleLoginForm(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
-	s.render(w, r, "login.html", ViewData{Title: "Sign in"})
+	vd := ViewData{Title: "Sign in"}
+	if r.URL.Query().Get("reset") == "1" {
+		vd.Flash = "Password changed. Sign in with your new one."
+	}
+	s.render(w, r, "login.html", vd)
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
+	email := strings.ToLower(strings.TrimSpace(r.FormValue("email")))
 	password := r.FormValue("password")
+
+	// Two keys, because the two attacks are different shapes. Keying on the
+	// address stops one account being ground down from many hosts; keying on
+	// the address of the caller stops one host spraying a password across many
+	// accounts. Either one tripping is enough to refuse.
+	ipKey := "login-ip:" + s.clientIP(r)
+	userKey := "login-user:" + email
+	if wait := longer(s.authlim.retryAfter(ipKey), s.authlim.retryAfter(userKey)); wait > 0 {
+		w.WriteHeader(http.StatusTooManyRequests)
+		s.render(w, r, "login.html", ViewData{Title: "Sign in",
+			Flash: "Too many sign-in attempts. Try again in " + humanWait(wait) + ".",
+			Data:  map[string]any{"email": email}})
+		return
+	}
+
 	u, err := s.st.GetUserByEmail(r.Context(), email)
+	if err != nil {
+		// Spend the same time bcrypt would have spent on a real hash. Returning
+		// early here is measurably faster than a wrong password, which turns
+		// the login form into a way to test whether an address is registered.
+		auth.BurnPasswordCheck(password)
+	}
 	if err != nil || !auth.CheckPassword(u.PasswordHash, password) {
+		s.authlim.fail(ipKey)
+		s.authlim.fail(userKey)
 		w.WriteHeader(http.StatusUnauthorized)
 		s.render(w, r, "login.html", ViewData{Title: "Sign in", Flash: "Wrong email or password.", Data: map[string]any{"email": email}})
 		return
 	}
+	// A correct password forgets the misses that came before it, so someone who
+	// mistyped twice this morning isn't closer to a lockout this afternoon.
+	s.authlim.succeed(ipKey)
+	s.authlim.succeed(userKey)
 	s.startSession(w, r, u)
 }
 

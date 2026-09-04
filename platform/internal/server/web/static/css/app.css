@@ -4504,3 +4504,8 @@ body.portal.cohort-dark { background: #0a1622; }
 @media (max-width: 900px) {
     .ck-row, .ck-row-file { grid-template-columns: 1fr; }
 }
+
+/* ===== Auth: inline "forgot it?" beside the password label ===== */
+.field-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.field-aside { font-size: 0.8rem; font-weight: 600; color: var(--brand, #6d3bf5); text-decoration: none; }
+.field-aside:hover { text-decoration: underline; }
