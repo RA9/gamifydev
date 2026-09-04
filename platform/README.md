@@ -105,6 +105,14 @@ submitting the same evening is metered rather than stampeding the runner. Each
 check reports as it finishes, so a submission killed by the time limit still
 shows what it had passed.
 
+A gate holds back **every course after it in the path**, so a mid-path gate has
+to be one the sandbox can grade. A mentor-graded gate at position two puts one
+person's availability in front of everything behind it. Where a course's
+language has no sandbox, mark its checkpoint `elective` — it stays available for
+practice and feedback without blocking anyone. `TestNoMidPathGateWaitsOnAHuman`
+enforces this; the last course in a path is exempt, since its gate holds nothing
+back.
+
 Seeded checkpoints live in `internal/seed/seed.go`. Every one of them has a
 reference solution in `internal/seed/checkpoints_test.go` that must pass all its
 checks, and a plausible wrong solution that must fail a named one — a gate

@@ -338,8 +338,26 @@ func TestSeededCheckpointsRejectTheMistakeTheyExistToCatch(t *testing.T) {
 	}
 }
 
-// Every course in the compulsory path needs a gate. A path a learner is locked
-// into, with a course that lets anyone through, is the one gap that matters.
+// checkpointsByCourse indexes the seeded checkpoints by the course they belong
+// to. A slice, not a single value, so a course that grows a second checkpoint
+// doesn't silently hide one from these checks.
+func checkpointsByCourse() map[string][]seedA {
+	byCourse := map[string][]seedA{}
+	for _, a := range sampleAssignments {
+		byCourse[a.course] = append(byCourse[a.course], a)
+	}
+	return byCourse
+}
+
+// gradesItself mirrors what ReplaceChecks decides: a checkpoint grades itself
+// only when the sandbox can run its language and it actually carries checks.
+func gradesItself(a seedA) bool {
+	return store.Runnable(a.lang) && len(a.checks) > 0
+}
+
+// Every course in the compulsory path needs a checkpoint. A path a learner is
+// locked into, with a course that lets anyone through, is the one gap that
+// matters.
 func TestEveryCSFoundationsCourseHasACheckpoint(t *testing.T) {
 	var foundations []string
 	for _, p := range seedPaths {
@@ -350,21 +368,48 @@ func TestEveryCSFoundationsCourseHasACheckpoint(t *testing.T) {
 	if len(foundations) == 0 {
 		t.Fatal("the cs-foundations path is gone or has no courses")
 	}
-	byCourse := map[string]seedA{}
-	for _, a := range sampleAssignments {
-		byCourse[a.course] = a
-	}
+	byCourse := checkpointsByCourse()
 	for _, course := range foundations {
-		a, ok := byCourse[course]
+		as, ok := byCourse[course]
 		if !ok {
 			t.Errorf("course %q in the compulsory path has no checkpoint", course)
 			continue
 		}
-		// Where the sandbox can run the language, the gate has to be automatic —
-		// a runnable course left to mentor grading is a gate nobody is watching.
-		if store.Runnable(a.lang) && len(a.checks) == 0 {
-			t.Errorf("checkpoint %q is in %s, which the sandbox can run, but has no checks",
-				a.slug, a.lang)
+		for _, a := range as {
+			// Where the sandbox can run the language, the checks have to exist —
+			// a runnable course left to mentor grading is work handed to a human
+			// for no reason.
+			if store.Runnable(a.lang) && len(a.checks) == 0 {
+				t.Errorf("checkpoint %q is in %s, which the sandbox can run, but has no checks",
+					a.slug, a.lang)
+			}
+		}
+	}
+}
+
+// A gating checkpoint holds back every course after it in the path. If that
+// gate can't grade itself, one mentor's availability stands in front of all of
+// them — which is what put Java, at position two of seven, in front of five
+// auto-graded courses in the one path nobody can opt out of.
+//
+// The last course in a path is exempt: its gate holds nothing back.
+func TestNoMidPathGateWaitsOnAHuman(t *testing.T) {
+	byCourse := checkpointsByCourse()
+	for _, p := range seedPaths {
+		for i, course := range p.Courses {
+			behind := len(p.Courses) - i - 1
+			if behind == 0 {
+				continue
+			}
+			for _, a := range byCourse[course] {
+				if a.elective || gradesItself(a) {
+					continue
+				}
+				t.Errorf("%s: %q gates on %s, which the sandbox can't grade, so a "+
+					"mentor stands in front of the %d course(s) behind it — make it "+
+					"elective, or give it checks in a language the sandbox runs",
+					p.Slug, a.slug, a.lang, behind)
+			}
 		}
 	}
 }

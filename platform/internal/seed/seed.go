@@ -100,7 +100,7 @@ var seedPaths = []struct {
 		"Combine frontend and backend skills to build complete applications end to end.",
 		[]string{"html_mastery", "css_fundamentals", "css_layout", "javascript_fundamentals", "javascript_and_the_dom", "async_javascript_and_apis", "backend", "fullstack"}},
 	{"cs-foundations", "Computer Science Foundations", "The fundamentals behind every language", "⚙️", "Beginner",
-		"The core of a computer science education, structured after roadmap.sh/computer-science: pick a language, then learn data structures, complexity analysis, algorithms, and how the machine underneath actually works.",
+		"The core of a computer science education, structured after roadmap.sh/computer-science: learn a language close to the machine, then data structures, complexity analysis, algorithms, and how the machine underneath actually works. C is the language the path is taught in; Java sits alongside it as optional practice.",
 		[]string{
 			"c",
 			"java",
@@ -177,7 +177,7 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		if err := st.UpsertAssignment(ctx, store.Assignment{
 			CourseID: courseID, Slug: a.slug, Title: a.title, Language: a.lang,
 			Prompt: a.prompt, Starter: a.starter, MaxPoints: 100, Published: true, Sort: i,
-			Required: true, // act as the course checkpoint that gates the next course
+			Required: !a.elective, // gate the next course unless explicitly elective
 		}); err != nil {
 			return res, err
 		}
@@ -1347,6 +1347,10 @@ type seedA struct {
 	slug, title, course, lang, prompt, starter string
 	checks                                     []seedCheck
 	files                                      []store.File
+	// elective keeps a checkpoint from gating the next course. The zero value
+	// gates, because that is what a checkpoint is for; this is the exception,
+	// and it exists for the one case where a gate would cost more than it buys.
+	elective bool
 }
 
 // sampleAssignments are the course checkpoints.
@@ -1389,9 +1393,14 @@ var sampleAssignments = []seedA{
 				test: `_out.strip() == "8"`},
 		}},
 
+	// Elective. Java has no sandbox, so a gate here would put a mentor's
+	// availability in front of the five auto-graded courses that follow it —
+	// the whole rest of a path nobody can opt out of. C is the language this
+	// path is taught in; Java is here for anyone who wants it.
 	{slug: "java-bank-account", title: "Model a Bank Account", course: "java", lang: "java",
-		prompt:  "Write a `BankAccount` class with a private `balance`, a `deposit(double)` and a `withdraw(double)` method, and a `getBalance()`.\n\nThe rules a mentor will look for:\n\n- `balance` cannot be reached or changed from outside the class.\n- A deposit or withdrawal of zero or less is rejected.\n- A withdrawal larger than the balance is rejected and leaves the balance untouched.\n\nJava doesn't run in our sandbox yet, so a mentor reads this one. In the note, say how you chose to signal a rejected operation — an exception, a boolean, something else — and why.",
-		starter: "public class BankAccount {\n    // your code here\n}\n"},
+		elective: true,
+		prompt:   "Optional — this one doesn't gate the next course, so take it if you want the practice and the feedback.\n\nWrite a `BankAccount` class with a private `balance`, a `deposit(double)` and a `withdraw(double)` method, and a `getBalance()`.\n\nThe rules a mentor will look for:\n\n- `balance` cannot be reached or changed from outside the class.\n- A deposit or withdrawal of zero or less is rejected.\n- A withdrawal larger than the balance is rejected and leaves the balance untouched.\n\nJava doesn't run in our sandbox, so a mentor reads this one and it takes as long as it takes. In the note, say how you chose to signal a rejected operation — an exception, a boolean, something else — and why.",
+		starter:  "public class BankAccount {\n    // your code here\n}\n"},
 
 	{slug: "ds-hash-map", title: "Build a Hash Map", course: "data_structures", lang: "python",
 		prompt:  "Implement a `HashMap` class with chaining — **without** using a Python `dict` to do the work for you.\n\nIt needs:\n\n- `put(key, value)` — stores the pair, replacing the value if the key is already there.\n- `get(key)` — returns the value, or `None` if the key isn't stored.\n- `__len__` — how many keys are stored.\n- an attribute `buckets`, the list of buckets your keys hash into.\n\nHash the key, pick the bucket with `%`, and keep the colliding pairs in that bucket. That last part is the whole exercise: a hash map is fast because collisions are rare, not because they're impossible.",
