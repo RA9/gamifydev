@@ -38,6 +38,10 @@ var ErrDisabled = errors.New("server-side code execution is disabled")
 
 // Request is one execution: a program plus the stdin it should receive.
 type Request struct {
+	// Lang selects the toolchain. "" and "python" run Python; "c" compiles the
+	// source with a C compiler and runs the resulting binary. Anything else is
+	// rejected rather than silently treated as Python.
+	Lang      string `json:"lang,omitempty"`
 	Code      string `json:"code"`
 	Stdin     string `json:"stdin,omitempty"`
 	TimeoutMs int    `json:"timeout_ms,omitempty"` // wall-clock; clamped to limits
@@ -54,6 +58,28 @@ type Result struct {
 	TimedOut   bool   `json:"timed_out"`
 	Truncated  bool   `json:"truncated"`
 	Error      string `json:"error,omitempty"`
+	// CompileFailed distinguishes "your code does not build" from "your program
+	// ran and crashed". For a compiled language those are different lessons,
+	// and a learner should not be shown a runtime traceback for a syntax error.
+	CompileFailed bool `json:"compile_failed,omitempty"`
+}
+
+// Languages the runner can execute.
+const (
+	LangPython = "python"
+	LangC      = "c"
+)
+
+// NormalizeLang maps an empty language to Python (the historical default) and
+// reports whether the value is one the runner can actually run.
+func NormalizeLang(lang string) (string, bool) {
+	switch lang {
+	case "", LangPython:
+		return LangPython, true
+	case LangC:
+		return LangC, true
+	}
+	return lang, false
 }
 
 // Executor runs a Request and reports the Result.
@@ -89,6 +115,7 @@ func DefaultLimits() Limits {
 type Config struct {
 	Mode         string // "off" | "local" | "remote"
 	PythonPath   string // local mode; defaults to "python3" on PATH
+	CCPath       string // local mode; C compiler, defaults to "cc" on PATH
 	SandboxURL   string // remote mode; the execd service base URL
 	SandboxToken string // remote mode; shared bearer secret
 	Deployed     bool   // true in prod (e.g. RAILWAY_ENVIRONMENT set)

@@ -12,16 +12,30 @@ import (
 	"time"
 )
 
-// localExecutor runs Python in a subprocess on this host.
+// localExecutor runs a learner program in a subprocess on this host.
+//
+// Python is interpreted directly. C is compiled first and the resulting binary
+// executed — both steps inside the same sandbox invocation, because the
+// compiler is running on untrusted input too.
 type localExecutor struct {
 	python    string
+	cc        string
 	limits    Limits
 	sandboxed bool // true when wrapping with bwrap (real namespace isolation)
 }
 
 func newLocal(cfg Config, sandboxed bool) *localExecutor {
-	return &localExecutor{python: cfg.PythonPath, limits: cfg.Limits, sandboxed: sandboxed}
+	cc := cfg.CCPath
+	if cc == "" {
+		cc = "cc"
+	}
+	return &localExecutor{python: cfg.PythonPath, cc: cc, limits: cfg.Limits, sandboxed: sandboxed}
 }
+
+// compileFailMarker is written to stderr by the C build script when the
+// compiler rejects the program, so the caller can tell a build failure from a
+// crash without guessing at exit codes.
+const compileFailMarker = "__GD_COMPILE_FAILED__"
 
 func (e *localExecutor) Kind() string  { return "local" }
 func (e *localExecutor) Enabled() bool { return true }
@@ -53,7 +67,16 @@ func (e *localExecutor) Run(ctx context.Context, req Request) (Result, error) {
 		return Result{}, fmt.Errorf("scratch dir: %w", err)
 	}
 	defer os.RemoveAll(dir)
-	if err := os.WriteFile(filepath.Join(dir, "main.py"), []byte(req.Code), 0o600); err != nil {
+
+	lang, ok := NormalizeLang(req.Lang)
+	if !ok {
+		return Result{Error: "unsupported language: " + req.Lang}, nil
+	}
+	srcName := "main.py"
+	if lang == LangC {
+		srcName = "main.c"
+	}
+	if err := os.WriteFile(filepath.Join(dir, srcName), []byte(req.Code), 0o600); err != nil {
 		return Result{}, fmt.Errorf("write program: %w", err)
 	}
 
@@ -61,7 +84,7 @@ func (e *localExecutor) Run(ctx context.Context, req Request) (Result, error) {
 	rctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	name, args := e.command(dir, timeout)
+	name, args := e.command(dir, timeout, lang)
 	cmd := exec.Command(name, args...)
 	if !e.sandboxed {
 		cmd.Dir = dir // bwrap sets its own chdir; plain mode runs in the scratch dir
@@ -93,6 +116,10 @@ func (e *localExecutor) Run(ctx context.Context, req Request) (Result, error) {
 	res.DurationMs = time.Since(start).Milliseconds()
 	res.Stdout = outCap.String()
 	res.Stderr = errCap.String()
+	if strings.HasPrefix(res.Stderr, compileFailMarker) {
+		res.CompileFailed = true
+		res.Stderr = strings.TrimSpace(strings.TrimPrefix(res.Stderr, compileFailMarker))
+	}
 	res.Truncated = outCap.truncated || errCap.truncated
 	if res.TimedOut && res.Stderr == "" {
 		res.Stderr = fmt.Sprintf("Killed: exceeded the %d ms time limit.", timeout.Milliseconds())
@@ -101,8 +128,12 @@ func (e *localExecutor) Run(ctx context.Context, req Request) (Result, error) {
 }
 
 // command builds the argv. With bwrap we get a locked-down namespace; without
-// it we fall back to a POSIX shell that applies ulimits before exec-ing Python.
-func (e *localExecutor) command(dir string, timeout time.Duration) (string, []string) {
+// it we fall back to a POSIX shell that applies ulimits before exec-ing.
+//
+// Both languages run through /bin/sh so the same limits apply either way, and
+// so C can compile-then-exec in a single trip through the sandbox rather than
+// two.
+func (e *localExecutor) command(dir string, timeout time.Duration, lang string) (string, []string) {
 	cpuSecs := int(timeout/time.Second) + 1
 	if e.sandboxed {
 		// bubblewrap: read-only system dirs, private proc/dev, fresh tmpfs,
@@ -127,22 +158,47 @@ func (e *localExecutor) command(dir string, timeout time.Duration) (string, []st
 			"--setenv", "PYTHONDONTWRITEBYTECODE", "1",
 			"--setenv", "PYTHONUNBUFFERED", "1",
 			"--setenv", "LC_ALL", "C.UTF-8",
-			e.python, "-I", "-B", "main.py",
+			"/bin/sh", "-c", e.script(lang, cpuSecs, false),
 		}
 		return "bwrap", args
 	}
-	// Plain fallback (dev only when not sandboxed). ulimit caps CPU time,
-	// address space, file size, and process count before Python starts.
+	// Plain fallback (dev only when not sandboxed).
+	return "/bin/sh", []string{"-c", e.script(lang, cpuSecs, true)}
+}
+
+// script is the shell program that runs the learner's code.
+//
+// withUlimits applies resource caps on the plain path; under bwrap the
+// namespace already bounds the process, and the compiler legitimately needs
+// more headroom than a learner's program does.
+func (e *localExecutor) script(lang string, cpuSecs int, withUlimits bool) string {
 	var b strings.Builder
-	b.WriteString("ulimit -t " + strconv.Itoa(cpuSecs))
-	if runtime.GOOS == "linux" {
-		// macOS's /bin/sh can't set these, so only do so on Linux.
-		fmt.Fprintf(&b, "; ulimit -v %d", e.limits.MaxMemoryBytes/1024)
-		fmt.Fprintf(&b, "; ulimit -u %d", e.limits.MaxProcesses)
-		b.WriteString("; ulimit -f 8192")
+	if withUlimits {
+		b.WriteString("ulimit -t " + strconv.Itoa(cpuSecs))
+		if runtime.GOOS == "linux" {
+			// macOS's /bin/sh can't set these, so only do so on Linux.
+			fmt.Fprintf(&b, "; ulimit -v %d", e.limits.MaxMemoryBytes/1024)
+			fmt.Fprintf(&b, "; ulimit -u %d", e.limits.MaxProcesses)
+			b.WriteString("; ulimit -f 8192")
+		}
+		b.WriteString("; ")
 	}
-	b.WriteString("; exec " + shellQuote(e.python) + " -I -B main.py")
-	return "/bin/sh", []string{"-c", b.String()}
+	if lang == LangC {
+		// Compile first. On failure emit the marker followed by the compiler's
+		// own diagnostics — for a beginner those are the most useful thing on
+		// the screen, so they are passed through rather than summarised.
+		//
+		// -std=c11 pins the dialect; -O0 keeps line numbers honest in a crash;
+		// warnings are deliberately left on and shown, because they are
+		// teaching material in a C course.
+		b.WriteString(shellQuote(e.cc) + " -std=c11 -O0 -Wall -o prog main.c 2>build.log")
+		b.WriteString(" || { printf '%s' " + shellQuote(compileFailMarker) + " >&2; cat build.log >&2; exit 97; }")
+		b.WriteString("; cat build.log >&2") // warnings from a successful build
+		b.WriteString("; exec ./prog")
+		return b.String()
+	}
+	b.WriteString("exec " + shellQuote(e.python) + " -I -B main.py")
+	return b.String()
 }
 
 // childEnv is a deliberately tiny environment — no inherited secrets.

@@ -93,6 +93,7 @@ func main() {
 	exec, err := runner.New(runner.Config{
 		Mode:         os.Getenv("CODE_EXEC"), // ""(off) | local | remote
 		PythonPath:   os.Getenv("PYTHON"),
+		CCPath:       os.Getenv("CC"),
 		SandboxURL:   os.Getenv("CODE_EXEC_SANDBOX_URL"),
 		SandboxToken: os.Getenv("CODE_EXEC_SANDBOX_TOKEN"),
 		Deployed:     os.Getenv("RAILWAY_ENVIRONMENT") != "",

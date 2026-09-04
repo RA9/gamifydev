@@ -21,6 +21,10 @@ type Check struct {
 	Test         string
 	Hidden       bool
 	Points       int
+	// Stdin is the input fed to the program for this check. Only meaningful for
+	// compiled languages, where assertions are made over what the program
+	// printed rather than over a namespace it left behind.
+	Stdin string
 }
 
 // CheckResult is a check joined with how one submission fared against it.
@@ -35,7 +39,7 @@ type CheckResult struct {
 // ListChecks returns an assignment's checks in author order.
 func (s *Store) ListChecks(ctx context.Context, assignmentID int64) ([]Check, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, assignment_id, sort, label, test, hidden, points
+		SELECT id, assignment_id, sort, label, test, hidden, points, stdin
 		FROM assignment_checks WHERE assignment_id = ? ORDER BY sort, id`, assignmentID)
 	if err != nil {
 		return nil, err
@@ -45,7 +49,7 @@ func (s *Store) ListChecks(ctx context.Context, assignmentID int64) ([]Check, er
 	for rows.Next() {
 		var c Check
 		var hidden int
-		if err := rows.Scan(&c.ID, &c.AssignmentID, &c.Sort, &c.Label, &c.Test, &hidden, &c.Points); err != nil {
+		if err := rows.Scan(&c.ID, &c.AssignmentID, &c.Sort, &c.Label, &c.Test, &hidden, &c.Points, &c.Stdin); err != nil {
 			return nil, err
 		}
 		c.Hidden = hidden == 1
@@ -57,9 +61,9 @@ func (s *Store) ListChecks(ctx context.Context, assignmentID int64) ([]Check, er
 // ReplaceChecks swaps an assignment's checks for the given set and recomputes
 // whether the assignment can be auto-graded.
 //
-// Auto-gradable requires Python: the sandbox executes nothing else. An
-// assignment in another language may still carry checks — they document the
-// spec — but they will never run, and it falls back to mentor grading.
+// Auto-gradable requires a language the sandbox can execute — Python or C. An
+// assignment in any other language may still carry checks (they document the
+// spec) but they will never run, and it falls back to mentor grading.
 func (s *Store) ReplaceChecks(ctx context.Context, assignmentID int64, checks []Check) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -80,15 +84,15 @@ func (s *Store) ReplaceChecks(ctx context.Context, assignmentID int64, checks []
 			c.Points = 0
 		}
 		if _, err := tx.ExecContext(ctx, `
-			INSERT INTO assignment_checks (assignment_id, sort, label, test, hidden, points)
-			VALUES (?, ?, ?, ?, ?, ?)`,
-			assignmentID, i, c.Label, c.Test, hidden, c.Points); err != nil {
+			INSERT INTO assignment_checks (assignment_id, sort, label, test, hidden, points, stdin)
+			VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			assignmentID, i, c.Label, c.Test, hidden, c.Points, c.Stdin); err != nil {
 			return err
 		}
 	}
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE assignments SET auto_gradable = CASE
-			WHEN language = 'python' AND ? > 0 THEN 1 ELSE 0 END,
+			WHEN language IN ('python', 'c') AND ? > 0 THEN 1 ELSE 0 END,
 			updated_at = datetime('now')
 		WHERE id = ?`, len(checks), assignmentID); err != nil {
 		return err
@@ -260,7 +264,7 @@ func (s *Store) RecordCheckRun(ctx context.Context, subID int64, passedIDs map[i
 // passed, so a learner cannot read the full spec off the failure list.
 func (s *Store) SubmissionCheckResults(ctx context.Context, subID int64) ([]CheckResult, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT c.id, c.assignment_id, c.sort, c.label, c.test, c.hidden, c.points,
+		SELECT c.id, c.assignment_id, c.sort, c.label, c.test, c.hidden, c.points, c.stdin,
 		       COALESCE(sc.passed, 0), sc.check_id IS NOT NULL
 		FROM assignment_checks c
 		JOIN submissions sub ON sub.assignment_id = c.assignment_id
@@ -276,15 +280,16 @@ func (s *Store) SubmissionCheckResults(ctx context.Context, subID int64) ([]Chec
 		var r CheckResult
 		var hidden, passed, ran int
 		if err := rows.Scan(&r.ID, &r.AssignmentID, &r.Sort, &r.Label, &r.Test,
-			&hidden, &r.Points, &passed, &ran); err != nil {
+			&hidden, &r.Points, &r.Stdin, &passed, &ran); err != nil {
 			return nil, err
 		}
 		r.Hidden, r.Passed, r.Ran = hidden == 1, passed == 1, ran == 1
 		if r.Points > 0 && !r.Passed {
 			allPassed = false
 		}
-		// Never send the test expression to a learner; it is the answer key.
-		r.Test = ""
+		// Never send the test expression or its input to a learner; together
+		// they are the answer key.
+		r.Test, r.Stdin = "", ""
 		out = append(out, r)
 	}
 	if err := rows.Err(); err != nil {

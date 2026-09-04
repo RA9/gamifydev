@@ -1,0 +1,14 @@
+-- Per-check input, needed to check a compiled language.
+--
+-- A Python checkpoint is verified by inspecting the namespace the learner's
+-- program leaves behind: one run, then N expressions like `sum_list([1,2,3])
+-- == 6`. A C program leaves no namespace to inspect — the only thing to assert
+-- on is what it printed for a given input.
+--
+-- So a C checkpoint's checks each carry their own stdin ("3 9 4" → expect "9",
+-- "-1 -2 -3" → expect "-1"). Checks that share the same stdin are grouped and
+-- verified from a single run, so a four-check checkpoint compiles once or twice
+-- rather than four times.
+--
+-- Unused for Python, where one run serves every check.
+ALTER TABLE assignment_checks ADD COLUMN stdin TEXT NOT NULL DEFAULT '';
