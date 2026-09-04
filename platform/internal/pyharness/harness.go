@@ -16,20 +16,25 @@ import (
 // find it among the learner's own output.
 const ResultMarker = "__GD_RESULT__"
 
-// parseHarnessOutput pulls the results line out of stdout and returns it plus
-// the learner-visible console lines (everything else). If the marker is absent
-// (e.g. the program crashed before the harness ran), every check is false.
+// ParseOutput pulls the result lines out of stdout and returns them plus the
+// learner-visible console lines (everything else).
+//
+// Each check reports on its own line as it finishes, so a run that dies partway
+// — a timeout on the check that feeds it a large input, say — still returns
+// everything proven up to that point. A check that never reported is false,
+// which is also what happens when the marker is absent entirely because the
+// program crashed before the harness ran.
 func ParseOutput(stdout string, n int) ([]bool, []string) {
 	results := make([]bool, n)
 	var logs []string
 	for _, line := range strings.Split(stdout, "\n") {
 		if strings.HasPrefix(line, ResultMarker) {
-			var got []bool
-			if err := json.Unmarshal([]byte(line[len(ResultMarker):]), &got); err == nil {
-				for i := range results {
-					if i < len(got) {
-						results[i] = got[i]
-					}
+			var pair []any
+			if err := json.Unmarshal([]byte(line[len(ResultMarker):]), &pair); err == nil && len(pair) == 2 {
+				idx, iok := pair[0].(float64)
+				val, vok := pair[1].(bool)
+				if iok && vok && int(idx) >= 0 && int(idx) < n {
+					results[int(idx)] = val
 				}
 			}
 			continue
@@ -41,10 +46,25 @@ func ParseOutput(stdout string, n int) ([]bool, []string) {
 	return results, logs
 }
 
-// buildPyHarness wraps the learner's program with a check harness. The harness
+// evalLoop is the tail of every harness: evaluate each authored expression and
+// report it immediately.
+//
+// Shared by both builders so the two can't drift into reporting results in
+// different shapes, which ParseOutput would then read wrong for one of them.
+// flush=True matters — without it a killed process loses its buffer, which is
+// exactly the run whose partial results are most worth having.
+const evalLoop = `for _gd_i, _gd_t in enumerate(_gd_tests):
+    try:
+        _gd_r = bool(eval(_gd_t))
+    except Exception:
+        _gd_r = False
+    print("` + ResultMarker + `" + _gd_json.dumps([_gd_i, _gd_r]), flush=True)
+`
+
+// Build wraps the learner's program with a check harness. The harness
 // neutralizes accidental server starts (app.run / uvicorn.run block forever),
 // exposes a `client` test client for whatever web app the code defines, then
-// evaluates each authored check and prints the results as a JSON line.
+// evaluates each authored check, reporting each one as it finishes.
 //
 // The check expressions are authored (trusted) content; the learner's code is
 // untrusted but runs inside the sandbox, so evaluating them together is safe.
@@ -71,10 +91,8 @@ func Build(code string, tests []string) string {
 	b.Write(codeJSON)
 	b.WriteString("\n_gd_tests = ")
 	b.Write(testsJSON)
-	b.WriteString("\n_gd_results = []\n")
-	b.WriteString("for _gd_t in _gd_tests:\n")
-	b.WriteString("    try:\n        _gd_results.append(bool(eval(_gd_t)))\n    except Exception:\n        _gd_results.append(False)\n")
-	b.WriteString("print(\"" + ResultMarker + "\" + _gd_json.dumps(_gd_results))\n")
+	b.WriteString("\n")
+	b.WriteString(evalLoop)
 	return b.String()
 }
 
@@ -107,10 +125,8 @@ func BuildAssertions(strs map[string]string, ints map[string]int, tests []string
 	testsJSON, _ := json.Marshal(tests)
 	b.WriteString("_gd_tests = ")
 	b.Write(testsJSON)
-	b.WriteString("\n_gd_results = []\n")
-	b.WriteString("for _gd_t in _gd_tests:\n")
-	b.WriteString("    try:\n        _gd_results.append(bool(eval(_gd_t)))\n    except Exception:\n        _gd_results.append(False)\n")
-	b.WriteString("print(\"" + ResultMarker + "\" + _gd_json.dumps(_gd_results))\n")
+	b.WriteString("\n")
+	b.WriteString(evalLoop)
 	return b.String()
 }
 

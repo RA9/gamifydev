@@ -4464,6 +4464,18 @@ body.portal.cohort-dark { background: #0a1622; }
     background: #0f172a; color: #e2e8f0; font-size: 0.82rem; line-height: 1.5;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }
 
+/* ===== Fixture files shown to the learner ===== */
+.fx-panel { margin: 18px 0 4px; padding: 14px 16px; border-radius: 12px;
+    border: 1px solid var(--slate-200); background: var(--slate-50); }
+.fx-title { margin: 0 0 10px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--slate-400); }
+.fx-file + .fx-file { margin-top: 6px; }
+.fx-file summary { cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--slate-600); }
+.fx-file summary code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.fx-file pre { margin: 8px 0 0; padding: 12px 14px; border-radius: 10px; overflow-x: auto;
+    background: #0f172a; color: #e2e8f0; font-size: 0.82rem; line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
 /* ===== Admin: authoring checks and fixtures ===== */
 .ck-admin { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--slate-200); }
 .ck-note { margin: 10px 0 0; padding: 9px 12px; border-radius: 9px; font-size: 0.88rem; font-weight: 600; }

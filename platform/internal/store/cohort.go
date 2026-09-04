@@ -371,14 +371,14 @@ func (s *Store) MergeCohorts(ctx context.Context, from, into int64) (int, error)
 
 // Standup is one cohort-day.
 type Standup struct {
-	ID        int64
-	CohortID  int64
-	Day       string
-	OpensAt   string
-	ClosesAt  string
-	Prompt    string
-	Closed    bool
-	IsOpen    bool // computed against the database clock
+	ID       int64
+	CohortID int64
+	Day      string
+	OpensAt  string
+	ClosesAt string
+	Prompt   string
+	Closed   bool
+	IsOpen   bool // computed against the database clock
 }
 
 // StandupEntry is one member's post.

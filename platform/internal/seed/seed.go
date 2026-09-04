@@ -182,6 +182,26 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 			return res, err
 		}
 		res.Assignments++
+
+		// Checks and fixtures are replaced wholesale rather than inserted, so
+		// re-seeding an existing database picks up an edit to the wording of a
+		// check instead of stacking a second copy beside the old one.
+		saved, err := st.GetAssignmentBySlug(ctx, a.slug)
+		if err != nil {
+			return res, err
+		}
+		checks := make([]store.Check, len(a.checks))
+		for j, c := range a.checks {
+			checks[j] = store.Check{
+				Sort: j, Label: c.label, Test: c.test, Stdin: c.stdin, Hidden: c.hidden, Points: 1,
+			}
+		}
+		if err := st.ReplaceChecks(ctx, saved.ID, checks); err != nil {
+			return res, err
+		}
+		if err := st.ReplaceFiles(ctx, saved.ID, a.files); err != nil {
+			return res, err
+		}
 	}
 
 	// Interactive step-based "lab" lessons, keyed by course slug.
@@ -1312,18 +1332,155 @@ var labSteps = map[string][]store.Step{
 	"workshop_build_an_image_gallery_with_grid": gridGallerySteps,
 }
 
-type seedA struct{ slug, title, course, lang, prompt, starter string }
+// seedCheck is one authored check on a seeded checkpoint.
+//
+// Every seeded check is worth a point — none are advisory — because a
+// checkpoint gates the next course, and a requirement that doesn't block isn't
+// a requirement. Hidden withholds the wording until the learner passes it, so
+// the spec can't simply be read off the failure list.
+type seedCheck struct {
+	label, test, stdin string
+	hidden             bool
+}
 
+type seedA struct {
+	slug, title, course, lang, prompt, starter string
+	checks                                     []seedCheck
+	files                                      []store.File
+}
+
+// sampleAssignments are the course checkpoints.
+//
+// Every course in the compulsory CS Foundations path has one, because that path
+// is what a learner is locked into after failing placement — a gate with
+// nothing behind it would let them walk straight through. Where the language
+// runs in the sandbox the checks grade it outright; Java and JavaScript have no
+// sandbox yet, so those fall to a mentor and carry no checks rather than
+// pretending to auto-grade.
 var sampleAssignments = []seedA{
-	{"py-sum-list", "Sum a List", "python", "python",
-		"Write a function `sum_list(nums)` that returns the sum of all numbers in the list `nums`. An empty list should return `0`.\n\nExplain your approach in the note to your mentor.",
-		"def sum_list(nums):\n    # your code here\n    pass\n"},
-	{"js-reverse", "Reverse a String", "frontend", "javascript",
-		"Write a function `reverse(str)` that returns the characters of `str` in reverse order, **without** using the built-in `.reverse()`. Walk a loop yourself.",
-		"function reverse(str) {\n  // your code here\n}\n"},
-	{"c-max-three", "Largest of Three", "c", "c",
-		"Read three integers and print the largest. Handle negative numbers correctly.",
-		"#include <stdio.h>\n\nint main() {\n    int a, b, c;\n    scanf(\"%d %d %d\", &a, &b, &c);\n    // print the largest\n    return 0;\n}\n"},
+	{slug: "py-sum-list", title: "Sum a List", course: "python", lang: "python",
+		prompt:  "Write a function `sum_list(nums)` that returns the sum of all numbers in the list `nums`. An empty list should return `0`.",
+		starter: "def sum_list(nums):\n    # your code here\n    pass\n",
+		checks: []seedCheck{
+			{label: "adds up a list of numbers", test: `sum_list([1, 2, 3, 4]) == 10`},
+			{label: "an empty list sums to 0", test: `sum_list([]) == 0`},
+			{label: "handles negative numbers", test: `sum_list([5, -8, 3]) == 0`},
+			{label: "leaves the caller's list alone", test: `(lambda xs: (sum_list(xs), xs == [1, 2, 3])[1])([1, 2, 3])`},
+			{label: "works on a list you weren't shown", hidden: true,
+				test: `sum_list(list(range(1, 101))) == 5050`},
+		}},
+
+	{slug: "js-reverse", title: "Reverse a String", course: "frontend", lang: "javascript",
+		prompt:  "Write a function `reverse(str)` that returns the characters of `str` in reverse order, **without** using the built-in `.reverse()`. Walk a loop yourself.\n\nA mentor reads this one — JavaScript doesn't run in our sandbox yet, so explain your loop in the note.",
+		starter: "function reverse(str) {\n  // your code here\n}\n"},
+
+	// --- CS Foundations path, in course order --------------------------------
+
+	{slug: "c-max-three", title: "Largest of Three", course: "c", lang: "c",
+		prompt:  "Read three integers from standard input and print the largest, followed by a newline. Print nothing else.\n\nNegative numbers and ties both count — a solution that only works on distinct positive numbers isn't finished.",
+		starter: "#include <stdio.h>\n\nint main(void) {\n    int a, b, c;\n    if (scanf(\"%d %d %d\", &a, &b, &c) != 3) return 1;\n    /* print the largest */\n    return 0;\n}\n",
+		checks: []seedCheck{
+			{stdin: "3 9 4\n", label: "prints 9 for `3 9 4`", test: `_out.strip() == "9"`},
+			{stdin: "3 9 4\n", label: "prints the number and nothing else", test: `_out.strip().isdigit()`},
+			{stdin: "3 9 4\n", label: "exits cleanly", test: `_exit == 0`},
+			{stdin: "-5 -20 -7\n", label: "handles three negative numbers", test: `_out.strip() == "-5"`},
+			{stdin: "4 4 4\n", label: "handles a tie", test: `_out.strip() == "4"`},
+			{stdin: "8 2 5\n", label: "works on an input you weren't shown", hidden: true,
+				test: `_out.strip() == "8"`},
+		}},
+
+	{slug: "java-bank-account", title: "Model a Bank Account", course: "java", lang: "java",
+		prompt:  "Write a `BankAccount` class with a private `balance`, a `deposit(double)` and a `withdraw(double)` method, and a `getBalance()`.\n\nThe rules a mentor will look for:\n\n- `balance` cannot be reached or changed from outside the class.\n- A deposit or withdrawal of zero or less is rejected.\n- A withdrawal larger than the balance is rejected and leaves the balance untouched.\n\nJava doesn't run in our sandbox yet, so a mentor reads this one. In the note, say how you chose to signal a rejected operation — an exception, a boolean, something else — and why.",
+		starter: "public class BankAccount {\n    // your code here\n}\n"},
+
+	{slug: "ds-hash-map", title: "Build a Hash Map", course: "data_structures", lang: "python",
+		prompt:  "Implement a `HashMap` class with chaining — **without** using a Python `dict` to do the work for you.\n\nIt needs:\n\n- `put(key, value)` — stores the pair, replacing the value if the key is already there.\n- `get(key)` — returns the value, or `None` if the key isn't stored.\n- `__len__` — how many keys are stored.\n- an attribute `buckets`, the list of buckets your keys hash into.\n\nHash the key, pick the bucket with `%`, and keep the colliding pairs in that bucket. That last part is the whole exercise: a hash map is fast because collisions are rare, not because they're impossible.",
+		starter: "class HashMap:\n    def __init__(self, size=8):\n        self.buckets = [[] for _ in range(size)]\n\n    def put(self, key, value):\n        # your code here\n        pass\n\n    def get(self, key):\n        # your code here\n        pass\n\n    def __len__(self):\n        # your code here\n        pass\n",
+		checks: []seedCheck{
+			{label: "stores a pair and gets it back",
+				test: `(lambda m: (m.put("a", 1), m.get("a"))[1])(HashMap()) == 1`},
+			{label: "a missing key returns None", test: `HashMap().get("nope") is None`},
+			{label: "keeps its keys in a list of buckets",
+				test: `isinstance(HashMap().buckets, list) and len(HashMap().buckets) > 1`},
+			{label: "len() counts the keys stored",
+				test: `(lambda m: ([m.put(c, 1) for c in "abcde"], len(m) == 5)[1])(HashMap())`},
+			{label: "putting a key twice replaces the value instead of adding a second copy",
+				test: `(lambda m: ([m.put("k", 1), m.put("k", 2)], m.get("k") == 2 and len(m) == 1)[1])(HashMap())`},
+			{label: "finds every key when far more keys than buckets collide", hidden: true,
+				test: `(lambda m: ([m.put(str(i), i) for i in range(200)], all(m.get(str(i)) == i for i in range(200)) and len(m) == 200)[1])(HashMap())`},
+		}},
+
+	{slug: "cx-pair-sum", title: "Make It Linear", course: "complexity_and_analysis", lang: "python",
+		prompt:  "Write `has_pair_summing_to(nums, target)` — `True` when some two *different* elements of `nums` add up to `target`, `False` otherwise.\n\nThe obvious answer compares every element with every other one. That's O(n²), and the last check here feeds you 200,000 numbers with the answer at the very end: a nested loop will not finish before the time limit.\n\nSo this checkpoint isn't really about pairs. It's about spending memory to buy time — walk the list once, remember what you've seen, and ask whether the number you need has already gone past.\n\nChecks report one at a time, so if you time out you'll still see which ones you'd passed.",
+		starter: "def has_pair_summing_to(nums, target):\n    # your code here\n    pass\n",
+		checks: []seedCheck{
+			{label: "finds a pair that exists", test: `bool(has_pair_summing_to([2, 7, 11, 15], 9)) is True`},
+			{label: "says no when no pair adds up", test: `bool(has_pair_summing_to([1, 2, 3], 100)) is False`},
+			{label: "won't use the same element twice", test: `bool(has_pair_summing_to([5], 10)) is False`},
+			{label: "handles an empty list", test: `bool(has_pair_summing_to([], 0)) is False`},
+			{label: "handles negative numbers", test: `bool(has_pair_summing_to([-3, 8, 1], -2)) is True`},
+			{label: "finishes on 200,000 numbers — a nested loop won't",
+				test: `bool(has_pair_summing_to(list(range(200000)), 399997)) is True`},
+		}},
+
+	{slug: "algo-shortest-path", title: "Shortest Path", course: "algorithms", lang: "python",
+		prompt:  "Write `shortest_path(graph, start, goal)`.\n\n`graph` maps a node to the list of nodes it points at — `{\"a\": [\"b\", \"c\"], \"b\": [\"c\"], \"c\": []}`. Return the shortest route from `start` to `goal` as a list of nodes including both ends, or `None` if there's no route at all.\n\nTwo things will catch a solution that isn't quite right: depth-first search will happily return a long route when a short one exists, and a graph with a cycle in it will loop forever unless you remember where you've been.",
+		starter: "from collections import deque\n\n\ndef shortest_path(graph, start, goal):\n    # your code here\n    pass\n",
+		checks: []seedCheck{
+			{label: "follows a single edge",
+				test: `shortest_path({"a": ["b"], "b": []}, "a", "b") == ["a", "b"]`},
+			{label: "a node reaches itself in one step",
+				test: `shortest_path({"a": []}, "a", "a") == ["a"]`},
+			{label: "returns None when the goal can't be reached",
+				test: `shortest_path({"a": [], "b": []}, "a", "b") is None`},
+			{label: "takes the short route, not the first one it finds",
+				test: `shortest_path({"a": ["b", "z"], "b": ["c"], "c": ["z"], "z": []}, "a", "z") == ["a", "z"]`},
+			{label: "doesn't loop forever on a cycle",
+				test: `shortest_path({"a": ["b"], "b": ["a", "c"], "c": []}, "a", "c") == ["a", "b", "c"]`},
+			{label: "finds the shortest of several routes through a larger graph", hidden: true,
+				test: `shortest_path({"a": ["b", "c"], "b": ["d"], "c": ["d", "e"], "d": ["f"], "e": ["f"], "f": []}, "a", "f") in (["a", "b", "d", "f"], ["a", "c", "d", "f"], ["a", "c", "e", "f"])`},
+		}},
+
+	{slug: "hcw-twos-complement", title: "Two's Complement by Hand", course: "how_computers_work", lang: "python",
+		prompt:  "A negative integer isn't stored with a minus sign — it's stored as two's complement. Implement both directions:\n\n- `to_twos_complement(n, bits)` — the `bits`-wide pattern for `n`, as a string of `0`s and `1`s.\n- `from_twos_complement(s)` — the integer that pattern represents, negative when the leading bit is `1`.\n\n`to_twos_complement(-5, 8)` is `\"11111011\"`, and `from_twos_complement(\"11111011\")` is `-5`.\n\nPython's built-ins won't shortcut this: `bin(-5)` gives you `\"-0b101\"`, and `int(\"11111011\", 2)` gives you `251`. Neither is the answer, because neither knows how wide the number is — and width is the whole idea.",
+		starter: "def to_twos_complement(n, bits):\n    # your code here\n    pass\n\n\ndef from_twos_complement(s):\n    # your code here\n    pass\n",
+		checks: []seedCheck{
+			{label: "encodes a positive number", test: `to_twos_complement(5, 8) == "00000101"`},
+			{label: "encodes zero", test: `to_twos_complement(0, 8) == "00000000"`},
+			{label: "encodes a negative number", test: `to_twos_complement(-5, 8) == "11111011"`},
+			{label: "encodes -1 as all ones", test: `to_twos_complement(-1, 8) == "11111111"`},
+			{label: "encodes the most negative value that fits", test: `to_twos_complement(-128, 8) == "10000000"`},
+			{label: "decodes a positive pattern", test: `from_twos_complement("00000101") == 5`},
+			{label: "decodes a negative pattern", test: `from_twos_complement("11111011") == -5`},
+			{label: "works at a width other than 8",
+				test: `to_twos_complement(-1, 16) == "1" * 16 and from_twos_complement("1000") == -8`},
+			{label: "round-trips every value an 8-bit integer can hold", hidden: true,
+				test: `all(from_twos_complement(to_twos_complement(n, 8)) == n for n in range(-128, 128))`},
+		}},
+
+	{slug: "linux-top-talkers", title: "Find the Top Talkers", course: "linux", lang: "shell",
+		prompt:  "You've got `access.log` sitting next to your script. Print the three IP addresses that made the most requests, busiest first, one per line, as the count then the address:\n\n```\n5 10.0.0.1\n3 10.0.0.2\n2 10.0.0.3\n```\n\nExtra spaces between the two columns are fine — `uniq -c` pads its counts and you don't have to undo that.\n\nThis is the pipeline every sysadmin builds from memory: pull out the field you care about, sort it so equal things sit together, count the runs, then sort by the count. Four tools, one line.",
+		starter: "#!/usr/bin/env bash\n# access.log is in the current directory.\n",
+		files: []store.File{{Name: "access.log", Content: "" +
+			"10.0.0.1 - - [04/Sep/2026:09:12:01] \"GET /index.html\" 200\n" +
+			"10.0.0.2 - - [04/Sep/2026:09:12:04] \"GET /style.css\" 200\n" +
+			"10.0.0.1 - - [04/Sep/2026:09:12:09] \"GET /app.js\" 200\n" +
+			"10.0.0.3 - - [04/Sep/2026:09:12:11] \"GET /index.html\" 200\n" +
+			"10.0.0.1 - - [04/Sep/2026:09:12:15] \"GET /logo.png\" 200\n" +
+			"10.0.0.2 - - [04/Sep/2026:09:12:20] \"GET /index.html\" 200\n" +
+			"10.0.0.4 - - [04/Sep/2026:09:12:22] \"GET /admin\" 403\n" +
+			"10.0.0.1 - - [04/Sep/2026:09:12:26] \"GET /about.html\" 200\n" +
+			"10.0.0.3 - - [04/Sep/2026:09:12:31] \"GET /style.css\" 200\n" +
+			"10.0.0.2 - - [04/Sep/2026:09:12:35] \"GET /app.js\" 200\n" +
+			"10.0.0.1 - - [04/Sep/2026:09:12:40] \"GET /contact.html\" 200\n"}},
+		checks: []seedCheck{
+			{label: "prints exactly three lines", test: `len(_out.strip().splitlines()) == 3`},
+			{label: "ranks the top three addresses, busiest first",
+				test: `[l.split() for l in _out.strip().splitlines()] == [["5", "10.0.0.1"], ["3", "10.0.0.2"], ["2", "10.0.0.3"]]`},
+			{label: "exits cleanly", test: `_exit == 0`},
+			{label: "counts the log instead of printing the answer", hidden: true,
+				test: `"10.0.0.1" not in _code`},
+		}},
 }
 
 // stripFirstH1 removes a leading "# Title" line (the page shows the title

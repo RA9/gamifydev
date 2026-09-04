@@ -11,6 +11,18 @@
 
   <div class="prose">{{ index .Data "prompt" }}</div>
 
+  {{ with index .Data "files" }}
+  <div class="fx-panel">
+    <p class="fx-title">Files your program will find beside it</p>
+    {{ range . }}
+    <details class="fx-file">
+      <summary><code>{{ .Name }}</code></summary>
+      <pre>{{ .Content }}</pre>
+    </details>
+    {{ end }}
+  </div>
+  {{ end }}
+
   {{ with index .Data "submission" }}
     <div class="sub-status">
       <div class="sub-status-head">
@@ -26,7 +38,11 @@
           <p>{{ .Feedback }}</p>
         </div>
       {{ else if ne .Status "graded" }}
-        {{ if index $.Data "autoGraded" }}
+        {{ if .ChecksRanAt.Valid }}
+          {{/* The results are right below this line, so don't promise them as
+               though they're still coming. */}}
+          <p class="muted">{{ .ChecksPassed }} of {{ .ChecksTotal }} checks passed. Fix what's failing and submit again — there's no limit on attempts.</p>
+        {{ else if index $.Data "autoGraded" }}
           <p class="muted">Your checks run automatically — results appear here within a minute.</p>
         {{ else }}
           <p class="muted">Waiting for a mentor to review it.</p>

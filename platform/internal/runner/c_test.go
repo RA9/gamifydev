@@ -153,8 +153,8 @@ func TestUnknownLanguageIsRejected(t *testing.T) {
 func TestShellRuns(t *testing.T) {
 	e := newCTestExecutor(t)
 	res, err := e.Run(context.Background(), Request{
-		Lang: LangShell,
-		Code: "echo \"lines: $(wc -l < data.txt | tr -d ' ')\"",
+		Lang:  LangShell,
+		Code:  "echo \"lines: $(wc -l < data.txt | tr -d ' ')\"",
 		Files: map[string]string{"data.txt": "alpha\nbeta\ngamma\n"},
 	})
 	if err != nil {

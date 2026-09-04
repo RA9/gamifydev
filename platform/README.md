@@ -73,6 +73,44 @@ internal/server/                # routes, middleware, handlers, rendering
   web/static/                   # css / js assets (embedded)
 ```
 
+## Checkpoints
+
+A checkpoint is an assignment marked **required**: passing it opens the next
+course in the path. Each carries a list of *checks*, authored at
+`/admin/assignments/{id}`, and each check is a Python boolean expression
+whatever the assignment's language:
+
+- **Python** — the expression runs in the namespace the learner's program left
+  behind, so it can call their functions directly (`sum_list([]) == 0`), plus
+  `_code` for their source.
+- **C and shell** — there is no namespace to inspect, so the program runs first
+  and the expression asserts over what it produced: `_out`, `_err`, `_exit`,
+  `_in` (the stdin that check supplied) and `_code`. Checks sharing a stdin run
+  together, so one program run serves all of them.
+- **Anything else** (Java, JavaScript) has no sandbox yet and falls to a mentor.
+  The admin form says which of these applies before you write a single check.
+
+A check worth 1+ point must pass for the submission to be graded; one worth 0 is
+advisory. Marking a check **hidden** withholds its wording until the learner
+passes it, which is what stops the spec being read off the failure list — and is
+how a checkpoint catches an answer that was hardcoded rather than computed.
+
+**Fixture files** are written into the sandbox beside the program and thrown
+away after, which is what makes "do something with these files" possible. They
+are shown on the assignment page too, so a learner can read what they're being
+asked to process.
+
+Checks are run by the `checks:run` job, not inline on submit, so a cohort all
+submitting the same evening is metered rather than stampeding the runner. Each
+check reports as it finishes, so a submission killed by the time limit still
+shows what it had passed.
+
+Seeded checkpoints live in `internal/seed/seed.go`. Every one of them has a
+reference solution in `internal/seed/checkpoints_test.go` that must pass all its
+checks, and a plausible wrong solution that must fail a named one — a gate
+nothing can fail, or that nothing can pass, is caught by `go test` rather than
+by a learner.
+
 ## Status
 
 Foundation complete: accounts + sessions + roles, unified layout, and the admin

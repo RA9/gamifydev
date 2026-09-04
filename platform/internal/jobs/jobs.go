@@ -35,7 +35,7 @@ type Func func(ctx context.Context) (string, error)
 
 // Job is a registered unit of scheduled work.
 type Job struct {
-	Name string        // stable identifier, also the lock key: "activity:rollup"
+	Name  string        // stable identifier, also the lock key: "activity:rollup"
 	Every time.Duration // how often to attempt it
 	// Timeout bounds a single execution. The lease is taken for slightly longer
 	// so a job cannot outlive its own lock.

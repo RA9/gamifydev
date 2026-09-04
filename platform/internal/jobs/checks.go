@@ -79,20 +79,29 @@ func runChecks(ctx context.Context, st *store.Store, exec runner.Executor, subID
 		return false, err
 	}
 
-	var passedIDs map[int64]bool
-	var output string
-	switch sub.Language {
-	case runner.LangC, runner.LangShell:
-		// Neither leaves a namespace to inspect, so both are checked by
-		// asserting over what the program printed for a given input.
-		passedIDs, output, err = runByOutput(ctx, exec, sub.Language, sub.Code, files, checks)
-	default:
-		passedIDs, output, err = runPython(ctx, exec, sub.Code, files, checks)
-	}
+	passedIDs, output, err := Grade(ctx, exec, sub.Language, sub.Code, files, checks)
 	if err != nil {
 		return false, err
 	}
 	return st.RecordCheckRun(ctx, subID, passedIDs, output, sub.MaxPoints, sub.PassPoints)
+}
+
+// Grade runs a set of checks against one program and reports which passed,
+// along with the transcript the learner is shown.
+//
+// Separated from the job loop and exported so a checkpoint can be graded
+// without a database or a submission behind it — which is what lets a test
+// prove that an authored checkpoint is actually solvable, rather than waiting
+// for a learner to discover that it isn't.
+func Grade(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check) (map[int64]bool, string, error) {
+	switch lang {
+	case runner.LangC, runner.LangShell:
+		// Neither leaves a namespace to inspect, so both are checked by
+		// asserting over what the program printed for a given input.
+		return runByOutput(ctx, exec, lang, code, files, checks)
+	default:
+		return runPython(ctx, exec, code, files, checks)
+	}
 }
 
 // runPython verifies an interpreted submission: one run, with every check
@@ -201,7 +210,10 @@ func learnerOutput(logs string, res runner.Result) string {
 	out.WriteString(logs)
 	switch {
 	case res.TimedOut:
-		out.WriteString("\n\n⚠ Your program didn't finish in time. Check for a loop that never ends.")
+		// Checks report one at a time, so the ones above this line did run. What
+		// stopped is everything from the first unticked check onward — usually an
+		// algorithm too slow for the input it was handed, or a loop with no exit.
+		out.WriteString("\n\n⚠ Your program ran out of time. Every check below the last one it reached is untested — look for an approach that's too slow for the input, or a loop that never ends.")
 	case strings.TrimSpace(res.Stderr) != "":
 		out.WriteString("\n\n" + strings.TrimSpace(res.Stderr))
 	}

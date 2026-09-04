@@ -24,8 +24,8 @@ const (
 
 // Band describes one band's representative local time.
 type Band struct {
-	Key    string
-	Label  string
+	Key   string
+	Label string
 	// OffsetHours is the representative UTC offset used to turn "06:00 local"
 	// into an instant. Members inside a band differ by a few hours; the window
 	// is wide enough to absorb that.

@@ -23,7 +23,7 @@ var placementItems = []store.Item{
 	// ---------------------------------------------------------------- programming
 	{
 		Topic: placement.TopicProgramming, Difficulty: 1,
-		Prompt:  "What does a function's `return` statement do?",
+		Prompt: "What does a function's `return` statement do?",
 		Options: []string{
 			"Prints the value to the screen",
 			"Sends a value back to whatever called the function",
@@ -184,16 +184,16 @@ var placementItems = []store.Item{
 	},
 	{
 		Topic: placement.TopicComplexity, Difficulty: 2,
-		Prompt:  "Simplified to Big O, `3n^2 + 500n + 9000` is:",
-		Options: []string{"O(n)", "O(n^2)", "O(3n^2)", "O(9000)"},
-		Answer:  1,
+		Prompt:      "Simplified to Big O, `3n^2 + 500n + 9000` is:",
+		Options:     []string{"O(n)", "O(n^2)", "O(3n^2)", "O(9000)"},
+		Answer:      1,
 		Explanation: "Constants and lower-order terms drop; only the fastest-growing term matters as n grows.",
 	},
 	{
 		Topic: placement.TopicComplexity, Difficulty: 2,
-		Prompt:  "Which of these grows the fastest as n increases?",
-		Options: []string{"O(n log n)", "O(n^2)", "O(2^n)", "O(n)"},
-		Answer:  2,
+		Prompt:      "Which of these grows the fastest as n increases?",
+		Options:     []string{"O(n log n)", "O(n^2)", "O(2^n)", "O(n)"},
+		Answer:      2,
 		Explanation: "Exponential growth outruns any polynomial. At n = 60, 2^n is already astronomically large.",
 	},
 	{
@@ -233,23 +233,23 @@ var placementItems = []store.Item{
 	},
 	{
 		Topic: placement.TopicAlgorithms, Difficulty: 2,
-		Prompt:  "Which traversal explores a graph level by level, using a queue?",
-		Options: []string{"Depth-first search", "Breadth-first search", "Binary search", "Quick sort"},
-		Answer:  1,
+		Prompt:      "Which traversal explores a graph level by level, using a queue?",
+		Options:     []string{"Depth-first search", "Breadth-first search", "Binary search", "Quick sort"},
+		Answer:      1,
 		Explanation: "BFS uses a queue to visit all neighbours at the current distance before going deeper. DFS uses a stack.",
 	},
 	{
 		Topic: placement.TopicAlgorithms, Difficulty: 2,
-		Prompt:  "What is the worst-case time complexity of quicksort?",
-		Options: []string{"O(n)", "O(n log n)", "O(n^2)", "O(2^n)"},
-		Answer:  2,
+		Prompt:      "What is the worst-case time complexity of quicksort?",
+		Options:     []string{"O(n)", "O(n log n)", "O(n^2)", "O(2^n)"},
+		Answer:      2,
 		Explanation: "A consistently bad pivot (e.g. already-sorted input with a naive pivot) gives O(n^2). Its *average* is O(n log n).",
 	},
 	{
 		Topic: placement.TopicAlgorithms, Difficulty: 2,
-		Prompt:  "Merge sort's worst-case time complexity is:",
-		Options: []string{"O(n)", "O(n log n)", "O(n^2)", "It varies with the input"},
-		Answer:  1,
+		Prompt:      "Merge sort's worst-case time complexity is:",
+		Options:     []string{"O(n)", "O(n log n)", "O(n^2)", "It varies with the input"},
+		Answer:      1,
 		Explanation: "Merge sort always splits in half and merges linearly, so it is O(n log n) in every case — at the cost of O(n) extra space.",
 	},
 	{
@@ -280,9 +280,9 @@ var placementItems = []store.Item{
 	// ----------------------------------------------------------------- computers
 	{
 		Topic: placement.TopicComputers, Difficulty: 1,
-		Prompt:  "What is the decimal value of the binary number `1011`?",
-		Options: []string{"7", "9", "11", "13"},
-		Answer:  2,
+		Prompt:      "What is the decimal value of the binary number `1011`?",
+		Options:     []string{"7", "9", "11", "13"},
+		Answer:      2,
 		Explanation: "8 + 0 + 2 + 1 = 11. The place values from the left are 8, 4, 2, 1.",
 	},
 	{
@@ -299,16 +299,16 @@ var placementItems = []store.Item{
 	},
 	{
 		Topic: placement.TopicComputers, Difficulty: 2,
-		Prompt:  "How many distinct values can a single byte (8 bits) represent?",
-		Options: []string{"8", "64", "128", "256"},
-		Answer:  3,
+		Prompt:      "How many distinct values can a single byte (8 bits) represent?",
+		Options:     []string{"8", "64", "128", "256"},
+		Answer:      3,
 		Explanation: "Each bit doubles the possibilities: 2^8 = 256 distinct values.",
 	},
 	{
 		Topic: placement.TopicComputers, Difficulty: 2,
-		Prompt:  "What is the result of the bitwise expression `5 & 3`?",
-		Options: []string{"1", "3", "7", "8"},
-		Answer:  0,
+		Prompt:      "What is the result of the bitwise expression `5 & 3`?",
+		Options:     []string{"1", "3", "7", "8"},
+		Answer:      0,
 		Explanation: "0101 AND 0011 compares column by column and keeps only bits set in both: 0001 = 1.",
 	},
 	{
@@ -339,14 +339,14 @@ var placementItems = []store.Item{
 	// ----------------------------------------------------------------------- web
 	{
 		Topic: placement.TopicWeb, Difficulty: 1,
-		Prompt:  "What does HTML provide for a web page?",
-		Options: []string{"Its structure and content", "Its colours and layout", "Its server logic", "Its database schema"},
-		Answer:  0,
+		Prompt:      "What does HTML provide for a web page?",
+		Options:     []string{"Its structure and content", "Its colours and layout", "Its server logic", "Its database schema"},
+		Answer:      0,
 		Explanation: "HTML marks up structure and meaning; CSS handles presentation and JavaScript handles behaviour.",
 	},
 	{
 		Topic: placement.TopicWeb, Difficulty: 1,
-		Prompt:  "What does the DOM represent?",
+		Prompt: "What does the DOM represent?",
 		Options: []string{
 			"The CSS rules of a page",
 			"A tree of the page's elements that scripts can read and change",
@@ -358,7 +358,7 @@ var placementItems = []store.Item{
 	},
 	{
 		Topic: placement.TopicWeb, Difficulty: 2,
-		Prompt:  "In JavaScript, how does `===` differ from `==`?",
+		Prompt: "In JavaScript, how does `===` differ from `==`?",
 		Options: []string{
 			"`===` is faster but otherwise identical",
 			"`===` compares without converting types, `==` converts first",
@@ -370,16 +370,16 @@ var placementItems = []store.Item{
 	},
 	{
 		Topic: placement.TopicWeb, Difficulty: 2,
-		Prompt:  "Which HTTP status code means the requested resource was not found?",
-		Options: []string{"200", "301", "404", "500"},
-		Answer:  2,
+		Prompt:      "Which HTTP status code means the requested resource was not found?",
+		Options:     []string{"200", "301", "404", "500"},
+		Answer:      2,
 		Explanation: "404 is the classic not-found response. 200 is success, 301 a permanent redirect, 500 a server error.",
 	},
 	{
 		Topic: placement.TopicWeb, Difficulty: 2,
-		Prompt:  "In CSS, which selector has the highest specificity?",
-		Options: []string{"A tag selector like `p`", "A class selector like `.intro`", "An ID selector like `#header`", "The universal selector `*`"},
-		Answer:  2,
+		Prompt:      "In CSS, which selector has the highest specificity?",
+		Options:     []string{"A tag selector like `p`", "A class selector like `.intro`", "An ID selector like `#header`", "The universal selector `*`"},
+		Answer:      2,
 		Explanation: "Specificity climbs from universal → tag → class → ID, so an ID selector wins against the others.",
 	},
 	{
@@ -398,14 +398,14 @@ var placementItems = []store.Item{
 	// ------------------------------------------------------------------- backend
 	{
 		Topic: placement.TopicBackend, Difficulty: 1,
-		Prompt:  "Which HTTP method is conventionally used to create a new resource?",
-		Options: []string{"GET", "POST", "DELETE", "HEAD"},
-		Answer:  1,
+		Prompt:      "Which HTTP method is conventionally used to create a new resource?",
+		Options:     []string{"GET", "POST", "DELETE", "HEAD"},
+		Answer:      1,
 		Explanation: "POST submits data to create something. GET should be safe and read-only.",
 	},
 	{
 		Topic: placement.TopicBackend, Difficulty: 1,
-		Prompt:  "What does a database primary key guarantee?",
+		Prompt: "What does a database primary key guarantee?",
 		Options: []string{
 			"The column is sorted",
 			"Each row has a unique, non-null identifier",
@@ -431,7 +431,7 @@ var placementItems = []store.Item{
 	},
 	{
 		Topic: placement.TopicBackend, Difficulty: 2,
-		Prompt:  "What is a database index for?",
+		Prompt: "What is a database index for?",
 		Options: []string{
 			"Storing a backup copy of the table",
 			"Speeding up lookups, at the cost of slower writes and more space",
@@ -443,7 +443,7 @@ var placementItems = []store.Item{
 	},
 	{
 		Topic: placement.TopicBackend, Difficulty: 2,
-		Prompt:  "An HTTP 500 response means:",
+		Prompt: "An HTTP 500 response means:",
 		Options: []string{
 			"The client sent a malformed request",
 			"The server hit an error while handling the request",

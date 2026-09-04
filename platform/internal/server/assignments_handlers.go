@@ -56,6 +56,13 @@ func (s *Server) handleAssignment(w http.ResponseWriter, r *http.Request) {
 			data["checks"] = results
 		}
 	}
+	// The files the program will find beside it in the sandbox. A prompt that
+	// says "you are given access.log" is unanswerable unless the learner can
+	// read access.log, so they are shown here rather than only written at run
+	// time.
+	if files, err := s.st.ListFiles(r.Context(), a.ID); err == nil && len(files) > 0 {
+		data["files"] = files
+	}
 	// Whether this checkpoint is machine-gradable at all shapes what we promise
 	// the learner about how fast they'll hear back.
 	auto, _ := s.st.AutoGradable(r.Context(), a.ID)
