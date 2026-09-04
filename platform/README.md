@@ -142,6 +142,27 @@ checks, and a plausible wrong solution that must fail a named one — a gate
 nothing can fail, or that nothing can pass, is caught by `go test` rather than
 by a learner.
 
+## Tests
+
+```bash
+go test ./...
+```
+
+The policy packages (`placement`, `cohort`, `schedule`, `attendance`) are unit
+tested against their rules. `runner` and `pyharness` are tested against real
+sandboxed execution, and `seed` proves every shipped checkpoint is solvable.
+
+`internal/server` has smoke tests: they drive the real mux, real templates and a
+real seeded database. Two of them read the routing table out of `server.go` and
+assert that **every** non-public route turns away a guest and every `/admin`
+route turns away a learner — so a handler registered without its middleware
+fails the build, including one added long after this was written. That is the
+one class of bug in the HTTP layer that nothing else would catch.
+
+They are smoke tests, not thorough ones: they check that pages come back and
+that the locked doors are locked, not that every branch inside a handler is
+right.
+
 ## Status
 
 Foundation complete: accounts + sessions + roles, unified layout, and the admin
