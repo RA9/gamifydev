@@ -266,12 +266,10 @@ func (s *Store) GuestByToken(ctx context.Context, token string) (int64, error) {
 	return id, nil
 }
 
-// ClaimGuestWork hands everything a guest solved to a real account.
-//
-// This is the moment a visitor who was only trying the problems becomes a
-// learner, and losing their work here would be the worst possible time to lose
-// it — so the rows are moved rather than copied, in one transaction, and the
-// session is marked spent so the cookie can't be replayed.
+// ClaimGuestWork hands every guest-owned resource to an existing account.
+// Problem submissions and placement attempts/results move together in one
+// transaction, then the guest session is marked spent so the cookie cannot be
+// replayed.
 func (s *Store) ClaimGuestWork(ctx context.Context, guestID, userID int64) (int, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -286,6 +284,16 @@ func (s *Store) ClaimGuestWork(ctx context.Context, guestID, userID int64) (int,
 		return 0, err
 	}
 	moved, _ := res.RowsAffected()
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE assessment_attempts SET user_id = ?, guest_id = NULL WHERE guest_id = ?`,
+		userID, guestID); err != nil {
+		return 0, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE placement_results SET user_id = ?, guest_id = NULL WHERE guest_id = ?`,
+		userID, guestID); err != nil {
+		return 0, err
+	}
 	if _, err := tx.ExecContext(ctx,
 		`UPDATE guest_sessions SET claimed_by = ? WHERE id = ?`, userID, guestID); err != nil {
 		return 0, err

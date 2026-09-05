@@ -6,20 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
 // Placement diagnostic persistence: the item bank, a sitting's lifecycle, and
 // the routing decision it produces.
 //
-// Two properties this file is responsible for:
-//
-//   - Answers never leave the server. Item rows carry the correct index, but the
-//     type used to render a paper (AttemptItem) has no answer field at all, so
-//     it cannot leak into a template by accident.
-//   - The paper is fixed at start. The drawn items are recorded in
-//     assessment_attempt_items, and scoring reads that table rather than trusting
-//     anything the client posts back.
+// Answers never leave the server. AttemptItem has no answer field, while each
+// sitting snapshots the complete drawn item (including its answer) in
+// assessment_attempt_items. Reseeding the bank therefore cannot change a live
+// paper, its score, or its review history.
 
 // Assessment is a named item bank.
 type Assessment struct {
@@ -57,10 +54,13 @@ type AttemptItem struct {
 	Response sql.NullInt64
 }
 
-// Attempt is one sitting.
+// Attempt is one sitting. By is the canonical owner; UserID and GuestID are
+// retained for compatibility with existing user-only callers.
 type Attempt struct {
 	ID           int64
 	UserID       int64
+	GuestID      int64
+	By           Solver
 	AssessmentID int64
 	StartedAt    string
 	ExpiresAt    string
@@ -72,6 +72,9 @@ type Attempt struct {
 
 // Submitted reports whether the attempt has been scored.
 func (a Attempt) Submitted() bool { return a.SubmittedAt.Valid }
+
+// OwnedBy reports whether this attempt belongs to by.
+func (a Attempt) OwnedBy(by Solver) bool { return by.valid() && a.By == by }
 
 // GetAssessment loads a published assessment by slug.
 func (s *Store) GetAssessment(ctx context.Context, slug string) (*Assessment, error) {
@@ -100,11 +103,9 @@ func (s *Store) UpsertAssessment(ctx context.Context, a Assessment) (int64, erro
 	return id, err
 }
 
-// ReplaceItems swaps an assessment's bank for the given items.
-//
-// Items are replaced rather than retired because the bank is seeded content; a
-// learner's finished attempt keeps its own copy of what was asked via
-// assessment_attempt_items, so history is not disturbed.
+// ReplaceItems swaps an assessment's bank for the given items. Attempt item rows
+// contain immutable snapshots, so replacing or deleting bank rows cannot alter
+// an in-progress or historical sitting.
 func (s *Store) ReplaceItems(ctx context.Context, assessmentID int64, items []Item) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -135,28 +136,49 @@ func (s *Store) ReplaceItems(ctx context.Context, assessmentID int64, items []It
 	return tx.Commit()
 }
 
-// LiveAttempt returns the user's in-progress attempt (started, not submitted,
-// not expired), or nil.
+const attemptCols = `id, user_id, guest_id, assessment_id, started_at, expires_at,
+	submitted_at, score, topic_scores, abandoned`
+
+// LiveAttempt is the user-only compatibility wrapper for LiveAttemptFor.
 func (s *Store) LiveAttempt(ctx context.Context, userID int64) (*Attempt, error) {
+	return s.LiveAttemptFor(ctx, Solver{UserID: userID})
+}
+
+// LiveAttemptFor returns the owner's in-progress attempt, or nil.
+func (s *Store) LiveAttemptFor(ctx context.Context, by Solver) (*Attempt, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	userID, guestID := by.cols()
 	a, err := s.scanAttempt(s.db.QueryRowContext(ctx, `
-		SELECT id, user_id, assessment_id, started_at, expires_at, submitted_at, score, topic_scores, abandoned
+		SELECT `+attemptCols+`
 		FROM assessment_attempts
-		WHERE user_id = ? AND submitted_at IS NULL AND abandoned = 0
+		WHERE (user_id = ? OR guest_id = ?)
+		  AND submitted_at IS NULL AND abandoned = 0
 		  AND datetime(expires_at) > datetime('now')
-		ORDER BY started_at DESC LIMIT 1`, userID))
+		ORDER BY datetime(started_at) DESC, id DESC LIMIT 1`, userID, guestID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	return a, err
 }
 
-// LatestSubmittedAttempt returns the user's most recent scored attempt, or nil.
+// LatestSubmittedAttempt is the user-only compatibility wrapper.
 func (s *Store) LatestSubmittedAttempt(ctx context.Context, userID int64) (*Attempt, error) {
+	return s.LatestSubmittedAttemptFor(ctx, Solver{UserID: userID})
+}
+
+// LatestSubmittedAttemptFor returns the owner's most recent scored attempt.
+func (s *Store) LatestSubmittedAttemptFor(ctx context.Context, by Solver) (*Attempt, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	userID, guestID := by.cols()
 	a, err := s.scanAttempt(s.db.QueryRowContext(ctx, `
-		SELECT id, user_id, assessment_id, started_at, expires_at, submitted_at, score, topic_scores, abandoned
+		SELECT `+attemptCols+`
 		FROM assessment_attempts
-		WHERE user_id = ? AND submitted_at IS NOT NULL
-		ORDER BY submitted_at DESC LIMIT 1`, userID))
+		WHERE (user_id = ? OR guest_id = ?) AND submitted_at IS NOT NULL
+		ORDER BY datetime(submitted_at) DESC, id DESC LIMIT 1`, userID, guestID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -165,40 +187,165 @@ func (s *Store) LatestSubmittedAttempt(ctx context.Context, userID int64) (*Atte
 
 func (s *Store) scanAttempt(row interface{ Scan(...any) error }) (*Attempt, error) {
 	var a Attempt
+	var userID, guestID sql.NullInt64
 	var topics string
-	err := row.Scan(&a.ID, &a.UserID, &a.AssessmentID, &a.StartedAt, &a.ExpiresAt,
+	err := row.Scan(&a.ID, &userID, &guestID, &a.AssessmentID, &a.StartedAt, &a.ExpiresAt,
 		&a.SubmittedAt, &a.Score, &topics, &a.Abandoned)
 	if err != nil {
 		return nil, err
 	}
+	a.UserID, a.GuestID = userID.Int64, guestID.Int64
+	a.By = Solver{UserID: a.UserID, GuestID: a.GuestID}
 	a.TopicScores = map[string]int{}
 	_ = json.Unmarshal([]byte(topics), &a.TopicScores)
 	return &a, nil
 }
 
-// StartAttempt draws a fresh paper and opens a sitting.
-//
-// Items are sampled per topic rather than served whole and in order: two
-// learners rarely see the same paper, which is the practical mitigation against
-// a leaked bank. `perTopic` items are drawn from each topic present in the bank.
+const (
+	PlacementRetryDelay  = 7 * 24 * time.Hour
+	PlacementRetryWindow = 30 * 24 * time.Hour
+	PlacementMaxAttempts = 3
+)
+
+var (
+	// ErrAttemptInProgress prevents rerolling a live paper.
+	ErrAttemptInProgress = errors.New("assessment attempt already in progress")
+	// ErrPlacementRetryTooSoon means seven days have not elapsed since a failure.
+	ErrPlacementRetryTooSoon = errors.New("placement retry is not available yet")
+	// ErrPlacementAttemptLimit means three sittings have started in 30 days.
+	ErrPlacementAttemptLimit = errors.New("placement attempt limit reached")
+	// ErrPlacementAlreadyPassed means the owner already has a passing result.
+	ErrPlacementAlreadyPassed = errors.New("placement already passed")
+)
+
+// PlacementRetryStatus explains whether an owner may start another placement.
+type PlacementRetryStatus struct {
+	Allowed        bool
+	AttemptsLast30 int
+	RetryAt        string
+	Reason         error
+}
+
+type assessmentQuerier interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func placementRetryStatus(ctx context.Context, q assessmentQuerier, by Solver) (PlacementRetryStatus, error) {
+	var status PlacementRetryStatus
+	userID, guestID := by.cols()
+	if err := q.QueryRowContext(ctx, `
+		SELECT COUNT(*)
+		FROM assessment_attempts a
+		JOIN assessments bank ON bank.id = a.assessment_id
+		WHERE bank.kind = 'placement'
+		  AND (a.user_id = ? OR a.guest_id = ?)
+		  AND datetime(a.started_at) >= datetime('now', '-30 days')`, userID, guestID).
+		Scan(&status.AttemptsLast30); err != nil {
+		return status, err
+	}
+
+	var passed int
+	var retryAt string
+	err := q.QueryRowContext(ctx, `
+		SELECT passed, datetime(created_at, '+7 days')
+		FROM placement_results
+		WHERE user_id = ? OR guest_id = ?
+		ORDER BY datetime(created_at) DESC, id DESC LIMIT 1`, userID, guestID).
+		Scan(&passed, &retryAt)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return status, err
+	}
+	if err == nil && passed == 1 {
+		status.Reason = ErrPlacementAlreadyPassed
+		return status, nil
+	}
+	if status.AttemptsLast30 >= PlacementMaxAttempts {
+		status.Reason = ErrPlacementAttemptLimit
+		return status, nil
+	}
+	if err == nil {
+		var waiting int
+		if err := q.QueryRowContext(ctx,
+			`SELECT CASE WHEN datetime(?) > datetime('now') THEN 1 ELSE 0 END`, retryAt).
+			Scan(&waiting); err != nil {
+			return status, err
+		}
+		if waiting == 1 {
+			status.RetryAt = retryAt
+			status.Reason = ErrPlacementRetryTooSoon
+			return status, nil
+		}
+	}
+	status.Allowed = true
+	return status, nil
+}
+
+// PlacementRetryFor reports the persisted retry state for an owner.
+func (s *Store) PlacementRetryFor(ctx context.Context, by Solver) (PlacementRetryStatus, error) {
+	if !by.valid() {
+		return PlacementRetryStatus{}, ErrNoSolver
+	}
+	return placementRetryStatus(ctx, s.db, by)
+}
+
+// StartAttempt is the user-only compatibility wrapper for StartAttemptFor.
 func (s *Store) StartAttempt(ctx context.Context, userID int64, a *Assessment) (*Attempt, error) {
+	return s.StartAttemptFor(ctx, Solver{UserID: userID}, a)
+}
+
+// StartAttemptFor draws a fresh paper and opens a sitting for exactly one owner.
+// Placement attempts enforce a seven-day wait after failure and a rolling limit
+// of three starts per 30 days.
+func (s *Store) StartAttemptFor(ctx context.Context, by Solver, a *Assessment) (*Attempt, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	if a == nil {
+		return nil, ErrNotFound
+	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback() //nolint:errcheck
 
+	if err := solverExists(ctx, tx, by); err != nil {
+		return nil, err
+	}
+	userID, guestID := by.cols()
+	var live int
+	err = tx.QueryRowContext(ctx, `
+		SELECT 1 FROM assessment_attempts
+		WHERE (user_id = ? OR guest_id = ?)
+		  AND submitted_at IS NULL AND abandoned = 0
+		  AND datetime(expires_at) > datetime('now') LIMIT 1`, userID, guestID).Scan(&live)
+	if err == nil {
+		return nil, ErrAttemptInProgress
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	if a.Kind == "placement" {
+		status, err := placementRetryStatus(ctx, tx, by)
+		if err != nil {
+			return nil, err
+		}
+		if !status.Allowed {
+			return nil, status.Reason
+		}
+	}
+
 	expires := time.Now().UTC().Add(time.Duration(a.TimeLimitS) * time.Second).Format("2006-01-02 15:04:05")
 	var attemptID int64
 	if err := tx.QueryRowContext(ctx, `
-		INSERT INTO assessment_attempts (user_id, assessment_id, expires_at)
-		VALUES (?, ?, ?) RETURNING id`, userID, a.ID, expires).Scan(&attemptID); err != nil {
+		INSERT INTO assessment_attempts (user_id, guest_id, assessment_id, expires_at)
+		VALUES (?, ?, ?, ?) RETURNING id`, userID, guestID, a.ID, expires).Scan(&attemptID); err != nil {
 		return nil, err
 	}
 
-	// Stratified sample: `per_topic` random items from each topic. Ordering the
-	// paper by topic keeps related questions together, which reads better than
-	// a fully shuffled paper.
+	// Stratified sample: per_topic random items from each topic. The selected bank
+	// id remains the form key, while every value needed to render and grade is
+	// copied into the sitting.
 	rows, err := tx.QueryContext(ctx, `
 		SELECT id FROM (
 			SELECT id, topic,
@@ -228,36 +375,80 @@ func (s *Store) StartAttempt(ctx context.Context, userID int64, a *Assessment) (
 		return nil, errors.New("assessment has no items")
 	}
 	for i, id := range ids {
-		if _, err := tx.ExecContext(ctx,
-			`INSERT INTO assessment_attempt_items (attempt_id, item_id, sort) VALUES (?, ?, ?)`,
-			attemptID, id, i); err != nil {
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO assessment_attempt_items
+				(attempt_id, item_id, sort, topic, difficulty, prompt, code, lang, options, answer, explanation)
+			SELECT ?, id, ?, topic, difficulty, prompt, code, lang, options, answer, explanation
+			FROM assessment_items WHERE id = ?`, attemptID, i, id); err != nil {
 			return nil, err
 		}
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	return s.GetAttempt(ctx, attemptID)
+	return s.GetAttemptFor(ctx, by, attemptID)
 }
 
-// GetAttempt loads an attempt by id.
+func solverExists(ctx context.Context, q assessmentQuerier, by Solver) error {
+	var one int
+	var err error
+	if by.UserID != 0 {
+		err = q.QueryRowContext(ctx, `SELECT 1 FROM users WHERE id = ?`, by.UserID).Scan(&one)
+	} else {
+		err = q.QueryRowContext(ctx,
+			`SELECT 1 FROM guest_sessions WHERE id = ? AND claimed_by IS NULL`, by.GuestID).Scan(&one)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
+}
+
+// GetAttempt loads an attempt by id. New request paths should use GetAttemptFor;
+// this unscoped form remains for existing trusted user-only call sites.
 func (s *Store) GetAttempt(ctx context.Context, id int64) (*Attempt, error) {
-	a, err := s.scanAttempt(s.db.QueryRowContext(ctx, `
-		SELECT id, user_id, assessment_id, started_at, expires_at, submitted_at, score, topic_scores, abandoned
-		FROM assessment_attempts WHERE id = ?`, id))
+	a, err := s.scanAttempt(s.db.QueryRowContext(ctx,
+		`SELECT `+attemptCols+` FROM assessment_attempts WHERE id = ?`, id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 	return a, err
 }
 
-// AttemptItems returns the paper drawn for an attempt, without answers.
+// GetAttemptFor loads an attempt only when it belongs to by.
+func (s *Store) GetAttemptFor(ctx context.Context, by Solver, id int64) (*Attempt, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	userID, guestID := by.cols()
+	a, err := s.scanAttempt(s.db.QueryRowContext(ctx, `
+		SELECT `+attemptCols+` FROM assessment_attempts
+		WHERE id = ? AND (user_id = ? OR guest_id = ?)`, id, userID, guestID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return a, err
+}
+
+// AttemptItems returns the snapshotted paper without answers. New request paths
+// should use AttemptItemsFor.
 func (s *Store) AttemptItems(ctx context.Context, attemptID int64) ([]AttemptItem, error) {
+	return s.attemptItems(ctx, attemptID)
+}
+
+// AttemptItemsFor returns the paper only to its owner.
+func (s *Store) AttemptItemsFor(ctx context.Context, by Solver, attemptID int64) ([]AttemptItem, error) {
+	if _, err := s.GetAttemptFor(ctx, by, attemptID); err != nil {
+		return nil, err
+	}
+	return s.attemptItems(ctx, attemptID)
+}
+
+func (s *Store) attemptItems(ctx context.Context, attemptID int64) ([]AttemptItem, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT i.id, ai.sort, i.topic, i.prompt, i.code, i.lang, i.options, ai.response
-		FROM assessment_attempt_items ai
-		JOIN assessment_items i ON i.id = ai.item_id
-		WHERE ai.attempt_id = ? ORDER BY ai.sort`, attemptID)
+		SELECT item_id, sort, topic, prompt, code, lang, options, response
+		FROM assessment_attempt_items
+		WHERE attempt_id = ? ORDER BY sort`, attemptID)
 	if err != nil {
 		return nil, err
 	}
@@ -281,14 +472,21 @@ var ErrAttemptExpired = errors.New("attempt expired")
 // ErrAlreadySubmitted guards against double submission.
 var ErrAlreadySubmitted = errors.New("attempt already submitted")
 
-// ScoreAttempt grades a submission and records per-topic percentages.
-//
-// `responses` maps item id to the chosen option index; items absent from the map
-// are treated as unanswered and wrong. Only items actually drawn for this
-// attempt are considered, so a client cannot smuggle in extra answers.
-//
-// The time limit is enforced here, against the database clock.
+// ScoreAttempt is the compatibility form for trusted call sites that already
+// obtained the attempt through an owner-scoped lookup.
 func (s *Store) ScoreAttempt(ctx context.Context, attemptID int64, responses map[int64]int) (*Attempt, error) {
+	return s.scoreAttempt(ctx, Solver{}, false, attemptID, responses)
+}
+
+// ScoreAttemptFor grades an attempt only when it belongs to by.
+func (s *Store) ScoreAttemptFor(ctx context.Context, by Solver, attemptID int64, responses map[int64]int) (*Attempt, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	return s.scoreAttempt(ctx, by, true, attemptID, responses)
+}
+
+func (s *Store) scoreAttempt(ctx context.Context, by Solver, scoped bool, attemptID int64, responses map[int64]int) (*Attempt, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -297,12 +495,22 @@ func (s *Store) ScoreAttempt(ctx context.Context, attemptID int64, responses map
 
 	var submitted sql.NullString
 	var expired int
-	if err := tx.QueryRowContext(ctx, `
-		SELECT submitted_at, CASE WHEN datetime(expires_at) <= datetime('now') THEN 1 ELSE 0 END
-		FROM assessment_attempts WHERE id = ?`, attemptID).Scan(&submitted, &expired); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
+	if scoped {
+		userID, guestID := by.cols()
+		err = tx.QueryRowContext(ctx, `
+			SELECT submitted_at, CASE WHEN datetime(expires_at) <= datetime('now') THEN 1 ELSE 0 END
+			FROM assessment_attempts
+			WHERE id = ? AND (user_id = ? OR guest_id = ?)`, attemptID, userID, guestID).
+			Scan(&submitted, &expired)
+	} else {
+		err = tx.QueryRowContext(ctx, `
+			SELECT submitted_at, CASE WHEN datetime(expires_at) <= datetime('now') THEN 1 ELSE 0 END
+			FROM assessment_attempts WHERE id = ?`, attemptID).Scan(&submitted, &expired)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
 		return nil, err
 	}
 	if submitted.Valid {
@@ -319,20 +527,18 @@ func (s *Store) ScoreAttempt(ctx context.Context, attemptID int64, responses map
 		return nil, ErrAttemptExpired
 	}
 
-	// Grade against the stored paper and stored answers.
-	rows, err := tx.QueryContext(ctx, `
-		SELECT i.id, i.topic, i.answer
-		FROM assessment_attempt_items ai
-		JOIN assessment_items i ON i.id = ai.item_id
-		WHERE ai.attempt_id = ?`, attemptID)
-	if err != nil {
-		return nil, err
-	}
 	type graded struct {
 		id      int64
 		topic   string
 		correct bool
-		resp    (*int)
+		resp    *int
+	}
+	rows, err := tx.QueryContext(ctx, `
+		SELECT item_id, topic, answer
+		FROM assessment_attempt_items
+		WHERE attempt_id = ?`, attemptID)
+	if err != nil {
+		return nil, err
 	}
 	var all []graded
 	for rows.Next() {
@@ -365,13 +571,13 @@ func (s *Store) ScoreAttempt(ctx context.Context, attemptID int64, responses map
 			right++
 			perTopicRight[g.topic]++
 		}
-		c := 0
+		correct := 0
 		if g.correct {
-			c = 1
+			correct = 1
 		}
-		if _, err := tx.ExecContext(ctx,
-			`UPDATE assessment_attempt_items SET response = ?, correct = ? WHERE attempt_id = ? AND item_id = ?`,
-			g.resp, c, attemptID, g.id); err != nil {
+		if _, err := tx.ExecContext(ctx, `
+			UPDATE assessment_attempt_items SET response = ?, correct = ?
+			WHERE attempt_id = ? AND item_id = ?`, g.resp, correct, attemptID, g.id); err != nil {
 			return nil, err
 		}
 	}
@@ -387,7 +593,6 @@ func (s *Store) ScoreAttempt(ctx context.Context, attemptID int64, responses map
 		overall = right * 100 / len(all)
 	}
 	ts, _ := json.Marshal(topicScores)
-
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE assessment_attempts
 		SET submitted_at = datetime('now'), score = ?, topic_scores = ?
@@ -397,58 +602,128 @@ func (s *Store) ScoreAttempt(ctx context.Context, attemptID int64, responses map
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
+	if scoped {
+		return s.GetAttemptFor(ctx, by, attemptID)
+	}
 	return s.GetAttempt(ctx, attemptID)
 }
 
-// PlacementResult is the stored routing decision.
+// PlacementResult is the stored routing decision. Passed is explicit because
+// score-band interpretation belongs to placement policy, not persistence.
 type PlacementResult struct {
 	ID                  int64
 	AttemptID           int64
 	UserID              int64
+	GuestID             int64
+	By                  Solver
 	RecommendedPathID   sql.NullInt64
 	FoundationsRequired bool
+	Passed              bool
 	Exemptions          []string
 	CreatedAt           string
 }
 
-// SavePlacementResult records a routing decision for an attempt.
+// OwnedBy reports whether this result belongs to by.
+func (r PlacementResult) OwnedBy(by Solver) bool { return by.valid() && r.By == by }
+
+var ErrPlacementResultExists = errors.New("placement result already exists for attempt")
+
+// SavePlacementResult is the user-only compatibility wrapper.
 func (s *Store) SavePlacementResult(ctx context.Context, r PlacementResult) (int64, error) {
-	// A nil slice marshals to `null`; this column is documented as a JSON array,
-	// so normalise the empty case rather than storing two shapes.
+	by := r.By
+	if !by.valid() {
+		by = Solver{UserID: r.UserID, GuestID: r.GuestID}
+	}
+	return s.SavePlacementResultFor(ctx, by, r)
+}
+
+// SavePlacementResultFor records one routing decision for an owned attempt.
+func (s *Store) SavePlacementResultFor(ctx context.Context, by Solver, r PlacementResult) (int64, error) {
+	if !by.valid() {
+		return 0, ErrNoSolver
+	}
 	if r.Exemptions == nil {
 		r.Exemptions = []string{}
 	}
-	ex, _ := json.Marshal(r.Exemptions)
-	req := 0
-	if r.FoundationsRequired {
-		req = 1
+	ex, err := json.Marshal(r.Exemptions)
+	if err != nil {
+		return 0, err
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	userID, guestID := by.cols()
+	var one int
+	if err := tx.QueryRowContext(ctx, `
+		SELECT 1 FROM assessment_attempts
+		WHERE id = ? AND submitted_at IS NOT NULL
+		  AND (user_id = ? OR guest_id = ?)`, r.AttemptID, userID, guestID).Scan(&one); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrNotFound
+		}
+		return 0, err
 	}
 	var id int64
-	err := s.db.QueryRowContext(ctx, `
+	err = tx.QueryRowContext(ctx, `
 		INSERT INTO placement_results
-			(attempt_id, user_id, recommended_path_id, foundations_required, exemptions)
-		VALUES (?, ?, ?, ?, ?) RETURNING id`,
-		r.AttemptID, r.UserID, r.RecommendedPathID, req, string(ex)).Scan(&id)
-	return id, err
+			(attempt_id, user_id, guest_id, recommended_path_id,
+			 foundations_required, passed, exemptions)
+		VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+		r.AttemptID, userID, guestID, r.RecommendedPathID,
+		boolToInt(r.FoundationsRequired), boolToInt(r.Passed), string(ex)).Scan(&id)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "unique") {
+			return 0, ErrPlacementResultExists
+		}
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
-// LatestPlacement returns the user's most recent routing decision, or nil if
-// they have never completed the diagnostic.
+// LatestPlacement is the user-only compatibility wrapper.
 func (s *Store) LatestPlacement(ctx context.Context, userID int64) (*PlacementResult, error) {
+	return s.LatestPlacementFor(ctx, Solver{UserID: userID})
+}
+
+// LatestPlacementFor returns the owner's most recent routing decision.
+func (s *Store) LatestPlacementFor(ctx context.Context, by Solver) (*PlacementResult, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	userID, guestID := by.cols()
+	return scanPlacementResult(s.db.QueryRowContext(ctx, `
+		SELECT id, attempt_id, user_id, guest_id, recommended_path_id,
+		       foundations_required, passed, exemptions, created_at
+		FROM placement_results
+		WHERE user_id = ? OR guest_id = ?
+		ORDER BY datetime(created_at) DESC, id DESC LIMIT 1`, userID, guestID), true)
+}
+
+func scanPlacementResult(row interface{ Scan(...any) error }, nilWhenMissing bool) (*PlacementResult, error) {
 	var r PlacementResult
+	var userID, guestID sql.NullInt64
 	var ex string
-	var req int
-	err := s.db.QueryRowContext(ctx, `
-		SELECT id, attempt_id, user_id, recommended_path_id, foundations_required, exemptions, created_at
-		FROM placement_results WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT 1`, userID).
-		Scan(&r.ID, &r.AttemptID, &r.UserID, &r.RecommendedPathID, &req, &ex, &r.CreatedAt)
+	var req, passed int
+	err := row.Scan(&r.ID, &r.AttemptID, &userID, &guestID, &r.RecommendedPathID,
+		&req, &passed, &ex, &r.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		if nilWhenMissing {
+			return nil, nil
+		}
+		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, err
 	}
+	r.UserID, r.GuestID = userID.Int64, guestID.Int64
+	r.By = Solver{UserID: r.UserID, GuestID: r.GuestID}
 	r.FoundationsRequired = req == 1
+	r.Passed = passed == 1
 	_ = json.Unmarshal([]byte(ex), &r.Exemptions)
 	return &r, nil
 }
@@ -464,14 +739,43 @@ type AttemptReview struct {
 	Explanation string
 }
 
-// ReviewAttempt returns the graded paper. Only safe to call once the attempt is
-// submitted — answers are included.
+// ReviewAttempt returns the graded snapshotted paper. New request paths should
+// use ReviewAttemptFor.
 func (s *Store) ReviewAttempt(ctx context.Context, attemptID int64) ([]AttemptReview, error) {
+	return s.reviewAttempt(ctx, Solver{}, false, attemptID)
+}
+
+// ReviewAttemptFor returns answers only for a submitted attempt owned by by.
+func (s *Store) ReviewAttemptFor(ctx context.Context, by Solver, attemptID int64) ([]AttemptReview, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	return s.reviewAttempt(ctx, by, true, attemptID)
+}
+
+func (s *Store) reviewAttempt(ctx context.Context, by Solver, scoped bool, attemptID int64) ([]AttemptReview, error) {
+	var one int
+	var err error
+	if scoped {
+		userID, guestID := by.cols()
+		err = s.db.QueryRowContext(ctx, `
+			SELECT 1 FROM assessment_attempts
+			WHERE id = ? AND submitted_at IS NOT NULL
+			  AND (user_id = ? OR guest_id = ?)`, attemptID, userID, guestID).Scan(&one)
+	} else {
+		err = s.db.QueryRowContext(ctx,
+			`SELECT 1 FROM assessment_attempts WHERE id = ? AND submitted_at IS NOT NULL`, attemptID).Scan(&one)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT i.topic, i.prompt, i.options, i.answer, ai.response, COALESCE(ai.correct, 0), i.explanation
-		FROM assessment_attempt_items ai
-		JOIN assessment_items i ON i.id = ai.item_id
-		WHERE ai.attempt_id = ? ORDER BY ai.sort`, attemptID)
+		SELECT topic, prompt, options, answer, response, COALESCE(correct, 0), explanation
+		FROM assessment_attempt_items
+		WHERE attempt_id = ? ORDER BY sort`, attemptID)
 	if err != nil {
 		return nil, err
 	}
@@ -491,9 +795,92 @@ func (s *Store) ReviewAttempt(ctx context.Context, attemptID int64) ([]AttemptRe
 	return out, rows.Err()
 }
 
-// ExpireAbandonedAttempts marks unsubmitted attempts past their deadline. Run by
-// the placement:expire job so the "you have a sitting in progress" state cannot
-// stick forever.
+var (
+	ErrGuestAlreadyClaimed = errors.New("guest session already claimed")
+	ErrPlacementNotPassed  = errors.New("guest has no passing placement result")
+)
+
+// CreateLearnerFromGuestPlacement creates a learner account and atomically
+// transfers all of an unclaimed passing guest's placement work and problem
+// submissions. The role is intentionally not an argument: this public signup
+// path can never mint an admin or grader.
+func (s *Store) CreateLearnerFromGuestPlacement(ctx context.Context, guestID int64, email, passwordHash, name string) (*User, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	var claimedBy sql.NullInt64
+	if err := tx.QueryRowContext(ctx,
+		`SELECT claimed_by FROM guest_sessions WHERE id = ?`, guestID).Scan(&claimedBy); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	if claimedBy.Valid {
+		return nil, ErrGuestAlreadyClaimed
+	}
+
+	var passing int
+	err = tx.QueryRowContext(ctx, `
+		SELECT 1
+		FROM placement_results pr
+		JOIN assessment_attempts a ON a.id = pr.attempt_id
+		WHERE pr.guest_id = ? AND pr.user_id IS NULL AND pr.passed = 1
+		  AND a.guest_id = ? AND a.user_id IS NULL AND a.submitted_at IS NOT NULL
+		LIMIT 1`, guestID, guestID).Scan(&passing)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrPlacementNotPassed
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	u, err := s.scanUser(tx.QueryRowContext(ctx,
+		`INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, 'learner')
+		 RETURNING `+userCols,
+		strings.ToLower(strings.TrimSpace(email)), passwordHash, name))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := tx.ExecContext(ctx, `
+		UPDATE guest_sessions SET claimed_by = ?
+		WHERE id = ? AND claimed_by IS NULL`, u.ID, guestID)
+	if err != nil {
+		return nil, err
+	}
+	claimed, err := res.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if claimed != 1 {
+		return nil, ErrGuestAlreadyClaimed
+	}
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE assessment_attempts SET user_id = ?, guest_id = NULL
+		WHERE guest_id = ? AND user_id IS NULL`, u.ID, guestID); err != nil {
+		return nil, err
+	}
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE placement_results SET user_id = ?, guest_id = NULL
+		WHERE guest_id = ? AND user_id IS NULL`, u.ID, guestID); err != nil {
+		return nil, err
+	}
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE problem_submissions SET user_id = ?, guest_id = NULL
+		WHERE guest_id = ? AND user_id IS NULL`, u.ID, guestID); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+// ExpireAbandonedAttempts marks unsubmitted attempts past their deadline.
 func (s *Store) ExpireAbandonedAttempts(ctx context.Context) (int, error) {
 	res, err := s.db.ExecContext(ctx, `
 		UPDATE assessment_attempts SET abandoned = 1

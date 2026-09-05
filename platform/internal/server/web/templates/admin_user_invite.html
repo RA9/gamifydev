@@ -2,7 +2,7 @@
 <div class="page-head">
   <a class="back" href="/admin/users">← Users</a>
   <h1>Invite a member</h1>
-  <p class="muted">Send an invitation by email. They'll set their own password from the link.</p>
+  <p class="muted">Staff can join by invitation. Learners enter through the public placement test.</p>
 </div>
 
 <div class="card">
@@ -19,7 +19,6 @@
       <span>Role</span>
       {{ $role := index .Data "role" }}
       <select name="role" class="role-select">
-        <option value="learner" {{ if eq $role "learner" }}selected{{ end }}>Learner</option>
         <option value="grader" {{ if eq $role "grader" }}selected{{ end }}>Grader</option>
         <option value="admin" {{ if eq $role "admin" }}selected{{ end }}>Admin</option>
       </select>

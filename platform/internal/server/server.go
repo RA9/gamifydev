@@ -94,16 +94,19 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /invite/{token}", s.handleInvite)
 	mux.HandleFunc("POST /invite/{token}", s.handleInviteSubmit)
 
+	// Placement is the public admissions gate. Anonymous attempts are owned by
+	// the same secure guest identity used by practice problems; registration is
+	// unavailable until that guest has a passing result.
+	mux.HandleFunc("GET /placement", s.handlePlacement)
+	mux.HandleFunc("POST /placement/start", s.handlePlacementStart)
+	mux.HandleFunc("POST /placement/submit", s.handlePlacementSubmit)
+	mux.HandleFunc("GET /placement/result", s.handlePlacementResult)
+	mux.HandleFunc("GET /placement/review", s.handlePlacementReview)
+
 	// Learner (auth required)
 	in := s.requireAuth
 	mux.Handle("POST /steps/{id}/complete", in(http.HandlerFunc(s.handleStepComplete)))
 	mux.Handle("POST /steps/{id}/run", in(http.HandlerFunc(s.handleStepRun)))
-	// Placement diagnostic and the enrollment gate it feeds.
-	mux.Handle("GET /placement", in(http.HandlerFunc(s.handlePlacement)))
-	mux.Handle("POST /placement/start", in(http.HandlerFunc(s.handlePlacementStart)))
-	mux.Handle("POST /placement/submit", in(http.HandlerFunc(s.handlePlacementSubmit)))
-	mux.Handle("GET /placement/result", in(http.HandlerFunc(s.handlePlacementResult)))
-	mux.Handle("GET /placement/review", in(http.HandlerFunc(s.handlePlacementReview)))
 	mux.Handle("POST /enroll", in(http.HandlerFunc(s.handleEnroll)))
 	// Cohort space and the daily standup.
 	mux.Handle("GET /cohort", in(http.HandlerFunc(s.handleCohort)))

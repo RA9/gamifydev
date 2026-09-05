@@ -93,34 +93,70 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	s.startSession(w, r, u)
 }
 
+func (s *Server) passingGuestPlacement(r *http.Request) (int64, *store.PlacementResult, error) {
+	cookie, err := r.Cookie(auth.GuestCookie)
+	if err != nil || cookie.Value == "" {
+		return 0, nil, store.ErrPlacementNotPassed
+	}
+	guestID, err := s.st.GuestByToken(r.Context(), cookie.Value)
+	if err != nil {
+		return 0, nil, store.ErrPlacementNotPassed
+	}
+	result, err := s.st.LatestPlacementFor(r.Context(), store.Solver{GuestID: guestID})
+	if err != nil {
+		return 0, nil, err
+	}
+	if result == nil || !result.Passed {
+		return 0, nil, store.ErrPlacementNotPassed
+	}
+	return guestID, result, nil
+}
+
 func (s *Server) handleRegisterForm(w http.ResponseWriter, r *http.Request) {
 	if auth.CurrentUser(r.Context()) != nil {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
-	s.render(w, r, "register.html", ViewData{Title: "Create your account"})
+	_, result, err := s.passingGuestPlacement(r)
+	if err != nil {
+		http.Redirect(w, r, "/placement", http.StatusSeeOther)
+		return
+	}
+	var path *store.Path
+	if result.RecommendedPathID.Valid {
+		path, _ = s.st.GetPathByID(r.Context(), result.RecommendedPathID.Int64)
+	}
+	s.render(w, r, "register.html", ViewData{Title: "Create your account", Data: map[string]any{"path": path}})
 }
 
 func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
+	guestID, result, err := s.passingGuestPlacement(r)
+	if err != nil {
+		http.Redirect(w, r, "/placement", http.StatusSeeOther)
+		return
+	}
 	name := strings.TrimSpace(r.FormValue("name"))
-	email := strings.TrimSpace(r.FormValue("email"))
+	email := strings.ToLower(strings.TrimSpace(r.FormValue("email")))
 	password := r.FormValue("password")
+	var path *store.Path
+	if result.RecommendedPathID.Valid {
+		path, _ = s.st.GetPathByID(r.Context(), result.RecommendedPathID.Int64)
+	}
 
 	fail := func(msg string) {
 		w.WriteHeader(http.StatusBadRequest)
-		s.render(w, r, "register.html", ViewData{Title: "Create your account", Flash: msg, Data: map[string]any{"name": name, "email": email}})
+		s.render(w, r, "register.html", ViewData{Title: "Create your account", Flash: msg, Data: map[string]any{
+			"name": name, "email": email, "path": path,
+		}})
 	}
 	if len(name) < 2 || !strings.Contains(email, "@") || len(password) < 8 {
 		fail("Enter a name, a valid email, and a password of at least 8 characters.")
 		return
 	}
 	if _, err := s.st.GetUserByEmail(r.Context(), email); err == nil {
-		fail("An account with that email already exists.")
+		fail("An account with that email already exists. Sign in instead.")
 		return
 	} else if !errors.Is(err, store.ErrNotFound) {
-		// A non-"not found" error means the lookup itself failed (e.g. the
-		// users table is missing or the DB is unreachable). Don't pretend the
-		// email is just taken — log it so prod tells us the real cause.
 		log.Printf("register: lookup %q failed: %v", email, err)
 		fail("Could not create the account right now. Please try again.")
 		return
@@ -130,25 +166,30 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
-	// First-ever user becomes the admin so the portal is reachable.
-	role := "learner"
-	if n, _ := s.st.CountUsers(r.Context()); n == 0 {
-		role = "admin"
-	}
-	u, err := s.st.CreateUser(r.Context(), email, hash, name, role)
+	// Public signup can only create a learner, and the account/result/work transfer
+	// commits as one transaction. There is no first-user admin promotion.
+	u, err := s.st.CreateLearnerFromGuestPlacement(r.Context(), guestID, email, hash, name)
 	if err != nil {
-		log.Printf("register: create user %q failed: %v", email, err)
+		log.Printf("register: claim placement for %q failed: %v", email, err)
+		if errors.Is(err, store.ErrPlacementNotPassed) || errors.Is(err, store.ErrGuestAlreadyClaimed) {
+			http.Redirect(w, r, "/placement", http.StatusSeeOther)
+			return
+		}
 		fail("Could not create the account. Try a different email.")
 		return
 	}
-	s.startSession(w, r, u)
+	auth.ClearGuestCookie(w, s.secure)
+	s.startSessionAt(w, r, u, "/placement/result")
 }
 
 func (s *Server) startSession(w http.ResponseWriter, r *http.Request, u *store.User) {
-	// Anything they solved as a guest becomes theirs, before the guest cookie
-	// stops being the thing that identifies them.
+	// Existing accounts may still claim work completed as a guest. New learner
+	// registration has already claimed it atomically before calling startSessionAt.
 	s.claimGuestWork(w, r, u.ID)
+	s.startSessionAt(w, r, u, "")
+}
 
+func (s *Server) startSessionAt(w http.ResponseWriter, r *http.Request, u *store.User, dest string) {
 	token, err := auth.NewToken()
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
@@ -159,11 +200,13 @@ func (s *Server) startSession(w http.ResponseWriter, r *http.Request, u *store.U
 		return
 	}
 	auth.SetSessionCookie(w, token, s.secure)
-	dest := "/dashboard"
-	if u.IsAdmin() {
-		dest = "/admin"
-	} else if u.CanGrade() {
-		dest = "/admin/grading"
+	if dest == "" {
+		dest = "/dashboard"
+		if u.IsAdmin() {
+			dest = "/admin"
+		} else if u.CanGrade() {
+			dest = "/admin/grading"
+		}
 	}
 	http.Redirect(w, r, dest, http.StatusSeeOther)
 }

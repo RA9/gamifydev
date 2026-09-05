@@ -15,7 +15,7 @@
           {{ if .User }}
           <a class="btn btn-lg lp-btn-primary" href="/dashboard">Go to your dashboard {{ icon "arrowright" }}</a>
           {{ else }}
-          <a class="btn btn-lg lp-btn-primary" href="/register">Take the placement test {{ icon "arrowright" }}</a>
+          <a class="btn btn-lg lp-btn-primary" href="/placement">Take the placement test {{ icon "arrowright" }}</a>
           {{ end }}
           <a class="lp-text-link" href="/paths">Explore the curriculum {{ icon "arrowright" }}</a>
         </div>
@@ -65,7 +65,7 @@
 
   <section class="lp-principles" aria-label="Program principles">
     <div class="lp-principles-inner">
-      <p><span>01</span><strong>Start at your level</strong>Placement decides your starting point, never your eligibility.</p>
+      <p><span>01</span><strong>Meet the standard</strong>Pass the core test, then placement assigns where you begin.</p>
       <p><span>02</span><strong>Learn on a schedule</strong>Your cohort works through one shared plan together.</p>
       <p><span>03</span><strong>Prove it with code</strong>Courses unlock when your checkpoint passes.</p>
     </div>
@@ -153,12 +153,12 @@
     <div class="lp-cta-inner">
       <p class="lp-section-label">Your first step</p>
       <h2>Find out where you should start.</h2>
-      <p>The placement test is a diagnostic, not a gate. It gives you a path that fits what you know today.</p>
+      <p>Pass the core standard and receive a path that fits what you know today.</p>
       <div class="lp-cta-actions">
         {{ if .User }}
         <a class="btn btn-lg lp-btn-light" href="/dashboard">Go to your dashboard {{ icon "arrowright" }}</a>
         {{ else }}
-        <a class="btn btn-lg lp-btn-light" href="/register">Take the placement test {{ icon "arrowright" }}</a>
+        <a class="btn btn-lg lp-btn-light" href="/placement">Take the placement test {{ icon "arrowright" }}</a>
         {{ end }}
         <a href="/paths">Browse {{ $s.Paths }} learning paths</a>
       </div>

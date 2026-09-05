@@ -23,7 +23,7 @@
         <meta name="theme-color" content="#ffffff" />
         <link rel="stylesheet" href="/static/css/app.css" />
     </head>
-    <body class="landing">
+    <body class="landing {{ index .Data "bodyClass" }}">
         <header class="lp-header">
             <div class="lp-nav">
                 <a class="lp-brand" href="/" aria-label="GamifyDev home">
@@ -44,7 +44,7 @@
                     <a href="/dashboard" class="lp-cta">Dashboard {{ icon "arrowright" }}</a>
                     {{ else }}
                     <a href="/login" class="lp-signin">Sign in</a>
-                    <a href="/register" class="lp-cta">Take the test {{ icon "arrowright" }}</a>
+                    <a href="/placement" class="lp-cta">Take the test {{ icon "arrowright" }}</a>
                     {{ end }}
                 </div>
 
@@ -66,7 +66,7 @@
                         <a href="/dashboard" class="lp-cta">Go to dashboard {{ icon "arrowright" }}</a>
                         {{ else }}
                         <a href="/login">Sign in</a>
-                        <a href="/register" class="lp-cta">Take the placement test {{ icon "arrowright" }}</a>
+                        <a href="/placement" class="lp-cta">Take the placement test {{ icon "arrowright" }}</a>
                         {{ end }}
                     </nav>
                 </details>
@@ -107,7 +107,7 @@
                     <a href="/dashboard">Dashboard</a>
                     {{ else }}
                     <a href="/login">Sign in</a>
-                    <a href="/register">Take the placement test</a>
+                    <a href="/placement">Take the placement test</a>
                     {{ end }}
                 </nav>
             </div>

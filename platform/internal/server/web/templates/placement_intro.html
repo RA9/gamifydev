@@ -1,45 +1,56 @@
 {{ define "content" }}
 {{ $a := index .Data "assessment" }}
+{{ $result := index .Data "result" }}
+{{ $retry := index .Data "retry" }}
 <div class="pl-wrap">
-  <span class="pl-eyebrow">Before you choose a path</span>
-  <h1 class="pl-title">The placement diagnostic</h1>
+  <span class="pl-eyebrow">Admissions · Step 1 of 3</span>
+  <h1 class="pl-title">Start with the placement test.</h1>
   <p class="pl-lede">
-    This tells us where to start you — not whether you're good enough. There's no pass mark to be
-    afraid of: answer honestly and you'll land in the right place.
+    Before you create a learner account, show us how you reason through the
+    fundamentals. A passing result assigns the path and cohort curriculum that
+    fit what you know today.
   </p>
 
   <div class="pl-card">
-    <h2 class="pl-h2">What to expect</h2>
+    <h2 class="pl-h2">The standard</h2>
     <ul class="pl-list">
-      <li><strong>{{ index .Data "minutes" }} minutes</strong>, timed from when you begin. The clock runs on our server, so closing the tab won't pause it.</li>
-      <li>Multiple choice, across seven topics — from programming basics to how computers work.</li>
-      <li>Questions are drawn at random, so no two sittings are quite the same.</li>
-      <li>Skip anything you don't know. A guess costs you nothing, but an honest blank places you better.</li>
+      <li><strong>{{ index .Data "minutes" }} minutes</strong>, measured by the server from the moment you begin.</li>
+      <li>Multiple-choice questions across five core CS topics plus Web and Backend routing topics.</li>
+      <li><strong>{{ index .Data "passThreshold" }}% core</strong> passes into Computer Science Foundations.</li>
+      <li><strong>{{ index .Data "foundationsThreshold" }}% core</strong> opens a generated specialization path.</li>
+      <li>Questions are sampled from the bank, so each sitting is different.</li>
     </ul>
 
-    <h2 class="pl-h2">What happens with the result</h2>
+    <h2 class="pl-h2">What the result controls</h2>
     <ul class="pl-list">
-      <li>It picks your <strong>starting path</strong> and may let you skip courses you've clearly already got.</li>
-      <li>If the fundamentals aren't there yet, you'll start on <strong>Computer Science Foundations</strong> — that's the point of the test, not a punishment.</li>
-      <li>It never unlocks a course on its own. You still pass each course's checkpoint the normal way.</li>
+      <li>Below {{ index .Data "passThreshold" }}%, you receive readiness feedback and may try again after seven days.</li>
+      <li>From {{ index .Data "passThreshold" }}–{{ sub (index .Data "foundationsThreshold") 1 }}%, you earn a place in <strong>Computer Science Foundations</strong>.</li>
+      <li>At {{ index .Data "foundationsThreshold" }}% or higher, your scores generate a Frontend, Backend, or Full-Stack path.</li>
+      <li>A passing result is required to create a learner account.</li>
     </ul>
 
-    <p class="pl-note">Because of that last rule, there's nothing to gain by looking answers up — you'd only be routed past material you'd then have to pass anyway.</p>
+    <p class="pl-note">You may browse the curriculum and practise problems without an account. Enrollment, progress tracking, and cohort work begin only after you pass.</p>
   </div>
 
-  {{ if index .Data "done" }}
-  <div class="pl-actions">
-    <a class="btn btn-secondary" href="/placement/result">See my result</a>
-    <form method="post" action="/placement/start" class="inline">
-      <button class="btn btn-primary" type="submit">Retake the diagnostic</button>
-    </form>
-  </div>
-  <p class="pl-fine">Retaking replaces your previous result.</p>
+  {{ if and $result $result.Passed }}
+    <div class="pl-actions">
+      <a class="btn btn-primary btn-lg" href="/placement/result">Continue with my result</a>
+    </div>
+  {{ else if and $result (not $result.Passed) }}
+    <div class="pl-actions">
+      <a class="btn btn-secondary" href="/placement/result">See my result</a>
+      {{ if $retry.Allowed }}
+      <form method="post" action="/placement/start" class="inline">
+        <button class="btn btn-primary" type="submit">Retake the test</button>
+      </form>
+      {{ end }}
+    </div>
+    {{ if not $retry.Allowed }}<p class="pl-fine">Your next attempt is not available yet. Failed attempts have a seven-day cooldown and a maximum of three starts in 30 days.</p>{{ end }}
   {{ else }}
-  <form method="post" action="/placement/start">
-    <button class="btn btn-primary btn-lg" type="submit">Start the diagnostic</button>
-  </form>
-  <p class="pl-fine">The timer starts as soon as you press start.</p>
+    <form method="post" action="/placement/start">
+      <button class="btn btn-primary btn-lg" type="submit">Begin the placement test</button>
+    </form>
+    <p class="pl-fine">No account is required. The timer starts when you press begin.</p>
   {{ end }}
 </div>
 {{ end }}

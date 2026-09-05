@@ -14,27 +14,57 @@ func core(v int) map[string]int {
 	return m
 }
 
-func TestFoundationsGateBoundary(t *testing.T) {
-	// The threshold is inclusive: exactly at the mark must open the paths, since
-	// the copy tells learners "70% opens the other paths".
-	if d := Decide(core(FoundationsThreshold)); d.FoundationsRequired {
-		t.Fatalf("score of exactly %d required foundations; the threshold should be inclusive", FoundationsThreshold)
+func TestPassAndFoundationsBoundaries(t *testing.T) {
+	tests := []struct {
+		name                string
+		score               int
+		passed              bool
+		foundationsRequired bool
+		recommendedPath     string
+	}{
+		{
+			name:            "49 fails without a route",
+			score:           PassThreshold - 1,
+			recommendedPath: "",
+		},
+		{
+			name:                "50 passes into foundations",
+			score:               PassThreshold,
+			passed:              true,
+			foundationsRequired: true,
+			recommendedPath:     PathFoundations,
+		},
+		{
+			name:                "69 passes into foundations",
+			score:               FoundationsThreshold - 1,
+			passed:              true,
+			foundationsRequired: true,
+			recommendedPath:     PathFoundations,
+		},
+		{
+			name:            "70 passes into a specialization",
+			score:           FoundationsThreshold,
+			passed:          true,
+			recommendedPath: PathFullstack,
+		},
 	}
-	if d := Decide(core(FoundationsThreshold - 1)); !d.FoundationsRequired {
-		t.Fatalf("score of %d did not require foundations", FoundationsThreshold-1)
-	}
-	if d := Decide(core(FoundationsThreshold)); d.RecommendedPath == PathFoundations {
-		t.Fatal("a passing learner was still routed to foundations")
-	}
-}
 
-func TestFailingRoutesToFoundations(t *testing.T) {
-	d := Decide(core(20))
-	if !d.FoundationsRequired {
-		t.Fatal("a weak score did not require foundations")
-	}
-	if d.RecommendedPath != PathFoundations {
-		t.Fatalf("recommended %q, want %q", d.RecommendedPath, PathFoundations)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := Decide(core(tt.score))
+			if d.Passed != tt.passed {
+				t.Errorf("Passed = %t, want %t", d.Passed, tt.passed)
+			}
+			if d.FoundationsRequired != tt.foundationsRequired {
+				t.Errorf("FoundationsRequired = %t, want %t", d.FoundationsRequired, tt.foundationsRequired)
+			}
+			if d.RecommendedPath != tt.recommendedPath {
+				t.Errorf("RecommendedPath = %q, want %q", d.RecommendedPath, tt.recommendedPath)
+			}
+			if len(d.Exemptions) != 0 {
+				t.Errorf("Exemptions = %v, want none", d.Exemptions)
+			}
+		})
 	}
 }
 
@@ -42,8 +72,14 @@ func TestEmptyScoresAreTreatedAsZero(t *testing.T) {
 	// An unanswered topic is not evidence of competence. A learner who submits a
 	// blank paper must not be routed as if they had passed.
 	d := Decide(map[string]int{})
-	if !d.FoundationsRequired {
-		t.Fatal("an empty score map did not require foundations")
+	if d.Passed {
+		t.Fatal("an empty score map passed")
+	}
+	if d.FoundationsRequired {
+		t.Fatal("a failed empty attempt required foundations instead of remaining unrouted")
+	}
+	if d.RecommendedPath != "" {
+		t.Fatalf("RecommendedPath = %q, want no route", d.RecommendedPath)
 	}
 	if d.CoreScore != 0 {
 		t.Fatalf("CoreScore = %d, want 0", d.CoreScore)
@@ -79,29 +115,46 @@ func TestSpecializationRouting(t *testing.T) {
 	}
 }
 
-func TestExemptionsRequireMasteryNotAPass(t *testing.T) {
+func TestExemptionsRequirePassedAttemptAndTopicMastery(t *testing.T) {
 	// A bare pass must not exempt anything — skipping is meant to require clear
 	// command of the topic.
-	m := core(FoundationsThreshold)
+	m := core(PassThreshold)
 	if d := Decide(m); len(d.Exemptions) != 0 {
 		t.Fatalf("a bare pass produced exemptions: %v", d.Exemptions)
 	}
 
-	m = core(0)
+	// A passed learner can earn an exemption while still being routed through
+	// foundations.
+	m = core(PassThreshold)
 	m[TopicDataStructures] = ExemptionThreshold
 	d := Decide(m)
+	if !d.Passed {
+		t.Fatal("expected attempt with a passing core mean to pass")
+	}
+	if !d.FoundationsRequired {
+		t.Fatal("expected foundations to still be required")
+	}
 	if !reflect.DeepEqual(d.Exemptions, []string{"data_structures"}) {
 		t.Fatalf("exemptions = %v, want [data_structures]", d.Exemptions)
 	}
-	// Crucially, exemptions are earned even when foundations are required: a
-	// learner sent to foundations who clearly knows one topic shouldn't resit it.
-	if !d.FoundationsRequired {
-		t.Fatal("expected foundations to still be required")
+
+	// Topic mastery cannot earn an exemption when the overall attempt failed.
+	m = core(0)
+	m[TopicDataStructures] = 100
+	d = Decide(m)
+	if d.Passed {
+		t.Fatal("expected attempt with one mastered topic and a failing core mean to fail")
+	}
+	if d.RecommendedPath != "" {
+		t.Fatalf("failed attempt recommended %q, want no route", d.RecommendedPath)
+	}
+	if len(d.Exemptions) != 0 {
+		t.Fatalf("failed attempt produced exemptions: %v", d.Exemptions)
 	}
 }
 
 func TestProgrammingExemptsBothLanguageCourses(t *testing.T) {
-	m := core(0)
+	m := core(PassThreshold)
 	m[TopicProgramming] = 100
 	got := Decide(m).Exemptions
 	want := []string{"c", "java"}
@@ -144,12 +197,18 @@ func TestExemptionsAreDeterministicAndUnique(t *testing.T) {
 	}
 }
 
-func TestSpecializationTopicsDoNotAffectTheGate(t *testing.T) {
+func TestSpecializationTopicsDoNotAffectTheGates(t *testing.T) {
 	// Not knowing HTTP says nothing about whether you understand a hash table,
-	// and must not push someone into remedial CS.
+	// and must not fail an attempt or push someone into remedial CS.
 	strong := core(90)
 	strong[TopicWeb], strong[TopicBackend] = 0, 0
-	if d := Decide(strong); d.FoundationsRequired {
-		t.Fatal("zero specialization scores forced a strong learner into foundations")
+	if d := Decide(strong); !d.Passed || d.FoundationsRequired {
+		t.Fatalf("zero specialization scores changed strong core outcome: %+v", d)
+	}
+
+	weak := core(PassThreshold - 1)
+	weak[TopicWeb], weak[TopicBackend] = 100, 100
+	if d := Decide(weak); d.Passed || d.RecommendedPath != "" {
+		t.Fatalf("specialization scores changed failing core outcome: %+v", d)
 	}
 }

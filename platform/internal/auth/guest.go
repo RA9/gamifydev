@@ -6,15 +6,13 @@ import (
 )
 
 const (
-	// GuestCookie identifies an anonymous visitor working through the practice
-	// problems. Separate from the session cookie on purpose: it grants nothing
-	// and outlives sign-in, so signing out must not throw away work the visitor
-	// did before they had an account.
+	// GuestCookie identifies an anonymous visitor taking placement or practising
+	// problems. It is separate from the account session and acts as a bearer key
+	// for that guest-owned work, including a passing placement result.
 	GuestCookie = "gd_guest"
-	// GuestTTL is long because the promise the problem bank makes is that you
-	// can try it, close the tab, and come back to your solved set. A cookie
-	// that expired in a week would quietly break that for exactly the casual
-	// visitor it exists to serve.
+	// GuestTTL allows someone to return to unfinished guest work. Passing results
+	// remain single-use because claiming the account spends the server-side
+	// guest session even when a browser still holds the old cookie.
 	GuestTTL = 180 * 24 * time.Hour
 )
 

@@ -4069,8 +4069,12 @@ body.portal.dash-dark { background: #0a1622; }
 .dash-dark .member-email { color: #6b8aa8; }
 
 /* ===== Placement diagnostic ===== */
-body.portal.placement-dark { background: #0a1622; }
+body.portal.placement-dark,
+body.landing.placement-dark { background: #0a1622; }
 .placement-dark .main { padding-top: 28px; }
+.landing.placement-dark .lp-main { padding: 56px 20px 84px; background: #0a1622; }
+.landing.placement-dark .pl-bar { top: 76px; }
+.landing.placement-dark .pl-progress { top: 132px; }
 .pl-wrap { max-width: 780px; margin: 0 auto; color: #b9cbe0; }
 .pl-eyebrow {
     display: block; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.12em;

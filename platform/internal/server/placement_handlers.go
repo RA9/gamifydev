@@ -13,85 +13,113 @@ import (
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
-// The placement diagnostic and the enrollment gate it feeds.
-//
-// The rule (PRD §03): the diagnostic *routes* — it picks a path and proposes
-// which courses to skip in the schedule — but it never grants credit. Advancing
-// past a course still requires its checkpoint. So nothing in this file unlocks
-// content; it only decides what a learner is enrolled in.
+// The placement diagnostic is the admissions gate. Guests may sit it before
+// creating an account; only a passing, unclaimed result can create a learner.
+// A pass from 50–69 routes to CS Foundations, while 70+ routes to a
+// specialization. Placement never grants course credit.
 
-// handlePlacement shows the diagnostic: an intro before starting, the paper
-// while a sitting is live, and a pointer to the result once taken.
 func (s *Server) handlePlacement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u := auth.CurrentUser(ctx)
+	by := s.solver(r)
 
-	live, err := s.st.LiveAttempt(ctx, u.ID)
-	if err != nil {
-		http.Error(w, "could not load your diagnostic", http.StatusInternalServerError)
-		return
-	}
-	if live != nil {
-		items, err := s.st.AttemptItems(ctx, live.ID)
+	if by != (store.Solver{}) {
+		live, err := s.st.LiveAttemptFor(ctx, by)
 		if err != nil {
-			http.Error(w, "could not load your questions", http.StatusInternalServerError)
+			http.Error(w, "could not load your placement test", http.StatusInternalServerError)
 			return
 		}
-		s.render(w, r, "placement.html", ViewData{Title: "Placement diagnostic", Data: map[string]any{
-			"bodyClass": "placement-dark",
-			"attempt":   live,
-			"items":     items,
-			"expiresAt": live.ExpiresAt,
-			"total":     len(items),
-		}})
+		if live != nil {
+			items, err := s.st.AttemptItemsFor(ctx, by, live.ID)
+			if err != nil {
+				http.Error(w, "could not load your questions", http.StatusInternalServerError)
+				return
+			}
+			s.render(w, r, "placement.html", ViewData{Title: "Placement test", Data: map[string]any{
+				"bodyClass": "placement-dark",
+				"attempt":   live,
+				"items":     items,
+				"expiresAt": live.ExpiresAt,
+				"total":     len(items),
+			}})
+			return
+		}
+	}
+
+	s.renderPlacementIntro(w, r, by, "")
+}
+
+func (s *Server) renderPlacementIntro(w http.ResponseWriter, r *http.Request, by store.Solver, flash string) {
+	ctx := r.Context()
+	a, err := s.st.GetAssessment(ctx, "placement")
+	if err != nil {
+		http.Error(w, "the placement test is not available", http.StatusServiceUnavailable)
 		return
 	}
 
-	// No sitting in progress: show the intro, or the existing result.
-	prev, _ := s.st.LatestPlacement(ctx, u.ID)
-	a, err := s.st.GetAssessment(ctx, "placement")
-	if err != nil {
-		http.Error(w, "the diagnostic is not available", http.StatusServiceUnavailable)
-		return
+	var prev *store.PlacementResult
+	retry := store.PlacementRetryStatus{Allowed: true}
+	if by != (store.Solver{}) {
+		prev, _ = s.st.LatestPlacementFor(ctx, by)
+		if status, err := s.st.PlacementRetryFor(ctx, by); err == nil {
+			retry = status
+		}
 	}
-	s.render(w, r, "placement_intro.html", ViewData{Title: "Placement diagnostic", Data: map[string]any{
-		"bodyClass":  "placement-dark",
-		"assessment": a,
-		"minutes":    a.TimeLimitS / 60,
-		"done":       prev != nil,
-		"topics":     placement.AllTopics,
+
+	s.render(w, r, "placement_intro.html", ViewData{Title: "Placement test", Flash: flash, Data: map[string]any{
+		"bodyClass":            "placement-dark",
+		"assessment":           a,
+		"minutes":              a.TimeLimitS / 60,
+		"done":                 prev != nil,
+		"result":               prev,
+		"retry":                retry,
+		"topics":               placement.AllTopics,
+		"passThreshold":        placement.PassThreshold,
+		"foundationsThreshold": placement.FoundationsThreshold,
 	}})
 }
 
-// handlePlacementStart opens a sitting and draws a paper.
+// handlePlacementStart creates a guest identity only when a visitor actually
+// starts a paper. Merely browsing the introduction creates no database state.
 func (s *Server) handlePlacementStart(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	u := auth.CurrentUser(ctx)
-
-	// An existing live sitting wins — restarting would be a way to reroll the
-	// paper until an easy one turns up.
-	if live, _ := s.st.LiveAttempt(ctx, u.ID); live != nil {
+	by, err := s.solverForWrite(w, r)
+	if err != nil {
+		http.Error(w, "could not start the placement test", http.StatusInternalServerError)
+		return
+	}
+	if live, _ := s.st.LiveAttemptFor(r.Context(), by); live != nil {
 		http.Redirect(w, r, "/placement", http.StatusSeeOther)
 		return
 	}
-	a, err := s.st.GetAssessment(ctx, "placement")
+
+	a, err := s.st.GetAssessment(r.Context(), "placement")
 	if err != nil {
-		http.Error(w, "the diagnostic is not available", http.StatusServiceUnavailable)
+		http.Error(w, "the placement test is not available", http.StatusServiceUnavailable)
 		return
 	}
-	if _, err := s.st.StartAttempt(ctx, u.ID, a); err != nil {
-		http.Error(w, "could not start the diagnostic", http.StatusInternalServerError)
+	if _, err := s.st.StartAttemptFor(r.Context(), by, a); err != nil {
+		switch {
+		case errors.Is(err, store.ErrPlacementAlreadyPassed):
+			http.Redirect(w, r, "/placement/result", http.StatusSeeOther)
+		case errors.Is(err, store.ErrPlacementRetryTooSoon):
+			s.renderPlacementIntro(w, r, by, "You need to wait seven days after an unsuccessful attempt before trying again.")
+		case errors.Is(err, store.ErrPlacementAttemptLimit):
+			s.renderPlacementIntro(w, r, by, "You have used three attempts in the last 30 days. Your next attempt opens when the rolling limit resets.")
+		default:
+			http.Error(w, "could not start the placement test", http.StatusInternalServerError)
+		}
 		return
 	}
 	http.Redirect(w, r, "/placement", http.StatusSeeOther)
 }
 
-// handlePlacementSubmit grades a sitting and records the routing decision.
 func (s *Server) handlePlacementSubmit(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u := auth.CurrentUser(ctx)
-
-	live, err := s.st.LiveAttempt(ctx, u.ID)
+	by := s.solver(r)
+	if by == (store.Solver{}) {
+		http.Redirect(w, r, "/placement", http.StatusSeeOther)
+		return
+	}
+	live, err := s.st.LiveAttemptFor(ctx, by)
 	if err != nil || live == nil {
 		http.Redirect(w, r, "/placement", http.StatusSeeOther)
 		return
@@ -101,9 +129,6 @@ func (s *Server) handlePlacementSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Answers arrive as q<itemID>=<optionIndex>. Anything unparseable is simply
-	// left unanswered rather than failing the submission — a learner should not
-	// lose a sitting to a malformed field.
 	responses := map[int64]int{}
 	for key, vals := range r.Form {
 		if !strings.HasPrefix(key, "q") || len(vals) == 0 {
@@ -114,132 +139,140 @@ func (s *Server) handlePlacementSubmit(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		choice, err := strconv.Atoi(vals[0])
-		if err != nil {
-			continue
+		if err == nil {
+			responses[itemID] = choice
 		}
-		responses[itemID] = choice
 	}
 
-	attempt, err := s.st.ScoreAttempt(ctx, live.ID, responses)
+	attempt, err := s.st.ScoreAttemptFor(ctx, by, live.ID, responses)
 	if errors.Is(err, store.ErrAttemptExpired) {
-		s.render(w, r, "placement_expired.html", ViewData{Title: "Time's up", Data: map[string]any{
-			"bodyClass": "placement-dark",
-		}})
+		s.render(w, r, "placement_expired.html", ViewData{Title: "Time's up", Data: map[string]any{"bodyClass": "placement-dark"}})
 		return
 	}
 	if err != nil {
-		http.Error(w, "could not score your diagnostic", http.StatusInternalServerError)
+		http.Error(w, "could not score your placement test", http.StatusInternalServerError)
 		return
 	}
 
-	// Route, then record the decision.
 	decision := placement.Decide(attempt.TopicScores)
-	res := store.PlacementResult{
+	result := store.PlacementResult{
 		AttemptID:           attempt.ID,
-		UserID:              u.ID,
+		By:                  by,
+		Passed:              decision.Passed,
 		FoundationsRequired: decision.FoundationsRequired,
 		Exemptions:          decision.Exemptions,
 	}
-	if p, err := s.st.GetPathBySlug(ctx, decision.RecommendedPath); err == nil {
-		res.RecommendedPathID = sql.NullInt64{Int64: p.ID, Valid: true}
+	if decision.Passed {
+		p, err := s.st.GetPathBySlug(ctx, decision.RecommendedPath)
+		if err != nil || !p.Published {
+			http.Error(w, "the generated learning path is unavailable", http.StatusInternalServerError)
+			return
+		}
+		result.RecommendedPathID = sql.NullInt64{Int64: p.ID, Valid: true}
 	}
-	if _, err := s.st.SavePlacementResult(ctx, res); err != nil {
+	if _, err := s.st.SavePlacementResultFor(ctx, by, result); err != nil {
 		http.Error(w, "could not save your result", http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/placement/result", http.StatusSeeOther)
 }
 
-// handlePlacementResult shows the routing decision and the paths now open.
 func (s *Server) handlePlacementResult(w http.ResponseWriter, r *http.Request) {
 	s.renderPlacementResult(w, r, "")
 }
 
-// renderPlacementResult renders the result page, optionally with a message
-// explaining why an action was refused.
 func (s *Server) renderPlacementResult(w http.ResponseWriter, r *http.Request, flash string) {
 	ctx := r.Context()
-	u := auth.CurrentUser(ctx)
-
-	res, err := s.st.LatestPlacement(ctx, u.ID)
-	if err != nil || res == nil {
+	by := s.solver(r)
+	if by == (store.Solver{}) {
 		http.Redirect(w, r, "/placement", http.StatusSeeOther)
 		return
 	}
-	attempt, err := s.st.GetAttempt(ctx, res.AttemptID)
+	result, err := s.st.LatestPlacementFor(ctx, by)
+	if err != nil || result == nil {
+		http.Redirect(w, r, "/placement", http.StatusSeeOther)
+		return
+	}
+	attempt, err := s.st.GetAttemptFor(ctx, by, result.AttemptID)
 	if err != nil {
 		http.Error(w, "could not load your result", http.StatusInternalServerError)
 		return
 	}
 
-	// Per-topic breakdown in a stable order, flagged for which count toward the
-	// foundations gate — the learner should see exactly what decided their route.
 	type topicRow struct {
 		Topic, Label string
 		Score        int
 		Core         bool
 	}
-	var rows []topicRow
-	for _, t := range placement.AllTopics {
+	rows := make([]topicRow, 0, len(placement.AllTopics))
+	for _, topic := range placement.AllTopics {
 		rows = append(rows, topicRow{
-			Topic: t, Label: placement.TopicLabel(t),
-			Score: attempt.TopicScores[t], Core: placement.IsCore(t),
+			Topic: topic, Label: placement.TopicLabel(topic),
+			Score: attempt.TopicScores[topic], Core: placement.IsCore(topic),
 		})
 	}
 
-	// Exemptions are stored as course slugs; show learners the course names.
 	type exemptRow struct{ Slug, Title, Emoji string }
-	var exemptions []exemptRow
-	for _, slug := range res.Exemptions {
+	exemptions := make([]exemptRow, 0, len(result.Exemptions))
+	for _, slug := range result.Exemptions {
 		row := exemptRow{Slug: slug, Title: slug}
-		if c, err := s.st.GetCourseBySlug(ctx, slug); err == nil {
-			row.Title, row.Emoji = c.Title, c.Emoji
+		if course, err := s.st.GetCourseBySlug(ctx, slug); err == nil {
+			row.Title, row.Emoji = course.Title, course.Emoji
 		}
 		exemptions = append(exemptions, row)
 	}
 
-	paths, _ := s.st.ListPaths(ctx, false)
 	var recommended *store.Path
-	for i := range paths {
-		if res.RecommendedPathID.Valid && paths[i].ID == res.RecommendedPathID.Int64 {
-			recommended = &paths[i]
-		}
+	if result.RecommendedPathID.Valid {
+		recommended, _ = s.st.GetPathByID(ctx, result.RecommendedPathID.Int64)
 	}
-	enr, _ := s.st.LiveEnrollment(ctx, u.ID)
+	var enrollment *store.Enrollment
+	if by.UserID != 0 {
+		enrollment, _ = s.st.LiveEnrollment(ctx, by.UserID)
+	}
+	retry, _ := s.st.PlacementRetryFor(ctx, by)
 
 	s.render(w, r, "placement_result.html", ViewData{Title: "Your placement", Flash: flash, Data: map[string]any{
-		"bodyClass":   "placement-dark",
-		"result":      res,
-		"attempt":     attempt,
-		"topics":      rows,
-		"coreScore":   placement.MeanCore(attempt.TopicScores),
-		"threshold":   placement.FoundationsThreshold,
-		"paths":       paths,
-		"recommended": recommended,
-		"exemptions":  exemptions,
-		"enrollment":  enr,
-		"bands":       cohort.Bands(),
-		"review":      nil, // review is a separate, opt-in page
+		"bodyClass":            "placement-dark",
+		"result":               result,
+		"attempt":              attempt,
+		"topics":               rows,
+		"coreScore":            placement.MeanCore(attempt.TopicScores),
+		"passThreshold":        placement.PassThreshold,
+		"foundationsThreshold": placement.FoundationsThreshold,
+		"recommended":          recommended,
+		"exemptions":           exemptions,
+		"enrollment":           enrollment,
+		"bands":                cohort.Bands(),
+		"signedIn":             by.UserID != 0,
+		"retry":                retry,
 	}})
 }
 
-// handlePlacementReview shows the graded paper with explanations. Available only
-// once submitted, since it contains the answers.
 func (s *Server) handlePlacementReview(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u := auth.CurrentUser(ctx)
-
-	res, err := s.st.LatestPlacement(ctx, u.ID)
-	if err != nil || res == nil {
+	by := s.solver(r)
+	if by == (store.Solver{}) {
 		http.Redirect(w, r, "/placement", http.StatusSeeOther)
 		return
 	}
-	attempt, err := s.st.GetAttempt(ctx, res.AttemptID)
-	if err != nil || attempt.UserID != u.ID || !attempt.Submitted() {
+	result, err := s.st.LatestPlacementFor(ctx, by)
+	if err != nil || result == nil {
+		http.Redirect(w, r, "/placement", http.StatusSeeOther)
+		return
+	}
+	// Failed attempts receive topic-level feedback only. Revealing every answer
+	// after each failure would turn retakes into a way to harvest the bank.
+	if !result.Passed {
+		http.Redirect(w, r, "/placement/result", http.StatusSeeOther)
+		return
+	}
+	attempt, err := s.st.GetAttemptFor(ctx, by, result.AttemptID)
+	if err != nil || !attempt.Submitted() {
 		s.notFound(w, r)
 		return
 	}
-	review, err := s.st.ReviewAttempt(ctx, attempt.ID)
+	review, err := s.st.ReviewAttemptFor(ctx, by, attempt.ID)
 	if err != nil {
 		http.Error(w, "could not load your answers", http.StatusInternalServerError)
 		return
@@ -251,64 +284,45 @@ func (s *Server) handlePlacementReview(w http.ResponseWriter, r *http.Request) {
 	}})
 }
 
-// handleEnroll commits a learner to a path.
-//
-// This is the gate. Two rules are enforced here rather than in the template,
-// because a hidden button is not a control:
-//
-//  1. No enrollment without a completed diagnostic.
-//  2. If the diagnostic said foundations are required, only that path is
-//     selectable until it is completed.
+// handleEnroll commits an authenticated learner to the exact path generated by
+// the passing placement result. The client cannot substitute another path.
 func (s *Server) handleEnroll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.CurrentUser(ctx)
-
-	res, err := s.st.LatestPlacement(ctx, u.ID)
+	result, err := s.st.LatestPlacement(ctx, u.ID)
 	if err != nil {
 		http.Error(w, "could not check your placement", http.StatusInternalServerError)
 		return
 	}
-	if res == nil {
-		// Rule 1.
+	if result == nil || !result.Passed || !result.RecommendedPathID.Valid {
 		http.Redirect(w, r, "/placement", http.StatusSeeOther)
 		return
 	}
-
-	slug := r.FormValue("path")
-	p, err := s.st.GetPathBySlug(ctx, slug)
-	if err != nil || !p.Published {
-		s.notFound(w, r)
+	path, err := s.st.GetPathByID(ctx, result.RecommendedPathID.Int64)
+	if err != nil || !path.Published {
+		http.Error(w, "your generated path is unavailable", http.StatusInternalServerError)
+		return
+	}
+	if posted := strings.TrimSpace(r.FormValue("path")); posted != "" && posted != path.Slug {
+		s.renderPlacementResult(w, r, "Your placement result assigns your starting path. Finish it before changing direction.")
 		return
 	}
 
-	// Rule 2. Refused with an explanation rather than a bare redirect, so the
-	// learner understands why the choice was not honoured.
-	if res.FoundationsRequired && p.Slug != placement.PathFoundations {
-		s.renderPlacementResult(w, r,
-			"Computer Science Foundations comes first — the diagnostic showed gaps that the other paths build on.")
-		return
-	}
-
-	enr, err := s.st.EnsureEnrollment(ctx, u.ID)
+	enrollment, err := s.st.EnsureEnrollment(ctx, u.ID)
 	if err != nil {
 		http.Error(w, "could not enroll you", http.StatusInternalServerError)
 		return
 	}
-	// Only an unplaced or paused enrollment can be (re)placed; an active one is
-	// already committed and changing paths mid-cohort is a phase 3 concern.
-	if enr.State != store.EnrollUnplaced && enr.State != store.EnrollPaused {
+	if enrollment.State != store.EnrollUnplaced && enrollment.State != store.EnrollPaused {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
-	// The band decides which cohort the learner can be grouped into, and when
-	// their standup window opens. An unrecognised value falls back rather than
-	// failing the enrollment — LookupBand guarantees a usable default.
 	band := cohort.LookupBand(r.FormValue("band")).Key
-	if err := s.st.PlaceEnrollment(ctx, enr.ID, p.ID, "placement diagnostic"); err != nil {
+	if err := s.st.PlaceEnrollment(ctx, enrollment.ID, path.ID, "placement test"); err != nil {
 		http.Error(w, "could not enroll you", http.StatusInternalServerError)
 		return
 	}
-	if err := s.st.SetEnrollmentBand(ctx, enr.ID, band); err != nil {
+	if err := s.st.SetEnrollmentBand(ctx, enrollment.ID, band); err != nil {
 		http.Error(w, "could not save your timezone", http.StatusInternalServerError)
 		return
 	}

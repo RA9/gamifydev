@@ -13,7 +13,7 @@
         {{ if .User }}
           <a class="btn btn-primary" href="/dashboard">Return to dashboard {{ icon "arrowright" }}</a>
         {{ else }}
-          <a class="btn btn-primary" href="/register">Find my starting point {{ icon "arrowright" }}</a>
+          <a class="btn btn-primary" href="/placement">Find my starting point {{ icon "arrowright" }}</a>
         {{ end }}
         <a class="paths-text-link" href="/courses">Browse individual courses</a>
       </div>
@@ -76,12 +76,12 @@
     <div>
       <p class="paths-section-label">Not sure which one fits?</p>
       <h2>You do not have to guess your level.</h2>
-      <p>The placement diagnostic checks your fundamentals and recommends where to begin. It decides your starting point, not whether you are allowed to learn.</p>
+      <p>The placement diagnostic checks your fundamentals and recommends where to begin. Pass the core standard and it assigns the right starting point.</p>
     </div>
     {{ if .User }}
       <a class="btn paths-guide-btn" href="/dashboard">View my recommendation {{ icon "arrowright" }}</a>
     {{ else }}
-      <a class="btn paths-guide-btn" href="/register">Take the placement test {{ icon "arrowright" }}</a>
+      <a class="btn paths-guide-btn" href="/placement">Take the placement test {{ icon "arrowright" }}</a>
     {{ end }}
   </section>
 </div>

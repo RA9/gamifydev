@@ -4,8 +4,9 @@
   <div class="auth-split-form">
     <div class="auth-split-form-inner">
       <a href="/" class="brand auth-brand">Gamify<span>Dev</span></a>
-      <h1>Create your account</h1>
-      <p class="muted">Join thousands of builders learning to code — for free.</p>
+      <span class="chip">Placement passed</span>
+      <h1>Claim your learner account</h1>
+      <p class="muted">Your result{{ with index .Data "path" }} assigned <strong>{{ .Title }}</strong>{{ end }}. Create an account to keep it and continue to cohort enrollment.</p>
       {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
       <form method="post" action="/register" class="form">
         <label class="field">
@@ -28,11 +29,11 @@
           <small class="muted">At least 8 characters.</small>
         </label>
         <button type="submit" class="btn btn-primary btn-block auth-submit">
-          <span class="auth-submit-text">Create account</span>
+          <span class="auth-submit-text">Claim result and continue</span>
           <span class="auth-submit-spinner" aria-hidden="true"></span>
         </button>
       </form>
-      <p class="auth-alt">Already have an account? <a href="/login">Sign in</a></p>
+      <p class="auth-alt">Already have an account? <a href="/login">Sign in to claim this result</a></p>
     </div>
   </div>
 
@@ -94,8 +95,8 @@
         </circle>
       </svg>
       <div class="auth-split-cta">
-        <h2>Learn to code by building.</h2>
-        <p>Guided courses, mentor-graded code, live competitions — start for free.</p>
+        <h2>You cleared the first gate.</h2>
+        <p>Your placement result becomes the starting point for a structured, cohort-based curriculum.</p>
       </div>
     </div>
   </div>

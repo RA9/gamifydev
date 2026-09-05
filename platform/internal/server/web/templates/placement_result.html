@@ -2,84 +2,101 @@
 {{ $res := index .Data "result" }}
 {{ $rec := index .Data "recommended" }}
 {{ $core := index .Data "coreScore" }}
+{{ $signedIn := index .Data "signedIn" }}
+{{ $enrollment := index .Data "enrollment" }}
 <div class="pl-wrap">
-  <span class="pl-eyebrow">Your placement</span>
+  <span class="pl-eyebrow">Placement result</span>
   <h1 class="pl-title">
-    {{ if $res.FoundationsRequired }}You're starting with the fundamentals{{ else }}Your fundamentals are solid{{ end }}
+    {{ if not $res.Passed }}Not ready yet — but now you know what to work on.{{ else if $res.FoundationsRequired }}You passed into CS Foundations.{{ else }}You passed. Your specialization is ready.{{ end }}
   </h1>
 
   <div class="pl-score">
     <div class="pl-score-num">{{ $core }}<span>%</span></div>
     <div>
       <p class="pl-score-label">Core computer science</p>
-      <p class="pl-fine">Averaged across the five fundamentals topics. {{ index .Data "threshold" }}% opens the other paths.</p>
+      <p class="pl-fine">
+        {{ if not $res.Passed }}{{ index .Data "passThreshold" }}% is required to pass.
+        {{ else if $res.FoundationsRequired }}{{ index .Data "foundationsThreshold" }}% opens specialization paths; this score qualifies for Foundations.
+        {{ else }}This cleared the {{ index .Data "foundationsThreshold" }}% specialization threshold.{{ end }}
+      </p>
     </div>
   </div>
 
   <div class="pl-card">
-    <h2 class="pl-h2">How you scored</h2>
+    <h2 class="pl-h2">Topic breakdown</h2>
     <ul class="pl-topics">
       {{ range index .Data "topics" }}
       <li class="pl-topic{{ if not .Core }} is-aside{{ end }}">
-        <span class="pl-topic-name">{{ .Label }}{{ if not .Core }} <span class="pl-tag">preference</span>{{ end }}</span>
+        <span class="pl-topic-name">{{ .Label }}{{ if not .Core }} <span class="pl-tag">routing</span>{{ end }}</span>
         <span class="pl-meter"><span class="pl-meter-fill" style="width:{{ .Score }}%"></span></span>
         <span class="pl-topic-score">{{ .Score }}%</span>
       </li>
       {{ end }}
     </ul>
-    <p class="pl-fine">The two “preference” rows don't affect whether foundations are required — they only suggest which specialization suits you.</p>
-    <a class="pl-review-link" href="/placement/review">Review your answers →</a>
+    <p class="pl-fine">The five core rows determine pass and Foundations readiness. Web and Backend scores choose a specialization only after the core standard is met.</p>
+    {{ if $res.Passed }}<a class="pl-review-link" href="/placement/review">Review my answers →</a>{{ end }}
   </div>
 
-  {{ with index .Data "exemptions" }}
-  <div class="pl-card pl-exempt">
-    <h2 class="pl-h2">You can skip these in your schedule</h2>
-    <ul class="pl-chips">
-      {{ range . }}<li class="pl-chip">{{ if .Emoji }}{{ .Emoji }} {{ end }}{{ .Title }}</li>{{ end }}
-    </ul>
-    <p class="pl-fine">You scored high enough that we won't schedule these. The lessons stay open to read any time, and you'll still take each course's checkpoint if you want it counted.</p>
-  </div>
-  {{ end }}
-
-  <div class="pl-card">
-    <h2 class="pl-h2">Choose your path</h2>
-    {{ if $res.FoundationsRequired }}
-      <p class="pl-note">Computer Science Foundations is required before the specializations open up. Finish it and every other path unlocks.</p>
-    {{ else }}
-      <p class="pl-note">All paths are open to you. We suggest <strong>{{ if $rec }}{{ $rec.Title }}{{ else }}the one that fits your goals{{ end }}</strong>.</p>
+  {{ if not $res.Passed }}
+    <div class="pl-card">
+      <h2 class="pl-h2">What happens now</h2>
+      <p class="pl-note">A learner account is not available from this result. Review the weakest core topics, practise, and return after the seven-day cooldown. You can make up to three attempts in a rolling 30-day period.</p>
+      <div class="pl-actions">
+        <a class="btn btn-secondary" href="/courses">Review the curriculum</a>
+        {{ with index .Data "retry" }}{{ if .Allowed }}
+        <form method="post" action="/placement/start" class="inline"><button class="btn btn-primary" type="submit">Try again</button></form>
+        {{ end }}{{ end }}
+      </div>
+    </div>
+  {{ else }}
+    {{ with index .Data "exemptions" }}
+    <div class="pl-card pl-exempt">
+      <h2 class="pl-h2">Mastery recognised</h2>
+      <ul class="pl-chips">{{ range . }}<li class="pl-chip">{{ if .Emoji }}{{ .Emoji }} {{ end }}{{ .Title }}</li>{{ end }}</ul>
+      <p class="pl-fine">These topics cleared the mastery threshold. Their content remains readable, while the enrollment plan may omit repeated work.</p>
+    </div>
     {{ end }}
 
-    <div class="pl-band">
-      <label class="pl-band-label" for="bandPick">Where are you, roughly?</label>
-      <select id="bandPick" class="pl-band-select">
-        {{ range index $.Data "bands" }}<option value="{{ .Key }}">{{ .Label }}</option>{{ end }}
-      </select>
-      <p class="pl-fine">We group you with people in nearby hours so the daily standup lands while you're awake.</p>
-    </div>
-
-    <ul class="pl-paths">
-      {{ $required := $res.FoundationsRequired }}
-      {{ range index .Data "paths" }}
-      {{ $locked := and $required (ne .Slug "cs-foundations") }}
-      <li class="pl-path{{ if $locked }} is-locked{{ end }}{{ if and $rec (eq .ID $rec.ID) }} is-rec{{ end }}">
-        <span class="pl-path-emoji">{{ if .Emoji }}{{ .Emoji }}{{ else }}🧭{{ end }}</span>
+    <div class="pl-card">
+      <span class="pl-eyebrow">Generated path</span>
+      {{ if $rec }}
+      <div class="pl-path is-rec">
+        <span class="pl-path-emoji">{{ if $rec.Emoji }}{{ $rec.Emoji }}{{ else }}🧭{{ end }}</span>
         <span class="pl-path-meta">
-          <span class="pl-path-title">{{ .Title }}{{ if and $rec (eq .ID $rec.ID) }} <span class="pl-tag pl-tag-rec">suggested</span>{{ end }}</span>
-          <span class="pl-fine">{{ .Tagline }} · {{ .CourseCount }} course{{ if ne .CourseCount 1 }}s{{ end }}</span>
+          <span class="pl-path-title">{{ $rec.Title }} <span class="pl-tag pl-tag-rec">assigned</span></span>
+          <span class="pl-fine">{{ $rec.Tagline }} · {{ $rec.CourseCount }} course{{ if ne $rec.CourseCount 1 }}s{{ end }}</span>
         </span>
-        {{ if $locked }}
-          <span class="pl-path-go is-locked">{{ icon "lock" }} Locked</span>
-        {{ else }}
-          <form method="post" action="/enroll" class="inline pl-enroll">
-            <input type="hidden" name="path" value="{{ .Slug }}" />
-            <input type="hidden" name="band" class="pl-band-field" value="europe_africa" />
-            <button class="btn btn-primary btn-sm" type="submit">Start this path</button>
-          </form>
-        {{ end }}
-      </li>
+      </div>
       {{ end }}
-    </ul>
-  </div>
+
+      {{ if not $signedIn }}
+        <p class="pl-note">Your passing result is saved to this browser. Create your learner account now to claim it and continue to enrollment.</p>
+        <a class="btn btn-primary btn-lg" href="/register">Create my learner account</a>
+      {{ else if $enrollment }}
+        {{ if or (eq $enrollment.State "placed") (eq $enrollment.State "active") }}
+          <p class="pl-note">This result has already been attached to your enrollment.</p>
+          <a class="btn btn-primary" href="/dashboard">Go to my dashboard</a>
+        {{ else }}
+          <div class="pl-band">
+            <label class="pl-band-label" for="bandPick">Where are you, roughly?</label>
+            <select id="bandPick" class="pl-band-select">
+              {{ range index $.Data "bands" }}<option value="{{ .Key }}">{{ .Label }}</option>{{ end }}
+            </select>
+            <p class="pl-fine">We use this to place you in a cohort whose daily standup happens during reasonable hours.</p>
+          </div>
+          {{ if $rec }}
+          <form method="post" action="/enroll" class="pl-enroll">
+            <input type="hidden" name="path" value="{{ $rec.Slug }}" />
+            <input type="hidden" name="band" class="pl-band-field" value="europe_africa" />
+            <button class="btn btn-primary btn-lg" type="submit">Enroll in {{ $rec.Title }}</button>
+          </form>
+          {{ end }}
+        {{ end }}
+      {{ else }}
+        <a class="btn btn-primary" href="/dashboard">Continue to enrollment</a>
+      {{ end }}
+    </div>
+  {{ end }}
 </div>
-<script src="/static/js/band.js" defer></script>
+{{ if and $res.Passed $signedIn }}<script src="/static/js/band.js" defer></script>{{ end }}
 {{ end }}

@@ -98,10 +98,11 @@ func TestASubmissionIsNotReadableByItsID(t *testing.T) {
 // be the worst possible time to lose it.
 func TestSigningUpKeepsWhatYouSolvedAsAGuest(t *testing.T) {
 	ts := newTestServer(t)
-	ts.register(t, "admin@example.com") // the first account takes the admin role
+	ts.register(t, "admin@example.com")
 	cookie, by := ts.guest(t)
 	ts.solve(t, "affordable-pairs", by)
 	ts.solve(t, "double-tiles", by)
+	ts.qualifyGuest(t, by, true)
 
 	w := ts.do(t, http.MethodPost, "/register", url.Values{
 		"name": {"Guest Turned Learner"}, "email": {"keeper@example.com"},

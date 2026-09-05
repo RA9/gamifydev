@@ -14,8 +14,10 @@ import (
 
 const inviteTTL = 7 * 24 * time.Hour
 
-func validRole(role string) bool {
-	return role == "admin" || role == "grader" || role == "learner"
+func validInviteRole(role string) bool {
+	// Learners enter through placement. Invitations are reserved for staff so an
+	// admin link cannot become a second, untested learner-admission path.
+	return role == "admin" || role == "grader"
 }
 
 // baseURL builds the public origin (scheme://host) for the current request,
@@ -35,7 +37,7 @@ func (s *Server) baseURL(r *http.Request) string {
 // --- Admin: invite a member -------------------------------------------------
 
 func (s *Server) handleAdminInviteForm(w http.ResponseWriter, r *http.Request) {
-	s.render(w, r, "admin_user_invite.html", ViewData{Title: "Invite a member", Data: map[string]any{"role": "learner"}})
+	s.render(w, r, "admin_user_invite.html", ViewData{Title: "Invite a member", Data: map[string]any{"role": "grader"}})
 }
 
 func (s *Server) handleAdminInvite(w http.ResponseWriter, r *http.Request) {
@@ -43,8 +45,8 @@ func (s *Server) handleAdminInvite(w http.ResponseWriter, r *http.Request) {
 	emailAddr := strings.ToLower(strings.TrimSpace(r.FormValue("email")))
 	name := strings.TrimSpace(r.FormValue("name"))
 	role := r.FormValue("role")
-	if !validRole(role) {
-		role = "learner"
+	if !validInviteRole(role) {
+		role = "grader"
 	}
 
 	fail := func(msg string) {
@@ -117,6 +119,11 @@ func (s *Server) handleInvite(w http.ResponseWriter, r *http.Request) {
 		s.render(w, r, "invite_invalid.html", ViewData{Title: "Invitation"})
 		return
 	}
+	if inv.Role == "learner" {
+		s.render(w, r, "invite_invalid.html", ViewData{Title: "Placement required",
+			Flash: "Learner invitations have been replaced by the placement process. Pass placement to create your account."})
+		return
+	}
 	s.render(w, r, "invite.html", ViewData{Title: "Set your password",
 		Data: map[string]any{"inv": inv, "token": inv.Token}})
 }
@@ -126,6 +133,11 @@ func (s *Server) handleInviteSubmit(w http.ResponseWriter, r *http.Request) {
 	inv, ok := s.validInvitation(r)
 	if !ok {
 		s.render(w, r, "invite_invalid.html", ViewData{Title: "Invitation"})
+		return
+	}
+	if inv.Role == "learner" {
+		s.render(w, r, "invite_invalid.html", ViewData{Title: "Placement required",
+			Flash: "Learner invitations have been replaced by the placement process. Pass placement to create your account."})
 		return
 	}
 

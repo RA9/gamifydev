@@ -10,7 +10,9 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/jobs"
 	"github.com/RA9/gamifydev/platform/internal/seed"
 	"github.com/RA9/gamifydev/platform/internal/store"
@@ -77,23 +79,31 @@ func (ts *testServer) do(t *testing.T, method, path string, form url.Values, coo
 	return w
 }
 
-// register creates an account through the real signup handler and returns its
-// session cookie. The first call on a fresh database yields the admin.
+// register provisions an authenticated fixture directly. Public registration
+// is deliberately tested separately because it now requires a passing guest
+// placement; unrelated route tests should not repeat that whole admissions flow.
 func (ts *testServer) register(t *testing.T, email string) *http.Cookie {
 	t.Helper()
-	w := ts.do(t, http.MethodPost, "/register", url.Values{
-		"name": {"Test Person"}, "email": {email}, "password": {"averysafepassword"},
-	})
-	if w.Code != http.StatusSeeOther {
-		t.Fatalf("register %s: status %d, want 303", email, w.Code)
+	role := "learner"
+	if email == "admin@example.com" {
+		role = "admin"
 	}
-	for _, c := range w.Result().Cookies() {
-		if c.Name == "gd_session" && c.Value != "" {
-			return c
-		}
+	hash, err := auth.HashPassword("averysafepassword")
+	if err != nil {
+		t.Fatalf("hash fixture password: %v", err)
 	}
-	t.Fatalf("register %s: no session cookie was set", email)
-	return nil
+	u, err := ts.st.CreateUser(t.Context(), email, hash, "Test Person", role)
+	if err != nil {
+		t.Fatalf("create fixture user %s: %v", email, err)
+	}
+	token, err := auth.NewToken()
+	if err != nil {
+		t.Fatalf("create fixture session: %v", err)
+	}
+	if err := ts.st.CreateSession(t.Context(), token, u.ID, time.Now().Add(auth.SessionTTL)); err != nil {
+		t.Fatalf("create fixture session: %v", err)
+	}
+	return &http.Cookie{Name: auth.SessionCookie, Value: token}
 }
 
 // --- public pages -----------------------------------------------------------
@@ -108,7 +118,7 @@ func TestPublicPagesRender(t *testing.T) {
 		{"/courses", ""},
 		{"/courses/c", ""},
 		{"/login", "Forgot it?"},
-		{"/register", ""},
+		{"/placement", "Start with the placement test"},
 		{"/forgot", "Reset your password"},
 		{"/forum", ""},
 		{"/competitions", ""},
@@ -175,7 +185,7 @@ func registeredRoutes(t *testing.T) []route {
 func isPublic(p string) bool {
 	for _, prefix := range []string{
 		"/static/", "/healthz", "/about", "/paths", "/courses", "/forum",
-		"/competitions", "/blog", "/login", "/register", "/forgot", "/reset/",
+		"/competitions", "/blog", "/login", "/register", "/placement", "/forgot", "/reset/",
 		"/invite/", "/logout",
 		// The practice bank is open to anyone by design — solving problems
 		// without an account is the point of it. What it does not expose is
@@ -214,7 +224,7 @@ func TestEveryPrivateRouteTurnsAwayAGuest(t *testing.T) {
 
 func TestEveryAdminRouteTurnsAwayALearner(t *testing.T) {
 	ts := newTestServer(t)
-	ts.register(t, "admin@example.com") // first account takes the admin role
+	ts.register(t, "admin@example.com")
 	learner := ts.register(t, "learner@example.com")
 
 	for _, rt := range registeredRoutes(t) {

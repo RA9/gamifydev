@@ -1,6 +1,6 @@
-// Package placement holds the routing policy: given per-topic diagnostic
-// scores, decide which path a learner starts on and which courses they may skip
-// in the schedule.
+// Package placement holds the diagnostic policy: given per-topic scores, decide
+// whether a learner passed, which path they start on, and which courses they may
+// skip in the schedule.
 //
 // This is deliberately pure — no database, no HTTP — because it is the piece
 // most likely to be re-tuned once real attempt data exists, and it needs to be
@@ -16,8 +16,8 @@ package placement
 import "sort"
 
 // Topics the item bank is tagged with. The first five are "core CS" and decide
-// whether foundations is required; the last two only inform which specialization
-// to recommend.
+// whether the attempt passes and whether foundations is required; the last two
+// only inform which specialization to recommend.
 const (
 	TopicProgramming    = "programming"
 	TopicDataStructures = "data_structures"
@@ -28,9 +28,9 @@ const (
 	TopicBackend        = "backend"
 )
 
-// CoreTopics decide the foundations gate. Specialization topics are excluded on
-// purpose: not knowing HTTP says nothing about whether you understand a hash
-// table, and it must not push someone into remedial CS.
+// CoreTopics decide the pass and foundations gates. Specialization topics are
+// excluded on purpose: not knowing HTTP says nothing about whether you understand
+// a hash table, and it must not fail an attempt or require remedial CS.
 var CoreTopics = []string{
 	TopicProgramming,
 	TopicDataStructures,
@@ -44,8 +44,13 @@ var AllTopics = append(append([]string{}, CoreTopics...), TopicWeb, TopicBackend
 
 // Thresholds. Expressed as percentages so they read the way we talk about them.
 const (
+	// PassThreshold is the minimum mean core-topic score for a passing attempt.
+	// Failed attempts are not routed and cannot earn exemptions.
+	PassThreshold = 50
+
 	// FoundationsThreshold is the mean core-topic score at or above which a
-	// learner may choose any path. Below it, CS Foundations is compulsory.
+	// passing learner may enter a specialization. Passing learners below it must
+	// start with CS Foundations.
 	FoundationsThreshold = 70
 
 	// ExemptionThreshold is the per-topic score at or above which the courses
@@ -79,17 +84,20 @@ const (
 	PathFullstack   = "fullstack-developer"
 )
 
-// Decision is the outcome of routing.
+// Decision is the outcome of evaluating and routing an attempt.
 type Decision struct {
 	// CoreScore is the mean of the core-topic scores, 0-100.
 	CoreScore int
-	// FoundationsRequired locks the learner to CS Foundations.
+	// Passed reports whether CoreScore cleared PassThreshold.
+	Passed bool
+	// FoundationsRequired locks a passing learner to CS Foundations.
 	FoundationsRequired bool
-	// RecommendedPath is the path slug to start on. When FoundationsRequired it
-	// is always PathFoundations.
+	// RecommendedPath is the path slug to start on. It is empty for failed
+	// attempts and PathFoundations when FoundationsRequired is true.
 	RecommendedPath string
-	// Exemptions are course slugs the learner may skip in the schedule. Empty
-	// unless the corresponding topic cleared ExemptionThreshold.
+	// Exemptions are course slugs a passing learner may skip in the schedule.
+	// Empty unless the attempt passed and the corresponding topic cleared
+	// ExemptionThreshold.
 	Exemptions []string
 	// Summary is a short human explanation shown on the result page.
 	Summary string
@@ -101,11 +109,15 @@ type Decision struct {
 // evidence of competence in it.
 func Decide(scores map[string]int) Decision {
 	d := Decision{CoreScore: MeanCore(scores)}
+	d.Passed = d.CoreScore >= PassThreshold
+	if !d.Passed {
+		d.Summary = "Your core score did not meet the passing threshold. Review the fundamentals and try the diagnostic again."
+		return d
+	}
+
 	d.FoundationsRequired = d.CoreScore < FoundationsThreshold
 
-	// Exemptions are earned per topic regardless of the overall outcome — a
-	// learner sent to foundations who clearly knows data structures should not
-	// be made to sit through it.
+	// Exemptions are earned per topic only after the overall attempt passes.
 	seen := map[string]bool{}
 	for _, topic := range CoreTopics {
 		if scores[topic] < ExemptionThreshold {
