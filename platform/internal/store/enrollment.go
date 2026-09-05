@@ -3,10 +3,12 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 // --- Account participation ---------------------------------------------------
@@ -88,9 +90,18 @@ var enrollTransitions = map[string][]string{
 	EnrollCompleted: {},
 }
 
-// ErrBadTransition is returned when a caller asks for a move the state machine
-// does not allow (e.g. reviving a dropped enrollment).
-var ErrBadTransition = errors.New("illegal enrollment transition")
+var (
+	// ErrBadTransition is returned when a caller asks for a move the state
+	// machine forbids (e.g. reviving a dropped enrollment).
+	ErrBadTransition = errors.New("illegal enrollment transition")
+	// ErrEnrollmentLocked prevents an existing queued, active, or paused
+	// enrollment from being rebound to a different placement decision.
+	ErrEnrollmentLocked = errors.New("enrollment is already bound to a placement result")
+	// ErrEnrollmentPlacementInvalid means the selected result cannot enroll this
+	// user: it is missing, failed, stale, belongs to someone else, or has no
+	// published generated path.
+	ErrEnrollmentPlacementInvalid = errors.New("placement result is not eligible for enrollment")
+)
 
 // EnrollmentTerminal reports whether a state ends the enrollment's life.
 func EnrollmentTerminal(state string) bool {
@@ -99,40 +110,82 @@ func EnrollmentTerminal(state string) bool {
 
 // Enrollment is a learner's relationship to a path.
 type Enrollment struct {
-	ID        int64
-	UserID    int64
-	PathID    sql.NullInt64
-	State     string
-	Reason    string
-	PlacedAt  sql.NullString
-	StartedAt sql.NullString
-	EndedAt   sql.NullString
+	ID                int64
+	UserID            int64
+	PathID            sql.NullInt64
+	PlacementResultID sql.NullInt64
+	State             string
+	Reason            string
+	PlacedAt          sql.NullString
+	StartedAt         sql.NullString
+	EndedAt           sql.NullString
 	// Set once cohort formation places the learner (phase 3).
 	CohortID sql.NullInt64
 	TZBand   string
+	// Exemptions is copied from PlacementResultID when the learner enrolls. It is
+	// deliberately a snapshot: later placement activity cannot rewrite a running
+	// cohort schedule.
+	Exemptions []string
 }
 
-const enrollCols = `id, user_id, path_id, state, reason, placed_at, started_at, ended_at, cohort_id, tz_band`
+const enrollCols = `id, user_id, path_id, placement_result_id, state, reason, placed_at, started_at, ended_at, cohort_id, tz_band, placement_exemptions`
 
 func scanEnrollment(row interface{ Scan(...any) error }) (*Enrollment, error) {
 	var e Enrollment
-	err := row.Scan(&e.ID, &e.UserID, &e.PathID, &e.State, &e.Reason, &e.PlacedAt, &e.StartedAt, &e.EndedAt, &e.CohortID, &e.TZBand)
+	var exemptions string
+	err := row.Scan(&e.ID, &e.UserID, &e.PathID, &e.PlacementResultID, &e.State, &e.Reason,
+		&e.PlacedAt, &e.StartedAt, &e.EndedAt, &e.CohortID, &e.TZBand, &exemptions)
 	if err != nil {
 		return nil, err
+	}
+	if err := json.Unmarshal([]byte(exemptions), &e.Exemptions); err != nil {
+		return nil, fmt.Errorf("decode enrollment exemptions: %w", err)
 	}
 	return &e, nil
 }
 
 // LiveEnrollment returns the user's current non-terminal enrollment, or nil if
 // they have none (never registered for a path, or previously dropped).
-func (s *Store) LiveEnrollment(ctx context.Context, userID int64) (*Enrollment, error) {
-	e, err := scanEnrollment(s.db.QueryRowContext(ctx,
+type enrollmentQuerier interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func liveEnrollment(ctx context.Context, q enrollmentQuerier, userID int64) (*Enrollment, error) {
+	e, err := scanEnrollment(q.QueryRowContext(ctx,
 		`SELECT `+enrollCols+` FROM enrollments
 		 WHERE user_id = ? AND state IN ('unplaced','placed','active','paused')`, userID))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	return e, err
+}
+
+func (s *Store) LiveEnrollment(ctx context.Context, userID int64) (*Enrollment, error) {
+	return liveEnrollment(ctx, s.db, userID)
+}
+
+// enrollmentAfterRace turns a concurrent duplicate enrollment into the same
+// idempotent result as a sequential retry after the losing transaction releases
+// its snapshot. A competing different binding remains locked.
+func (s *Store) enrollmentAfterRace(ctx context.Context, userID, resultID int64, tzBand string, cause error) (*Enrollment, error) {
+	for attempt := 0; attempt < 5; attempt++ {
+		enrollment, err := s.LiveEnrollment(ctx, userID)
+		if err != nil {
+			return nil, cause
+		}
+		if enrollment != nil && enrollment.State != EnrollUnplaced {
+			if enrollment.PlacementResultID.Valid && enrollment.PlacementResultID.Int64 == resultID && enrollment.TZBand == tzBand {
+				return enrollment, nil
+			}
+			return nil, ErrEnrollmentLocked
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+	return nil, cause
 }
 
 // EnsureEnrollment returns the user's live enrollment, creating an `unplaced`
@@ -152,6 +205,103 @@ func (s *Store) EnsureEnrollment(ctx context.Context, userID int64) (*Enrollment
 		return nil, err
 	}
 	return s.LiveEnrollment(ctx, userID)
+}
+
+// EnrollFromPlacement atomically binds a learner's live enrollment to the exact
+// latest passing placement result, its generated path, its exemption snapshot,
+// and the selected timezone band. Once placed, the binding is immutable; a
+// repeated submission of the same result and band is an idempotent no-op.
+func (s *Store) EnrollFromPlacement(ctx context.Context, userID, resultID int64, tzBand string) (*Enrollment, error) {
+	tzBand = strings.TrimSpace(tzBand)
+	if userID <= 0 || resultID <= 0 || tzBand == "" {
+		return nil, ErrEnrollmentPlacementInvalid
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	enrollment, err := liveEnrollment(ctx, tx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if enrollment != nil && enrollment.State != EnrollUnplaced {
+		if enrollment.PlacementResultID.Valid && enrollment.PlacementResultID.Int64 == resultID && enrollment.TZBand == tzBand {
+			return enrollment, nil
+		}
+		return nil, ErrEnrollmentLocked
+	}
+
+	var pathID, attemptID int64
+	var exemptions string
+	err = tx.QueryRowContext(ctx, `
+		SELECT pr.recommended_path_id, pr.attempt_id, pr.exemptions
+		FROM placement_results pr
+		JOIN assessment_attempts a ON a.id = pr.attempt_id
+		JOIN assessments bank ON bank.id = a.assessment_id
+		JOIN paths p ON p.id = pr.recommended_path_id
+		WHERE pr.id = ? AND pr.user_id = ? AND pr.guest_id IS NULL
+		  AND pr.passed = 1 AND a.user_id = ? AND a.guest_id IS NULL
+		  AND a.submitted_at IS NOT NULL AND bank.kind = 'placement'
+		  AND p.published = 1
+		  AND pr.id = (
+			SELECT latest.id FROM placement_results latest
+			WHERE latest.user_id = ?
+			ORDER BY datetime(latest.created_at) DESC, latest.id DESC LIMIT 1
+		  )`, resultID, userID, userID, userID).Scan(&pathID, &attemptID, &exemptions)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrEnrollmentPlacementInvalid
+	}
+	if err != nil {
+		return nil, err
+	}
+	var decoded []string
+	if err := json.Unmarshal([]byte(exemptions), &decoded); err != nil {
+		return nil, fmt.Errorf("decode placement exemptions: %w", err)
+	}
+
+	if enrollment == nil {
+		enrollment, err = scanEnrollment(tx.QueryRowContext(ctx, `
+			INSERT INTO enrollments
+				(user_id, path_id, placement_result_id, state, reason, placed_at, tz_band, placement_exemptions)
+			VALUES (?, ?, ?, 'placed', 'placement result', datetime('now'), ?, ?)
+			RETURNING `+enrollCols, userID, pathID, resultID, tzBand, exemptions))
+	} else {
+		enrollment, err = scanEnrollment(tx.QueryRowContext(ctx, `
+			UPDATE enrollments
+			SET path_id = ?, placement_result_id = ?, state = 'placed',
+			    reason = 'placement result', placed_at = datetime('now'),
+			    tz_band = ?, placement_exemptions = ?, updated_at = datetime('now')
+			WHERE id = ? AND state = 'unplaced'
+			RETURNING `+enrollCols, pathID, resultID, tzBand, exemptions, enrollment.ID))
+	}
+	if err != nil {
+		_ = tx.Rollback()
+		if errors.Is(err, sql.ErrNoRows) {
+			err = ErrEnrollmentLocked
+		}
+		return s.enrollmentAfterRace(ctx, userID, resultID, tzBand, err)
+	}
+
+	// Close any placement sitting that raced with enrollment. StartAttemptFor
+	// checks the same live-enrollment invariant; this update closes the opposite
+	// ordering, where the sitting obtained its write lock first.
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE assessment_attempts
+		SET abandoned = 1
+		WHERE user_id = ? AND id != ? AND submitted_at IS NULL AND abandoned = 0
+		  AND assessment_id IN (SELECT id FROM assessments WHERE kind = 'placement')`,
+		userID, attemptID); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		_ = tx.Rollback()
+		return s.enrollmentAfterRace(ctx, userID, resultID, tzBand, err)
+	}
+	return enrollment, nil
 }
 
 // TransitionEnrollment moves an enrollment to `to`, rejecting any move the state
@@ -202,14 +352,49 @@ func (s *Store) TransitionEnrollment(ctx context.Context, id int64, to, reason s
 	return tx.Commit()
 }
 
-// PlaceEnrollment records the outcome of the diagnostic: which path the learner
-// is routed to. Moves unplaced -> placed.
+// PlaceEnrollment is the legacy/operator placement path. Generated learner
+// enrollment must use EnrollFromPlacement so the result, path, exemptions, and
+// timezone are committed together. This method still updates path and state in
+// one transaction so a rejected transition cannot partially mutate the row. It
+// cannot rewrite an enrollment already bound to a generated placement result.
 func (s *Store) PlaceEnrollment(ctx context.Context, id, pathID int64, reason string) error {
-	if _, err := s.db.ExecContext(ctx,
-		`UPDATE enrollments SET path_id = ? WHERE id = ?`, pathID, id); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
 		return err
 	}
-	return s.TransitionEnrollment(ctx, id, EnrollPlaced, reason)
+	defer tx.Rollback() //nolint:errcheck
+
+	var from string
+	var placementResultID sql.NullInt64
+	if err := tx.QueryRowContext(ctx,
+		`SELECT state, placement_result_id FROM enrollments WHERE id = ?`, id).
+		Scan(&from, &placementResultID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	if placementResultID.Valid {
+		return ErrEnrollmentLocked
+	}
+	allowed := false
+	for _, candidate := range enrollTransitions[from] {
+		if candidate == EnrollPlaced {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		return fmt.Errorf("%w: %s -> %s", ErrBadTransition, from, EnrollPlaced)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE enrollments
+		SET path_id = ?, state = 'placed', reason = ?, cohort_id = NULL,
+		    placed_at = COALESCE(placed_at, datetime('now')), updated_at = datetime('now')
+		WHERE id = ?`, pathID, reason, id); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // --- Activity ledger ---------------------------------------------------------

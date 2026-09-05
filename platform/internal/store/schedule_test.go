@@ -109,17 +109,24 @@ func TestScheduleSkipsWeekendsEndToEnd(t *testing.T) {
 func TestExemptionsAreAPerLearnerOverlay(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t)
-	cid, uid, _ := scheduledCohort(t, st)
+	cid, uid, pathID := scheduledCohort(t, st)
 	if _, err := st.MaterializeSchedule(ctx, cid); err != nil {
 		t.Fatalf("materialize: %v", err)
 	}
 
-	// A second learner in the same cohort, exempted from c1 by the diagnostic.
-	other := enroll(t, st, "exempt@x.com", mkPath(t, st, "p2"), "europe_africa")
-	mustExec(t, st, `INSERT INTO assessment_attempts (id, user_id, assessment_id, expires_at)
-		VALUES (900, ?, 1, datetime('now','+1 hour'))`, other)
-	mustExec(t, st, `INSERT INTO placement_results (attempt_id, user_id, foundations_required, exemptions)
-		VALUES (900, ?, 0, '["c1"]')`, other)
+	// A second learner joins the same cohort with c1 in the immutable exemption
+	// snapshot copied onto their enrollment.
+	other := enroll(t, st, "exempt@x.com", pathID, "europe_africa")
+	mustExec(t, st, `UPDATE enrollments SET placement_exemptions = '["c1"]' WHERE user_id = ?`, other)
+	if _, err := st.TakeFromQueue(ctx, cid, pathID, "europe_africa", 1); err != nil {
+		t.Fatalf("fill exempt learner: %v", err)
+	}
+
+	// A newer result with a different decision must not rewrite an active cohort.
+	mustExec(t, st, `INSERT INTO assessment_attempts (id, user_id, assessment_id, expires_at, submitted_at)
+		VALUES (900, ?, 1, datetime('now','+1 hour'), datetime('now'))`, other)
+	mustExec(t, st, `INSERT INTO placement_results (attempt_id, user_id, foundations_required, passed, exemptions)
+		VALUES (900, ?, 0, 1, '[]')`, other)
 
 	mine, _ := st.CohortSchedule(ctx, cid, uid)
 	theirs, _ := st.CohortSchedule(ctx, cid, other)
@@ -160,6 +167,7 @@ func TestExemptWorkIsNeverOverdue(t *testing.T) {
 		PathID: pathID, Name: "old", TZBand: "europe_africa", StartsOn: "2020-01-06",
 	})
 	uid := enroll(t, st, "late@x.com", pathID, "europe_africa")
+	mustExec(t, st, `UPDATE enrollments SET placement_exemptions = '["c1"]' WHERE user_id = ?`, uid)
 	if _, err := st.TakeFromQueue(ctx, cid, pathID, "europe_africa", 1); err != nil {
 		t.Fatalf("fill: %v", err)
 	}
@@ -167,20 +175,39 @@ func TestExemptWorkIsNeverOverdue(t *testing.T) {
 		t.Fatalf("materialize: %v", err)
 	}
 
-	overdue, _ := st.Overdue(ctx, cid, uid, 10)
-	if len(overdue) != 2 {
-		t.Fatalf("overdue = %d, want 2", len(overdue))
+	items, err := st.CohortSchedule(ctx, cid, uid)
+	if err != nil {
+		t.Fatalf("schedule: %v", err)
+	}
+	if len(items) != 2 || !items[0].Exempt || !items[1].Exempt {
+		t.Fatalf("enrollment snapshot was not applied to schedule: %+v", items)
+	}
+	overdue, err := st.Overdue(ctx, cid, uid, 10)
+	if err != nil || len(overdue) != 0 {
+		t.Fatalf("exempt learner overdue = %d, %v; want 0, nil", len(overdue), err)
+	}
+	progress, err := st.Progress(ctx, cid, uid)
+	if err != nil || progress.Exempt != 2 || progress.Owed() != 0 || progress.Overdue != 0 {
+		t.Fatalf("exempt learner progress = %+v, %v", progress, err)
 	}
 
-	// Now exempt the course; the learner must not be chased for it.
-	mustExec(t, st, `INSERT INTO assessment_attempts (id, user_id, assessment_id, expires_at)
-		VALUES (901, ?, 1, datetime('now'))`, uid)
-	mustExec(t, st, `INSERT INTO placement_results (attempt_id, user_id, foundations_required, exemptions)
-		VALUES (901, ?, 0, '["c1"]')`, uid)
-
-	overdue, _ = st.Overdue(ctx, cid, uid, 10)
-	if len(overdue) != 0 {
-		t.Fatalf("exempt learner has %d overdue items, want 0", len(overdue))
+	// Even a newer placement row that removes the exemption cannot mutate the
+	// active schedule, overdue queue, or progress denominator.
+	mustExec(t, st, `INSERT INTO assessment_attempts (id, user_id, assessment_id, expires_at, submitted_at)
+		VALUES (901, ?, 1, datetime('now'), datetime('now'))`, uid)
+	mustExec(t, st, `INSERT INTO placement_results (attempt_id, user_id, foundations_required, passed, exemptions)
+		VALUES (901, ?, 0, 1, '[]')`, uid)
+	items, err = st.CohortSchedule(ctx, cid, uid)
+	if err != nil || len(items) != 2 || !items[0].Exempt || !items[1].Exempt {
+		t.Fatalf("newer result changed schedule: %+v, %v", items, err)
+	}
+	overdue, err = st.Overdue(ctx, cid, uid, 10)
+	if err != nil || len(overdue) != 0 {
+		t.Fatalf("newer result changed overdue work: %d, %v", len(overdue), err)
+	}
+	progress, err = st.Progress(ctx, cid, uid)
+	if err != nil || progress.Exempt != 2 || progress.Owed() != 0 || progress.Overdue != 0 {
+		t.Fatalf("newer result changed progress: %+v, %v", progress, err)
 	}
 }
 

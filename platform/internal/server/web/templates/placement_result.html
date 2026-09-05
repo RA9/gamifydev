@@ -73,21 +73,20 @@
         <p class="pl-note">Your passing result is saved to this browser. Create your learner account now to claim it and continue to enrollment.</p>
         <a class="btn btn-primary btn-lg" href="/register">Create my learner account</a>
       {{ else if $enrollment }}
-        {{ if or (eq $enrollment.State "placed") (eq $enrollment.State "active") }}
-          <p class="pl-note">This result has already been attached to your enrollment.</p>
+        {{ if ne $enrollment.State "unplaced" }}
+          <p class="pl-note">This exact result and its exemptions are locked to your enrollment, so later placement activity cannot change your schedule.</p>
           <a class="btn btn-primary" href="/dashboard">Go to my dashboard</a>
         {{ else }}
-          <div class="pl-band">
-            <label class="pl-band-label" for="bandPick">Where are you, roughly?</label>
-            <select id="bandPick" class="pl-band-select">
-              {{ range index $.Data "bands" }}<option value="{{ .Key }}">{{ .Label }}</option>{{ end }}
-            </select>
-            <p class="pl-fine">We use this to place you in a cohort whose daily standup happens during reasonable hours.</p>
-          </div>
           {{ if $rec }}
           <form method="post" action="/enroll" class="pl-enroll">
-            <input type="hidden" name="path" value="{{ $rec.Slug }}" />
-            <input type="hidden" name="band" class="pl-band-field" value="europe_africa" />
+            <input type="hidden" name="placement_result" value="{{ $res.ID }}" />
+            <div class="pl-band">
+              <label class="pl-band-label" for="bandPick">Where are you, roughly?</label>
+              <select id="bandPick" name="band" class="pl-band-select" required>
+                {{ range index $.Data "bands" }}<option value="{{ .Key }}">{{ .Label }}</option>{{ end }}
+              </select>
+              <p class="pl-fine">Your generated path, exemptions, and timezone region are saved together when you enroll.</p>
+            </div>
             <button class="btn btn-primary btn-lg" type="submit">Enroll in {{ $rec.Title }}</button>
           </form>
           {{ end }}
@@ -98,5 +97,5 @@
     </div>
   {{ end }}
 </div>
-{{ if and $res.Passed $signedIn }}<script src="/static/js/band.js" defer></script>{{ end }}
+
 {{ end }}

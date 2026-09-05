@@ -6,8 +6,8 @@
     <p class="co-sub">Your cohort is formed from the path you're placed on, so the diagnostic comes first.</p>
     <a class="btn btn-primary" href="/placement">Start the diagnostic</a>
   {{ else if not (index .Data "enrollment").PathID.Valid }}
-    <h1 class="co-title">Choose your path</h1>
-    <p class="co-sub">Once you pick a path we'll group you with others starting the same one.</p>
+    <h1 class="co-title">Confirm your generated path</h1>
+    <p class="co-sub">Your diagnostic has assigned your starting path. Confirm it and your timezone so we can find your cohort.</p>
     <a class="btn btn-primary" href="/placement/result">See my placement</a>
   {{ else }}
     <h1 class="co-title">Finding your cohort</h1>

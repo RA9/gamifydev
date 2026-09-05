@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"time"
+	"fmt"
 
 	"github.com/RA9/gamifydev/platform/internal/attendance"
 )
@@ -191,62 +191,133 @@ type Sanction struct {
 // `shadow` false means the sanction is actually applied; the caller is
 // responsible for having checked that enforcement is enabled.
 func (s *Store) RecordSanction(ctx context.Context, sc Sanction, shadow bool) (int64, bool, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, false, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
 	shadowV := 1
-	var appliedAt any
+	var enrollmentID any
 	if !shadow {
 		shadowV = 0
-		appliedAt = time.Now().UTC().Format("2006-01-02 15:04:05")
+		if sc.Kind == attendance.KindDrop {
+			enrollment, err := liveEnrollment(ctx, tx, sc.UserID)
+			if err != nil {
+				return 0, false, err
+			}
+			if enrollment == nil || (sc.CohortID.Valid && (!enrollment.CohortID.Valid || enrollment.CohortID.Int64 != sc.CohortID.Int64)) {
+				return 0, false, ErrNotFound
+			}
+			enrollmentID = enrollment.ID
+		}
 	}
 	var cohort any
 	if sc.CohortID.Valid {
 		cohort = sc.CohortID.Int64
 	}
-	res, err := s.db.ExecContext(ctx, `
-		INSERT INTO sanctions (user_id, cohort_id, kind, reason, window_from, window_to, shadow, applied_at)
+	var id int64
+	err = tx.QueryRowContext(ctx, `
+		INSERT INTO sanctions
+			(user_id, cohort_id, enrollment_id, kind, reason, window_from, window_to, shadow)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(user_id, window_from, window_to) DO NOTHING`,
-		sc.UserID, cohort, sc.Kind, sc.Reason, sc.WindowFrom, sc.WindowTo, shadowV, appliedAt)
+		ON CONFLICT(user_id, window_from, window_to) DO NOTHING
+		RETURNING id`,
+		sc.UserID, cohort, enrollmentID, sc.Kind, sc.Reason, sc.WindowFrom, sc.WindowTo, shadowV).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, false, nil // already recorded for this window
+	}
 	if err != nil {
 		return 0, false, err
 	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		return 0, false, nil // already recorded for this window
+	if !shadow {
+		if err := applySanctionTx(ctx, tx, id); err != nil {
+			return 0, false, err
+		}
 	}
-	id, _ := res.LastInsertId()
+	if err := tx.Commit(); err != nil {
+		return 0, false, err
+	}
 	return id, true, nil
 }
 
-// ApplySanction carries out a real (non-shadow) drop: the learner leaves the
-// cohort and their enrollment ends.
-//
-// Deliberately narrow — it drops, it does not ban. A dropped learner keeps their
-// account and may reapply.
+// ApplySanction carries out a previously recorded real sanction. Real sanctions
+// created by RecordSanction are applied in that same transaction; this method is
+// retained as an idempotent operator/recovery entry point.
 func (s *Store) ApplySanction(ctx context.Context, sanctionID int64) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	if err := applySanctionTx(ctx, tx, sanctionID); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func applySanctionTx(ctx context.Context, tx *sql.Tx, sanctionID int64) error {
 	var userID int64
-	var cohortID sql.NullInt64
+	var cohortID, enrollmentID sql.NullInt64
+	var appliedAt sql.NullString
 	var kind string
-	if err := s.db.QueryRowContext(ctx,
-		`SELECT user_id, cohort_id, kind FROM sanctions WHERE id = ? AND shadow = 0`,
-		sanctionID).Scan(&userID, &cohortID, &kind); err != nil {
+	if err := tx.QueryRowContext(ctx, `
+		SELECT user_id, cohort_id, enrollment_id, kind, applied_at
+		FROM sanctions WHERE id = ? AND shadow = 0`, sanctionID).
+		Scan(&userID, &cohortID, &enrollmentID, &kind, &appliedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
 		}
 		return err
 	}
-	if kind != attendance.KindDrop {
+	if appliedAt.Valid {
 		return nil
 	}
-	if cohortID.Valid {
-		if err := s.RemoveMember(ctx, cohortID.Int64, userID); err != nil {
+	if kind == attendance.KindDrop {
+		if !enrollmentID.Valid {
+			return ErrNotFound
+		}
+		e, err := scanEnrollment(tx.QueryRowContext(ctx, `
+			SELECT `+enrollCols+` FROM enrollments
+			WHERE id = ? AND user_id = ? AND state IN ('placed','active','paused')`,
+			enrollmentID.Int64, userID))
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if cohortID.Valid && (!e.CohortID.Valid || e.CohortID.Int64 != cohortID.Int64) {
+			return ErrNotFound
+		}
+		allowed := false
+		for _, candidate := range enrollTransitions[e.State] {
+			if candidate == EnrollDropped {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return fmt.Errorf("%w: %s -> %s", ErrBadTransition, e.State, EnrollDropped)
+		}
+		if cohortID.Valid {
+			if _, err := tx.ExecContext(ctx, `
+				UPDATE cohort_members SET left_at = datetime('now')
+				WHERE cohort_id = ? AND user_id = ? AND left_at IS NULL`, cohortID.Int64, userID); err != nil {
+				return err
+			}
+		}
+		if _, err := tx.ExecContext(ctx, `
+			UPDATE enrollments
+			SET state = 'dropped', reason = 'attendance', ended_at = datetime('now'),
+			    updated_at = datetime('now')
+			WHERE id = ?`, e.ID); err != nil {
 			return err
 		}
 	}
-	e, err := s.LiveEnrollment(ctx, userID)
-	if err != nil || e == nil {
-		return err
-	}
-	return s.TransitionEnrollment(ctx, e.ID, EnrollDropped, "attendance")
+	_, err := tx.ExecContext(ctx,
+		`UPDATE sanctions SET applied_at = datetime('now') WHERE id = ? AND applied_at IS NULL`, sanctionID)
+	return err
 }
 
 // LatestSanction returns a learner's most recent sanction, or nil.
@@ -376,59 +447,96 @@ func (s *Store) DecideAppeal(ctx context.Context, appealID, deciderID int64, gra
 	if grant {
 		state = "granted"
 	}
-	var sanctionID, userID int64
-	if err := s.db.QueryRowContext(ctx,
-		`SELECT sanction_id, user_id FROM appeals WHERE id = ?`, appealID).
-		Scan(&sanctionID, &userID); err != nil {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	var userID int64
+	var cohortID, enrollmentID sql.NullInt64
+	var shadow bool
+	if err := tx.QueryRowContext(ctx, `
+		SELECT a.user_id, s.cohort_id, s.shadow, s.enrollment_id
+		FROM appeals a JOIN sanctions s ON s.id = a.sanction_id
+		WHERE a.id = ? AND a.state = 'open'`, appealID).
+		Scan(&userID, &cohortID, &shadow, &enrollmentID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
 		}
 		return err
 	}
-	if _, err := s.db.ExecContext(ctx, `
-		UPDATE appeals SET state = ?, decided_by = ?, decided_at = datetime('now'), decision_note = ?
-		WHERE id = ?`, state, deciderID, note, appealID); err != nil {
-		return err
-	}
-	if !grant {
-		return nil
-	}
-	// Reverse the sanction: rejoin the cohort if it still exists, and revive the
-	// enrollment.
-	var cohortID sql.NullInt64
-	var shadow bool
-	_ = s.db.QueryRowContext(ctx,
-		`SELECT cohort_id, shadow FROM sanctions WHERE id = ?`, sanctionID).Scan(&cohortID, &shadow)
-	if shadow {
-		return nil // nothing was ever applied
-	}
-	if cohortID.Valid {
-		if err := s.AddMember(ctx, cohortID.Int64, userID, RoleLearner); err != nil {
+
+	if grant && !shadow {
+		if !enrollmentID.Valid {
+			return ErrNotFound
+		}
+		// A blank unplaced row can be created passively while viewing placement. It
+		// carries no application decision and must not block a valid appeal. Any
+		// meaningful newer enrollment remains a conflict for an operator to resolve.
+		live, err := liveEnrollment(ctx, tx, userID)
+		if err != nil {
 			return err
 		}
+		if live != nil {
+			blank := live.State == EnrollUnplaced && !live.PathID.Valid &&
+				!live.PlacementResultID.Valid && !live.CohortID.Valid && live.TZBand == ""
+			if !blank {
+				return ErrEnrollmentLocked
+			}
+			if _, err := tx.ExecContext(ctx,
+				`DELETE FROM enrollments WHERE id = ? AND state = 'unplaced'`, live.ID); err != nil {
+				return err
+			}
+		}
+
+		// Restore only the exact enrollment ended by this sanction. A fresh row
+		// preserves terminal history while copying the generated binding.
+		var droppedID int64
+		err = tx.QueryRowContext(ctx, `
+			SELECT id FROM enrollments
+			WHERE id = ? AND user_id = ? AND state = 'dropped'
+			  AND (? IS NULL OR cohort_id = ?)`,
+			enrollmentID.Int64, userID, cohortID, cohortID).Scan(&droppedID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO enrollments
+				(user_id, path_id, placement_result_id, state, reason, placed_at,
+				 started_at, ended_at, cohort_id, tz_band, placement_exemptions)
+			SELECT user_id, path_id, placement_result_id, 'active', 'appeal granted',
+			       placed_at, COALESCE(started_at, datetime('now')), NULL,
+			       cohort_id, tz_band, placement_exemptions
+			FROM enrollments WHERE id = ?`, droppedID); err != nil {
+			return err
+		}
+		if cohortID.Valid {
+			if _, err := tx.ExecContext(ctx, `
+				INSERT INTO cohort_members (cohort_id, user_id, role) VALUES (?, ?, ?)
+				ON CONFLICT(cohort_id, user_id) WHERE left_at IS NULL DO NOTHING`,
+				cohortID.Int64, userID, RoleLearner); err != nil {
+				return err
+			}
+		}
 	}
-	// A dropped enrollment is terminal, so restoration means a fresh one placed
-	// back on the same path — history is preserved rather than rewritten.
-	var pathID sql.NullInt64
-	_ = s.db.QueryRowContext(ctx,
-		`SELECT path_id FROM enrollments WHERE user_id = ? ORDER BY id DESC LIMIT 1`, userID).Scan(&pathID)
-	e, err := s.EnsureEnrollment(ctx, userID)
+
+	res, err := tx.ExecContext(ctx, `
+		UPDATE appeals
+		SET state = ?, decided_by = ?, decided_at = datetime('now'), decision_note = ?
+		WHERE id = ? AND state = 'open'`, state, deciderID, note, appealID)
 	if err != nil {
 		return err
 	}
-	if e.State == EnrollUnplaced && pathID.Valid {
-		if err := s.PlaceEnrollment(ctx, e.ID, pathID.Int64, "appeal granted"); err != nil {
-			return err
-		}
+	if n, err := res.RowsAffected(); err != nil {
+		return err
+	} else if n != 1 {
+		return ErrNotFound
 	}
-	if e2, _ := s.LiveEnrollment(ctx, userID); e2 != nil && e2.State == EnrollPlaced {
-		if cohortID.Valid {
-			_, _ = s.db.ExecContext(ctx,
-				`UPDATE enrollments SET cohort_id = ? WHERE id = ?`, cohortID.Int64, e2.ID)
-		}
-		return s.TransitionEnrollment(ctx, e2.ID, EnrollActive, "appeal granted")
-	}
-	return nil
+	return tx.Commit()
 }
 
 // AttendanceOverview summarises the program for the admin calibration view.

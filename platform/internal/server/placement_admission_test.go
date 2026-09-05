@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/placement"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
@@ -77,6 +78,37 @@ func TestRegistrationRequiresPassingGuestPlacement(t *testing.T) {
 	}
 }
 
+func (ts *testServer) registerQualifiedGuest(t *testing.T, email string) (*http.Cookie, *store.User, *store.PlacementResult) {
+	t.Helper()
+	guestCookie, by := ts.guest(t)
+	ts.qualifyGuest(t, by, true)
+	w := ts.do(t, http.MethodPost, "/register", url.Values{
+		"name": {"Qualified Learner"}, "email": {email}, "password": {"averysafepassword"},
+	}, guestCookie)
+	if w.Code != http.StatusSeeOther || w.Header().Get("Location") != "/placement/result" {
+		t.Fatalf("register = %d -> %q, want 303 -> /placement/result", w.Code, w.Header().Get("Location"))
+	}
+	var session *http.Cookie
+	for _, cookie := range w.Result().Cookies() {
+		if cookie.Name == auth.SessionCookie && cookie.Value != "" {
+			session = cookie
+			break
+		}
+	}
+	if session == nil {
+		t.Fatal("qualified registration did not create a session")
+	}
+	u, err := ts.st.GetUserByEmail(t.Context(), email)
+	if err != nil {
+		t.Fatalf("get learner: %v", err)
+	}
+	result, err := ts.st.LatestPlacement(t.Context(), u.ID)
+	if err != nil || result == nil {
+		t.Fatalf("get claimed result: %+v, %v", result, err)
+	}
+	return session, u, result
+}
+
 func TestPassingGuestCreatesLearnerAndClaimsResult(t *testing.T) {
 	ts := newTestServer(t)
 	cookie, by := ts.guest(t)
@@ -101,6 +133,87 @@ func TestPassingGuestCreatesLearnerAndClaimsResult(t *testing.T) {
 	}
 	if result.GuestID != 0 || result.UserID != u.ID {
 		t.Fatalf("result owner = user:%d guest:%d, want user:%d", result.UserID, result.GuestID, u.ID)
+	}
+	enrollment, err := ts.st.LiveEnrollment(t.Context(), u.ID)
+	if err != nil {
+		t.Fatalf("get enrollment: %v", err)
+	}
+	if enrollment == nil || enrollment.State != store.EnrollUnplaced || enrollment.PathID.Valid || enrollment.PlacementResultID.Valid {
+		t.Fatalf("new learner enrollment = %+v, want unplaced and unbound", enrollment)
+	}
+}
+
+func TestGeneratedEnrollmentBindsExactResultAndIgnoresPostedPath(t *testing.T) {
+	ts := newTestServer(t)
+	session, user, result := ts.registerQualifiedGuest(t, "enroll@example.com")
+
+	form := url.Values{
+		"placement_result": {strconv.FormatInt(result.ID, 10)},
+		"band":             {"americas"},
+		"path":             {"forged-path-that-must-be-ignored"},
+	}
+	w := ts.do(t, http.MethodPost, "/enroll", form, session)
+	if w.Code != http.StatusSeeOther || w.Header().Get("Location") != "/dashboard" {
+		t.Fatalf("enroll = %d -> %q, want 303 -> /dashboard", w.Code, w.Header().Get("Location"))
+	}
+	enrollment, err := ts.st.LiveEnrollment(t.Context(), user.ID)
+	if err != nil {
+		t.Fatalf("get enrollment: %v", err)
+	}
+	if enrollment == nil || enrollment.State != store.EnrollPlaced {
+		t.Fatalf("enrollment = %+v, want placed", enrollment)
+	}
+	if !enrollment.PathID.Valid || enrollment.PathID != result.RecommendedPathID {
+		t.Fatalf("bound path = %+v, want generated %+v", enrollment.PathID, result.RecommendedPathID)
+	}
+	if !enrollment.PlacementResultID.Valid || enrollment.PlacementResultID.Int64 != result.ID {
+		t.Fatalf("bound result = %+v, want %d", enrollment.PlacementResultID, result.ID)
+	}
+	if enrollment.TZBand != "americas" {
+		t.Fatalf("timezone band = %q, want americas", enrollment.TZBand)
+	}
+	if len(enrollment.Exemptions) != len(result.Exemptions) {
+		t.Fatalf("exemption snapshot = %v, want %v", enrollment.Exemptions, result.Exemptions)
+	}
+
+	// Browser retries of the same POST are idempotent.
+	w = ts.do(t, http.MethodPost, "/enroll", form, session)
+	if w.Code != http.StatusSeeOther || w.Header().Get("Location") != "/dashboard" {
+		t.Fatalf("repeat enroll = %d -> %q", w.Code, w.Header().Get("Location"))
+	}
+	again, err := ts.st.LiveEnrollment(t.Context(), user.ID)
+	if err != nil || again.ID != enrollment.ID || again.PlacementResultID.Int64 != result.ID {
+		t.Fatalf("repeat enroll changed binding: %+v, %v", again, err)
+	}
+}
+
+func TestGeneratedEnrollmentRejectsInvalidBandAndForeignResult(t *testing.T) {
+	ts := newTestServer(t)
+	session, user, result := ts.registerQualifiedGuest(t, "protected@example.com")
+
+	w := ts.do(t, http.MethodPost, "/enroll", url.Values{
+		"placement_result": {strconv.FormatInt(result.ID, 10)},
+		"band":             {"not-a-band"},
+	}, session)
+	if w.Code != http.StatusOK {
+		t.Fatalf("invalid band response = %d, want rendered result page", w.Code)
+	}
+	enrollment, err := ts.st.LiveEnrollment(t.Context(), user.ID)
+	if err != nil || enrollment == nil || enrollment.State != store.EnrollUnplaced || enrollment.PathID.Valid || enrollment.PlacementResultID.Valid {
+		t.Fatalf("invalid band mutated enrollment: %+v, %v", enrollment, err)
+	}
+
+	_, _, foreign := ts.registerQualifiedGuest(t, "other@example.com")
+	w = ts.do(t, http.MethodPost, "/enroll", url.Values{
+		"placement_result": {strconv.FormatInt(foreign.ID, 10)},
+		"band":             {"europe_africa"},
+	}, session)
+	if w.Code != http.StatusOK {
+		t.Fatalf("foreign result response = %d, want rendered result page", w.Code)
+	}
+	enrollment, err = ts.st.LiveEnrollment(t.Context(), user.ID)
+	if err != nil || enrollment.State != store.EnrollUnplaced || enrollment.PathID.Valid || enrollment.PlacementResultID.Valid {
+		t.Fatalf("foreign result mutated enrollment: %+v, %v", enrollment, err)
 	}
 }
 

@@ -84,14 +84,14 @@
   <section class="card continue-card continue-placement">
     <span class="continue-eyebrow">First step</span>
     <h2 class="continue-title">Take the placement diagnostic</h2>
-    <p class="muted continue-sub">It decides where you start — and which courses you can skip. You'll choose a path straight after.</p>
+    <p class="muted continue-sub">It decides where you start, which courses you can skip, and generates the path you'll enroll in.</p>
     <a class="btn btn-primary continue-btn" href="/placement">Start the diagnostic {{ icon "arrowright" }}</a>
   </section>
   {{ else if not (index .Data "enrolledPath") }}
   <section class="card continue-card continue-placement">
     <span class="continue-eyebrow">Almost there</span>
-    <h2 class="continue-title">Choose your path</h2>
-    <p class="muted continue-sub">Your diagnostic is done. Pick the path you'll start on to get going.</p>
+    <h2 class="continue-title">Confirm your generated path</h2>
+    <p class="muted continue-sub">Your diagnostic has assigned your starting path. Confirm your timezone to join its cohort queue.</p>
     <a class="btn btn-primary continue-btn" href="/placement/result">See my placement {{ icon "arrowright" }}</a>
   </section>
   {{ else if not (index .Data "cohort") }}

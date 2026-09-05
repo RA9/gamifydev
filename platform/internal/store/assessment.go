@@ -216,6 +216,9 @@ var (
 	ErrPlacementAttemptLimit = errors.New("placement attempt limit reached")
 	// ErrPlacementAlreadyPassed means the owner already has a passing result.
 	ErrPlacementAlreadyPassed = errors.New("placement already passed")
+	// ErrPlacementEnrollmentLocked means a queued, active, or paused enrollment
+	// has frozen the placement decision used to build the learner's schedule.
+	ErrPlacementEnrollmentLocked = errors.New("placement is locked by an active enrollment")
 )
 
 // PlacementRetryStatus explains whether an owner may start another placement.
@@ -242,6 +245,20 @@ func placementRetryStatus(ctx context.Context, q assessmentQuerier, by Solver) (
 		  AND datetime(a.started_at) >= datetime('now', '-30 days')`, userID, guestID).
 		Scan(&status.AttemptsLast30); err != nil {
 		return status, err
+	}
+
+	if by.UserID != 0 {
+		var enrolled int
+		err := q.QueryRowContext(ctx, `
+			SELECT 1 FROM enrollments
+			WHERE user_id = ? AND state IN ('placed','active','paused') LIMIT 1`, by.UserID).Scan(&enrolled)
+		if err == nil {
+			status.Reason = ErrPlacementEnrollmentLocked
+			return status, nil
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return status, err
+		}
 	}
 
 	var passed int
@@ -665,6 +682,19 @@ func (s *Store) SavePlacementResultFor(ctx context.Context, by Solver, r Placeme
 		}
 		return 0, err
 	}
+	if by.UserID != 0 {
+		var enrolled int
+		err := tx.QueryRowContext(ctx, `
+			SELECT 1 FROM enrollments
+			WHERE user_id = ? AND state IN ('placed','active','paused') LIMIT 1`, by.UserID).Scan(&enrolled)
+		if err == nil {
+			return 0, ErrPlacementEnrollmentLocked
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return 0, err
+		}
+	}
+
 	var id int64
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO placement_results
@@ -702,6 +732,19 @@ func (s *Store) LatestPlacementFor(ctx context.Context, by Solver) (*PlacementRe
 		FROM placement_results
 		WHERE user_id = ? OR guest_id = ?
 		ORDER BY datetime(created_at) DESC, id DESC LIMIT 1`, userID, guestID), true)
+}
+
+// PlacementResultByIDFor returns one exact result only when it belongs to by.
+func (s *Store) PlacementResultByIDFor(ctx context.Context, by Solver, resultID int64) (*PlacementResult, error) {
+	if !by.valid() {
+		return nil, ErrNoSolver
+	}
+	userID, guestID := by.cols()
+	return scanPlacementResult(s.db.QueryRowContext(ctx, `
+		SELECT id, attempt_id, user_id, guest_id, recommended_path_id,
+		       foundations_required, passed, exemptions, created_at
+		FROM placement_results
+		WHERE id = ? AND (user_id = ? OR guest_id = ?)`, resultID, userID, guestID), false)
 }
 
 func scanPlacementResult(row interface{ Scan(...any) error }, nilWhenMissing bool) (*PlacementResult, error) {
@@ -872,6 +915,10 @@ func (s *Store) CreateLearnerFromGuestPlacement(ctx context.Context, guestID int
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE problem_submissions SET user_id = ?, guest_id = NULL
 		WHERE guest_id = ? AND user_id IS NULL`, u.ID, guestID); err != nil {
+		return nil, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`INSERT INTO enrollments (user_id, state) VALUES (?, 'unplaced')`, u.ID); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {

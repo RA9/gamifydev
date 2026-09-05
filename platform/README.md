@@ -101,10 +101,16 @@ internal/server/                # routes, middleware, handlers, rendering
 
 Account creation is the final step of placement: a guest must hold a passing,
 unclaimed placement result before `GET` or `POST /register` succeeds. The result,
-assessment history, and any guest problem submissions are transferred to the new
-learner atomically. The fixed first administrator is ensured during startup;
-additional staff accounts are created with `cmd/createadmin` or invited by an
-existing administrator.
+assessment history, any guest problem submissions, and an unplaced enrollment are
+transferred to the new learner atomically. Enrollment then binds the learner to
+the exact generated result: its path, exemption snapshot, and selected timezone
+region are committed together. The snapshot—not any later placement row—drives
+the cohort schedule, and queued, active, or paused enrollments lock placement
+retakes so an active schedule cannot be rewritten.
+
+The fixed first administrator is ensured during startup; additional staff
+accounts are created with `cmd/createadmin` or invited by an existing
+administrator.
 
 **Password reset** is at `/forgot`. Tokens are stored as a SHA-256 hash, last an
 hour, work once, and requesting a new one invalidates the old. Completing a

@@ -569,7 +569,9 @@ func (s *Store) CloseExpiredStandups(ctx context.Context) (int, error) {
 	return int(n), nil
 }
 
-// SetEnrollmentBand records the timezone band a learner chose at enrollment.
+// SetEnrollmentBand is a legacy/operator helper. Generated learner enrollment
+// must use EnrollFromPlacement so timezone, path, result, and exemptions commit
+// atomically.
 func (s *Store) SetEnrollmentBand(ctx context.Context, enrollmentID int64, band string) error {
 	_, err := s.db.ExecContext(ctx,
 		`UPDATE enrollments SET tz_band = ?, updated_at = datetime('now') WHERE id = ?`,

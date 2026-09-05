@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 
 	"github.com/RA9/gamifydev/platform/internal/attendance"
@@ -231,11 +232,59 @@ func TestRealSanctionDropsButDoesNotBan(t *testing.T) {
 	}
 }
 
+func TestRealSanctionBindsAndDropsExactEnrollmentAtomically(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	cid, uid := attendanceFixture(t, st)
+	original, err := st.LiveEnrollment(ctx, uid)
+	if err != nil || original == nil {
+		t.Fatalf("original enrollment: %+v, %v", original, err)
+	}
+	id, isNew, err := st.RecordSanction(ctx, Sanction{
+		UserID: uid, CohortID: sql.NullInt64{Int64: cid, Valid: true},
+		Kind: attendance.KindDrop, WindowFrom: "2020-01-06", WindowTo: "2020-01-08",
+	}, false)
+	if err != nil || !isNew || id <= 0 {
+		t.Fatalf("record real sanction = id:%d new:%t err:%v", id, isNew, err)
+	}
+	if live, err := st.LiveEnrollment(ctx, uid); err != nil || live != nil {
+		t.Fatalf("real sanction did not atomically drop enrollment: %+v, %v", live, err)
+	}
+	var boundID int64
+	var appliedAt sql.NullString
+	if err := st.db.QueryRow(`SELECT enrollment_id, applied_at FROM sanctions WHERE id = ?`, id).
+		Scan(&boundID, &appliedAt); err != nil {
+		t.Fatalf("read sanction binding: %v", err)
+	}
+	if boundID != original.ID || !appliedAt.Valid {
+		t.Fatalf("sanction binding = enrollment:%d applied:%+v, want %d and applied", boundID, appliedAt, original.ID)
+	}
+
+	fresh, err := st.EnsureEnrollment(ctx, uid)
+	if err != nil {
+		t.Fatalf("new enrollment: %v", err)
+	}
+	newPath := mkPath(t, st, "post-sanction-path")
+	if err := st.PlaceEnrollment(ctx, fresh.ID, newPath, "new application"); err != nil {
+		t.Fatalf("place new enrollment: %v", err)
+	}
+	if err := st.ApplySanction(ctx, id); err != nil {
+		t.Fatalf("reapplying completed sanction: %v", err)
+	}
+	got, err := st.LiveEnrollment(ctx, uid)
+	if err != nil || got == nil || got.ID != fresh.ID || got.State != EnrollPlaced || got.PathID.Int64 != newPath {
+		t.Fatalf("completed sanction touched newer enrollment: %+v, %v", got, err)
+	}
+}
+
 func TestAppealGrantedRestoresTheLearner(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t)
 	cid, uid := attendanceFixture(t, st)
 	admin := mkUser(t, st, "admin@x.com")
+	mustExec(t, st, `UPDATE enrollments
+		SET placement_result_id = 77, placement_exemptions = '["c1"]', tz_band = 'americas'
+		WHERE user_id = ? AND state = 'active'`, uid)
 
 	id, _, _ := st.RecordSanction(ctx, Sanction{
 		UserID: uid, CohortID: sql.NullInt64{Int64: cid, Valid: true},
@@ -245,12 +294,35 @@ func TestAppealGrantedRestoresTheLearner(t *testing.T) {
 		t.Fatalf("apply: %v", err)
 	}
 
+	// A later enrollment can be dropped from the same cohort while the old appeal
+	// is pending. The appeal must still restore the exact enrollment it sanctioned.
+	newer, err := st.EnsureEnrollment(ctx, uid)
+	if err != nil {
+		t.Fatalf("ensure later enrollment: %v", err)
+	}
+	newerPath := mkPath(t, st, "later-dropped-path")
+	if err := st.PlaceEnrollment(ctx, newer.ID, newerPath, "later enrollment"); err != nil {
+		t.Fatalf("place later enrollment: %v", err)
+	}
+	mustExec(t, st, `UPDATE enrollments SET cohort_id = ?, placement_exemptions = '["newer"]' WHERE id = ?`, cid, newer.ID)
+	if err := st.TransitionEnrollment(ctx, newer.ID, EnrollActive, "later enrollment"); err != nil {
+		t.Fatalf("activate later enrollment: %v", err)
+	}
+	if err := st.TransitionEnrollment(ctx, newer.ID, EnrollDropped, "later drop"); err != nil {
+		t.Fatalf("drop later enrollment: %v", err)
+	}
+
 	if err := st.FileAppeal(ctx, id, uid, "I was in hospital"); err != nil {
 		t.Fatalf("appeal: %v", err)
 	}
 	open, _ := st.OpenAppeals(ctx)
 	if len(open) != 1 {
 		t.Fatalf("%d open appeals, want 1", len(open))
+	}
+	// Placement-result rendering may passively ensure a blank row while the appeal
+	// is pending. It is not a new enrollment decision and must not block restore.
+	if _, err := st.EnsureEnrollment(ctx, uid); err != nil {
+		t.Fatalf("ensure passive enrollment: %v", err)
 	}
 
 	if err := st.DecideAppeal(ctx, open[0].ID, admin, true, "confirmed"); err != nil {
@@ -264,8 +336,51 @@ func TestAppealGrantedRestoresTheLearner(t *testing.T) {
 	if e == nil || e.State != EnrollActive {
 		t.Fatalf("enrollment = %+v after a granted appeal, want active", e)
 	}
+	if !e.PlacementResultID.Valid || e.PlacementResultID.Int64 != 77 || e.TZBand != "americas" || len(e.Exemptions) != 1 || e.Exemptions[0] != "c1" {
+		t.Fatalf("appeal did not restore placement snapshot: %+v", e)
+	}
 	if left, _ := st.OpenAppeals(ctx); len(left) != 0 {
 		t.Fatal("appeal still open after a decision")
+	}
+}
+
+func TestAppealGrantDoesNotHijackNewApplication(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	cid, uid := attendanceFixture(t, st)
+	admin := mkUser(t, st, "conflict-admin@x.com")
+	id, _, _ := st.RecordSanction(ctx, Sanction{
+		UserID: uid, CohortID: sql.NullInt64{Int64: cid, Valid: true},
+		Kind: attendance.KindDrop, WindowFrom: "2020-01-06", WindowTo: "2020-01-08",
+	}, false)
+	if err := st.ApplySanction(ctx, id); err != nil {
+		t.Fatalf("apply: %v", err)
+	}
+	if err := st.FileAppeal(ctx, id, uid, "please restore me"); err != nil {
+		t.Fatalf("appeal: %v", err)
+	}
+	fresh, err := st.EnsureEnrollment(ctx, uid)
+	if err != nil {
+		t.Fatalf("new application: %v", err)
+	}
+	newPath := mkPath(t, st, "new-application")
+	if err := st.PlaceEnrollment(ctx, fresh.ID, newPath, "new application"); err != nil {
+		t.Fatalf("place new application: %v", err)
+	}
+	open, _ := st.OpenAppeals(ctx)
+	if err := st.DecideAppeal(ctx, open[0].ID, admin, true, "confirmed"); !errors.Is(err, ErrEnrollmentLocked) {
+		t.Fatalf("grant with new application err = %v, want ErrEnrollmentLocked", err)
+	}
+	got, err := st.LiveEnrollment(ctx, uid)
+	if err != nil || got == nil || got.ID != fresh.ID || got.State != EnrollPlaced ||
+		!got.PathID.Valid || got.PathID.Int64 != newPath || got.CohortID.Valid {
+		t.Fatalf("appeal hijacked new application: %+v, %v", got, err)
+	}
+	if c, _ := st.CohortForUser(ctx, uid); c != nil {
+		t.Fatalf("appeal put new application into old cohort: %+v", c)
+	}
+	if stillOpen, _ := st.OpenAppeals(ctx); len(stillOpen) != 1 {
+		t.Fatalf("conflicted appeal was decided despite rollback: %d open", len(stillOpen))
 	}
 }
 

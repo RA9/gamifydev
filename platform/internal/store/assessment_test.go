@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"testing"
 )
@@ -523,6 +524,13 @@ func TestCreateLearnerFromGuestPlacementIsAtomicAndSingleUse(t *testing.T) {
 	if sub, err := st.GetProblemSubmission(ctx, subID); err != nil || sub.By != owner {
 		t.Fatalf("claimed submission = %+v, %v", sub, err)
 	}
+	enrollment, err := st.LiveEnrollment(ctx, u.ID)
+	if err != nil {
+		t.Fatalf("claimed learner enrollment: %v", err)
+	}
+	if enrollment == nil || enrollment.State != EnrollUnplaced || enrollment.PathID.Valid || enrollment.PlacementResultID.Valid {
+		t.Fatalf("claimed learner enrollment = %+v, want unplaced and unbound", enrollment)
+	}
 	if _, err := st.GuestByToken(ctx, "passing-guest"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("claimed cookie err = %v, want ErrNotFound", err)
 	}
@@ -554,6 +562,76 @@ func TestCreateLearnerFromFailedGuestPlacementRejected(t *testing.T) {
 	}
 	if got, err := st.GuestByToken(ctx, "failed-guest"); err != nil || got != guest.GuestID {
 		t.Fatalf("rejected claim spent guest: id=%d err=%v", got, err)
+	}
+}
+
+func TestPlacementAttemptIsLockedByLiveEnrollment(t *testing.T) {
+	for _, state := range []string{EnrollPlaced, EnrollActive, EnrollPaused} {
+		t.Run(state, func(t *testing.T) {
+			ctx := context.Background()
+			st := newTestStore(t)
+			a := seedBank(t, st)
+			uid := mkUser(t, st, state+"@example.com")
+			e, err := st.EnsureEnrollment(ctx, uid)
+			if err != nil {
+				t.Fatalf("ensure enrollment: %v", err)
+			}
+			pathID := mkPath(t, st, "path-"+state)
+			if err := st.PlaceEnrollment(ctx, e.ID, pathID, "test"); err != nil {
+				t.Fatalf("place enrollment: %v", err)
+			}
+			if state == EnrollActive || state == EnrollPaused {
+				if err := st.TransitionEnrollment(ctx, e.ID, EnrollActive, "test"); err != nil {
+					t.Fatalf("activate enrollment: %v", err)
+				}
+			}
+			if state == EnrollPaused {
+				if err := st.TransitionEnrollment(ctx, e.ID, EnrollPaused, "test"); err != nil {
+					t.Fatalf("pause enrollment: %v", err)
+				}
+			}
+
+			if _, err := st.StartAttemptFor(ctx, Solver{UserID: uid}, a); !errors.Is(err, ErrPlacementEnrollmentLocked) {
+				t.Fatalf("start placement err = %v, want ErrPlacementEnrollmentLocked", err)
+			}
+			if live, err := st.LiveAttempt(ctx, uid); err != nil || live != nil {
+				t.Fatalf("locked start created attempt: %+v, %v", live, err)
+			}
+		})
+	}
+}
+
+func TestPlacementResultCannotBeSavedAfterEnrollmentLocks(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	a := seedBank(t, st)
+	uid := mkUser(t, st, "race@example.com")
+	by := Solver{UserID: uid}
+	attempt, err := st.StartAttemptFor(ctx, by, a)
+	if err != nil {
+		t.Fatalf("start placement: %v", err)
+	}
+	if _, err := st.ScoreAttemptFor(ctx, by, attempt.ID, map[int64]int{}); err != nil {
+		t.Fatalf("score placement: %v", err)
+	}
+	e, err := st.EnsureEnrollment(ctx, uid)
+	if err != nil {
+		t.Fatalf("ensure enrollment: %v", err)
+	}
+	pathID := mkPath(t, st, "locked-result-path")
+	if err := st.PlaceEnrollment(ctx, e.ID, pathID, "operator placement"); err != nil {
+		t.Fatalf("lock enrollment: %v", err)
+	}
+
+	_, err = st.SavePlacementResultFor(ctx, by, PlacementResult{
+		AttemptID: attempt.ID, Passed: true,
+		RecommendedPathID: sql.NullInt64{Int64: pathID, Valid: true},
+	})
+	if !errors.Is(err, ErrPlacementEnrollmentLocked) {
+		t.Fatalf("save result err = %v, want ErrPlacementEnrollmentLocked", err)
+	}
+	if result, err := st.LatestPlacementFor(ctx, by); err != nil || result != nil {
+		t.Fatalf("locked save persisted result: %+v, %v", result, err)
 	}
 }
 

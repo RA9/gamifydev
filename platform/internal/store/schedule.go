@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/RA9/gamifydev/platform/internal/schedule"
@@ -259,28 +261,39 @@ func (s *Store) scanSchedule(rows *sql.Rows, exempt map[string]bool) ([]Schedule
 	return out, rows.Err()
 }
 
-// exemptCourses returns the course slugs this learner was exempted from by the
-// diagnostic.
-func (s *Store) exemptCourses(ctx context.Context, userID int64) (map[string]bool, error) {
+// exemptCourses returns the immutable exemption snapshot attached to the
+// learner's enrollment in this cohort. It intentionally does not read the latest
+// placement result: a later diagnostic must never rewrite an existing schedule.
+func (s *Store) exemptCourses(ctx context.Context, cohortID, userID int64) (map[string]bool, error) {
 	out := map[string]bool{}
 	var raw string
-	err := s.db.QueryRowContext(ctx,
-		`SELECT exemptions FROM placement_results WHERE user_id = ?
-		 ORDER BY created_at DESC, id DESC LIMIT 1`, userID).Scan(&raw)
+	err := s.db.QueryRowContext(ctx, `
+		SELECT placement_exemptions FROM enrollments
+		WHERE user_id = ? AND cohort_id = ?
+		  AND state IN ('active','paused','completed')
+		ORDER BY id DESC LIMIT 1`, userID, cohortID).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return out, nil // legacy/no enrollment: nothing exempt
+	}
 	if err != nil {
-		return out, nil // no placement yet: nothing exempt
+		return nil, err
 	}
 	var slugs []string
-	_ = json.Unmarshal([]byte(raw), &slugs)
-	for _, s := range slugs {
-		out[s] = true
+	if err := json.Unmarshal([]byte(raw), &slugs); err != nil {
+		return nil, fmt.Errorf("decode enrollment exemptions: %w", err)
+	}
+	for _, slug := range slugs {
+		out[slug] = true
 	}
 	return out, nil
 }
 
 // DueOn returns a learner's scheduled work for one date.
 func (s *Store) DueOn(ctx context.Context, cohortID, userID int64, day string) ([]ScheduleItem, error) {
-	exempt, _ := s.exemptCourses(ctx, userID)
+	exempt, err := s.exemptCourses(ctx, cohortID, userID)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx,
 		scheduleSelect+` WHERE s.cohort_id = ? AND date(s.due_on) = date(?) ORDER BY s.sort`,
 		userID, userID, cohortID, day)
@@ -293,7 +306,10 @@ func (s *Store) DueOn(ctx context.Context, cohortID, userID int64, day string) (
 // Overdue returns unfinished work whose due date has passed. Exempted items are
 // filtered out entirely — a learner is never chased for a course they skipped.
 func (s *Store) Overdue(ctx context.Context, cohortID, userID int64, limit int) ([]ScheduleItem, error) {
-	exempt, _ := s.exemptCourses(ctx, userID)
+	exempt, err := s.exemptCourses(ctx, cohortID, userID)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx,
 		scheduleSelect+` WHERE s.cohort_id = ? AND date(s.due_on) < date('now')
 		 ORDER BY s.due_on, s.sort LIMIT ?`,
@@ -320,7 +336,10 @@ func (s *Store) Overdue(ctx context.Context, cohortID, userID int64, limit int) 
 
 // CohortSchedule returns the whole plan for a cohort, resolved for a learner.
 func (s *Store) CohortSchedule(ctx context.Context, cohortID, userID int64) ([]ScheduleItem, error) {
-	exempt, _ := s.exemptCourses(ctx, userID)
+	exempt, err := s.exemptCourses(ctx, cohortID, userID)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx,
 		scheduleSelect+` WHERE s.cohort_id = ? ORDER BY s.day_index, s.sort`,
 		userID, userID, cohortID)
