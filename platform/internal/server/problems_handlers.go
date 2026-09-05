@@ -156,6 +156,8 @@ func (s *Server) handleProblems(w http.ResponseWriter, r *http.Request) {
 			"problems":     shown,
 			"total":        len(all),
 			"solved":       solved,
+			"bands":        progressBands(all),
+			"nextUp":       firstUnsolved(all),
 			"filtered":     wantDifficulty != "" || wantTopic != "",
 			"difficulties": difficultyFacets(all, wantDifficulty, wantTopic),
 			"topics":       topicFacets(all, wantDifficulty, wantTopic),
@@ -163,8 +165,51 @@ func (s *Server) handleProblems(w http.ResponseWriter, r *http.Request) {
 			// sign up, and they should be told exactly what they'd be keeping.
 			"guestSolved": by.GuestID != 0 && solved > 0,
 			"judgeable":   s.exec != nil && s.exec.Enabled(),
+			// The page lays out its own full-bleed sections.
+			"mainClass": "",
+			"bodyClass": "practice-index",
 		},
 	})
+}
+
+// band is one difficulty's progress, for the panel beside the hero.
+type band struct {
+	Name   string
+	Solved int
+	Total  int
+}
+
+// progressBands reports progress per difficulty rather than only overall.
+//
+// "31 of 100" tells someone how much of the bank they have seen; it does not
+// tell them whether they have actually moved on from the easy ones, which is
+// the thing they came to find out.
+func progressBands(all []store.Problem) []band {
+	bands := []band{{Name: "easy"}, {Name: "medium"}, {Name: "hard"}}
+	for _, p := range all {
+		for i := range bands {
+			if bands[i].Name != p.Difficulty {
+				continue
+			}
+			bands[i].Total++
+			if p.Solved {
+				bands[i].Solved++
+			}
+		}
+	}
+	return bands
+}
+
+// firstUnsolved is where the hero's call to action points: the next problem in
+// author order they have not yet solved, so "start solving" means something
+// specific rather than dropping them at the top of a list of a hundred.
+func firstUnsolved(all []store.Problem) string {
+	for _, p := range all {
+		if !p.Solved {
+			return p.Slug
+		}
+	}
+	return ""
 }
 
 // difficultyFacets builds the difficulty chips in the order a learner would
@@ -281,6 +326,8 @@ func (s *Server) handleProblem(w http.ResponseWriter, r *http.Request) {
 	} else if !errors.Is(err, store.ErrNotFound) {
 		log.Printf("problem %s: latest submission: %v", p.Slug, err)
 	}
+	data["mainClass"] = ""
+	data["bodyClass"] = "practice-problem"
 	s.render(w, r, "problem.html", ViewData{Title: p.Title, Data: data})
 }
 

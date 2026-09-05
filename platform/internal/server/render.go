@@ -48,6 +48,28 @@ const (
 
 var allLayouts = []string{layoutPublic, layoutApp, layoutAdmin, layoutLanding, layoutAuth}
 
+// sharedPartials are templates the shells include rather than pages the router
+// can render. They are parsed into every page's set alongside the layouts, and
+// skipped when enumerating pages — a request for "_site_header.html" is not a
+// page, and neither is it a 404 anybody should be able to provoke.
+var sharedPartials = []string{"_site_header.html", "_site_footer.html"}
+
+// isShell reports whether a template file is a layout or a shared partial
+// rather than a page.
+func isShell(name string) bool {
+	for _, l := range allLayouts {
+		if name == l {
+			return true
+		}
+	}
+	for _, p := range sharedPartials {
+		if name == p {
+			return true
+		}
+	}
+	return false
+}
+
 // alwaysPublic pages keep the marketing shell even when signed in.
 var alwaysPublic = map[string]bool{
 	"notfound.html": true,
@@ -74,17 +96,17 @@ func newRenderer() (*renderer, error) {
 	if err != nil {
 		return nil, err
 	}
-	layoutPaths := make([]string, len(allLayouts))
-	for i, l := range allLayouts {
-		layoutPaths[i] = "web/templates/" + l
+	var shellPaths []string
+	for _, l := range append(append([]string{}, allLayouts...), sharedPartials...) {
+		shellPaths = append(shellPaths, "web/templates/"+l)
 	}
 	r := &renderer{pages: map[string]*template.Template{}}
 	for _, e := range entries {
 		name := e.Name()
-		if e.IsDir() || name == layoutPublic || name == layoutApp || name == layoutAdmin || name == layoutLanding || name == layoutAuth {
+		if e.IsDir() || isShell(name) {
 			continue
 		}
-		files := append(append([]string{}, layoutPaths...), "web/templates/"+name)
+		files := append(append([]string{}, shellPaths...), "web/templates/"+name)
 		t, err := template.New(name).Funcs(funcMap).ParseFS(templatesFS, files...)
 		if err != nil {
 			return nil, err
@@ -163,6 +185,12 @@ func (s *Server) render(w http.ResponseWriter, req *http.Request, page string, v
 	// header) without every other page having to opt in with a nil check.
 	if _, ok := vd.Data["bodyClass"]; !ok {
 		vd.Data["bodyClass"] = ""
+	}
+	// Most public pages want the centred, padded column. A page that lays out
+	// its own full-bleed sections — the way the landing and practice pages do —
+	// sets this to opt out of it.
+	if _, ok := vd.Data["mainClass"]; !ok {
+		vd.Data["mainClass"] = "container main"
 	}
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, chooseLayout(page, vd.User != nil), vd); err != nil {

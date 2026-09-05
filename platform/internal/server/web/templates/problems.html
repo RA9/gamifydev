@@ -1,80 +1,125 @@
 {{ define "content" }}
-<div class="page-head">
-  <span class="chip">Practice</span>
-  <h1>Problems</h1>
-  <p class="muted">
-    Small, self-contained exercises with tests that run the moment you submit.
-    No account needed — start solving, and keep what you solve.
-  </p>
-</div>
-
-{{ if not (index .Data "judgeable") }}
-  <div class="flash flash-warn">
-    Code execution is switched off on this server, so submissions can't be judged
-    right now. You can still read the problems.
-  </div>
-{{ end }}
-
 {{ $problems := index .Data "problems" }}
 {{ $solved := index .Data "solved" }}
 {{ $total := index .Data "total" }}
-{{ if $total }}
-  <div class="pb-progress">
-    <div class="pb-progress-head">
-      <strong>{{ $solved }} of {{ $total }} solved</strong>
-      <span class="muted">{{ pct $solved $total }}%</span>
-    </div>
-    <div class="pb-bar" role="progressbar" aria-valuenow="{{ $solved }}" aria-valuemin="0" aria-valuemax="{{ $total }}">
-      <span style="width:{{ pct $solved $total }}%"></span>
-    </div>
-  </div>
-{{ end }}
+{{ $nextUp := index .Data "nextUp" }}
+<div class="pb-page">
 
-{{ if index .Data "guestSolved" }}
-  <div class="pb-claim">
-    <p>
-      <strong>You've solved {{ $solved }} {{ if eq $solved 1 }}problem{{ else }}problems{{ end }} as a guest.</strong>
-      Pass placement and create an account; your solved work will come with you.
-    </p>
-    <a class="btn btn-primary btn-sm" href="/placement">Keep my work</a>
-  </div>
-{{ end }}
+  <section class="pb-hero">
+    <div class="pb-hero-copy">
+      <p class="pb-eyebrow"><span></span> Practice problems</p>
+      <h1>Reading it is not<br><em>knowing it.</em></h1>
+      <p>
+        {{ $total }} problems written for this site — not the ones with a worked
+        solution on the first page of every search. Tests run the moment you
+        submit, and you can start without an account.
+      </p>
+      <div class="pb-hero-actions">
+        {{ if $nextUp }}
+          <a class="btn btn-primary" href="/problems/{{ $nextUp }}">
+            {{ if $solved }}Next unsolved{{ else }}Start solving{{ end }} {{ icon "arrowright" }}
+          </a>
+        {{ else if $total }}
+          <a class="btn btn-primary" href="/paths">All solved — take a path {{ icon "arrowright" }}</a>
+        {{ end }}
+        <a class="pb-text-link" href="/paths">See the full curriculum</a>
+      </div>
+    </div>
 
-<nav class="pb-facets" aria-label="Filter problems">
-  <div class="pb-facet-row">
-    <span class="pb-facet-label">Difficulty</span>
-    {{ range index .Data "difficulties" }}
-      <a class="pb-facet{{ if .Active }} is-on{{ end }}" href="{{ .Query }}"
-         {{ if .Active }}aria-current="true"{{ end }}>{{ titlecase .Name }} <span>{{ .Count }}</span></a>
-    {{ end }}
-  </div>
-  <div class="pb-facet-row">
-    <span class="pb-facet-label">Topic</span>
-    {{ range index .Data "topics" }}
-      <a class="pb-facet{{ if .Active }} is-on{{ end }}" href="{{ .Query }}"
-         {{ if .Active }}aria-current="true"{{ end }}>{{ .Name }} <span>{{ .Count }}</span></a>
-    {{ end }}
-  </div>
-  {{ if index .Data "filtered" }}
-    <p class="pb-facet-clear">
-      Showing {{ len $problems }} of {{ $total }} — <a href="/problems">show everything</a>
+    <aside class="pb-scoreboard" aria-label="Your progress">
+      <div class="pb-score-head">
+        <span>YOUR PROGRESS</span>
+        <strong>{{ $solved }} / {{ $total }}</strong>
+      </div>
+      <div class="pb-bar" role="progressbar" aria-valuenow="{{ $solved }}"
+           aria-valuemin="0" aria-valuemax="{{ $total }}"
+           aria-label="{{ $solved }} of {{ $total }} problems solved">
+        <span style="width:{{ pct $solved $total }}%"></span>
+      </div>
+      <ul class="pb-score-bands" role="list">
+        {{ range index .Data "bands" }}
+          <li>
+            <span class="pb-band-name pb-diff-{{ .Name }}">{{ titlecase .Name }}</span>
+            <span class="pb-band-track" aria-hidden="true">
+              <i style="width:{{ pct .Solved .Total }}%"></i>
+            </span>
+            <span class="pb-band-count">{{ .Solved }}<small>/{{ .Total }}</small></span>
+          </li>
+        {{ end }}
+      </ul>
+      {{ if index .Data "guestSolved" }}
+        <p class="pb-score-note">
+          {{ icon "lock" }} Solved as a guest. <a href="/register">Create an account</a>
+          and this comes with you.
+        </p>
+      {{ else }}
+        <p class="pb-score-note">{{ icon "check" }} No account needed to start. Your work is kept either way.</p>
+      {{ end }}
+    </aside>
+  </section>
+
+  {{ if not (index .Data "judgeable") }}
+    <p class="pb-notice">
+      Code execution is switched off on this server, so submissions can't be
+      judged right now. The problems are still here to read.
     </p>
   {{ end }}
-</nav>
 
-<div class="pb-list">
-  {{ range $problems }}
-    <a class="pb-row{{ if .Solved }} is-solved{{ end }}" href="/problems/{{ .Slug }}">
-      <span class="pb-mark" aria-hidden="true">{{ if .Solved }}✓{{ else }}○{{ end }}</span>
-      <span class="pb-title">
-        {{ .Title }}
-        {{ if .Solved }}<span class="visually-hidden">— solved</span>{{ end }}
-      </span>
-      {{ with .Topic }}<span class="pb-topic">{{ . }}</span>{{ end }}
-      <span class="pb-diff pb-diff-{{ .Difficulty }}">{{ titlecase .Difficulty }}</span>
-    </a>
-  {{ else }}
-    <p class="muted">Nothing matches that combination. <a href="/problems">Show everything</a>.</p>
-  {{ end }}
+  <section class="pb-catalog" aria-labelledby="pb-catalog-title">
+    <div class="pb-section-head">
+      <div>
+        <p class="pb-section-label">Browse the bank</p>
+        <h2 id="pb-catalog-title">Pick something you can't do yet.</h2>
+      </div>
+      <p>
+        Each problem states a small rule system and checks it with tests you can
+        see and tests you can't. Filters are links — share the URL you land on.
+      </p>
+    </div>
+
+    <nav class="pb-facets" aria-label="Filter problems">
+      <div class="pb-facet-row">
+        <span class="pb-facet-label">Difficulty</span>
+        {{ range index .Data "difficulties" }}
+          <a class="pb-facet{{ if .Active }} is-on{{ end }}" href="{{ .Query }}"
+             {{ if .Active }}aria-current="true"{{ end }}>{{ titlecase .Name }} <span>{{ .Count }}</span></a>
+        {{ end }}
+      </div>
+      <div class="pb-facet-row">
+        <span class="pb-facet-label">Topic</span>
+        {{ range index .Data "topics" }}
+          <a class="pb-facet{{ if .Active }} is-on{{ end }}" href="{{ .Query }}"
+             {{ if .Active }}aria-current="true"{{ end }}>{{ .Name }} <span>{{ .Count }}</span></a>
+        {{ end }}
+      </div>
+      {{ if index .Data "filtered" }}
+        <p class="pb-facet-clear">
+          Showing {{ len $problems }} of {{ $total }} —
+          <a href="/problems">clear the filters</a>
+        </p>
+      {{ end }}
+    </nav>
+
+    <ol class="pb-list" role="list">
+      {{ range $i, $p := $problems }}
+        <li>
+          <a class="pb-row{{ if $p.Solved }} is-solved{{ end }}" href="/problems/{{ $p.Slug }}">
+            <span class="pb-row-mark" aria-hidden="true">{{ if $p.Solved }}{{ icon "check" }}{{ else }}{{ add $i 1 }}{{ end }}</span>
+            <span class="pb-row-main">
+              <strong>{{ $p.Title }}</strong>
+              {{ with $p.Topic }}<small>{{ . }}</small>{{ end }}
+            </span>
+            {{ if $p.Solved }}<span class="visually-hidden">Solved</span>{{ end }}
+            <span class="pb-pill pb-diff-{{ $p.Difficulty }}">{{ titlecase $p.Difficulty }}</span>
+            <span class="pb-row-go" aria-hidden="true">{{ icon "arrowright" }}</span>
+          </a>
+        </li>
+      {{ else }}
+        <li class="pb-empty">
+          Nothing matches that combination. <a href="/problems">Clear the filters</a>.
+        </li>
+      {{ end }}
+    </ol>
+  </section>
 </div>
 {{ end }}

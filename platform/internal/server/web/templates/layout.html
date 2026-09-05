@@ -2,45 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{{ .Title }}{{ if .Title }} · {{ end }}GamifyDev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="stylesheet" href="/static/css/app.css" />
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     <!-- tan-compose web components are registered per-page where needed -->
   </head>
-  <body>
-    <header class="site-header">
-      <nav class="container nav">
-        <a href="/" class="brand">Gamify<span>Dev</span></a>
-        <div class="nav-links">
-          <a href="/paths">Curriculum</a>
-          <a href="/problems">Practice</a>
-          <a href="/forum">Forum</a>
-          <a href="/blog">Blog</a>
-          {{ if .User }}
-            <a href="/dashboard">Dashboard</a>
-            <a href="/assignments">Assignments</a>
-            {{ if .User.CanGrade }}<a href="/admin/grading">Grading</a>{{ end }}
-            {{ if .User.IsAdmin }}<a href="/admin">Admin</a>{{ end }}
-            <span class="nav-user">{{ .User.Name }}</span>
-            <form method="post" action="/logout" class="inline">
-              <button class="btn btn-ghost btn-sm" type="submit">Sign out</button>
-            </form>
-          {{ else }}
-            <a href="/login">Sign in</a>
-            <a href="/placement" class="btn btn-primary btn-sm">Take the test</a>
-          {{ end }}
-        </div>
-      </nav>
-    </header>
+  {{/* The same shell as the landing page. These are the pages the front page
+       links out to, and arriving on one used to mean the header, the footer and
+       the type all changed underneath you. */}}
+  <body class="landing {{ index .Data "bodyClass" }}">
+    {{ template "site_header" . }}
 
-    <main class="container main">
+    <main class="lp-main {{ index .Data "mainClass" }}">
       {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
       {{ block "content" . }}{{ end }}
     </main>
 
-    <footer class="site-footer">
-      <div class="container">Learn to code by building. &copy; 2023–2026 GamifyDev.</div>
-    </footer>
+    {{ template "site_footer" . }}
   </body>
 </html>

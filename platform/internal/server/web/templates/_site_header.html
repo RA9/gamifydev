@@ -1,0 +1,53 @@
+{{/* The public site header. Shared by the landing shell and the general public
+     shell so the navigation cannot drift between the front page and the pages
+     it links to — which is exactly what had happened. */}}
+{{ define "site_header" }}
+<header class="lp-header">
+    <div class="lp-nav">
+        <a class="lp-brand" href="/" aria-label="GamifyDev home">
+            <span class="lp-brand-mark" aria-hidden="true">&lt;/&gt;</span>
+            <span class="lp-brand-name">Gamify<em>Dev</em></span>
+        </a>
+
+        <nav class="lp-links" aria-label="Primary navigation">
+            <a href="/paths"{{ if eq .Path "/paths" }} class="is-active" aria-current="page"{{ end }}>Curriculum</a>
+            <a href="/#process">How it works</a>
+            <a href="/problems"{{ if hasprefix .Path "/problems" }} class="is-active" aria-current="page"{{ end }}>Practice</a>
+            <a href="/forum"{{ if hasprefix .Path "/forum" }} class="is-active" aria-current="page"{{ end }}>Community</a>
+            <a href="/blog"{{ if hasprefix .Path "/blog" }} class="is-active" aria-current="page"{{ end }}>Journal</a>
+        </nav>
+
+        <div class="lp-nav-actions">
+            {{ if .User }}
+            <a href="/dashboard" class="lp-cta">Dashboard {{ icon "arrowright" }}</a>
+            {{ else }}
+            <a href="/login" class="lp-signin">Sign in</a>
+            <a href="/placement" class="lp-cta">Take the test {{ icon "arrowright" }}</a>
+            {{ end }}
+        </div>
+
+        <details class="lp-mobile-nav">
+            <summary aria-label="Open navigation menu">
+                <span class="lp-menu-open" aria-hidden="true">☰</span>
+                <span class="lp-menu-close" aria-hidden="true">×</span>
+            </summary>
+            <nav aria-label="Mobile navigation">
+                <p>Explore</p>
+                <a href="/paths">Curriculum</a>
+                <a href="/#process">How it works</a>
+                <a href="/problems">Practice problems</a>
+                <a href="/forum">Community</a>
+                <a href="/blog">Journal</a>
+                <a href="/about">About GamifyDev</a>
+                <span class="lp-mobile-divider"></span>
+                {{ if .User }}
+                <a href="/dashboard" class="lp-cta">Go to dashboard {{ icon "arrowright" }}</a>
+                {{ else }}
+                <a href="/login">Sign in</a>
+                <a href="/placement" class="lp-cta">Take the placement test {{ icon "arrowright" }}</a>
+                {{ end }}
+            </nav>
+        </details>
+    </div>
+</header>
+{{ end }}

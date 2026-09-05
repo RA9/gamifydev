@@ -24,97 +24,10 @@
         <link rel="stylesheet" href="/static/css/app.css" />
     </head>
     <body class="landing {{ index .Data "bodyClass" }}">
-        <header class="lp-header">
-            <div class="lp-nav">
-                <a class="lp-brand" href="/" aria-label="GamifyDev home">
-                    <span class="lp-brand-mark" aria-hidden="true">&lt;/&gt;</span>
-                    <span class="lp-brand-name">Gamify<em>Dev</em></span>
-                </a>
-
-                <nav class="lp-links" aria-label="Primary navigation">
-                    <a href="/paths"{{ if eq .Path "/paths" }} class="is-active" aria-current="page"{{ end }}>Curriculum</a>
-                    <a href="/#process">How it works</a>
-                    <a href="/problems"{{ if hasprefix .Path "/problems" }} class="is-active" aria-current="page"{{ end }}>Practice</a>
-                    <a href="/forum"{{ if eq .Path "/forum" }} class="is-active" aria-current="page"{{ end }}>Community</a>
-                    <a href="/blog"{{ if eq .Path "/blog" }} class="is-active" aria-current="page"{{ end }}>Journal</a>
-                </nav>
-
-                <div class="lp-nav-actions">
-                    {{ if .User }}
-                    <a href="/dashboard" class="lp-cta">Dashboard {{ icon "arrowright" }}</a>
-                    {{ else }}
-                    <a href="/login" class="lp-signin">Sign in</a>
-                    <a href="/placement" class="lp-cta">Take the test {{ icon "arrowright" }}</a>
-                    {{ end }}
-                </div>
-
-                <details class="lp-mobile-nav">
-                    <summary aria-label="Open navigation menu">
-                        <span class="lp-menu-open" aria-hidden="true">☰</span>
-                        <span class="lp-menu-close" aria-hidden="true">×</span>
-                    </summary>
-                    <nav aria-label="Mobile navigation">
-                        <p>Explore</p>
-                        <a href="/paths">Curriculum</a>
-                        <a href="/#process">How it works</a>
-                        <a href="/problems">Practice problems</a>
-                        <a href="/forum">Community</a>
-                        <a href="/blog">Journal</a>
-                        <a href="/about">About GamifyDev</a>
-                        <span class="lp-mobile-divider"></span>
-                        {{ if .User }}
-                        <a href="/dashboard" class="lp-cta">Go to dashboard {{ icon "arrowright" }}</a>
-                        {{ else }}
-                        <a href="/login">Sign in</a>
-                        <a href="/placement" class="lp-cta">Take the placement test {{ icon "arrowright" }}</a>
-                        {{ end }}
-                    </nav>
-                </details>
-            </div>
-        </header>
+        {{ template "site_header" . }}
 
         <main class="lp-main">{{ block "content" . }}{{ end }}</main>
 
-        <footer class="lp-footer">
-            <div class="lp-footer-inner">
-                <div class="lp-foot-brand">
-                    <a class="lp-brand" href="/" aria-label="GamifyDev home">
-                        <span class="lp-brand-mark" aria-hidden="true">&lt;/&gt;</span>
-                        <span class="lp-brand-name">Gamify<em>Dev</em></span>
-                    </a>
-                    <p>
-                        A free, structured computer science program for people
-                        who want to finish what they start.
-                    </p>
-                    <span class="lp-foot-promise"><i></i> Free to learn. Built for follow-through.</span>
-                </div>
-                <nav class="lp-foot-col" aria-label="Learn">
-                    <h2>Learn</h2>
-                    <a href="/paths">Learning paths</a>
-                    <a href="/courses">Course library</a>
-                    <a href="/problems">Practice problems</a>
-                    <a href="/competitions">Competitions</a>
-                </nav>
-                <nav class="lp-foot-col" aria-label="Community and company">
-                    <h2>Connect</h2>
-                    <a href="/forum">Community forum</a>
-                    <a href="/blog">Journal</a>
-                    <a href="/about">About GamifyDev</a>
-                </nav>
-                <nav class="lp-foot-col" aria-label="Account">
-                    <h2>Your account</h2>
-                    {{ if .User }}
-                    <a href="/dashboard">Dashboard</a>
-                    {{ else }}
-                    <a href="/login">Sign in</a>
-                    <a href="/placement">Take the placement test</a>
-                    {{ end }}
-                </nav>
-            </div>
-            <div class="lp-footer-bottom">
-                <span>&copy; 2023–2026 GamifyDev</span>
-                <span class="lp-footer-code">Learn <b>→</b> build <b>→</b> prove it.</span>
-            </div>
-        </footer>
+        {{ template "site_footer" . }}
     </body>
 </html>

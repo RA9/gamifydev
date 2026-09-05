@@ -170,17 +170,20 @@ func TestTheListShowsAGuestWhatTheyWouldKeep(t *testing.T) {
 	ts := newTestServer(t)
 	cookie, by := ts.guest(t)
 
+	// Asserted through the sign-up link and the progress bar's own value rather
+	// than through wording, so a copy edit doesn't fail the test but dropping
+	// the invitation — or miscounting — still does.
 	before := ts.do(t, http.MethodGet, "/problems", nil, cookie).Body.String()
-	if strings.Contains(before, "Keep my work") {
+	if strings.Contains(before, `href="/register"`) {
 		t.Errorf("a guest who has solved nothing is being asked to save nothing")
 	}
 
 	ts.solve(t, "affordable-pairs", by)
 	after := ts.do(t, http.MethodGet, "/problems", nil, cookie).Body.String()
-	if !strings.Contains(after, "Keep my work") {
-		t.Errorf("a guest with work to lose is not being told they can keep it")
+	if !strings.Contains(after, `href="/register"`) {
+		t.Errorf("a guest with work to lose is not being offered a way to keep it")
 	}
-	if !strings.Contains(after, "1 of ") {
+	if !strings.Contains(after, `aria-valuenow="1"`) {
 		t.Errorf("the solved count does not reflect the guest's accepted submission")
 	}
 }

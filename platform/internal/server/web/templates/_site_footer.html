@@ -1,0 +1,44 @@
+{{/* The public site footer. Shared with the landing shell — see _site_header.html. */}}
+{{ define "site_footer" }}
+<footer class="lp-footer">
+    <div class="lp-footer-inner">
+        <div class="lp-foot-brand">
+            <a class="lp-brand" href="/" aria-label="GamifyDev home">
+                <span class="lp-brand-mark" aria-hidden="true">&lt;/&gt;</span>
+                <span class="lp-brand-name">Gamify<em>Dev</em></span>
+            </a>
+            <p>
+                A free, structured computer science program for people
+                who want to finish what they start.
+            </p>
+            <span class="lp-foot-promise"><i></i> Free to learn. Built for follow-through.</span>
+        </div>
+        <nav class="lp-foot-col" aria-label="Learn">
+            <h2>Learn</h2>
+            <a href="/paths">Learning paths</a>
+            <a href="/courses">Course library</a>
+            <a href="/problems">Practice problems</a>
+            <a href="/competitions">Competitions</a>
+        </nav>
+        <nav class="lp-foot-col" aria-label="Community and company">
+            <h2>Connect</h2>
+            <a href="/forum">Community forum</a>
+            <a href="/blog">Journal</a>
+            <a href="/about">About GamifyDev</a>
+        </nav>
+        <nav class="lp-foot-col" aria-label="Account">
+            <h2>Your account</h2>
+            {{ if .User }}
+            <a href="/dashboard">Dashboard</a>
+            {{ else }}
+            <a href="/login">Sign in</a>
+            <a href="/placement">Take the placement test</a>
+            {{ end }}
+        </nav>
+    </div>
+    <div class="lp-footer-bottom">
+        <span>&copy; 2023–2026 GamifyDev</span>
+        <span class="lp-footer-code">Learn <b>→</b> build <b>→</b> prove it.</span>
+    </div>
+</footer>
+{{ end }}
