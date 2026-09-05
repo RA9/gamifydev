@@ -25,21 +25,33 @@ go run .            # serves http://localhost:8080 using a local gamifydev.db
 
 Learners take and pass the public placement test before creating an account.
 Public signup always creates a `learner`; it can never create an administrator.
-Create the initial operator account explicitly:
+On startup, the server creates the first operator account for
+`cnah27@gmail.com`. Set a password of at least 12 characters before the first
+boot:
+
+```bash
+ADMIN_PASSWORD='use-a-long-password' go run .
+```
+
+The startup seed is idempotent. Later boots ensure the account still has the
+`admin` role without creating a duplicate or resetting its password, so
+`ADMIN_PASSWORD` is only required while that account does not exist. The
+`cmd/createadmin` operator command remains available to create or promote a
+different account explicitly:
 
 ```bash
 ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='use-a-long-password' go run ./cmd/createadmin
 ```
 
-Running the command for an existing account promotes it to `admin`. Roles are
-`admin`, `grader`, and `learner`; staff invitations are available from the admin
-portal after bootstrap.
+Roles are `admin`, `grader`, and `learner`; staff invitations are available from
+the admin portal after bootstrap.
 
 ## Configuration
 
 See `.env.example`. Key vars: `DATABASE_URL` (local file or `libsql://…` Turso
-URL), `ADDR`, `SECURE_COOKIES`. In production the server also honours `PORT`
-(it binds `:$PORT` when set).
+URL), `ADMIN_PASSWORD` (at least 12 characters for first-admin creation), `ADDR`,
+and `SECURE_COOKIES`. In production the server also honours `PORT` (it binds
+`:$PORT` when set).
 
 ## Deploy to Railway
 
@@ -61,15 +73,17 @@ filesystem is ephemeral, so production uses **Turso** for the database.
 
 3. **Set the service variables** (Railway → Variables):
    - `DATABASE_URL` = `libsql://<your-db>.turso.io?authToken=<token>`
+   - `ADMIN_PASSWORD` = a strong password of at least 12 characters for
+     `cnah27@gmail.com`; startup fails clearly if the account must be created and
+     this is missing or too short.
    - `PORT` is provided by Railway; `SECURE_COOKIES` is auto-enabled there.
    - *(Optional)* add a **Redis** service in Railway and set `REDIS_URL` to its
      connection string (e.g. `${{Redis.REDIS_URL}}`). The app runs without it
      today; future features (caching, rate limiting, live competitions) use it.
 
-4. **Deploy.** Railway builds the image, runs migrations and synchronized seed
-   content on boot, and serves on the generated domain (health-checked at
-   `/healthz`). Bootstrap the first administrator with `cmd/createadmin` against
-   the production `DATABASE_URL`; public registration never grants staff roles.
+4. **Deploy.** Railway builds the image, runs migrations, ensures the first
+   administrator, synchronizes seed content, and serves on the generated domain
+   (health-checked at `/healthz`). Public registration never grants staff roles.
 
 ## Layout
 
@@ -88,8 +102,9 @@ internal/server/                # routes, middleware, handlers, rendering
 Account creation is the final step of placement: a guest must hold a passing,
 unclaimed placement result before `GET` or `POST /register` succeeds. The result,
 assessment history, and any guest problem submissions are transferred to the new
-learner atomically. Staff accounts are created with `cmd/createadmin` or invited
-by an existing administrator.
+learner atomically. The fixed first administrator is ensured during startup;
+additional staff accounts are created with `cmd/createadmin` or invited by an
+existing administrator.
 
 **Password reset** is at `/forgot`. Tokens are stored as a SHA-256 hash, last an
 hour, work once, and requesting a new one invalidates the old. Completing a

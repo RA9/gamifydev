@@ -50,6 +50,16 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
+	adminCreated, err := seed.EnsureFirstAdmin(ctx, st, os.Getenv("ADMIN_PASSWORD"))
+	if err != nil {
+		log.Fatalf("seed first admin: %v", err)
+	}
+	if adminCreated {
+		log.Printf("seed: created first administrator %s", seed.FirstAdminEmail)
+	} else {
+		log.Printf("seed: ensured first administrator %s", seed.FirstAdminEmail)
+	}
+
 	// Synchronize embedded content after every migration run. Seed writes are
 	// idempotent (stable slugs are upserted and child collections are replaced),
 	// so every instance can do this at boot without creating duplicate rows. A
