@@ -2,7 +2,7 @@
 
 An **array** is the simplest data structure there is, and also the one everything else is built on top of. It stores its elements side by side in a single unbroken block of memory. That one decision — *contiguous* storage — is what gives arrays their famous superpower and their equally famous weakness.
 
-In this lesson you'll see exactly how the computer finds `data[7]` without looking at the first seven items, why appending to a Python list is cheap even though the block has a fixed size, and why inserting into the middle is expensive.
+In this lesson you'll see exactly how the computer finds `data[7]` without looking at the first seven items, how a dynamic array in C grows even though its current block has a fixed size, and why inserting into the middle is expensive.
 
 ## Contiguous memory
 
@@ -54,25 +54,54 @@ That constant-time access by position is called **random access**: you can reach
 
 ## Fixed size vs dynamic arrays
 
-A raw array in C or Java has a size fixed when it's created. `int data[5]` reserves room for exactly five ints. If a sixth arrives, there's no guarantee the memory right after the block is free — a neighbouring variable may already live there.
+A raw array in C has a size fixed when it's created. `int data[5]` reserves room for exactly five ints. If a sixth arrives, there's no guarantee the memory right after the block is free — a neighbouring variable may already live there. C does not perform bounds checks for you, so the program must keep every index below the array length.
 
-```java
-int[] scores = new int[5];
+```c
+int scores[5] = {0};
 scores[0] = 100;
-// scores[5] = 7;   // error: index out of bounds — there is no slot 5
+/* scores[5] = 7; would be out of bounds: valid indexes are 0 through 4. */
 ```
 
-Yet in Python you write this happily:
+In C, you can build a growable version by tracking both its length and capacity:
 
-```python
-scores = [100]
-scores.append(7)
-scores.append(42)
-print(scores)      # [100, 7, 42]
-print(len(scores)) # 3
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int *data;
+    size_t length;
+    size_t capacity;
+} IntArray;
+
+int append(IntArray *array, int value) {
+    if (array->length == array->capacity) {
+        size_t new_capacity = array->capacity == 0 ? 1 : array->capacity * 2;
+        int *new_data = realloc(array->data, new_capacity * sizeof *new_data);
+        if (new_data == NULL) {
+            return 0;
+        }
+        array->data = new_data;
+        array->capacity = new_capacity;
+    }
+    array->data[array->length++] = value;
+    return 1;
+}
+
+int main(void) {
+    IntArray scores = {NULL, 0, 0};
+    if (!append(&scores, 100) || !append(&scores, 7) || !append(&scores, 42)) {
+        free(scores.data);
+        return 1;
+    }
+    printf("[%d, %d, %d]\n", scores.data[0], scores.data[1], scores.data[2]);
+    printf("%zu\n", scores.length);
+    free(scores.data);
+    return 0;
+}
 ```
 
-A Python list is a **dynamic array**: an array that grows. Under the hood it still holds one contiguous block, but the block is deliberately made bigger than needed, so there's spare room at the end for the next few appends.
+This `IntArray` is a **dynamic array**: an array that grows. Under the hood it still owns one contiguous block, but the block is deliberately made bigger than needed, so there's spare room at the end for the next few appends.
 
 :::warning
 "Dynamic" doesn't mean the block magically stretches. Memory can't stretch — something else is already parked next door. Growing an array always means allocating a *new, larger* block somewhere else and copying the old contents into it.
@@ -111,20 +140,30 @@ insert 50 at index 1 into [17, 3, 42, 8]
 
 Deleting has the mirror problem: remove index 1 and everything after it must slide left to close the hole.
 
-```python
-data = [17, 3, 42, 8]
+```c
+#include <stdio.h>
+#include <string.h>
 
-data.insert(1, 50)    # shifts 3, 42, 8 one place right
-print(data)           # [17, 50, 3, 42, 8]
+int main(void) {
+    int data[5] = {17, 3, 42, 8};
+    size_t length = 4;
 
-data.pop(0)           # shifts everything left to close the gap
-print(data)           # [50, 3, 42, 8]
+    memmove(&data[2], &data[1], (length - 1) * sizeof data[0]);
+    data[1] = 50;             // shifts 3, 42, 8 one place right
+    length++;
+    printf("[%d, %d, %d, %d, %d]\n", data[0], data[1], data[2], data[3], data[4]);
+
+    memmove(&data[0], &data[1], (length - 1) * sizeof data[0]);
+    length--;                 // shifts everything left to close the gap
+    printf("[%d, %d, %d, %d]\n", data[0], data[1], data[2], data[3]);
+    return 0;
+}
 ```
 
 In the worst case — inserting or deleting at the front — all n elements move. That's **O(n)**. Deleting or appending at the *end* touches nothing else, so that stays O(1) (amortized for append).
 
 :::tip
-If you find yourself calling `insert(0, x)` or `pop(0)` inside a loop, that loop is quietly O(n²). Either append to the end and reverse once at the finish, or use a structure built for front operations — you'll meet `deque` in the Queues lesson.
+If you repeatedly insert or remove at index 0 by shifting an array inside a loop, that loop is quietly O(n²). Either append to the end and reverse once at the finish, or use a structure built for front operations — you'll meet deques in the Queues lesson.
 :::
 
 ## Cache friendliness: the hidden bonus
@@ -150,24 +189,33 @@ E: Every element is the same size, so multiplying the index by the element size 
 
 :::predict
 Q: What does this print?
-```python
-data = [1, 2, 3]
-data.insert(0, 9)
-data.append(4)
-print(data)
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    int data[5] = {1, 2, 3};
+    size_t length = 3;
+    memmove(&data[1], &data[0], length * sizeof data[0]);
+    data[0] = 9;
+    length++;
+    data[length++] = 4;
+    printf("[%d, %d, %d, %d, %d]\n", data[0], data[1], data[2], data[3], data[4]);
+    return 0;
+}
 ```
 - [9, 1, 2, 3, 4] *
 - [1, 2, 3, 9, 4]
 - [9, 4, 1, 2, 3]
 - [1, 2, 3, 4, 9]
-E: `insert(0, 9)` puts 9 at the front and shifts the rest right; `append(4)` adds to the end.
+E: `memmove` makes room at the front and 9 is written there; assigning at `data[length]` adds 4 to the end.
 :::
 
 :::quiz
 Q: Why is appending to a dynamic array described as *amortized* O(1) rather than plain O(1)?
 - Because appending is actually always O(n)
 - Because occasional resizes cost O(n), but doubling makes them rare enough to average out to O(1) *
-- Because Python is slower than C
+- Because C arrays always resize on every append
 - Because the array must be sorted first
 E: Most appends use spare capacity and cost O(1). A full block triggers an O(n) copy, but each doubling postpones the next one twice as long, so the average per append stays constant.
 :::

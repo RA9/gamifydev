@@ -24,6 +24,7 @@ const (
 // Kinds of scheduled item.
 const (
 	KindLesson     = "lesson"
+	KindProblem    = "problem"
 	KindCheckpoint = "checkpoint"
 )
 
@@ -33,13 +34,20 @@ type Lesson struct {
 	Title string
 }
 
-// Course is one path step: its lessons in order, plus an optional checkpoint
+// Problem is required guided practice integrated into a course.
+type Problem struct {
+	ID    int64
+	Title string
+}
+
+// Course is one path step: its lessons and problems, plus an optional checkpoint
 // assignment that gates progression to the next course.
 type Course struct {
 	ID           int64
 	Title        string
 	Slug         string
 	Lessons      []Lesson
+	Problems     []Problem
 	CheckpointID int64 // 0 when the course has no required assignment
 }
 
@@ -52,6 +60,7 @@ type Item struct {
 	CourseID     int64
 	LessonID     int64
 	AssignmentID int64
+	ProblemID    int64
 	Sort         int
 }
 
@@ -80,7 +89,7 @@ func Plan(courses []Course, start time.Time) []Item {
 	}
 
 	for _, c := range courses {
-		if len(c.Lessons) == 0 && c.CheckpointID == 0 {
+		if len(c.Lessons) == 0 && len(c.Problems) == 0 && c.CheckpointID == 0 {
 			continue
 		}
 		// A new course starts on a fresh day so a day's work never spans two
@@ -99,9 +108,20 @@ func Plan(courses []Course, start time.Time) []Item {
 			usedToday++
 			sortInDay++
 		}
+		for _, problem := range c.Problems {
+			if usedToday >= LessonsPerDay {
+				advance()
+			}
+			items = append(items, Item{
+				DayIndex: day, Sprint: sprintOf(day), DueOn: workingDay(start, day),
+				Kind: KindProblem, CourseID: c.ID, ProblemID: problem.ID, Sort: sortInDay,
+			})
+			usedToday++
+			sortInDay++
+		}
 		if c.CheckpointID != 0 {
 			// Due on the same day the course's last lesson lands, after it.
-			if len(c.Lessons) == 0 {
+			if len(c.Lessons) == 0 && len(c.Problems) == 0 {
 				usedToday = 0
 			}
 			items = append(items, Item{

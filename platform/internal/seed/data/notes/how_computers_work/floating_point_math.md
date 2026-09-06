@@ -1,6 +1,6 @@
 # Floating Point Math
 
-Type `0.1 + 0.2` into almost any language and you get `0.30000000000000004`. That's not a bug in Python, or C, or your machine — it's the honest answer given how decimals are stored. This lesson explains where that trailing `4` comes from, and turns it from an unsettling curiosity into a set of habits that will keep real bugs out of your programs.
+Evaluate `0.1 + 0.2` in C and print enough significant digits, and you get `0.30000000000000004`. That's not a bug in C or your machine — it's the honest answer given how decimals are stored. This lesson explains where that trailing `4` comes from, and turns it from an unsettling curiosity into a set of habits that will keep real bugs out of your programs.
 
 ## Inside a float
 
@@ -51,10 +51,10 @@ The hardware stores as much as fits and rounds the rest. In a 32-bit float, 0.1 
 
 Not 0.1. The nearest thing to 0.1 the format can hold. A `double` gets much closer, but still not exact — and now `0.1 + 0.2` makes sense:
 
-```python
-print(0.1 + 0.2)          # 0.30000000000000004
-print(0.1 + 0.2 == 0.3)   # False
-print(0.1 * 3)            # 0.30000000000000004
+```c
+printf("%.17g\n", 0.1 + 0.2);         /* 0.30000000000000004 */
+printf("%d\n", 0.1 + 0.2 == 0.3);      /* 0 (false) */
+printf("%.17g\n", 0.1 * 3.0);         /* 0.30000000000000004 */
 ```
 
 Two slightly-wrong numbers were added, and the slightly-wrong sum rounded to a value that isn't the slightly-wrong stored form of 0.3. Everything behaved correctly. The result is still not what you wanted.
@@ -86,11 +86,23 @@ int nearly_equal(double a, double b, double eps) {
 nearly_equal(0.1 + 0.2, 0.3, 1e-9);   /* 1 (true) */
 ```
 
-A fixed tolerance like `1e-9` is fine when your numbers are around 1. It's useless when they're around a billion, where the gap between neighbouring doubles is already larger than that — and far too loose when they're around 1e-20. Serious comparisons scale the tolerance with the magnitude of the values, which is what Python's `math.isclose` does for you:
+A fixed tolerance like `1e-9` is fine when your numbers are around 1. It's useless when they're around a billion, where the gap between neighbouring doubles is already larger than that — and far too loose when they're around 1e-20. Serious comparisons scale the tolerance with the magnitude of the values. In C99, you can build that comparison from `<math.h>`:
 
-```python
-import math
-print(math.isclose(0.1 + 0.2, 0.3))   # True
+```c
+#include <math.h>
+
+int nearly_equal_scaled(double a, double b,
+                        double relative_tolerance,
+                        double absolute_tolerance) {
+    double difference = fabs(a - b);
+    double scale = fmax(fabs(a), fabs(b));
+    double tolerance = fmax(absolute_tolerance,
+                            relative_tolerance * scale);
+
+    return difference <= tolerance;
+}
+
+nearly_equal_scaled(0.1 + 0.2, 0.3, 1e-9, 1e-12);  /* 1 (true) */
 ```
 
 :::warning
@@ -103,27 +115,29 @@ Rounding once is harmless. The danger is rounding repeatedly, or in ways that am
 
 **Accumulated error.** Every operation rounds a little. Do it thousands of times and the little errors add up:
 
-```python
-total = 0.0
-for _ in range(10):
-    total += 0.1
-print(total)          # 0.9999999999999999
-print(total == 1.0)   # False
+```c
+double total = 0.0;
+
+for (int i = 0; i < 10; ++i) {
+    total += 0.1;
+}
+printf("%.17g\n", total);       /* 0.99999999999999989 */
+printf("%d\n", total == 1.0);   /* 0 (false) */
 ```
 
 **Absorption.** When one value is vastly larger than the other, the small one can vanish entirely — there simply aren't enough fraction bits to record it:
 
-```python
-a = 1e16
-print((a + 1.0) - a)   # 0.0   — the 1 disappeared
+```c
+double a = 1e16;
+printf("%.1f\n", (a + 1.0) - a);  /* 0.0 — the 1 disappeared */
 ```
 
 **Catastrophic cancellation.** This is the nastiest. Subtract two nearly equal numbers and the leading digits — the ones you were confident about — cancel out, promoting whatever rounding noise was hiding in the low bits to the front of the result:
 
-```python
-x = 1.0000001
-y = 1.0000000
-print(x - y)      # 1.0000000005838672e-07, not exactly 1e-07
+```c
+double x = 1.0000001;
+double y = 1.0000000;
+printf("%.17g\n", x - y);  /* 1.0000000005838672e-07, not exactly 1e-07 */
 ```
 
 Both inputs were accurate to about sixteen digits. The difference is accurate to far fewer, because most of those digits agreed and destroyed each other. When a formula subtracts near-equal quantities, that's a signal to look for an algebraically equivalent form that doesn't.
@@ -142,13 +156,15 @@ IEEE 754 reserves some bit patterns for values that aren't ordinary numbers, so 
 
 NaN has one famously strange property: **it isn't equal to anything, including itself.**
 
-```python
-n = float("nan")
-print(n == n)    # False
-print(n != n)    # True
+```c
+#include <math.h>
+
+const double n = NAN;
+printf("%d\n", n == n);  /* 0 (false) */
+printf("%d\n", n != n);  /* 1 (true) */
 ```
 
-That looks broken, but it's deliberate — NaN means "no valid value here", and two unknowns shouldn't be declared equal. It also gives you the classic portable test: `x != x` is true only for NaN. Most languages provide a clearer one (`isnan` in C, `math.isnan` in Python), and you should use it.
+That looks broken, but it's deliberate — NaN means "no valid value here", and two unknowns shouldn't be declared equal. It also gives you the classic portable test: `x != x` is true only for NaN. C99 provides the clearer `isnan` macro in `<math.h>`, and you should use it.
 
 :::warning
 NaN is contagious: almost any arithmetic involving a NaN produces a NaN. One bad value early in a pipeline can quietly turn an entire result into NaN, and because comparisons with NaN are all false, an `if (value > threshold)` guard silently lets it through. Check for it at the point where it can first appear.
@@ -167,14 +183,17 @@ long total_cents  = price_cents + tax_cents;
 /* exact integer arithmetic; divide by 100 only when printing */
 ```
 
-Alternatively use a **decimal** type, which stores digits in base 10 and rounds the way humans expect. Python has one built in:
+For values with a fixed number of decimal places, use **scaled integers** so the calculation never enters binary floating point:
 
-```python
-from decimal import Decimal
-print(Decimal("0.1") + Decimal("0.2") == Decimal("0.3"))   # True
+```c
+long a_tenths = 1;  /* 0.1 */
+long b_tenths = 2;  /* 0.2 */
+long c_tenths = 3;  /* 0.3 */
+
+printf("%d\n", a_tenths + b_tenths == c_tenths);  /* 1 (true) */
 ```
 
-Note the strings. `Decimal(0.1)` from a float would faithfully copy the float's error — you have to keep the value out of binary floating point from the start.
+Standard C99 has no built-in decimal type. When fixed-point integers are not flexible enough, use a purpose-built decimal library and construct values from text or scaled integers — converting from a `double` would faithfully preserve the binary float's error.
 
 Floats remain exactly right for what they were designed for: physics, graphics, audio, statistics, machine learning — measured quantities with inherent uncertainty, where huge range matters and the last digit doesn't.
 
@@ -190,15 +209,21 @@ E: A binary fraction terminates only when its denominator is a power of two. Ten
 :::
 
 :::predict
-```python
-n = float("nan")
-print(n == n)
+```c
+#include <math.h>
+#include <stdio.h>
+
+int main(void) {
+    double n = NAN;
+    printf("%d\n", n == n);
+    return 0;
+}
 ```
-- True
-- False *
-- nan
-- An error is raised
-E: NaN compares unequal to everything, including itself. That property is what makes `x != x` a portable NaN test.
+- 1 (true)
+- 0 (false) *
+- NaN
+- The program fails
+E: NaN compares unequal to everything, including itself, so the comparison produces C's integer false value, 0. That property is what makes `x != x` a portable NaN test.
 :::
 
 :::quiz

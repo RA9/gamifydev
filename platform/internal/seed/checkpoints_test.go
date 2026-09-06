@@ -78,143 +78,389 @@ int main(void) {
 		wrongFails: "handles three negative numbers",
 	},
 
-	"ds-hash-map": {
+	"ds-hash-map-c": {
 		correct: `
-class HashMap:
-    def __init__(self, size=8):
-        self.buckets = [[] for _ in range(size)]
-        self.count = 0
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-    def _bucket(self, key):
-        return self.buckets[hash(key) % len(self.buckets)]
+#define BUCKET_COUNT 8
 
-    def put(self, key, value):
-        b = self._bucket(key)
-        for i, (k, _) in enumerate(b):
-            if k == key:
-                b[i] = (key, value)
-                return
-        b.append((key, value))
-        self.count += 1
+typedef struct Entry {
+    int key;
+    int value;
+    struct Entry *next;
+} Entry;
 
-    def get(self, key):
-        for k, v in self._bucket(key):
-            if k == key:
-                return v
-        return None
+typedef struct {
+    Entry *buckets[BUCKET_COUNT];
+    int size;
+} HashMap;
 
-    def __len__(self):
-        return self.count
+static int bucket_index(int key) {
+    int index = key % BUCKET_COUNT;
+    return index < 0 ? index + BUCKET_COUNT : index;
+}
+
+static void put(HashMap *map, int key, int value) {
+    int index = bucket_index(key);
+    for (Entry *entry = map->buckets[index]; entry; entry = entry->next) {
+        if (entry->key == key) {
+            entry->value = value;
+            return;
+        }
+    }
+    Entry *entry = malloc(sizeof(*entry));
+    if (!entry) exit(1);
+    entry->key = key;
+    entry->value = value;
+    entry->next = map->buckets[index];
+    map->buckets[index] = entry;
+    map->size++;
+}
+
+static int get(const HashMap *map, int key, int *value) {
+    for (Entry *entry = map->buckets[bucket_index(key)]; entry; entry = entry->next) {
+        if (entry->key == key) {
+            *value = entry->value;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int main(void) {
+    HashMap map = {0};
+    int operations;
+    if (scanf("%d", &operations) != 1) return 1;
+    for (int i = 0; i < operations; i++) {
+        char command[8];
+        if (scanf("%7s", command) != 1) return 1;
+        if (strcmp(command, "PUT") == 0) {
+            int key, value;
+            if (scanf("%d %d", &key, &value) != 2) return 1;
+            put(&map, key, value);
+        } else if (strcmp(command, "GET") == 0) {
+            int key, value;
+            if (scanf("%d", &key) != 1) return 1;
+            if (get(&map, key, &value)) printf("%d\n", value);
+            else printf("NOT_FOUND\n");
+        } else if (strcmp(command, "SIZE") == 0) {
+            printf("%d\n", map.size);
+        }
+    }
+    return 0;
+}
 `,
-		// Appends unconditionally, so a repeated key leaves two entries and get
-		// keeps returning the stale one.
+		// Inserts duplicates at the end of a chain instead of replacing them, so
+		// GET sees the stale value and SIZE counts the same key twice.
 		wrong: `
-class HashMap:
-    def __init__(self, size=8):
-        self.buckets = [[] for _ in range(size)]
-        self.count = 0
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-    def _bucket(self, key):
-        return self.buckets[hash(key) % len(self.buckets)]
+#define BUCKET_COUNT 8
 
-    def put(self, key, value):
-        self._bucket(key).append((key, value))
-        self.count += 1
+typedef struct Entry {
+    int key;
+    int value;
+    struct Entry *next;
+} Entry;
 
-    def get(self, key):
-        for k, v in self._bucket(key):
-            if k == key:
-                return v
-        return None
+typedef struct {
+    Entry *buckets[BUCKET_COUNT];
+    int size;
+} HashMap;
 
-    def __len__(self):
-        return self.count
+static int bucket_index(int key) {
+    int index = key % BUCKET_COUNT;
+    return index < 0 ? index + BUCKET_COUNT : index;
+}
+
+static void put(HashMap *map, int key, int value) {
+    int index = bucket_index(key);
+    Entry *entry = malloc(sizeof(*entry));
+    if (!entry) exit(1);
+    entry->key = key;
+    entry->value = value;
+    entry->next = NULL;
+    Entry **tail = &map->buckets[index];
+    while (*tail) tail = &(*tail)->next;
+    *tail = entry;
+    map->size++;
+}
+
+static int get(const HashMap *map, int key, int *value) {
+    for (Entry *entry = map->buckets[bucket_index(key)]; entry; entry = entry->next) {
+        if (entry->key == key) {
+            *value = entry->value;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int main(void) {
+    HashMap map = {0};
+    int operations;
+    if (scanf("%d", &operations) != 1) return 1;
+    for (int i = 0; i < operations; i++) {
+        char command[8];
+        if (scanf("%7s", command) != 1) return 1;
+        if (strcmp(command, "PUT") == 0) {
+            int key, value;
+            if (scanf("%d %d", &key, &value) != 2) return 1;
+            put(&map, key, value);
+        } else if (strcmp(command, "GET") == 0) {
+            int key, value;
+            if (scanf("%d", &key) != 1) return 1;
+            if (get(&map, key, &value)) printf("%d\n", value);
+            else printf("NOT_FOUND\n");
+        } else if (strcmp(command, "SIZE") == 0) {
+            printf("%d\n", map.size);
+        }
+    }
+    return 0;
+}
 `,
 		wrongFails: "putting a key twice replaces the value instead of adding a second copy",
 	},
 
-	"cx-pair-sum": {
+	"cx-pair-sum-c": {
 		correct: `
-def has_pair_summing_to(nums, target):
-    seen = set()
-    for n in nums:
-        if target - n in seen:
-            return True
-        seen.add(n)
-    return False
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+static size_t hash_int(int value, size_t capacity) {
+    uint32_t x = (uint32_t)value;
+    x ^= x >> 16;
+    x *= 0x7feb352dU;
+    x ^= x >> 15;
+    return x & (capacity - 1);
+}
+
+static int contains(const int *keys, const unsigned char *used, size_t capacity, int value) {
+    size_t index = hash_int(value, capacity);
+    while (used[index]) {
+        if (keys[index] == value) return 1;
+        index = (index + 1) & (capacity - 1);
+    }
+    return 0;
+}
+
+static void insert(int *keys, unsigned char *used, size_t capacity, int value) {
+    size_t index = hash_int(value, capacity);
+    while (used[index] && keys[index] != value) {
+        index = (index + 1) & (capacity - 1);
+    }
+    keys[index] = value;
+    used[index] = 1;
+}
+
+int main(void) {
+    int n, target;
+    if (scanf("%d %d", &n, &target) != 2) return 1;
+    size_t capacity = 1;
+    while (capacity < (size_t)(n > 0 ? n : 1) * 2) capacity <<= 1;
+    int *keys = malloc(capacity * sizeof(*keys));
+    unsigned char *used = calloc(capacity, sizeof(*used));
+    if (!keys || !used) return 1;
+
+    int found = 0;
+    for (int i = 0; i < n; i++) {
+        int value;
+        if (scanf("%d", &value) != 1) return 1;
+        if (!found && contains(keys, used, capacity, target - value)) found = 1;
+        insert(keys, used, capacity, value);
+    }
+    printf(found ? "YES\n" : "NO\n");
+    return 0;
+}
 `,
-		// The whole point of the checkpoint: correct, and far too slow.
+		// Produces the right answers on ordinary inputs, but compares every pair
+		// and cannot finish the deliberately worst-case 200,000-value check.
 		wrong: `
-def has_pair_summing_to(nums, target):
-    for i in range(len(nums)):
-        for j in range(i + 1, len(nums)):
-            if nums[i] + nums[j] == target:
-                return True
-    return False
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int n, target;
+    if (scanf("%d %d", &n, &target) != 2) return 1;
+    int *values = malloc((size_t)n * sizeof(*values));
+    if (n > 0 && !values) return 1;
+    for (int i = 0; i < n; i++) {
+        if (scanf("%d", &values[i]) != 1) return 1;
+    }
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (values[i] + values[j] == target) {
+                printf("YES\n");
+                return 0;
+            }
+        }
+    }
+    printf("NO\n");
+    return 0;
+}
 `,
 		wrongFails: "finishes on 200,000 numbers — a nested loop won't",
 	},
 
-	"algo-shortest-path": {
+	"algo-shortest-path-c": {
 		correct: `
-from collections import deque
+#include <stdio.h>
 
+#define MAX_VERTICES 100
 
-def shortest_path(graph, start, goal):
-    if start == goal:
-        return [start]
-    seen = {start}
-    queue = deque([[start]])
-    while queue:
-        path = queue.popleft()
-        for nxt in graph.get(path[-1], []):
-            if nxt == goal:
-                return path + [nxt]
-            if nxt not in seen:
-                seen.add(nxt)
-                queue.append(path + [nxt])
-    return None
+int main(void) {
+    int n, m, start, goal;
+    if (scanf("%d %d %d %d", &n, &m, &start, &goal) != 4) return 1;
+    int edges[MAX_VERTICES][MAX_VERTICES] = {{0}};
+    for (int i = 0; i < m; i++) {
+        int from, to;
+        if (scanf("%d %d", &from, &to) != 2) return 1;
+        edges[from][to] = 1;
+    }
+
+    int queue[MAX_VERTICES], parent[MAX_VERTICES], seen[MAX_VERTICES] = {0};
+    int front = 0, back = 0;
+    for (int i = 0; i < n; i++) parent[i] = -1;
+    queue[back++] = start;
+    seen[start] = 1;
+    while (front < back && !seen[goal]) {
+        int node = queue[front++];
+        for (int next = 0; next < n; next++) {
+            if (edges[node][next] && !seen[next]) {
+                seen[next] = 1;
+                parent[next] = node;
+                queue[back++] = next;
+            }
+        }
+    }
+
+    if (!seen[goal]) {
+        printf("NONE\n");
+        return 0;
+    }
+    int path[MAX_VERTICES], length = 0;
+    for (int node = goal; node != -1; node = parent[node]) path[length++] = node;
+    for (int i = length - 1; i >= 0; i--) {
+        if (i != length - 1) putchar(' ');
+        printf("%d", path[i]);
+    }
+    putchar('\n');
+    return 0;
+}
 `,
-		// Depth-first: finds a route, not the shortest one.
+		// Depth-first search remembers visited vertices and returns a valid route,
+		// but takes the first long branch instead of the direct shortest edge.
 		wrong: `
-def shortest_path(graph, start, goal):
-    def go(node, path, seen):
-        if node == goal:
-            return path
-        for nxt in graph.get(node, []):
-            if nxt not in seen:
-                found = go(nxt, path + [nxt], seen | {nxt})
-                if found:
-                    return found
-        return None
+#include <stdio.h>
 
-    return go(start, [start], {start})
+#define MAX_VERTICES 100
+
+static int n;
+static int edges[MAX_VERTICES][MAX_VERTICES];
+static int seen[MAX_VERTICES];
+static int path[MAX_VERTICES];
+static int path_length;
+
+static int find_path(int node, int goal) {
+    seen[node] = 1;
+    path[path_length++] = node;
+    if (node == goal) return 1;
+    for (int next = 0; next < n; next++) {
+        if (edges[node][next] && !seen[next] && find_path(next, goal)) return 1;
+    }
+    path_length--;
+    return 0;
+}
+
+int main(void) {
+    int m, start, goal;
+    if (scanf("%d %d %d %d", &n, &m, &start, &goal) != 4) return 1;
+    for (int i = 0; i < m; i++) {
+        int from, to;
+        if (scanf("%d %d", &from, &to) != 2) return 1;
+        edges[from][to] = 1;
+    }
+    if (!find_path(start, goal)) {
+        printf("NONE\n");
+        return 0;
+    }
+    for (int i = 0; i < path_length; i++) {
+        if (i) putchar(' ');
+        printf("%d", path[i]);
+    }
+    putchar('\n');
+    return 0;
+}
 `,
 		wrongFails: "takes the short route, not the first one it finds",
 	},
 
-	"hcw-twos-complement": {
+	"hcw-twos-complement-c": {
 		correct: `
-def to_twos_complement(n, bits):
-    if n < 0:
-        n += 1 << bits
-    return format(n, "0" + str(bits) + "b")[-bits:]
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 
-
-def from_twos_complement(s):
-    n = int(s, 2)
-    if s[0] == "1":
-        n -= 1 << len(s)
-    return n
+int main(void) {
+    char operation[8];
+    if (scanf("%7s", operation) != 1) return 1;
+    if (strcmp(operation, "ENCODE") == 0) {
+        int bits;
+        long long value;
+        if (scanf("%d %lld", &bits, &value) != 2) return 1;
+        uint64_t encoded = (uint64_t)value & ((UINT64_C(1) << bits) - 1);
+        for (int bit = bits - 1; bit >= 0; bit--) {
+            putchar((encoded & (UINT64_C(1) << bit)) ? '1' : '0');
+        }
+        putchar('\n');
+    } else if (strcmp(operation, "DECODE") == 0) {
+        char pattern[33];
+        if (scanf("%32s", pattern) != 1) return 1;
+        int bits = (int)strlen(pattern);
+        uint64_t encoded = 0;
+        for (int i = 0; i < bits; i++) {
+            encoded = encoded * 2 + (uint64_t)(pattern[i] - '0');
+        }
+        int64_t value = (int64_t)encoded;
+        if (pattern[0] == '1') value -= (INT64_C(1) << bits);
+        printf("%lld\n", (long long)value);
+    }
+    return 0;
+}
 `,
-		// Sign-magnitude: the intuitive encoding, and not the one hardware uses.
+		// Uses magnitude bits for ENCODE and treats DECODE as unsigned: positive
+		// examples work, but a negative value never receives two's complement.
 		wrong: `
-def to_twos_complement(n, bits):
-    return format(abs(n), "0" + str(bits) + "b")
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-
-def from_twos_complement(s):
-    return int(s, 2)
+int main(void) {
+    char operation[8];
+    if (scanf("%7s", operation) != 1) return 1;
+    if (strcmp(operation, "ENCODE") == 0) {
+        int bits;
+        long long value;
+        if (scanf("%d %lld", &bits, &value) != 2) return 1;
+        unsigned long long magnitude = (unsigned long long)llabs(value);
+        for (int bit = bits - 1; bit >= 0; bit--) {
+            putchar((magnitude & (1ULL << bit)) ? '1' : '0');
+        }
+        putchar('\n');
+    } else if (strcmp(operation, "DECODE") == 0) {
+        char pattern[33];
+        if (scanf("%32s", pattern) != 1) return 1;
+        unsigned long long value = 0;
+        for (size_t i = 0; pattern[i]; i++) value = value * 2 + (unsigned long long)(pattern[i] - '0');
+        printf("%llu\n", value);
+    }
+    return 0;
+}
 `,
 		wrongFails: "encodes a negative number",
 	},
@@ -273,7 +519,9 @@ func TestSeededCheckpointsAcceptACorrectSolution(t *testing.T) {
 			continue
 		}
 		t.Run(a.slug, func(t *testing.T) {
-			t.Parallel()
+			if a.lang != "c" {
+				t.Parallel()
+			}
 			ref, ok := refSolutions[a.slug]
 			if !ok {
 				t.Fatalf("checkpoint %q has checks but no reference solution — "+
@@ -301,7 +549,9 @@ func TestSeededCheckpointsRejectTheMistakeTheyExistToCatch(t *testing.T) {
 			continue
 		}
 		t.Run(a.slug, func(t *testing.T) {
-			t.Parallel()
+			if a.lang != "c" {
+				t.Parallel()
+			}
 			ref := refSolutions[a.slug]
 			checks, files := materialize(a)
 			res, err := jobs.Grade(t.Context(), e, a.lang, ref.wrong, files, checks)
@@ -377,6 +627,15 @@ func TestEveryCSFoundationsCourseHasACheckpoint(t *testing.T) {
 			continue
 		}
 		for _, a := range as {
+			wantLanguage := runner.LangC
+			if course == "linux" {
+				// This checkpoint exercises a real command pipeline over a log file,
+				// so shell is the curriculum rather than an implementation shortcut.
+				wantLanguage = runner.LangShell
+			}
+			if a.lang != wantLanguage {
+				t.Errorf("Foundations checkpoint %q uses %q; want %q", a.slug, a.lang, wantLanguage)
+			}
 			// Where the sandbox can run the language, the checks have to exist —
 			// a runnable course left to mentor grading is work handed to a human
 			// for no reason.
@@ -390,10 +649,7 @@ func TestEveryCSFoundationsCourseHasACheckpoint(t *testing.T) {
 
 // A gating checkpoint holds back every course after it in the path. If that
 // gate can't grade itself, one mentor's availability stands in front of all of
-// them — which is what put Java, at position two of seven, in front of five
-// auto-graded courses in the one path nobody can opt out of.
-//
-// The last course in a path is exempt: its gate holds nothing back.
+// them. The last course in a path is exempt: its gate holds nothing back.
 func TestNoMidPathGateWaitsOnAHuman(t *testing.T) {
 	byCourse := checkpointsByCourse()
 	for _, p := range seedPaths {

@@ -196,7 +196,7 @@ func (e *localExecutor) command(dir string, timeout time.Duration, lang string) 
 			"--setenv", "PYTHONDONTWRITEBYTECODE", "1",
 			"--setenv", "PYTHONUNBUFFERED", "1",
 			"--setenv", "LC_ALL", "C.UTF-8",
-			"/bin/sh", "-c", e.script(lang, cpuSecs, false),
+			"/bin/sh", "-c", e.script(lang, cpuSecs, true),
 		}
 		return "bwrap", args
 	}
@@ -206,9 +206,9 @@ func (e *localExecutor) command(dir string, timeout time.Duration, lang string) 
 
 // script is the shell program that runs the learner's code.
 //
-// withUlimits applies resource caps on the plain path; under bwrap the
-// namespace already bounds the process, and the compiler legitimately needs
-// more headroom than a learner's program does.
+// withUlimits applies resource caps inside either execution path. Bubblewrap
+// isolates namespaces and the filesystem, but it does not cap memory, process
+// count, CPU time, or file growth on its own.
 func (e *localExecutor) script(lang string, cpuSecs int, withUlimits bool) string {
 	var b strings.Builder
 	if withUlimits {

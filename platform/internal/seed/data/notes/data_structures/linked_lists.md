@@ -6,33 +6,54 @@ That single change flips every cost in the array lesson on its head. Insertion b
 
 ## Nodes and links
 
-The building block is a **node**: a small bundle holding a value and a reference to the next node. The list itself is nothing more than a variable pointing at the first node, traditionally called the **head**. The last node points at nothing — `None` in Python, `null` in Java, `NULL` in C — which is how you know you've reached the end.
+The building block is a **node**: a small bundle holding a value and a pointer to the next node. The list itself is nothing more than a variable pointing at the first node, traditionally called the **head**. The last node stores `NULL`, which is how you know you've reached the end.
 
 ```text
 head
  |
  v
 +----+----+     +----+----+     +----+------+
-| 17 |  o-+---> |  3 |  o-+---> | 42 | None |
+| 17 |  o-+---> |  3 |  o-+---> | 42 | NULL |
 +----+----+     +----+----+     +----+------+
  addr 340        addr 812        addr 108
 ```
 
 Look at the addresses: 340, 812, 108. They're in no particular order, and that's fine. The arrows, not the addresses, define the sequence.
 
-```python
-class Node:
-    def __init__(self, value):
-        self.value = value
-        self.next = None
+```c
+#include <stdio.h>
+#include <stdlib.h>
 
-head = Node(17)
-head.next = Node(3)
-head.next.next = Node(42)
+typedef struct Node {
+    int value;
+    struct Node *next;
+} Node;
 
-print(head.value)             # 17
-print(head.next.value)        # 3
-print(head.next.next.value)   # 42
+Node *node_create(int value) {
+    Node *node = malloc(sizeof *node);
+    if (node != NULL) *node = (Node){value, NULL};
+    return node;
+}
+
+void free_list(Node *head) {
+    while (head != NULL) {
+        Node *next = head->next;
+        free(head);
+        head = next;
+    }
+}
+
+int main(void) {
+    Node *head = node_create(17);
+    head->next = node_create(3);
+    head->next->next = node_create(42);
+
+    printf("%d\n", head->value);             // 17
+    printf("%d\n", head->next->value);       // 3
+    printf("%d\n", head->next->next->value); // 42
+    free_list(head);
+    return 0;
+}
 ```
 
 :::analogy
@@ -43,16 +64,21 @@ An array is a row of numbered mailboxes on one wall. A linked list is a treasure
 
 To reach the third value in an array, you compute an address. To reach the third value in a linked list, you have no choice but to start at the head and follow arrows.
 
-```python
-def get(head, index):
-    current = head
-    for _ in range(index):
-        if current is None:
-            return None
-        current = current.next
-    return current.value if current else None
+```c
+#include <stdbool.h>
 
-print(get(head, 2))   # 42
+bool get(const Node *head, size_t index, int *value) {
+    const Node *current = head;
+    for (size_t i = 0; i < index && current != NULL; i++) {
+        current = current->next;
+    }
+    if (current == NULL) return false;
+    *value = current->value;
+    return true;
+}
+
+int value;
+if (get(head, 2, &value)) printf("%d\n", value);   // 42
 ```
 
 Reaching index `i` costs `i` hops, so reaching the last item of an n-item list costs n hops. Access by position is **O(n)**, and so is searching for a value. There is no formula that jumps to the middle, because the nodes aren't laid out in a pattern the computer can do arithmetic on.
@@ -63,15 +89,15 @@ A linked list has **no random access**. Every position is reached by walking fro
 
 Walking the whole list to print it looks like this:
 
-```python
-def show(head):
-    current = head
-    while current is not None:
-        print(current.value, end=" ")
-        current = current.next
-    print()
+```c
+void show(const Node *head) {
+    for (const Node *current = head; current != NULL; current = current->next) {
+        printf("%d ", current->value);
+    }
+    putchar('\n');
+}
 
-show(head)   # 17 3 42
+show(head);   // 17 3 42
 ```
 
 ## Insert and delete are O(1) — given a node reference
@@ -81,23 +107,28 @@ Here's the payoff. Splicing a new node into the middle of a linked list means re
 ```text
 insert 50 after the node holding 17
 
- before:   [17| o-+---> [3 | o-+---> [42|None]
+ before:   [17| o-+---> [3 | o-+---> [42|NULL]
 
  step 1:   new node 50 points at 3
  step 2:   17 points at 50
 
- after:    [17| o-+---> [50| o-+---> [3 | o-+---> [42|None]
+ after:    [17| o-+---> [50| o-+---> [3 | o-+---> [42|NULL]
 ```
 
-```python
-def insert_after(node, value):
-    new_node = Node(value)
-    new_node.next = node.next   # 1. new node points where node pointed
-    node.next = new_node        # 2. node now points at the new node
-                                # order matters — swap these and you lose the tail
+```c
+#include <stdbool.h>
 
-insert_after(head, 50)
-show(head)   # 17 50 3 42
+bool insert_after(Node *node, int value) {
+    Node *new_node = node_create(value);
+    if (new_node == NULL) return false;
+    new_node->next = node->next;   // 1. new node points where node pointed
+    node->next = new_node;         // 2. node now points at the new node
+                                   // order matters — swap these and you lose the tail
+    return true;
+}
+
+insert_after(head, 50);
+show(head);   // 17 50 3 42
 ```
 
 Two assignments, no matter how long the list is. That's **O(1)**.
@@ -108,13 +139,17 @@ Read the phrase "O(1) insert" carefully: it's O(1) *once you already hold a refe
 
 Deletion works the same way — point the previous node past the doomed one:
 
-```python
-def delete_after(node):
-    if node.next is not None:
-        node.next = node.next.next   # skip over the next node
+```c
+void delete_after(Node *node) {
+    if (node->next != NULL) {
+        Node *removed = node->next;
+        node->next = removed->next;   // skip over the next node
+        free(removed);
+    }
+}
 
-delete_after(head)
-show(head)   # 17 3 42
+delete_after(head);
+show(head);   // 17 3 42
 ```
 
 ## Singly vs doubly linked
@@ -124,19 +159,25 @@ The list we've built is **singly linked**: each node points forward only. That m
 A **doubly linked list** fixes that by giving each node a `prev` pointer as well.
 
 ```text
-None <-+ 17 +--> <--+ 3 +--> <--+ 42 +-> None
+NULL <-+ 17 +--> <--+ 3 +--> <--+ 42 +-> NULL
        +----+       +---+       +----+
 ```
 
-```python
-class DNode:
-    def __init__(self, value):
-        self.value = value
-        self.next = None
-        self.prev = None
+```c
+typedef struct DNode {
+    int value;
+    struct DNode *next;
+    struct DNode *prev;
+} DNode;
+
+DNode *dnode_create(int value) {
+    DNode *node = malloc(sizeof *node);
+    if (node != NULL) *node = (DNode){value, NULL, NULL};
+    return node;
+}
 ```
 
-With `prev` available you can walk in either direction, and you can delete a node given only that node — no hunting for its predecessor. The cost is one extra pointer of memory per node, and twice as many pointers to keep consistent when you edit. Most production list implementations (including Python's `collections.deque`) are doubly linked for exactly these reasons.
+With `prev` available you can walk in either direction, and you can delete a node given only that node — no hunting for its predecessor. The cost is one extra pointer of memory per node, and twice as many pointers to keep consistent when you edit. Many production deque and list implementations are doubly linked for exactly these reasons.
 
 :::tip
 When you write pointer-rewiring code, draw the before-and-after boxes on paper first and number the assignments. Nearly every linked-list bug is an assignment done in the wrong order, which drops a whole section of the list on the floor.
@@ -179,23 +220,21 @@ E: Array access is address arithmetic on a contiguous block. A linked list's nod
 
 :::predict
 Q: What does this print?
-```python
-class Node:
-    def __init__(self, value):
-        self.value = value
-        self.next = None
-
-a = Node(1)
-a.next = Node(2)
-a.next.next = Node(3)
-a.next = a.next.next
-print(a.next.value)
+```c
+Node *a = node_create(1);
+a->next = node_create(2);
+a->next->next = node_create(3);
+Node *skipped = a->next;
+a->next = skipped->next;
+free(skipped);
+printf("%d\n", a->next->value);
+free_list(a);
 ```
 - 3 *
 - 2
 - 1
-- None
-E: `a.next` is reassigned to the node holding 3, so the node holding 2 is skipped over and dropped from the list.
+- NULL
+E: `a->next` is reassigned to the node holding 3, so the node holding 2 is skipped over and then freed.
 :::
 
 ## Talk about it

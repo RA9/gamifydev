@@ -145,14 +145,26 @@ It works because XOR is its own inverse. It's also no faster than a temporary va
 
 **Finding the unique element.** Given a list where every value appears exactly twice except one, XOR everything together. The pairs cancel to zero and the loner survives:
 
-```python
-def find_unique(nums):
-    result = 0
-    for n in nums:
-        result ^= n
-    return result
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(find_unique([4, 1, 2, 1, 2]))   # 4
+int find_unique(const int nums[], size_t count) {
+    int result = 0;
+
+    for (size_t i = 0; i < count; ++i) {
+        result ^= nums[i];
+    }
+    return result;
+}
+
+int main(void) {
+    const int nums[] = {4, 1, 2, 1, 2};
+    const size_t count = sizeof nums / sizeof nums[0];
+
+    printf("%d\n", find_unique(nums, count));   /* 4 */
+    return 0;
+}
 ```
 
 This one is genuinely excellent: O(n) time, O(1) space, and order doesn't matter because XOR is commutative and associative.

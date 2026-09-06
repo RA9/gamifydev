@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -19,15 +20,20 @@ const (
 )
 
 type Problem struct {
-	ID          int64
-	Slug        string
-	Title       string
-	Difficulty  string
-	Topic       string
-	Statement   string
-	TimeLimitMs int
-	Sort        int
-	Published   bool
+	ID              int64
+	Slug            string
+	Title           string
+	Difficulty      string
+	Topic           string
+	Statement       string
+	TimeLimitMs     int
+	Sort            int
+	Published       bool
+	WorkloadMinutes int
+	Mode            string
+	Language        string
+	CourseSort      int  // populated for course-integrated problems
+	Required        bool // populated for course-integrated problems
 	// Solved is filled by list queries that know who is asking.
 	Solved bool
 }
@@ -94,6 +100,7 @@ func (s *Store) ListProblems(ctx context.Context, by Solver) ([]Problem, error) 
 	userID, guestID := by.cols()
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT p.id, p.slug, p.title, p.difficulty, p.topic, p.time_limit_ms, p.sort,
+		       p.workload_minutes, p.mode, p.language,
 		       EXISTS (
 		         SELECT 1 FROM problem_submissions ps
 		         WHERE ps.problem_id = p.id AND ps.verdict = 'accepted'
@@ -110,7 +117,7 @@ func (s *Store) ListProblems(ctx context.Context, by Solver) ([]Problem, error) 
 	for rows.Next() {
 		var p Problem
 		if err := rows.Scan(&p.ID, &p.Slug, &p.Title, &p.Difficulty, &p.Topic,
-			&p.TimeLimitMs, &p.Sort, &p.Solved); err != nil {
+			&p.TimeLimitMs, &p.Sort, &p.WorkloadMinutes, &p.Mode, &p.Language, &p.Solved); err != nil {
 			return nil, err
 		}
 		out = append(out, p)
@@ -121,10 +128,11 @@ func (s *Store) ListProblems(ctx context.Context, by Solver) ([]Problem, error) 
 func (s *Store) GetProblemBySlug(ctx context.Context, slug string) (*Problem, error) {
 	var p Problem
 	err := s.db.QueryRowContext(ctx, `
-		SELECT id, slug, title, difficulty, topic, statement, time_limit_ms, sort, published
+		SELECT id, slug, title, difficulty, topic, statement, time_limit_ms, sort,
+		       published, workload_minutes, mode, language
 		FROM problems WHERE slug = ? AND published = 1`, slug).
 		Scan(&p.ID, &p.Slug, &p.Title, &p.Difficulty, &p.Topic, &p.Statement,
-			&p.TimeLimitMs, &p.Sort, &p.Published)
+			&p.TimeLimitMs, &p.Sort, &p.Published, &p.WorkloadMinutes, &p.Mode, &p.Language)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -175,20 +183,95 @@ func (s *Store) ProblemTests(ctx context.Context, problemID int64) ([]Check, err
 
 // UpsertProblem writes a problem by slug and returns its id.
 func (s *Store) UpsertProblem(ctx context.Context, p Problem) (int64, error) {
+	if p.WorkloadMinutes <= 0 {
+		p.WorkloadMinutes = 30
+	}
+	if p.Mode == "" {
+		p.Mode = ModePractical
+	}
+	if p.Language == "" {
+		p.Language = "python"
+	}
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO problems (slug, title, difficulty, topic, statement, time_limit_ms, sort, published)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO problems
+			(slug, title, difficulty, topic, statement, time_limit_ms, sort, published,
+			 workload_minutes, mode, language)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(slug) DO UPDATE SET
 			title=excluded.title, difficulty=excluded.difficulty, topic=excluded.topic,
 			statement=excluded.statement, time_limit_ms=excluded.time_limit_ms,
-			sort=excluded.sort, published=excluded.published`,
-		p.Slug, p.Title, p.Difficulty, p.Topic, p.Statement, p.TimeLimitMs, p.Sort, boolToInt(p.Published))
+			sort=excluded.sort, published=excluded.published,
+			workload_minutes=excluded.workload_minutes, mode=excluded.mode,
+			language=excluded.language`,
+		p.Slug, p.Title, p.Difficulty, p.Topic, p.Statement, p.TimeLimitMs, p.Sort,
+		boolToInt(p.Published), p.WorkloadMinutes, p.Mode, p.Language)
 	if err != nil {
 		return 0, err
 	}
 	var id int64
 	err = s.db.QueryRowContext(ctx, `SELECT id FROM problems WHERE slug = ?`, p.Slug).Scan(&id)
 	return id, err
+}
+
+// SetCourseProblemsBySlug replaces the ordered practice set integrated into a
+// course. Problems remain available in the public bank; this table only gives
+// them a curricular home and order.
+func (s *Store) SetCourseProblemsBySlug(ctx context.Context, courseID int64, slugs []string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+	if _, err := tx.ExecContext(ctx, `DELETE FROM course_problems WHERE course_id = ?`, courseID); err != nil {
+		return err
+	}
+	for i, slug := range slugs {
+		var problemID int64
+		if err := tx.QueryRowContext(ctx,
+			`SELECT id FROM problems WHERE slug = ? AND published = 1`, slug).Scan(&problemID); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("course problem %q: %w", slug, ErrNotFound)
+			}
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO course_problems (course_id, problem_id, sort, required)
+			VALUES (?, ?, ?, 1)`, courseID, problemID, i); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+// ListProblemsByCourse returns the ordered practice set embedded in a course.
+func (s *Store) ListProblemsByCourse(ctx context.Context, courseID int64, by Solver) ([]Problem, error) {
+	userID, guestID := by.cols()
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT p.id, p.slug, p.title, p.difficulty, p.topic, p.time_limit_ms, p.sort,
+		       p.workload_minutes, p.mode, p.language, cp.sort, cp.required,
+		       EXISTS (
+		         SELECT 1 FROM problem_submissions ps
+		         WHERE ps.problem_id = p.id AND ps.verdict = 'accepted'
+		           AND (ps.user_id = ? OR ps.guest_id = ?)
+		       ) AS solved
+		FROM course_problems cp JOIN problems p ON p.id = cp.problem_id
+		WHERE cp.course_id = ? AND p.published = 1
+		ORDER BY cp.sort, p.id`, userID, guestID, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Problem
+	for rows.Next() {
+		var p Problem
+		if err := rows.Scan(&p.ID, &p.Slug, &p.Title, &p.Difficulty, &p.Topic,
+			&p.TimeLimitMs, &p.Sort, &p.WorkloadMinutes, &p.Mode, &p.Language,
+			&p.CourseSort, &p.Required, &p.Solved); err != nil {
+			return nil, err
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
 }
 
 // ReplaceStarters and ReplaceProblemTests swap a problem's content wholesale,

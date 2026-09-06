@@ -8,20 +8,36 @@ All three are O(n²), and you'll meet much faster sorts in the next lessons. But
 
 **Bubble sort** repeatedly walks the list comparing each pair of neighbours, swapping them if they're out of order. After one full pass, the largest value has "bubbled" all the way to the end. Repeat, and the next largest settles into place, and so on.
 
-```python
-def bubble_sort(items):
-    n = len(items)
-    for i in range(n - 1):
-        swapped = False
-        for j in range(n - 1 - i):                  # the last i are already sorted
-            if items[j] > items[j + 1]:
-                items[j], items[j + 1] = items[j + 1], items[j]
-                swapped = True
-        if not swapped:                             # early exit: already sorted
-            return items
-    return items
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-print(bubble_sort([5, 1, 4, 2]))   # [1, 2, 4, 5]
+void bubble_sort(int items[], size_t n) {
+    for (size_t i = 0; i + 1 < n; ++i) {
+        bool swapped = false;
+        for (size_t j = 0; j + 1 < n - i; ++j) { /* Last i are sorted. */
+            if (items[j] > items[j + 1]) {
+                int tmp = items[j];
+                items[j] = items[j + 1];
+                items[j + 1] = tmp;
+                swapped = true;
+            }
+        }
+        if (!swapped) {                             /* Already sorted. */
+            return;
+        }
+    }
+}
+
+int main(void) {
+    int items[] = {5, 1, 4, 2};
+    size_t n = sizeof items / sizeof items[0];
+    bubble_sort(items, n);
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    /* 1 2 4 5 */
+    return 0;
+}
 ```
 
 A trace of the first pass over `[5, 1, 4, 2]`:
@@ -43,19 +59,32 @@ Without the `swapped` flag, bubble sort is O(n²) even on already-sorted input. 
 
 **Selection sort** takes a different tack. Scan the unsorted portion for the smallest element, then swap it into the front of that portion. Repeat with the remaining tail.
 
-```python
-def selection_sort(items):
-    n = len(items)
-    for i in range(n - 1):
-        smallest = i
-        for j in range(i + 1, n):
-            if items[j] < items[smallest]:
-                smallest = j
-        if smallest != i:
-            items[i], items[smallest] = items[smallest], items[i]
-    return items
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(selection_sort([5, 1, 4, 2]))   # [1, 2, 4, 5]
+void selection_sort(int items[], size_t n) {
+    for (size_t i = 0; i + 1 < n; ++i) {
+        size_t smallest = i;
+        for (size_t j = i + 1; j < n; ++j) {
+            if (items[j] < items[smallest]) smallest = j;
+        }
+        if (smallest != i) {
+            int tmp = items[i];
+            items[i] = items[smallest];
+            items[smallest] = tmp;
+        }
+    }
+}
+
+int main(void) {
+    int items[] = {5, 1, 4, 2};
+    size_t n = sizeof items / sizeof items[0];
+    selection_sort(items, n);
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    /* 1 2 4 5 */
+    return 0;
+}
 ```
 
 Trace it:
@@ -81,18 +110,30 @@ Sort `[3a, 3b, 1]` where `3a` and `3b` are equal values you can tell apart. Sele
 
 **Insertion sort** is how most people sort a hand of playing cards. Keep the left portion sorted. Take the next card, slide it leftwards past every card bigger than it, and drop it into place.
 
-```python
-def insertion_sort(items):
-    for i in range(1, len(items)):
-        current = items[i]
-        j = i - 1
-        while j >= 0 and items[j] > current:
-            items[j + 1] = items[j]      # shift the bigger value right
-            j -= 1
-        items[j + 1] = current           # drop current into the gap
-    return items
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(insertion_sort([5, 1, 4, 2]))   # [1, 2, 4, 5]
+void insertion_sort(int items[], size_t n) {
+    for (size_t i = 1; i < n; ++i) {
+        int current = items[i];
+        size_t j = i;
+        while (j > 0 && items[j - 1] > current) {
+            items[j] = items[j - 1];     /* Shift the bigger value right. */
+            --j;
+        }
+        items[j] = current;              /* Drop current into the gap. */
+    }
+}
+
+int main(void) {
+    int items[] = {5, 1, 4, 2};
+    size_t n = sizeof items / sizeof items[0];
+    insertion_sort(items, n);
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    /* 1 2 4 5 */
+    return 0;
+}
 ```
 
 The trace, with `|` marking the boundary of the sorted portion:
@@ -114,15 +155,38 @@ Insertion sort is sorting a hand of cards as they're dealt to you. You never re-
 
 A sort is **stable** if elements that compare equal keep their original relative order. This matters more than it first sounds, because it lets you sort by several keys in sequence.
 
-```python
-players = [("ada", 90), ("bo", 85), ("cy", 90), ("di", 85)]
-# already ordered by name. Now stable-sort by score, descending:
-players.sort(key=lambda p: -p[1])
-print(players)
-# [('ada', 90), ('cy', 90), ('bo', 85), ('di', 85)]
+```c
+#include <stddef.h>
+#include <stdio.h>
+
+typedef struct {
+    const char *name;
+    int score;
+} Player;
+
+void stable_sort_by_score(Player players[], size_t n) {
+    for (size_t i = 1; i < n; ++i) {
+        Player current = players[i];
+        size_t j = i;
+        while (j > 0 && players[j - 1].score < current.score) {
+            players[j] = players[j - 1];
+            --j;
+        }
+        players[j] = current;
+    }
+}
+
+int main(void) {
+    Player players[] = {{"ada", 90}, {"bo", 85}, {"cy", 90}, {"di", 85}};
+    size_t n = sizeof players / sizeof players[0]; /* Already ordered by name. */
+    stable_sort_by_score(players, n);
+    for (size_t i = 0; i < n; ++i) printf("(%s, %d)%c", players[i].name, players[i].score, i + 1 == n ? '\n' : ' ');
+    /* (ada, 90) (cy, 90) (bo, 85) (di, 85) */
+    return 0;
+}
 ```
 
-Within each score, names stayed alphabetical — because Python's `sort` is stable. An unstable sort could have produced `('cy', 90), ('ada', 90)` and silently destroyed the earlier ordering.
+Within each score, names stayed alphabetical because the insertion sort above is stable. An unstable sort could have put `(cy, 90)` before `(ada, 90)` and silently destroyed the earlier ordering.
 
 ```text
 Sort           Best      Average   Worst     Space   Stable
@@ -144,7 +208,7 @@ Selection sort: rarely, and only when swap cost dominates comparison cost.
 
 Insertion sort: **genuinely used, every day**. Two reasons. First, it's outstanding on small arrays — the constant factors are tiny, with no recursion and no extra allocation, so for arrays of maybe 10 to 30 elements it beats the asymptotically better sorts. Second, it's near-linear on nearly-sorted data, which is extremely common in practice.
 
-Real library sorts exploit both facts. **Hybrid sorts** run a fast O(n log n) algorithm down to small sub-arrays and then finish with insertion sort. Python's built-in sort is a hybrid built around merge sort and runs of insertion sort, and it detects already-sorted runs so that sorting nearly-ordered data is close to O(n).
+Real library sorts exploit both facts. **Hybrid sorts** run a fast O(n log n) algorithm down to small sub-arrays and then finish with insertion sort. Many production implementations also detect already-sorted runs so that sorting nearly-ordered data is close to O(n). C's standard `qsort` does not prescribe a particular algorithm or guarantee stability, so check your implementation or provide the required sort explicitly.
 
 :::tip
 "Asymptotically worse" doesn't mean "always slower." Big O describes growth as n gets large; for n = 15 the constant factors dominate, and that's precisely the gap insertion sort fills inside every serious sorting library.
@@ -163,24 +227,35 @@ E: Selection sort must scan the entire unsorted portion to find its minimum, eve
 
 :::predict
 Q: What does this print?
-```python
-def insertion_sort(items):
-    for i in range(1, len(items)):
-        current = items[i]
-        j = i - 1
-        while j >= 0 and items[j] > current:
-            items[j + 1] = items[j]
-            j -= 1
-        items[j + 1] = current
-    return items
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(insertion_sort([3, 1, 2]))
+void insertion_sort(int items[], size_t n) {
+    for (size_t i = 1; i < n; ++i) {
+        int current = items[i];
+        size_t j = i;
+        while (j > 0 && items[j - 1] > current) {
+            items[j] = items[j - 1];
+            --j;
+        }
+        items[j] = current;
+    }
+}
+
+int main(void) {
+    int items[] = {3, 1, 2};
+    size_t n = sizeof items / sizeof items[0];
+    insertion_sort(items, n);
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    return 0;
+}
 ```
-- [1, 2, 3] *
-- [3, 2, 1]
-- [1, 3, 2]
-- [2, 1, 3]
-E: Take 1: shift 3 right, insert 1 -> [1, 3, 2]. Take 2: shift 3 right, insert 2 -> [1, 2, 3].
+- `1 2 3` *
+- `3 2 1`
+- `1 3 2`
+- `2 1 3`
+E: Take 1: shift 3 right, insert 1, producing `1 3 2`. Take 2: shift 3 right, insert 2, producing `1 2 3`.
 :::
 
 :::quiz

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	"github.com/RA9/gamifydev/platform/internal/schedule"
 )
 
 // mkCourse creates a course with n lessons and optionally a required checkpoint,
@@ -83,6 +85,50 @@ func TestMaterializeScheduleIsIdempotent(t *testing.T) {
 	for _, id := range pending {
 		if id == cid {
 			t.Fatal("a scheduled cohort is still listed as unscheduled")
+		}
+	}
+}
+
+func TestRequiredCourseProblemsAreScheduledAndCompleted(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	cohortID, userID, _ := scheduledCohort(t, st)
+	var courseID, problemID int64
+	if err := st.db.QueryRow(`SELECT id FROM courses WHERE slug = 'c1'`).Scan(&courseID); err != nil {
+		t.Fatalf("course: %v", err)
+	}
+	if err := st.db.QueryRow(`
+		INSERT INTO problems (slug, title, language, workload_minutes, mode, published)
+		VALUES ('guided-c', 'Guided C', 'c', 70, 'practical', 1) RETURNING id`).Scan(&problemID); err != nil {
+		t.Fatalf("problem: %v", err)
+	}
+	mustExec(t, st, `INSERT INTO course_problems (course_id, problem_id, sort, required) VALUES (?, ?, 0, 1)`, courseID, problemID)
+	if n, err := st.MaterializeSchedule(ctx, cohortID); err != nil || n != 7 {
+		t.Fatalf("materialize with problem = %d, %v; want 7, nil", n, err)
+	}
+	items, err := st.CohortSchedule(ctx, cohortID, userID)
+	if err != nil {
+		t.Fatalf("schedule: %v", err)
+	}
+	var problemItem *ScheduleItem
+	for i := range items {
+		if items[i].Kind == schedule.KindProblem {
+			problemItem = &items[i]
+			break
+		}
+	}
+	if problemItem == nil || !problemItem.ProblemID.Valid || problemItem.ProblemID.Int64 != problemID || problemItem.URL() != "/problems/guided-c" || problemItem.Done {
+		t.Fatalf("scheduled problem = %+v", problemItem)
+	}
+	mustExec(t, st, `INSERT INTO problem_submissions
+		(problem_id, user_id, language, code, verdict) VALUES (?, ?, 'c', 'ok', 'accepted')`, problemID, userID)
+	items, err = st.CohortSchedule(ctx, cohortID, userID)
+	if err != nil {
+		t.Fatalf("completed schedule: %v", err)
+	}
+	for i := range items {
+		if items[i].Kind == schedule.KindProblem && !items[i].Done {
+			t.Fatalf("accepted problem is not complete: %+v", items[i])
 		}
 	}
 }

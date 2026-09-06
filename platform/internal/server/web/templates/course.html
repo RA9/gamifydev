@@ -9,6 +9,7 @@
     <div>
       <h1>{{ $course.Title }}</h1>
       <p class="muted">{{ $course.Tagline }}</p>
+      {{ if $course.PrimaryLanguage }}<p class="muted">Primary language: {{ $course.PrimaryLanguage }}</p>{{ end }}
     </div>
   </div>
 </div>
@@ -47,6 +48,7 @@
               <span class="lesson-title">{{ .Title }}{{ if .Kind }}<span class="kind-badge kind-{{ .Kind }}">{{ titlecase .Kind }}</span>{{ end }}
                 {{ $sp := index $stepProg .ID }}{{ if $sp.Total }}<span class="step-pill {{ if and (gt $sp.Done 0) (ge $sp.Done $sp.Total) }}is-done{{ end }}">{{ $sp.Done }}/{{ $sp.Total }} steps</span>{{ end }}</span>
               {{ if .Summary }}<span class="lesson-sum muted">{{ .Summary }}</span>{{ end }}
+              <span class="lesson-sum muted">{{ .Mode }} · {{ .WorkloadMinutes }} min{{ if ne .Language "none" }} · {{ .Language }}{{ end }}</span>
             </span>
             {{ if $locked }}<span class="lesson-go lesson-lock" title="Sign in to continue">{{ icon "lock" }}</span>{{ else }}<span class="lesson-go">→</span>{{ end }}
           </a>
@@ -56,6 +58,23 @@
   </section>
 {{ else }}
   <ol class="lesson-list card"><li class="muted">No lessons yet.</li></ol>
+{{ end }}
+
+{{ with index .Data "problems" }}
+<h2 class="course-checkpoint-title">{{ icon "terminal" }} Guided practice</h2>
+<p class="muted course-checkpoint-sub">These problems are part of this course. Solve them in C to turn the lesson into working code.</p>
+<ul class="checkpoint-list">
+  {{ range . }}
+  <li class="card checkpoint-item {{ if .Solved }}is-passed{{ end }}">
+    <span class="checkpoint-ic">{{ if .Solved }}{{ icon "check" }}{{ else }}{{ icon "terminal" }}{{ end }}</span>
+    <span class="checkpoint-info">
+      <span class="checkpoint-title">{{ .Title }}{{ if .Solved }} <span class="badge badge-ok">Solved</span>{{ end }}</span>
+      <span class="muted">{{ .Difficulty }} · {{ .Mode }} · {{ .WorkloadMinutes }} min · {{ .Language }}</span>
+    </span>
+    <a href="/problems/{{ .Slug }}" class="btn btn-secondary btn-sm">{{ if .Solved }}Review{{ else }}Practice{{ end }}</a>
+  </li>
+  {{ end }}
+</ul>
 {{ end }}
 
 {{ $passed := index .Data "passed" }}
@@ -72,7 +91,7 @@
           {{ if .Required }}<span class="badge badge-warn">Required</span>{{ end }}
           {{ if $isPassed }}<span class="badge badge-ok">Passed</span>{{ end }}
         </span>
-        <span class="muted">{{ .Language }} · {{ .MaxPoints }} pts{{ if gt .PassPoints 0 }} · pass ≥ {{ .PassPoints }}{{ end }}</span>
+        <span class="muted">{{ .Language }} · {{ .Mode }} · {{ .WorkloadMinutes }} min · {{ .MaxPoints }} pts{{ if gt .PassPoints 0 }} · pass ≥ {{ .PassPoints }}{{ end }}</span>
       </span>
       {{ if $locked }}
         <a href="/login" class="btn btn-secondary btn-sm">{{ icon "lock" }} Sign in</a>

@@ -50,36 +50,70 @@ A tree is just a special graph: connected, undirected, acyclic, with exactly V �
 
 ## Representation 1: the adjacency list
 
-The first way to store a graph is to give each vertex a list of its neighbours. In Python that's naturally a dictionary of lists.
+The first way to store a graph is to give each vertex an array of its neighbours. In C, a small fixed graph can pair each array with its length.
 
-```python
-graph = {
-    "A": ["B", "C"],
-    "B": ["A", "C", "D"],
-    "C": ["A", "B"],
-    "D": ["B"],
-    "E": [],
+```c
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
+typedef struct {
+    const char *label;
+    const char **neighbors;
+    size_t degree;
+} Vertex;
+
+bool has_neighbor(const Vertex *vertex, const char *label) {
+    for (size_t i = 0; i < vertex->degree; i++) {
+        if (strcmp(vertex->neighbors[i], label) == 0) return true;
+    }
+    return false;
 }
 
-print(graph["B"])         # ['A', 'C', 'D']
-print(len(graph["B"]))    # 3  -- the degree of B
-print("D" in graph["A"])  # False -- no edge between A and D
+int main(void) {
+    const char *a[] = {"B", "C"};
+    const char *b[] = {"A", "C", "D"};
+    const char *c[] = {"A", "B"};
+    const char *d[] = {"B"};
+    Vertex graph[] = {{"A", a, 2}, {"B", b, 3}, {"C", c, 2},
+                      {"D", d, 1}, {"E", NULL, 0}};
+
+    printf("[%s, %s, %s]\n", graph[1].neighbors[0], graph[1].neighbors[1],
+           graph[1].neighbors[2]);
+    printf("%zu\n", graph[1].degree);               // 3, the degree of B
+    printf("%s\n", has_neighbor(&graph[0], "D") ? "true" : "false");
+    return 0;
+}
 ```
 
 Because the graph is undirected, every edge appears twice — B is in A's list and A is in B's. For a directed graph you'd store each edge only in the source vertex's list.
 
 Space is **O(V + E)**: one entry per vertex, plus one list slot per edge endpoint. Nothing is stored for edges that don't exist, which is the key property.
 
-For weights, swap the inner list for a dictionary mapping neighbour to weight:
+For weights, store a neighbour and weight together in each adjacency entry:
 
-```python
-roads = {
-    "A": {"B": 5, "C": 2},
-    "B": {"A": 5, "D": 7},
-    "C": {"A": 2},
-    "D": {"B": 7},
+```c
+#include <stdio.h>
+
+typedef struct {
+    char neighbor;
+    int weight;
+} Edge;
+
+typedef struct {
+    Edge *edges;
+    size_t count;
+} WeightedAdjacency;
+
+int main(void) {
+    Edge from_a[] = {{'B', 5}, {'C', 2}};
+    Edge from_b[] = {{'A', 5}, {'D', 7}};
+    Edge from_c[] = {{'A', 2}};
+    Edge from_d[] = {{'B', 7}};
+    WeightedAdjacency roads[] = {{from_a, 2}, {from_b, 2}, {from_c, 1}, {from_d, 1}};
+    printf("%d\n", roads[0].edges[1].weight);   // 2, weight from A to C
+    return 0;
 }
-print(roads["A"]["C"])   # 2
 ```
 
 ## Representation 2: the adjacency matrix
@@ -97,22 +131,29 @@ The second way is a V × V grid of 0s and 1s. Row `i`, column `j` holds 1 if the
 
 For an undirected graph the matrix is symmetric across the diagonal — the top-right half mirrors the bottom-left — because every edge is recorded in both directions. A directed graph's matrix generally is not symmetric.
 
-```python
-labels = ["A", "B", "C", "D", "E"]
-matrix = [
-    [0, 1, 1, 0, 0],
-    [1, 0, 1, 1, 0],
-    [1, 1, 0, 0, 0],
-    [0, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-]
+```c
+#include <stdio.h>
 
-b, d = labels.index("B"), labels.index("D")
-print(matrix[b][d])    # 1  -- B and D are connected
-print(sum(matrix[b]))  # 3  -- the degree of B
+int main(void) {
+    enum { A, B, C, D, E, VERTEX_COUNT };
+    int matrix[VERTEX_COUNT][VERTEX_COUNT] = {
+        {0, 1, 1, 0, 0},
+        {1, 0, 1, 1, 0},
+        {1, 1, 0, 0, 0},
+        {0, 1, 0, 0, 0},
+        {0, 0, 0, 0, 0},
+    };
+    int degree = 0;
+    for (size_t column = 0; column < VERTEX_COUNT; column++) {
+        degree += matrix[B][column];
+    }
+    printf("%d\n", matrix[B][D]);   // 1, B and D are connected
+    printf("%d\n", degree);         // 3, the degree of B
+    return 0;
+}
 ```
 
-Checking whether a specific edge exists is one array access: **O(1)**, unbeatable. For weights, store the weight instead of 1 (using `None` or infinity for "no edge").
+Checking whether a specific edge exists is one array access: **O(1)**, unbeatable. For weights, store the weight instead of 1 and use a documented sentinel such as `INT_MAX` for "no edge".
 
 The catch is the empty space. Our graph has 4 edges and the matrix has 25 cells, 17 of which are zeros stored at full cost. Space is **O(V²)** whether the graph is crowded or nearly empty.
 
@@ -170,15 +211,20 @@ E: With ~2,000,000 edges and 500,000 vertices, this graph is extremely sparse. A
 
 :::predict
 Q: What does this print?
-```python
-graph = {"A": ["B", "C"], "B": ["A", "C", "D"],
-         "C": ["A", "B"], "D": ["B"], "E": []}
-print(len(graph["B"]), len(graph["E"]), "D" in graph["C"])
+```c
+const char *a[] = {"B", "C"};
+const char *b[] = {"A", "C", "D"};
+const char *c[] = {"A", "B"};
+const char *d[] = {"B"};
+Vertex graph[] = {{"A", a, 2}, {"B", b, 3}, {"C", c, 2},
+                  {"D", d, 1}, {"E", NULL, 0}};
+printf("%zu %zu %s\n", graph[1].degree, graph[4].degree,
+       has_neighbor(&graph[2], "D") ? "true" : "false");
 ```
-- 3 0 False *
-- 3 0 True
-- 4 1 False
-- 2 0 False
+- 3 0 false *
+- 3 0 true
+- 4 1 false
+- 2 0 false
 E: B has three neighbours, E has none, and there is no edge between C and D.
 :::
 

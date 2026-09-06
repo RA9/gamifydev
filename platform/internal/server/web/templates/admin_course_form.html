@@ -18,6 +18,19 @@
       <input name="tagline" value="{{ if $c }}{{ $c.Tagline }}{{ end }}" /></label>
     <label class="field"><span>Description</span>
       <textarea name="description" rows="3">{{ if $c }}{{ $c.Description }}{{ end }}</textarea></label>
+    <div class="form-row">
+      <label class="field"><span>Primary language</span>
+        <input name="primary_language" value="{{ if $c }}{{ $c.PrimaryLanguage }}{{ end }}" placeholder="c, python, javascript…" /></label>
+      <label class="field"><span>Language policy</span>
+        {{ $policy := "mixed" }}{{ if $c }}{{ $policy = $c.LanguagePolicy }}{{ end }}
+        <select name="language_policy" class="role-select">
+          <option value="mixed" {{ if eq $policy "mixed" }}selected{{ end }}>Mixed</option>
+          <option value="c_only" {{ if eq $policy "c_only" }}selected{{ end }}>C only</option>
+          <option value="c_with_exception" {{ if eq $policy "c_with_exception" }}selected{{ end }}>C with justified exception</option>
+        </select></label>
+    </div>
+    <label class="field"><span>Language exception <span class="muted">(required when policy permits one)</span></span>
+      <textarea name="language_exception" rows="2">{{ if $c }}{{ $c.LanguageException }}{{ end }}</textarea></label>
     <label class="check"><input type="checkbox" name="published" value="1" {{ if not $c }}checked{{ else if $c.Published }}checked{{ end }} /> Published</label>
     <button class="btn btn-primary" type="submit">Create course</button>
   </form>

@@ -8,30 +8,51 @@ Space complexity asks: **how much memory does this algorithm need, as the input 
 
 Same notation, same rules. Drop constants, drop lower-order terms, keep the dominant growth.
 
-```python
-def total(nums):
-    result = 0          # one variable
-    for x in nums:      # one loop variable
-        result += x
-    return result
+```c
+#include <stddef.h>
+
+long total(const int nums[], size_t n) {
+    long result = 0;                    // one variable
+    for (size_t i = 0; i < n; i++) {   // one loop variable
+        result += nums[i];
+    }
+    return result;
+}
 ```
 
-However long `nums` is, this function creates two extra variables. Two isn't "small" or "big" — it's *constant*, so the extra memory is `O(1)`.
+However long `nums` is, this function creates only a fixed number of extra variables. Two isn't "small" or "big" — it's *constant*, so the extra memory is `O(1)`.
 
 Now compare:
 
-```python
-def doubled(nums):
-    out = []                 # grows to n items
-    for x in nums:
-        out.append(x * 2)
-    return out
+```c
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-print(doubled([1, 2, 3]))
-# [2, 4, 6]
+int *doubled(const int nums[], size_t n) {
+    int *out = malloc(n * sizeof *out);  // grows to n items
+    if (out == NULL && n != 0) {
+        return NULL;
+    }
+    for (size_t i = 0; i < n; i++) {
+        out[i] = nums[i] * 2;
+    }
+    return out;
+}
+
+int main(void) {
+    const int nums[] = {1, 2, 3};
+    int *out = doubled(nums, 3);
+    if (out == NULL) {
+        return EXIT_FAILURE;
+    }
+    printf("[%d, %d, %d]\n", out[0], out[1], out[2]);  // [2, 4, 6]
+    free(out);
+    return 0;
+}
 ```
 
-The new list holds one entry per input item, so the extra memory is `O(n)`. Ten items in, ten out; a million in, a million out.
+The new array holds one entry per input item, so the extra memory is `O(n)`. Ten items in, ten out; a million in, a million out.
 
 :::key
 Space complexity counts memory that **grows with n**. A fixed handful of variables is O(1) no matter how many of them there are. A structure with one slot per input item is O(n).
@@ -41,16 +62,16 @@ Space complexity counts memory that **grows with n**. A fixed handful of variabl
 
 Two different questions hide behind "how much memory does it use?"
 
-**Total space** counts everything, including the input itself. Since a list of n items always occupies n slots, the total space of any algorithm that takes a list is at least `O(n)`. That makes total space a slightly boring measurement.
+**Total space** counts everything, including the input itself. Since an array of n items always occupies n slots, the total space of any algorithm that takes an array is at least `O(n)`. That makes total space a slightly boring measurement.
 
 **Auxiliary space** counts only the *extra* memory the algorithm allocates on top of the input it was handed. This is almost always the interesting number, and it's what people mean when they say "space complexity" without qualification.
 
 ```text
 algorithm                          auxiliary     total
 --------------------------------   -----------   ---------
-sum a list with a running total     O(1)          O(n)
-build a doubled copy of a list      O(n)          O(n)
-merge sort a list                   O(n)          O(n)
+sum an array with a running total     O(1)          O(n)
+build a doubled copy of an array      O(n)          O(n)
+merge sort an array                   O(n)          O(n)
 ```
 
 :::tip
@@ -63,30 +84,49 @@ An algorithm is **in-place** when it rearranges the input using only `O(1)` auxi
 
 Reversing a list out-of-place:
 
-```python
-def reverse_copy(nums):
-    out = []
-    for x in nums:
-        out.insert(0, x)     # builds a whole new list
-    return out
+```c
+#include <stddef.h>
+#include <stdlib.h>
+
+int *reverse_copy(const int nums[], size_t n) {
+    int *out = malloc(n * sizeof *out);  // builds a whole new array
+    if (out == NULL && n != 0) {
+        return NULL;
+    }
+    for (size_t i = 0; i < n; i++) {
+        out[n - 1 - i] = nums[i];
+    }
+    return out;
+}
 ```
 
 That's `O(n)` auxiliary space. In-place, using two indices that walk toward each other:
 
-```python
-def reverse_in_place(nums):
-    lo, hi = 0, len(nums) - 1
-    while lo < hi:
-        nums[lo], nums[hi] = nums[hi], nums[lo]
-        lo += 1
-        hi -= 1
-    return nums
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(reverse_in_place([1, 2, 3, 4]))
-# [4, 3, 2, 1]
+void reverse_in_place(int nums[], size_t n) {
+    size_t lo = 0;
+    size_t hi = n;
+    while (lo < hi) {
+        hi--;
+        int temp = nums[lo];
+        nums[lo] = nums[hi];
+        nums[hi] = temp;
+        lo++;
+    }
+}
+
+int main(void) {
+    int nums[] = {1, 2, 3, 4};
+    reverse_in_place(nums, 4);
+    printf("[%d, %d, %d, %d]\n", nums[0], nums[1], nums[2], nums[3]);  // [4, 3, 2, 1]
+    return 0;
+}
 ```
 
-Two integer variables, regardless of list length: `O(1)` auxiliary space. Note the cost — the original order is gone. In-place algorithms destroy their input, which is sometimes exactly what you want and sometimes a bug waiting to happen.
+A fixed number of variables, regardless of array length: `O(1)` auxiliary space. Note the cost — the original order is gone. In-place algorithms destroy their input, which is sometimes exactly what you want and sometimes a bug waiting to happen.
 
 :::warning
 "In-place" is about auxiliary space, not about whether you used the word `new`. And it's applied a little loosely in practice: quicksort is universally called in-place even though its recursion needs O(log n) stack space on average. The spirit is "no second copy of the data."
@@ -96,30 +136,42 @@ Two integer variables, regardless of list length: `O(1)` auxiliary space. Note t
 
 Here's the one people forget. Every function call reserves a **stack frame** — space for its parameters, its local variables, and where to return to. Frames stack up and are only released when the calls return. So **recursion depth is space**.
 
-```python
-def sum_recursive(n):
-    if n == 0:
-        return 0
-    return n + sum_recursive(n - 1)
+```c
+#include <stdio.h>
 
-print(sum_recursive(5))
-# 15
+unsigned sum_recursive(unsigned n) {
+    if (n == 0) {
+        return 0;
+    }
+    return n + sum_recursive(n - 1);
+}
+
+int main(void) {
+    printf("%u\n", sum_recursive(5));  // 15
+    return 0;
+}
 ```
 
 This looks like it allocates nothing. But calling `sum_recursive(900)` means nine hundred frames are open at once before the first one returns: `O(n)` space. The loop version uses `O(1)`:
 
-```python
-def sum_loop(n):
-    total = 0
-    for i in range(1, n + 1):
-        total += i
-    return total
+```c
+#include <stdio.h>
 
-print(sum_loop(5))
-# 15
+unsigned sum_loop(unsigned n) {
+    unsigned total = 0;
+    for (unsigned i = 1; i <= n; i++) {
+        total += i;
+    }
+    return total;
+}
+
+int main(void) {
+    printf("%u\n", sum_loop(5));  // 15
+    return 0;
+}
 ```
 
-Same answer, same `O(n)` time, completely different space. This is also why Python raises `RecursionError` rather than silently grinding on — a depth limit is a memory guard.
+Same answer, same `O(n)` time, completely different space. C does not guarantee a recursion-depth guard, so sufficiently deep recursion can exhaust the process's call stack and terminate the program.
 
 ```text
 recursive shape                  stack depth     space
@@ -143,18 +195,36 @@ Very often you can spend memory to save time, or spend time to save memory. Reco
 
 **Memoisation buys time with memory.** Store answers you've already computed, so you never compute them twice.
 
-```python
-def fib_memo(n, cache=None):
-    if cache is None:
-        cache = {}
-    if n < 2:
-        return n
-    if n not in cache:
-        cache[n] = fib_memo(n - 1, cache) + fib_memo(n - 2, cache)
-    return cache[n]
+```c
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-print(fib_memo(50))
-# 12586269025
+unsigned long long fib_memo_impl(size_t n, unsigned long long cache[]) {
+    if (n < 2) {
+        return n;
+    }
+    if (cache[n] == 0) {
+        cache[n] = fib_memo_impl(n - 1, cache) + fib_memo_impl(n - 2, cache);
+    }
+    return cache[n];
+}
+
+unsigned long long fib_memo(size_t n) {
+    unsigned long long *cache = calloc(n + 1, sizeof *cache);
+    if (cache == NULL) {
+        fprintf(stderr, "could not allocate Fibonacci cache\n");
+        exit(EXIT_FAILURE);
+    }
+    unsigned long long result = fib_memo_impl(n, cache);
+    free(cache);
+    return result;
+}
+
+int main(void) {
+    printf("%llu\n", fib_memo(50));  // 12586269025
+    return 0;
+}
 ```
 
 Naive Fibonacci is exponential in time and `O(n)` in space (the stack). Memoised, it's `O(n)` time and `O(n)` space — the cache holds one entry per value of n. You spent linear memory to delete exponential time. Excellent deal.
@@ -187,7 +257,7 @@ E: It allocates a fixed number of variables regardless of list length, so the ex
 
 :::quiz
 Q: Why does a recursive function that recurses n levels deep use O(n) space even if it allocates no arrays?
-- Python copies the list at every call
+- C copies the entire array at every call
 - Each open call keeps a stack frame alive until it returns *
 - Recursion always duplicates its input
 - Because O(n) time always implies O(n) space
@@ -196,7 +266,7 @@ E: Every pending call holds a stack frame with its locals and return address. n 
 
 :::match
 Q: Match each approach to its auxiliary space.
-- Summing a list with a running total | O(1)
+- Summing an array with a running total | O(1)
 - Merge sort's temporary buffers | O(n)
 - An adjacency matrix for V nodes | O(V²)
 - Recursion that halves the input each call | O(log n)

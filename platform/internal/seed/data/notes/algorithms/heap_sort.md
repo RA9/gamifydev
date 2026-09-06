@@ -35,20 +35,24 @@ A max-heap stored in an array gives you the maximum in O(1) — it's always at i
 
 Suppose the heap property holds everywhere except at one node, whose value might be too small. **Sift down** (also called heapify-down) fixes it: compare the node with its children, swap it with the larger child if that child is bigger, and follow it down, repeating until it's in a valid spot or reaches the bottom.
 
-```python
-def sift_down(items, start, end):
-    """Restore the max-heap property at index `start`, treating
-    items[0:end] as the heap."""
-    root = start
-    while 2 * root + 1 < end:
-        child = 2 * root + 1                # left child
-        if child + 1 < end and items[child] < items[child + 1]:
-            child += 1                      # right child is bigger, use it
-        if items[root] < items[child]:
-            items[root], items[child] = items[child], items[root]
-            root = child                    # follow the value down
-        else:
-            return                          # heap property restored
+```c
+#include <stddef.h>
+
+/* Restore the max-heap property at start in the half-open range [0, end). */
+void sift_down(int items[], size_t start, size_t end) {
+    size_t root = start;
+    while (root < end && root <= (end - 1) / 2 && 2 * root + 1 < end) {
+        size_t child = 2 * root + 1;         /* Left child. */
+        if (child + 1 < end && items[child] < items[child + 1]) {
+            ++child;                        /* Use the larger right child. */
+        }
+        if (items[root] >= items[child]) return;
+        int tmp = items[root];
+        items[root] = items[child];
+        items[child] = tmp;
+        root = child;
+    }
+}
 ```
 
 The value travels at most the height of the tree, and a complete binary tree of n nodes has height ⌊log₂ n⌋. So **sift down is O(log n)**.
@@ -61,14 +65,24 @@ Sifting down is a manager who turns out to be less capable than a direct report.
 
 To turn an arbitrary array into a max-heap, sift down every node that has at least one child, starting from the **last** such node and working backwards to the root. Working backwards matters: by the time you sift down node `i`, both of its subtrees are already valid heaps, so a single sift-down is enough.
 
-```python
-def build_max_heap(items):
-    n = len(items)
-    for i in range(n // 2 - 1, -1, -1):     # last parent down to the root
-        sift_down(items, i, n)
-    return items
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(build_max_heap([3, 7, 2, 9, 4, 8]))   # [9, 7, 8, 3, 4, 2]
+void build_max_heap(int items[], size_t n) {
+    for (size_t i = n / 2; i > 0; --i) {    /* Last parent down to root. */
+        sift_down(items, i - 1, n);
+    }
+}
+
+int main(void) {
+    int items[] = {3, 7, 2, 9, 4, 8};
+    size_t n = sizeof items / sizeof items[0];
+    build_max_heap(items, n);
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    /* 9 7 8 3 4 2 */
+    return 0;
+}
 ```
 
 Now the surprise. It looks like n sift-downs at O(log n) each, so O(n log n) — but it's actually **O(n)**.
@@ -95,17 +109,30 @@ Building a heap from an unsorted array is **O(n)**, not O(n log n), because the 
 
 With a max-heap built, the sort is a loop with a beautiful trick. The maximum is at index 0, and its correct final home is the last position. So swap them. Now the largest value is in place at the end — shrink the heap by one so you never touch it again, and sift the newly-arrived root back down.
 
-```python
-def heap_sort(items):
-    n = len(items)
-    for i in range(n // 2 - 1, -1, -1):     # phase 1: build the max-heap, O(n)
-        sift_down(items, i, n)
-    for end in range(n - 1, 0, -1):         # phase 2: n-1 extractions
-        items[0], items[end] = items[end], items[0]   # max goes to its home
-        sift_down(items, 0, end)            # restore the shrunken heap
-    return items
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(heap_sort([3, 7, 2, 9, 4, 8]))   # [2, 3, 4, 7, 8, 9]
+void heap_sort(int items[], size_t n) {
+    for (size_t i = n / 2; i > 0; --i) {    /* Phase 1: O(n). */
+        sift_down(items, i - 1, n);
+    }
+    for (size_t end = n; end > 1; --end) {  /* Phase 2: n - 1 extractions. */
+        int tmp = items[0];                  /* Maximum goes to its home. */
+        items[0] = items[end - 1];
+        items[end - 1] = tmp;
+        sift_down(items, 0, end - 1);
+    }
+}
+
+int main(void) {
+    int items[] = {3, 7, 2, 9, 4, 8};
+    size_t n = sizeof items / sizeof items[0];
+    heap_sort(items, n);
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    /* 2 3 4 7 8 9 */
+    return 0;
+}
 ```
 
 Trace phase 2 on the heap `[9, 7, 8, 3, 4, 2]`, with `|` marking the boundary between the live heap and the finished sorted tail:

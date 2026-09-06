@@ -44,7 +44,7 @@
     });
   }
 
-  const lang = ["js", "python", "pyserver"].includes(lab.dataset.lang) ? lab.dataset.lang : "html";
+  const lang = ["js", "python", "pyserver", "c", "shell"].includes(lab.dataset.lang) ? lab.dataset.lang : "html";
   const completeURL = lab.dataset.completeUrl;
   let done = lab.dataset.completed === "1";
   let runSeq = 0; // makes each run's srcdoc unique so the iframe always reloads
@@ -127,7 +127,7 @@
     let html = (logs || []).map((l) => '<div class="console-line">' + escapeHtml(l) + "</div>").join("");
     if (error) html += '<div class="console-line console-error">⚠ ' + escapeHtml(error) + "</div>";
     if (!html) {
-      const how = (lang === "python" || lang === "pyserver") ? "print(…)" : "console.log(…)";
+      const how = (lang === "python" || lang === "pyserver") ? "print(…)" : (lang === "c" ? "printf(…)" : (lang === "shell" ? "printf …" : "console.log(…)"));
       html = '<div class="console-empty">No output — use ' + how + " to print something.</div>";
     }
     consoleEl.innerHTML = html;
@@ -148,7 +148,7 @@
   // Server-side labs (Flask/FastAPI/DB): POST the learner's code to the server,
   // which runs it plus the authored checks inside the sandbox and returns
   // per-check results. Checks never reach the browser.
-  if (lang === "pyserver") {
+  if (lang === "pyserver" || lang === "c" || lang === "shell") {
     const runURL = lab.dataset.runUrl;
     checkBtn.addEventListener("click", async () => {
       checkBtn.disabled = true;

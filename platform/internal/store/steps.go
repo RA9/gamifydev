@@ -14,14 +14,14 @@ type Step struct {
 	Instruction string
 	Starter     string
 	Checks      string // raw JSON array of {text,test}
-	Lang        string // html | js
+	Lang        string // html | js | python | pyserver | c | shell
 	Scaffold    string // optional base HTML rendered before a js step's code
 }
 
 // langOr defaults an empty/unknown language to html.
 func langOr(l string) string {
 	switch l {
-	case "js", "python", "pyserver":
+	case "js", "python", "pyserver", "c", "shell":
 		return l
 	default:
 		return "html"
@@ -60,22 +60,61 @@ func (s *Store) GetStep(ctx context.Context, id int64) (*Step, error) {
 	return &st, err
 }
 
-// ReplaceLessonSteps swaps a lesson's steps for the given set (used by the
-// seeder; idempotent).
+// ReplaceLessonSteps synchronizes a seeded lesson's ordered steps. Existing rows
+// are updated in place by position so startup reseeding does not invalidate a
+// learner's step_progress identifiers.
 func (s *Store) ReplaceLessonSteps(ctx context.Context, lessonID int64, steps []Step) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback() //nolint:errcheck
-	if _, err := tx.ExecContext(ctx, `DELETE FROM lesson_steps WHERE lesson_id = ?`, lessonID); err != nil {
+
+	rows, err := tx.QueryContext(ctx,
+		`SELECT id FROM lesson_steps WHERE lesson_id = ? ORDER BY sort, id`, lessonID)
+	if err != nil {
 		return err
 	}
-	for i, st := range steps {
-		if _, err := tx.ExecContext(ctx,
-			`INSERT INTO lesson_steps (lesson_id, sort, instruction, starter, checks, lang, scaffold) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-			lessonID, i, st.Instruction, st.Starter, st.Checks, langOr(st.Lang), st.Scaffold); err != nil {
+	var existing []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
 			return err
+		}
+		existing = append(existing, id)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	for i, step := range steps {
+		if i < len(existing) {
+			if _, err := tx.ExecContext(ctx, `
+				UPDATE lesson_steps
+				SET sort=?, instruction=?, starter=?, checks=?, lang=?, scaffold=?, updated_at=datetime('now')
+				WHERE id=?`,
+				i, step.Instruction, step.Starter, step.Checks, langOr(step.Lang), step.Scaffold, existing[i]); err != nil {
+				return err
+			}
+			continue
+		}
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO lesson_steps (lesson_id, sort, instruction, starter, checks, lang, scaffold)
+			VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			lessonID, i, step.Instruction, step.Starter, step.Checks, langOr(step.Lang), step.Scaffold); err != nil {
+			return err
+		}
+	}
+	if len(existing) > len(steps) {
+		for _, id := range existing[len(steps):] {
+			if _, err := tx.ExecContext(ctx, `DELETE FROM step_progress WHERE step_id = ?`, id); err != nil {
+				return err
+			}
+			if _, err := tx.ExecContext(ctx, `DELETE FROM lesson_steps WHERE id = ?`, id); err != nil {
+				return err
+			}
 		}
 	}
 	return tx.Commit()

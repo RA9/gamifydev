@@ -9,12 +9,15 @@ import (
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
-func newPythonExecutor(t *testing.T) runner.Executor {
+func newProblemExecutor(t *testing.T) runner.Executor {
 	t.Helper()
 	if _, err := exec.LookPath("python3"); err != nil {
 		t.Skip("no python3 on PATH")
 	}
-	e, err := runner.New(runner.Config{Mode: "local", PythonPath: "python3", AllowUnsafe: true})
+	if _, err := exec.LookPath("cc"); err != nil {
+		t.Skip("no C compiler on PATH")
+	}
+	e, err := runner.New(runner.Config{Mode: "local", PythonPath: "python3", CCPath: "cc", AllowUnsafe: true})
 	if err != nil {
 		t.Fatalf("new executor: %v", err)
 	}
@@ -26,14 +29,20 @@ func newPythonExecutor(t *testing.T) runner.Executor {
 // tell an impossible exercise from their own mistake, and the bank's whole
 // claim is that a green result means you got it right.
 func TestEverySeededProblemIsSolvableByItsOwnSolution(t *testing.T) {
-	e := newPythonExecutor(t)
+	e := newProblemExecutor(t)
 	for _, p := range seedProblems {
 		t.Run(p.slug, func(t *testing.T) {
-			t.Parallel()
+			if p.solutionLang != "c" {
+				t.Parallel()
+			}
 			if p.solution == "" {
 				t.Fatalf("problem %q ships no reference solution, so nothing proves it can be solved", p.slug)
 			}
-			res, err := jobs.GradeWithin(t.Context(), e, "python", p.solution, nil, withIDs(p.tests), p.timeLimitMs)
+			lang := p.solutionLang
+			if lang == "" {
+				lang = "python"
+			}
+			res, err := jobs.GradeWithin(t.Context(), e, lang, p.solution, nil, withIDs(p.tests), p.timeLimitMs)
 			if err != nil {
 				t.Fatalf("grade: %v", err)
 			}
@@ -56,7 +65,7 @@ func TestEverySeededProblemIsSolvableByItsOwnSolution(t *testing.T) {
 // enough to let the slow approach through turns the lesson into a lie, and the
 // learner who writes the clever solution never finds out it mattered.
 func TestTheApproachesAProblemCallsTooSlowReallyAre(t *testing.T) {
-	e := newPythonExecutor(t)
+	e := newProblemExecutor(t)
 	claimed := 0
 	for _, p := range seedProblems {
 		if p.tooSlow == "" {
@@ -64,9 +73,15 @@ func TestTheApproachesAProblemCallsTooSlowReallyAre(t *testing.T) {
 		}
 		claimed++
 		t.Run(p.slug, func(t *testing.T) {
-			t.Parallel()
+			if p.solutionLang != "c" {
+				t.Parallel()
+			}
 			tests := withIDs(p.tests)
-			res, err := jobs.GradeWithin(t.Context(), e, "python", p.tooSlow, nil, tests, p.timeLimitMs)
+			lang := p.solutionLang
+			if lang == "" {
+				lang = "python"
+			}
+			res, err := jobs.GradeWithin(t.Context(), e, lang, p.tooSlow, nil, tests, p.timeLimitMs)
 			if err != nil {
 				t.Fatalf("grade: %v", err)
 			}

@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -25,6 +26,30 @@ print("__GD_PROBE__" + json.dumps(r))
 `
 
 const probeMarker = "__GD_PROBE__"
+const cProbeMarker = "__GD_C_READY__"
+
+// ProbeC verifies that the configured executor can compile and run a C program,
+// not merely execute Python. Production readiness depends on both capabilities.
+func ProbeC(ctx context.Context, e Executor) error {
+	res, err := e.Run(ctx, Request{
+		Lang:      LangC,
+		Code:      "#include <stdio.h>\nint main(void){puts(\"" + cProbeMarker + "\");return 0;}\n",
+		TimeoutMs: 8000,
+	})
+	if err != nil {
+		return fmt.Errorf("C toolchain probe could not run: %w", err)
+	}
+	if res.TimedOut {
+		return fmt.Errorf("C toolchain probe timed out")
+	}
+	if res.CompileFailed {
+		return fmt.Errorf("C compiler unavailable or failed: %s", strings.TrimSpace(res.Stderr))
+	}
+	if res.ExitCode != 0 || !strings.Contains(res.Stdout, cProbeMarker) {
+		return fmt.Errorf("compiled C program could not execute: exit=%d stderr=%s", res.ExitCode, strings.TrimSpace(res.Stderr))
+	}
+	return nil
+}
 
 // SandboxReport is the verdict of a self-test run. Sandboxed is true only when
 // every containment signal held; anything unexpected fails closed.

@@ -29,6 +29,7 @@ func (s *Server) handleCourse(w http.ResponseWriter, r *http.Request) {
 	}
 	lessons, _ := s.st.ListLessons(r.Context(), course.ID)
 	assignments, _ := s.st.ListAssignmentsByCourse(r.Context(), course.ID, false)
+	problems, _ := s.st.ListProblemsByCourse(r.Context(), course.ID, s.solver(r))
 	u := auth.CurrentUser(r.Context())
 	locked := u == nil
 	passed := map[int64]bool{}
@@ -45,6 +46,7 @@ func (s *Server) handleCourse(w http.ResponseWriter, r *http.Request) {
 			"sections":     groupLessons(lessons),
 			"lessonCount":  len(lessons),
 			"assignments":  assignments,
+			"problems":     problems,
 			"locked":       locked,
 			"passed":       passed,
 			"stepProgress": stepProgress,

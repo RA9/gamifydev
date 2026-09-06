@@ -8,16 +8,24 @@ In this lesson you'll implement both, see exactly what binary search demands in 
 
 **Linear search** walks the sequence from one end, comparing as it goes, and stops when it finds a match or runs out of items.
 
-```python
-def linear_search(items, target):
-    for i in range(len(items)):
-        if items[i] == target:
-            return i          # found: return the index
-    return -1                 # not found
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-nums = [7, 3, 9, 1, 4]
-print(linear_search(nums, 9))    # 2
-print(linear_search(nums, 5))    # -1
+ptrdiff_t linear_search(const int items[], size_t n, int target) {
+    for (size_t i = 0; i < n; ++i) {
+        if (items[i] == target) return (ptrdiff_t)i;
+    }
+    return -1;
+}
+
+int main(void) {
+    int nums[] = {7, 3, 9, 1, 4};
+    size_t n = sizeof nums / sizeof nums[0];
+    printf("%td\n", linear_search(nums, n, 9)); /* 2 */
+    printf("%td\n", linear_search(nums, n, 5)); /* -1 */
+    return 0;
+}
 ```
 
 Best case it's the first item — one comparison, O(1). Worst case the target is last or absent, so you touch every element: **O(n) worst case, O(n) average**. Space is O(1); you allocate nothing.
@@ -32,22 +40,29 @@ Linear search is looking for your friend at a party by walking up to every perso
 
 If the sequence is **sorted**, you can do far better. Look at the middle element. If it's your target, done. If it's too big, the answer can only be in the left half. If it's too small, only in the right half. Either way you've eliminated half the data with one comparison, and then you repeat.
 
-```python
-def binary_search(items, target):
-    low, high = 0, len(items) - 1
-    while low <= high:
-        mid = low + (high - low) // 2
-        if items[mid] == target:
-            return mid
-        elif items[mid] < target:
-            low = mid + 1      # target is to the right
-        else:
-            high = mid - 1     # target is to the left
-    return -1
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-nums = [1, 3, 4, 7, 9, 12, 15]
-print(binary_search(nums, 12))   # 5
-print(binary_search(nums, 2))    # -1
+ptrdiff_t binary_search(const int items[], size_t n, int target) {
+    ptrdiff_t low = 0;
+    ptrdiff_t high = (ptrdiff_t)n - 1;
+    while (low <= high) {
+        ptrdiff_t mid = low + (high - low) / 2;
+        if (items[mid] == target) return mid;
+        if (items[mid] < target) low = mid + 1;  /* Target is to the right. */
+        else high = mid - 1;                     /* Target is to the left. */
+    }
+    return -1;
+}
+
+int main(void) {
+    int nums[] = {1, 3, 4, 7, 9, 12, 15};
+    size_t n = sizeof nums / sizeof nums[0];
+    printf("%td\n", binary_search(nums, n, 12)); /* 5 */
+    printf("%td\n", binary_search(nums, n, 2));  /* -1 */
+    return 0;
+}
 ```
 
 Trace the search for `12`:
@@ -76,11 +91,11 @@ Binary search is famously easy to get subtly wrong. Here are the four traps, all
 
 **3. Midpoint overflow.** The obvious `mid = (low + high) // 2` can overflow in languages with fixed-width integers, because `low + high` may exceed the maximum int even though `mid` itself would fit. The safe form is:
 
-```python
-mid = low + (high - low) // 2
+```c
+ptrdiff_t mid = low + (high - low) / 2;
 ```
 
-Python integers grow without limit, so this can't actually overflow here — but write it this way anyway. The habit carries to C, Java, Go and Rust, where the bug is real and was hiding in widely-used library code for years before anyone noticed.
+C integers have fixed widths, so the overflow bug is real. This form avoids adding two potentially large positive indices and was adopted only after the obvious form had survived in widely used library code for years.
 
 **4. Unsorted input.** No amount of careful index arithmetic saves you if the precondition is violated.
 
@@ -92,28 +107,38 @@ Python integers grow without limit, so this can't actually overflow here — but
 
 Binary search is naturally recursive: searching a half is the same problem on a smaller range.
 
-```python
-def binary_search_rec(items, target, low=0, high=None):
-    if high is None:
-        high = len(items) - 1
-    if low > high:                       # base case: empty range
-        return -1
-    mid = low + (high - low) // 2
-    if items[mid] == target:
-        return mid
-    elif items[mid] < target:
-        return binary_search_rec(items, target, mid + 1, high)
-    else:
-        return binary_search_rec(items, target, low, mid - 1)
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(binary_search_rec([1, 3, 4, 7, 9, 12, 15], 1))    # 0
-print(binary_search_rec([1, 3, 4, 7, 9, 12, 15], 20))   # -1
+ptrdiff_t binary_search_range(const int items[], int target,
+                              ptrdiff_t low, ptrdiff_t high) {
+    if (low > high) return -1;            /* Base case: empty range. */
+    ptrdiff_t mid = low + (high - low) / 2;
+    if (items[mid] == target) return mid;
+    if (items[mid] < target) {
+        return binary_search_range(items, target, mid + 1, high);
+    }
+    return binary_search_range(items, target, low, mid - 1);
+}
+
+ptrdiff_t binary_search_rec(const int items[], size_t n, int target) {
+    return binary_search_range(items, target, 0, (ptrdiff_t)n - 1);
+}
+
+int main(void) {
+    int items[] = {1, 3, 4, 7, 9, 12, 15};
+    size_t n = sizeof items / sizeof items[0];
+    printf("%td\n", binary_search_rec(items, n, 1));  /* 0 */
+    printf("%td\n", binary_search_rec(items, n, 20)); /* -1 */
+    return 0;
+}
 ```
 
-Both recursive calls are tail calls, so this is one of those functions that converts straight back into the loop above. Stack depth is only O(log n) — about 20 frames for a million items — so unlike a linear recursion, this one is in no danger of hitting Python's limit.
+Both recursive calls are tail calls, so this is one of those functions that converts straight back into the loop above. Stack depth is only O(log n) — about 20 frames for a million items — so unlike a linear recursion, this one is unlikely to exhaust a typical C thread's stack.
 
 :::tip
-Never pass slices (`items[mid+1:]`) to a recursive binary search. Slicing copies the sub-list, which costs O(n) per call and destroys the whole O(log n) advantage. Pass indices instead, as above.
+Never allocate and copy a sub-array for each recursive call. That costs O(n) work across the copies and destroys the O(log n) advantage. Pass the original array plus index bounds, as above.
 :::
 
 ## When is sorting first worth it?
@@ -130,7 +155,7 @@ sort once, then search   ->  O(n log n + k log n)
 With n = 1,000,000, one search favours the linear scan. A thousand searches favours sorting overwhelmingly. The rule of thumb: **sort when the data is stable and you'll query it many times**; scan when you'll look once, or when the data changes constantly.
 
 :::example
-Python's `bisect` module implements binary search over a sorted list, and `sorted()` gives you the sorted list. But if you're doing pure membership checks with no need for order, a `set` gives O(1) average lookups and beats both — reach for the right data structure before reaching for the clever algorithm.
+C's standard library provides `bsearch` for searching a sorted array and `qsort` for sorting one. But if you're doing pure membership checks with no need for order, a hash set gives O(1) average lookups and beats both — reach for the right data structure before reaching for the clever algorithm.
 :::
 
 ## Check Your Understanding
@@ -146,22 +171,29 @@ E: Binary search decides which half to discard by comparing against the middle v
 
 :::predict
 Q: What does this print?
-```python
-def binary_search(items, target):
-    low, high = 0, len(items) - 1
-    passes = 0
-    while low <= high:
-        passes += 1
-        mid = low + (high - low) // 2
-        if items[mid] == target:
-            return passes
-        elif items[mid] < target:
-            low = mid + 1
-        else:
-            high = mid - 1
-    return passes
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(binary_search([2, 4, 6, 8, 10, 12, 14, 16], 2))
+size_t binary_search_passes(const int items[], size_t n, int target) {
+    ptrdiff_t low = 0;
+    ptrdiff_t high = (ptrdiff_t)n - 1;
+    size_t passes = 0;
+    while (low <= high) {
+        ++passes;
+        ptrdiff_t mid = low + (high - low) / 2;
+        if (items[mid] == target) return passes;
+        if (items[mid] < target) low = mid + 1;
+        else high = mid - 1;
+    }
+    return passes;
+}
+
+int main(void) {
+    int items[] = {2, 4, 6, 8, 10, 12, 14, 16};
+    printf("%zu\n", binary_search_passes(items, 8, 2));
+    return 0;
+}
 ```
 - 1
 - 3 *

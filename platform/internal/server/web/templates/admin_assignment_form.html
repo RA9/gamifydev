@@ -27,6 +27,17 @@
       <label class="field"><span>Max points</span>
         <input type="number" name="max_points" value="{{ if $a }}{{ $a.MaxPoints }}{{ else }}100{{ end }}" min="1" /></label>
     </div>
+    <div class="form-row">
+      <label class="field"><span>Workload minutes</span>
+        <input type="number" name="workload_minutes" min="1" value="{{ if $a }}{{ $a.WorkloadMinutes }}{{ else }}60{{ end }}" /></label>
+      <label class="field"><span>Learning mode</span>
+        {{ $mode := "practical" }}{{ if $a }}{{ $mode = $a.Mode }}{{ end }}
+        <select name="mode" class="role-select">
+          <option value="fun" {{ if eq $mode "fun" }}selected{{ end }}>Fun</option>
+          <option value="theoretical" {{ if eq $mode "theoretical" }}selected{{ end }}>Theoretical</option>
+          <option value="practical" {{ if eq $mode "practical" }}selected{{ end }}>Practical</option>
+        </select></label>
+    </div>
     <label class="field"><span>Prompt <span class="muted">(markdown)</span></span>
       <textarea name="prompt" rows="8">{{ if $a }}{{ $a.Prompt }}{{ end }}</textarea></label>
     <label class="field"><span>Starter code <span class="muted">(optional)</span></span>

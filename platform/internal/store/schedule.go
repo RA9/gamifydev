@@ -102,6 +102,26 @@ func (s *Store) pathCoursesForPlan(ctx context.Context, pathID int64) ([]schedul
 		if err := lrows.Err(); err != nil {
 			return nil, err
 		}
+		prows, err := s.db.QueryContext(ctx, `
+			SELECT p.id, p.title
+			FROM course_problems cp JOIN problems p ON p.id = cp.problem_id
+			WHERE cp.course_id = ? AND cp.required = 1 AND p.published = 1
+			ORDER BY cp.sort, p.id`, out[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		for prows.Next() {
+			var problem schedule.Problem
+			if err := prows.Scan(&problem.ID, &problem.Title); err != nil {
+				prows.Close()
+				return nil, err
+			}
+			out[i].Problems = append(out[i].Problems, problem)
+		}
+		prows.Close()
+		if err := prows.Err(); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }
@@ -139,19 +159,23 @@ func (s *Store) MaterializeSchedule(ctx context.Context, cohortID int64) (int, e
 	}
 	defer tx.Rollback() //nolint:errcheck
 	for _, it := range items {
-		var lesson, assignment any
+		var lesson, assignment, problem any
 		if it.LessonID != 0 {
 			lesson = it.LessonID
 		}
 		if it.AssignmentID != 0 {
 			assignment = it.AssignmentID
 		}
+		if it.ProblemID != 0 {
+			problem = it.ProblemID
+		}
 		if _, err := tx.ExecContext(ctx, `
 			INSERT INTO cohort_schedule
-				(cohort_id, day_index, sprint, due_on, kind, course_id, lesson_id, assignment_id, sort)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				(cohort_id, day_index, sprint, due_on, kind, course_id,
+				 lesson_id, assignment_id, problem_id, sort)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			cohortID, it.DayIndex, it.Sprint, it.DueOn.Format("2006-01-02"), it.Kind,
-			it.CourseID, lesson, assignment, it.Sort); err != nil {
+			it.CourseID, lesson, assignment, problem, it.Sort); err != nil {
 			return 0, err
 		}
 	}
@@ -202,6 +226,9 @@ type ScheduleItem struct {
 	AssignmentID   sql.NullInt64
 	Assignment     string
 	AssignmentSlug string
+	ProblemID      sql.NullInt64
+	Problem        string
+	ProblemSlug    string
 
 	// Per-learner state.
 	Done    bool
@@ -211,28 +238,42 @@ type ScheduleItem struct {
 
 // URL is where the learner goes to do this item.
 func (i ScheduleItem) URL() string {
-	if i.Kind == schedule.KindCheckpoint {
+	switch i.Kind {
+	case schedule.KindCheckpoint:
 		return "/assignments/" + i.AssignmentSlug
+	case schedule.KindProblem:
+		return "/problems/" + i.ProblemSlug
+	default:
+		return "/courses/" + i.CourseSlug + "/" + i.LessonSlug
 	}
-	return "/courses/" + i.CourseSlug + "/" + i.LessonSlug
 }
 
 // IsCheckpoint reports whether this item is a gating assignment.
 func (i ScheduleItem) IsCheckpoint() bool { return i.Kind == schedule.KindCheckpoint }
+
+// IsProblem reports whether this item is integrated guided practice.
+func (i ScheduleItem) IsProblem() bool { return i.Kind == schedule.KindProblem }
 
 const scheduleSelect = `
 	SELECT s.id, s.day_index, s.sprint, s.due_on, s.kind, s.course_id,
 	       COALESCE(c.title,''), COALESCE(c.slug,''),
 	       s.lesson_id, COALESCE(l.title,''), COALESCE(l.slug,''),
 	       s.assignment_id, COALESCE(a.title,''), COALESCE(a.slug,''),
+	       s.problem_id, COALESCE(pr.title,''), COALESCE(pr.slug,''),
 	       CASE WHEN s.lesson_id IS NOT NULL AND lp.lesson_id IS NOT NULL THEN 1
 	            WHEN s.assignment_id IS NOT NULL AND sub.id IS NOT NULL THEN 1
+	            WHEN s.problem_id IS NOT NULL AND EXISTS (
+	              SELECT 1 FROM problem_submissions ps
+	              WHERE ps.problem_id = s.problem_id AND ps.user_id = ?
+	                AND ps.verdict = 'accepted'
+	            ) THEN 1
 	            ELSE 0 END AS done,
 	       CASE WHEN date(s.due_on) < date('now') THEN 1 ELSE 0 END AS overdue
 	FROM cohort_schedule s
 	LEFT JOIN courses c ON c.id = s.course_id
 	LEFT JOIN lessons l ON l.id = s.lesson_id
 	LEFT JOIN assignments a ON a.id = s.assignment_id
+	LEFT JOIN problems pr ON pr.id = s.problem_id
 	LEFT JOIN lesson_progress lp ON lp.lesson_id = s.lesson_id AND lp.user_id = ?
 	LEFT JOIN submissions sub ON sub.assignment_id = s.assignment_id AND sub.user_id = ?
 	                          AND sub.status = 'graded'
@@ -246,7 +287,8 @@ func (s *Store) scanSchedule(rows *sql.Rows, exempt map[string]bool) ([]Schedule
 		var done, overdue int
 		if err := rows.Scan(&it.ID, &it.DayIndex, &it.Sprint, &it.DueOn, &it.Kind, &it.CourseID,
 			&it.Course, &it.CourseSlug, &it.LessonID, &it.Lesson, &it.LessonSlug,
-			&it.AssignmentID, &it.Assignment, &it.AssignmentSlug, &done, &overdue); err != nil {
+			&it.AssignmentID, &it.Assignment, &it.AssignmentSlug,
+			&it.ProblemID, &it.Problem, &it.ProblemSlug, &done, &overdue); err != nil {
 			return nil, err
 		}
 		it.Done, it.Overdue = done == 1, overdue == 1
@@ -296,7 +338,7 @@ func (s *Store) DueOn(ctx context.Context, cohortID, userID int64, day string) (
 	}
 	rows, err := s.db.QueryContext(ctx,
 		scheduleSelect+` WHERE s.cohort_id = ? AND date(s.due_on) = date(?) ORDER BY s.sort`,
-		userID, userID, cohortID, day)
+		userID, userID, userID, cohortID, day)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +355,7 @@ func (s *Store) Overdue(ctx context.Context, cohortID, userID int64, limit int) 
 	rows, err := s.db.QueryContext(ctx,
 		scheduleSelect+` WHERE s.cohort_id = ? AND date(s.due_on) < date('now')
 		 ORDER BY s.due_on, s.sort LIMIT ?`,
-		userID, userID, cohortID, limit*4)
+		userID, userID, userID, cohortID, limit*4)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +384,7 @@ func (s *Store) CohortSchedule(ctx context.Context, cohortID, userID int64) ([]S
 	}
 	rows, err := s.db.QueryContext(ctx,
 		scheduleSelect+` WHERE s.cohort_id = ? ORDER BY s.day_index, s.sort`,
-		userID, userID, cohortID)
+		userID, userID, userID, cohortID)
 	if err != nil {
 		return nil, err
 	}

@@ -1,9 +1,10 @@
 # syntax=docker/dockerfile:1
 #
-# Dockerfile.execd — the standalone Python execution sandbox (cmd/execd).
+# Dockerfile.execd — the standalone Python/C/shell execution sandbox (cmd/execd).
 #
 # This is a SEPARATE service from the main app. The main app image stays
-# distroless with no interpreter; this one carries Python + bubblewrap and is
+# distroless with no toolchain; this one carries Python, a C compiler, shell,
+# and bubblewrap and is
 # where untrusted learner code actually runs. Point the app at it with
 #   CODE_EXEC=remote
 #   CODE_EXEC_SANDBOX_URL=http://execd:9090
@@ -12,7 +13,7 @@
 # Run it locked down. bubblewrap needs unprivileged user namespaces; grant only
 # what it needs and nothing else, e.g.:
 #   docker run --rm \
-#     --read-only --tmpfs /tmp \
+#     --read-only --tmpfs /tmp:exec,mode=1777 \
 #     --cap-drop ALL --security-opt no-new-privileges \
 #     --pids-limit 256 --memory 512m --cpus 1 \
 #     -e EXECD_TOKEN=$TOKEN -p 9090:9090 gamifydev-execd
@@ -32,7 +33,7 @@ FROM python:3.12-slim
 # bubblewrap provides the unprivileged namespace sandbox (no network,
 # read-only root, private /tmp) that execd wraps each run in.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends bubblewrap \
+    && apt-get install -y --no-install-recommends bubblewrap gcc libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 # Pre-install the packages learner code may import (Flask/FastAPI/DB labs).
 # Installed at build time because the sandbox has NO network, so runtime pip
@@ -49,6 +50,7 @@ USER sandbox
 # code unsandboxed. Fail closed.
 ENV EXECD_ADDR=:9090 \
     PYTHON=python3 \
+    CC=cc \
     EXECD_MAX_CONCURRENCY=4 \
     EXECD_REQUIRE_SANDBOX=1
 EXPOSE 9090

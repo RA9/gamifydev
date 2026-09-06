@@ -24,22 +24,28 @@ Imagine two card players each holding a sorted hand, face up. To combine them in
 
 This is the heart of the algorithm, so let's build it alone first. Given two sorted lists, walk a pointer along each. Repeatedly take the smaller of the two front elements. When one list runs out, everything remaining in the other is already sorted and larger, so append it wholesale.
 
-```python
-def merge(left, right):
-    result = []
-    i = j = 0
-    while i < len(left) and j < len(right):
-        if left[i] <= right[j]:        # <= keeps the sort stable
-            result.append(left[i])
-            i += 1
-        else:
-            result.append(right[j])
-            j += 1
-    result.extend(left[i:])            # whatever is left over
-    result.extend(right[j:])
-    return result
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(merge([1, 4, 9], [2, 3, 10]))   # [1, 2, 3, 4, 9, 10]
+void merge(const int left[], size_t left_n,
+           const int right[], size_t right_n, int result[]) {
+    size_t i = 0, j = 0, out = 0;
+    while (i < left_n && j < right_n) {
+        if (left[i] <= right[j]) result[out++] = left[i++]; /* Stable. */
+        else result[out++] = right[j++];
+    }
+    while (i < left_n) result[out++] = left[i++];
+    while (j < right_n) result[out++] = right[j++];
+}
+
+int main(void) {
+    int left[] = {1, 4, 9}, right[] = {2, 3, 10}, result[6];
+    merge(left, 3, right, 3, result);
+    for (size_t i = 0; i < 6; ++i) printf("%d%s", result[i], i == 5 ? "\n" : " ");
+    /* 1 2 3 4 9 10 */
+    return 0;
+}
 ```
 
 Trace it:
@@ -51,11 +57,11 @@ i=1 j=0   4 >  2   take 2     result=[1,2]
 i=1 j=1   4 >  3   take 3     result=[1,2,3]
 i=1 j=2   4 <= 10  take 4     result=[1,2,3,4]
 i=2 j=2   9 <= 10  take 9     result=[1,2,3,4,9]
-i=3       left exhausted -> extend with right[2:] = [10]
+i=3       left exhausted -> copy right from index 2 = [10]
                              result=[1,2,3,4,9,10]
 ```
 
-Every comparison consumes exactly one element, and there are `len(left) + len(right)` elements total, so merging is **O(n)** where n is the combined length.
+Every comparison consumes exactly one element, and there are `left_n + right_n` elements total, so merging is **O(n)** where n is the combined length.
 
 :::key
 Merging two sorted lists of total length n takes O(n) time. That single fact is what buys merge sort its O(n log n) — the expensive-looking combine step is actually linear.
@@ -63,18 +69,52 @@ Merging two sorted lists of total length n takes O(n) time. That single fact is 
 
 ## The full algorithm
 
-With `merge` in hand, the sort itself is four lines:
+With a merge helper in hand, the sort follows the same divide-and-conquer shape. This C version allocates one scratch buffer and reuses it at every level:
 
-```python
-def merge_sort(items):
-    if len(items) <= 1:                    # base case: already sorted
-        return items
-    mid = len(items) // 2
-    left = merge_sort(items[:mid])         # conquer the left half
-    right = merge_sort(items[mid:])        # conquer the right half
-    return merge(left, right)              # combine
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-print(merge_sort([5, 2, 8, 1, 9, 3]))   # [1, 2, 3, 5, 8, 9]
+static void merge_range(int items[], int scratch[], size_t low,
+                        size_t mid, size_t high) {
+    size_t i = low, j = mid, out = low;
+    while (i < mid && j < high) {
+        if (items[i] <= items[j]) scratch[out++] = items[i++];
+        else scratch[out++] = items[j++];
+    }
+    while (i < mid) scratch[out++] = items[i++];
+    while (j < high) scratch[out++] = items[j++];
+    for (size_t k = low; k < high; ++k) items[k] = scratch[k];
+}
+
+static void merge_sort_range(int items[], int scratch[], size_t low, size_t high) {
+    if (high - low <= 1) return;
+    size_t mid = low + (high - low) / 2;
+    merge_sort_range(items, scratch, low, mid);
+    merge_sort_range(items, scratch, mid, high);
+    merge_range(items, scratch, low, mid, high);
+}
+
+bool merge_sort(int items[], size_t n) {
+    if (n < 2) return true;
+    if (n > SIZE_MAX / sizeof *items) return false;
+    int *scratch = malloc(n * sizeof *scratch);
+    if (scratch == NULL) return false;
+    merge_sort_range(items, scratch, 0, n);
+    free(scratch);
+    return true;
+}
+
+int main(void) {
+    int items[] = {5, 2, 8, 1, 9, 3};
+    size_t n = sizeof items / sizeof items[0];
+    if (!merge_sort(items, n)) return EXIT_FAILURE;
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    return 0;
+}
 ```
 
 Here's the whole call tree for `[5, 2, 8, 1]` — splitting on the way down, merging on the way back up:
@@ -123,14 +163,14 @@ Merge sort is O(n log n) in the best, average *and* worst case. Its running time
 
 ## The cost: O(n) extra space
 
-Merge sort's weakness is memory. `merge` builds a brand-new `result` list, so at any moment you're holding a copy of the data being merged. The peak extra space is **O(n)**.
+Merge sort's weakness is memory. The implementation above keeps a scratch array large enough for the input, so at peak you're holding one extra copy of the data being merged. The extra space is **O(n)**.
 
 Compare that with insertion sort or heap sort, which rearrange the array in place at O(1) extra space. If you're sorting an array that barely fits in memory, that doubling is a genuine problem.
 
-You can reduce the copying with a more careful implementation that allocates one scratch buffer up front and merges into it, rather than slicing at every level. But you can't get merge sort down to O(1) auxiliary space without giving up its simplicity — true in-place merging exists, and it is genuinely difficult.
+Allocating one scratch buffer up front, as above, avoids repeated allocation at each recursion level. But you can't get merge sort down to O(1) auxiliary space without giving up its simplicity — true in-place merging exists, and it is genuinely difficult.
 
 :::warning
-The version above also slices with `items[:mid]` and `items[mid:]`, which copies at every level. That's fine for learning and for modest inputs, but a production implementation passes indices into a shared array and reuses a single scratch buffer.
+Always check the scratch allocation and release it exactly once after the recursive helper returns. Passing index ranges into the original array avoids temporary sub-array allocations at every level.
 :::
 
 ## Where merge sort shines
@@ -158,25 +198,33 @@ E: Merge sort always splits down the middle and always merges in linear time, so
 
 :::predict
 Q: What does this print?
-```python
-def merge(left, right):
-    result = []
-    i = j = 0
-    while i < len(left) and j < len(right):
-        if left[i] <= right[j]:
-            result.append(left[i]); i += 1
-        else:
-            result.append(right[j]); j += 1
-    result.extend(left[i:]); result.extend(right[j:])
-    return result
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(merge([2, 6], [1, 3, 4]))
+void merge(const int left[], size_t left_n,
+           const int right[], size_t right_n, int result[]) {
+    size_t i = 0, j = 0, out = 0;
+    while (i < left_n && j < right_n) {
+        if (left[i] <= right[j]) result[out++] = left[i++];
+        else result[out++] = right[j++];
+    }
+    while (i < left_n) result[out++] = left[i++];
+    while (j < right_n) result[out++] = right[j++];
+}
+
+int main(void) {
+    int left[] = {2, 6}, right[] = {1, 3, 4}, result[5];
+    merge(left, 2, right, 3, result);
+    for (size_t i = 0; i < 5; ++i) printf("%d%s", result[i], i == 4 ? "\n" : " ");
+    return 0;
+}
 ```
-- [1, 2, 3, 4, 6] *
-- [2, 6, 1, 3, 4]
-- [1, 2, 3, 6, 4]
-- [6, 4, 3, 2, 1]
-E: Compare fronts: 1 < 2 take 1, then 2 <= 3 take 2, then 3 < 6 take 3, then 4 < 6 take 4, then left is what remains — append 6.
+- `1 2 3 4 6` *
+- `2 6 1 3 4`
+- `1 2 3 6 4`
+- `6 4 3 2 1`
+E: Compare fronts: 1 < 2 take 1, then 2 <= 3 take 2, then 3 < 6 take 3, then 4 < 6 take 4, then copy the remaining 6.
 :::
 
 :::quiz

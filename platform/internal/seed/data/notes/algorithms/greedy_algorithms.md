@@ -36,20 +36,39 @@ Here's a problem where greedy shines. You have a list of activities, each with a
 
 The tempting rules — take the shortest activity, or the one that starts earliest — both fail. The rule that works is: **always take the activity that finishes earliest** among those that still fit.
 
-```python
-def select_activities(activities):
-    """activities: list of (start, finish)"""
-    activities = sorted(activities, key=lambda a: a[1])   # by FINISH time
-    chosen, last_finish = [], float("-inf")
-    for start, finish in activities:
-        if start >= last_finish:                          # no overlap
-            chosen.append((start, finish))
-            last_finish = finish
-    return chosen
+```c
+#include <limits.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-acts = [(1, 4), (3, 5), (0, 6), (5, 7), (3, 9), (5, 9), (6, 10), (8, 11)]
-print(select_activities(acts))
-# [(1, 4), (5, 7), (8, 11)]
+typedef struct { int start, finish; } Activity;
+
+static int by_finish(const void *a, const void *b) {
+    const Activity *x = a, *y = b;
+    return (x->finish > y->finish) - (x->finish < y->finish);
+}
+
+size_t select_activities(Activity activities[], size_t n, Activity chosen[]) {
+    qsort(activities, n, sizeof *activities, by_finish);
+    size_t count = 0;
+    int last_finish = INT_MIN;
+    for (size_t i = 0; i < n; ++i) {
+        if (activities[i].start >= last_finish) {
+            chosen[count++] = activities[i];
+            last_finish = activities[i].finish;
+        }
+    }
+    return count;
+}
+
+int main(void) {
+    Activity acts[] = {{1,4}, {3,5}, {0,6}, {5,7}, {3,9}, {5,9}, {6,10}, {8,11}};
+    Activity chosen[sizeof acts / sizeof acts[0]];
+    size_t count = select_activities(acts, sizeof acts / sizeof acts[0], chosen);
+    for (size_t i = 0; i < count; ++i) printf("(%d,%d)%s", chosen[i].start, chosen[i].finish, i + 1 == count ? "\n" : " ");
+    return 0;
+}
 ```
 
 ```text
@@ -71,18 +90,40 @@ Why is "earliest finish" the safe choice? Because it leaves the maximum amount o
 
 Now a classic. Given coin denominations and an amount, make that amount using the **fewest coins**. The greedy rule is obvious: always take the largest coin that still fits.
 
-```python
-def greedy_change(coins, amount):
-    coins = sorted(coins, reverse=True)      # largest first
-    used = []
-    for c in coins:
-        while amount >= c:
-            used.append(c)
-            amount -= c
-    return used if amount == 0 else None
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-print(greedy_change([1, 5, 10, 25], 63))
-# [25, 25, 10, 1, 1, 1]
+static int descending(const void *a, const void *b) {
+    int x = *(const int *)a, y = *(const int *)b;
+    return (y > x) - (y < x);
+}
+
+bool greedy_change(int coins[], size_t coin_count, int amount,
+                   int used[], size_t capacity, size_t *used_count) {
+    qsort(coins, coin_count, sizeof *coins, descending);
+    size_t count = 0;
+    for (size_t i = 0; i < coin_count; ++i) {
+        if (coins[i] <= 0) return false;
+        while (amount >= coins[i]) {
+            if (count == capacity) return false;
+            used[count++] = coins[i];
+            amount -= coins[i];
+        }
+    }
+    *used_count = count;
+    return amount == 0;
+}
+
+int main(void) {
+    int coins[] = {1, 5, 10, 25}, used[63]; size_t count;
+    if (!greedy_change(coins, 4, 63, used, 63, &count)) return EXIT_FAILURE;
+    for (size_t i = 0; i < count; ++i) printf("%d%s", used[i], i + 1 == count ? "\n" : " ");
+    /* 25 25 10 1 1 1 */
+    return 0;
+}
 ```
 
 Six coins for 63 cents, and that is genuinely optimal. Try it on any amount with these denominations and greedy always wins.
@@ -110,8 +151,11 @@ optimal:   3 + 3          ->  TWO coins
 
 Greedy returns three coins. The optimal answer is two. Watch it happen:
 
-```python
-print(greedy_change([1, 3, 4], 6))   # [4, 1, 1]  — three coins
+```c
+int coins[] = {1, 3, 4}, used[6];
+size_t count;
+greedy_change(coins, 3, 6, used, 6, &count);
+/* used contains 4, 1, 1: three coins. */
 ```
 
 Nothing went wrong mechanically. The code is correct; the *strategy* is wrong. The greedy-choice property simply doesn't hold for {1, 3, 4}: taking the 4 is locally best but destroys the optimal solution, because the optimal answer doesn't contain a 4 at all. And greedy, by definition, never goes back to find out.
@@ -119,23 +163,39 @@ Nothing went wrong mechanically. The code is correct; the *strategy* is wrong. T
 This is the failure mode to carry with you. It's silent. There's no error, no crash, no warning — just an answer that's a little worse than it should be, on some inputs and not others.
 
 :::warning
-Greedy failures do not announce themselves. `greedy_change([1, 3, 4], 6)` returns a perfectly valid list of coins summing to 6 — it's just not the shortest one. Testing on a few inputs will not catch this; only reasoning about the greedy-choice property will.
+Greedy failures do not announce themselves. Calling `greedy_change` with coins `{1, 3, 4}` and amount `6` returns perfectly valid coins summing to 6 — just not the fewest coins. Testing on a few inputs will not catch this; only reasoning about the greedy-choice property will.
 :::
 
 The fix, when greedy fails, is usually **dynamic programming**: instead of committing to one choice, try every choice for the last coin and keep the best result, reusing the sub-answers you've already computed.
 
-```python
-def optimal_change(coins, amount):
-    best = [0] + [float("inf")] * amount       # best[i] = fewest coins for i
-    for i in range(1, amount + 1):
-        for c in coins:
-            if c <= i and best[i - c] + 1 < best[i]:
-                best[i] = best[i - c] + 1
-        # every amount is solved using already-solved smaller amounts
-    return best[amount] if best[amount] != float("inf") else None
+```c
+#include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-print(optimal_change([1, 3, 4], 6))    # 2
-print(optimal_change([1, 5, 10, 25], 63))  # 6
+int optimal_change(const int coins[], size_t coin_count, size_t amount) {
+    if (amount == SIZE_MAX || amount + 1 > SIZE_MAX / sizeof(size_t)) return -1;
+    size_t *best = malloc((amount + 1) * sizeof *best);
+    if (best == NULL) return -1;
+    best[0] = 0;
+    for (size_t i = 1; i <= amount; ++i) {
+        best[i] = SIZE_MAX;
+        for (size_t j = 0; j < coin_count; ++j) {
+            if (coins[j] > 0 && (size_t)coins[j] <= i &&
+                best[i - (size_t)coins[j]] != SIZE_MAX &&
+                best[i - (size_t)coins[j]] + 1 < best[i]) {
+                best[i] = best[i - (size_t)coins[j]] + 1;
+            }
+        }
+    }
+    int answer = best[amount] == SIZE_MAX || best[amount] > INT_MAX
+               ? -1 : (int)best[amount];
+    free(best);
+    return answer;
+}
+
+/* optimal_change((int[]){1, 3, 4}, 3, 6) is 2. */
 ```
 
 That's O(amount × number of coins) — slower than greedy's near-instant answer, and correct for every coin system. You pay for correctness with work, which is the trade greedy was trying to avoid.
@@ -184,22 +244,16 @@ E: The greedy-choice property says the locally-best choice is part of some optim
 
 :::predict
 Q: What does this print?
-```python
-def greedy_change(coins, amount):
-    coins = sorted(coins, reverse=True)
-    used = []
-    for c in coins:
-        while amount >= c:
-            used.append(c)
-            amount -= c
-    return used if amount == 0 else None
-
-print(greedy_change([1, 4, 5], 8))
+```c
+int coins[] = {1, 4, 5}, used[8];
+size_t count;
+greedy_change(coins, 3, 8, used, 8, &count);
+for (size_t i = 0; i < count; ++i) printf("%d%s", used[i], i + 1 == count ? "\n" : " ");
 ```
-- [5, 1, 1, 1] *
-- [4, 4]
-- [5, 4]
-- None
+- `5 1 1 1` *
+- `4 4`
+- `5 4`
+- No solution
 E: Greedy takes the 5 first, leaving 3, which no 4 fits into — so it finishes with three 1s, four coins in total. The optimal answer, 4 + 4, uses only two. Another coin system where greed fails.
 :::
 

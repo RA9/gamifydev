@@ -1,6 +1,6 @@
 # From Source Code to Running Program
 
-You've written C. You've written Java. You typed some text into a file, ran a command, and something happened. This course is about what that "something" actually is — and we start at the very beginning, with the journey from a text file you can read to a process running on real hardware. By the end of this lesson you'll be able to name every stage of that journey and say what each one produces.
+You've written and compiled C. You typed some text into a file, ran a command, and something happened. This course is about what that "something" actually is — and we start at the very beginning, with the journey from a text file you can read to a process running on real hardware. By the end of this lesson you'll be able to name every stage of that journey and say what each one produces.
 
 ## The four stages
 
@@ -99,11 +99,11 @@ This is why an executable built on one operating system won't run on another eve
 
 ## Compiled, interpreted, and bytecode in between
 
-You've now met all three of the models you've been programming in.
+You've now met three common models for getting a program to the CPU.
 
 **Compiled ahead of time (C).** The whole pipeline above runs once, on your machine, before anyone runs the program. The result is native machine code. Fast to run, slow to build, and tied to one CPU family and OS.
 
-**Interpreted (Python).** There's no ahead-of-time trip to machine code. An interpreter program reads your source and carries out each statement as it goes. Nothing to build, runs anywhere the interpreter runs, but there's a layer of software between your code and the CPU on every single operation — which costs speed.
+**Interpreted source.** There's no ahead-of-time trip to a native executable. An interpreter program reads source and carries out its operations at runtime. There is little or nothing to build, and the same source runs anywhere a compatible interpreter runs, but a layer of software remains between the source program and the CPU — which can cost speed.
 
 **Bytecode plus a virtual machine (Java).** A middle path. `javac` compiles your `.java` to `.class` files containing **bytecode**: instructions for an imaginary CPU that doesn't physically exist. The Java Virtual Machine then executes that bytecode, and typically compiles the hot parts to real machine code while the program runs. That's why Java's slogan was "write once, run anywhere" — you ship bytecode, and each platform brings its own JVM.
 
@@ -146,4 +146,4 @@ E: Dynamic linking keeps executables small and lets one library update fix many 
 
 ## What's next
 
-You can now follow a program from text file to living process, and you know why C, Python and Java feel so different to run. But we've been treating the CPU as a black box that "just executes" instructions. Time to open it. In **How a CPU Executes a Program**, you'll meet the fetch-decode-execute cycle, the program counter, and the clock — the heartbeat underneath everything you've ever written. Pixel is looking forward to this one.
+You can now follow a program from text file to living process, and you know why native C, interpreted source and Java bytecode feel so different to run. But we've been treating the CPU as a black box that "just executes" instructions. Time to open it. In **How a CPU Executes a Program**, you'll meet the fetch-decode-execute cycle, the program counter, and the clock — the heartbeat underneath everything you've ever written. Pixel is looking forward to this one.

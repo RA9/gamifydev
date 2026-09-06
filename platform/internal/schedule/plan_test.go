@@ -92,6 +92,21 @@ func TestCoursesDoNotShareADay(t *testing.T) {
 	}
 }
 
+func TestRequiredProblemsAreScheduledBeforeCheckpoint(t *testing.T) {
+	items := Plan([]Course{{
+		ID: 1, Lessons: lessons(1), Problems: []Problem{{ID: 20}, {ID: 21}}, CheckpointID: 30,
+	}}, monday)
+	if len(items) != 4 {
+		t.Fatalf("plan has %d items, want lesson + two problems + checkpoint", len(items))
+	}
+	if items[1].Kind != KindProblem || items[1].ProblemID != 20 || items[2].Kind != KindProblem || items[2].ProblemID != 21 {
+		t.Fatalf("problems not scheduled in course order: %+v", items)
+	}
+	if items[3].Kind != KindCheckpoint || items[3].DayIndex != items[2].DayIndex || items[3].Sort <= items[2].Sort {
+		t.Fatalf("checkpoint does not follow required practice: %+v", items)
+	}
+}
+
 func TestCheckpointLandsWithItsCourse(t *testing.T) {
 	items := Plan([]Course{
 		{ID: 1, Lessons: lessons(1, 2, 3), CheckpointID: 100},

@@ -153,11 +153,11 @@ func TestExemptionsRequirePassedAttemptAndTopicMastery(t *testing.T) {
 	}
 }
 
-func TestProgrammingExemptsBothLanguageCourses(t *testing.T) {
+func TestProgrammingExemptsTheFoundationsLanguage(t *testing.T) {
 	m := core(PassThreshold)
 	m[TopicProgramming] = 100
 	got := Decide(m).Exemptions
-	want := []string{"c", "java"}
+	want := []string{"c"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("exemptions = %v, want %v", got, want)
 	}

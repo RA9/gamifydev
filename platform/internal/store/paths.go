@@ -81,6 +81,7 @@ func (s *Store) GetPathByID(ctx context.Context, id int64) (*Path, error) {
 func (s *Store) PathCourses(ctx context.Context, pathID int64) ([]Course, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT c.id, c.slug, c.title, c.emoji, c.tagline, c.description, c.sort, c.published,
+		       c.primary_language, c.language_policy, c.language_exception,
 		       (SELECT COUNT(*) FROM lessons l WHERE l.course_id = c.id) AS lesson_count
 		FROM path_courses pc JOIN courses c ON c.id = pc.course_id
 		WHERE pc.path_id = ?
@@ -93,7 +94,8 @@ func (s *Store) PathCourses(ctx context.Context, pathID int64) ([]Course, error)
 	for rows.Next() {
 		var c Course
 		var pub int
-		if err := rows.Scan(&c.ID, &c.Slug, &c.Title, &c.Emoji, &c.Tagline, &c.Description, &c.Sort, &pub, &c.LessonCount); err != nil {
+		if err := rows.Scan(&c.ID, &c.Slug, &c.Title, &c.Emoji, &c.Tagline, &c.Description, &c.Sort, &pub,
+			&c.PrimaryLanguage, &c.LanguagePolicy, &c.LanguageException, &c.LessonCount); err != nil {
 			return nil, err
 		}
 		c.Published = pub == 1

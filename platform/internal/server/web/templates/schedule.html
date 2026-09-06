@@ -21,7 +21,7 @@
       <li class="sc-item is-late">
         <span class="sc-when">{{ fmtdate .DueOn }}</span>
         <a class="sc-what" href="{{ .URL }}">
-          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else }}{{ .Lesson }}{{ end }}
+          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else if .IsProblem }}<span class="sc-kind">practice</span>{{ .Problem }}{{ else }}{{ .Lesson }}{{ end }}
           <span class="pl-fine">{{ .Course }}</span>
         </a>
       </li>
@@ -38,7 +38,7 @@
       <li class="sc-item{{ if .Done }} is-done{{ end }}{{ if .Exempt }} is-exempt{{ end }}">
         <span class="sc-tick">{{ if .Done }}✓{{ else if .Exempt }}—{{ else }}○{{ end }}</span>
         <a class="sc-what" href="{{ .URL }}">
-          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else }}{{ .Lesson }}{{ end }}
+          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else if .IsProblem }}<span class="sc-kind">practice</span>{{ .Problem }}{{ else }}{{ .Lesson }}{{ end }}
           <span class="pl-fine">{{ .Course }}{{ if .Exempt }} · skipped by your placement{{ end }}</span>
         </a>
       </li>
@@ -59,7 +59,7 @@
         <span class="sc-tick">{{ if .Done }}✓{{ else if .Exempt }}—{{ else }}○{{ end }}</span>
         <span class="sc-when">{{ fmtdate .DueOn }}</span>
         <a class="sc-what" href="{{ .URL }}">
-          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else }}{{ .Lesson }}{{ end }}
+          {{ if .IsCheckpoint }}<span class="sc-kind">checkpoint</span>{{ .Assignment }}{{ else if .IsProblem }}<span class="sc-kind">practice</span>{{ .Problem }}{{ else }}{{ .Lesson }}{{ end }}
           <span class="pl-fine">{{ .Course }}</span>
         </a>
       </li>

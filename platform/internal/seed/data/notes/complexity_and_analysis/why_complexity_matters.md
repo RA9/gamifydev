@@ -10,7 +10,7 @@ That number quietly depends on things that have nothing to do with your code:
 
 - **The machine.** A five-year-old laptop and a modern server can differ by a large factor on the exact same code.
 - **What else is running.** A backup job, a browser with forty tabs, another process hogging the disk — all of it steals time.
-- **The language and runtime.** The same algorithm written in C and in Python can differ enormously in raw speed.
+- **The language and runtime.** The same algorithm implemented with different compilers and runtimes can differ enormously in raw speed.
 - **The input you happened to test.** Two seconds on 1,000 records says nothing about 10 million records.
 
 So a timing is a fact about *one run, on one machine, on one input*. It isn't a property of your algorithm. If you and a teammate report different seconds for the same code, you've both measured your computers, not your idea.
@@ -25,18 +25,26 @@ Here's the move that makes the problem tractable. Instead of asking "how many se
 
 We call the input size **n**. It's whatever "bigger" means for your problem: the number of items in a list, the number of nodes in a tree, the number of characters in a string.
 
-```python
-def total(scores):
-    result = 0                 # 1 step
-    for s in scores:           # runs n times
-        result = result + s    # 1 step each time
-    return result              # 1 step
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(total([10, 20, 30]))
-# 60
+long total(const int scores[], size_t n) {
+    long result = 0;                    // 1 step
+    for (size_t i = 0; i < n; i++) {   // runs n times
+        result = result + scores[i];    // 1 step each time
+    }
+    return result;                      // 1 step
+}
+
+int main(void) {
+    const int scores[] = {10, 20, 30};
+    printf("%ld\n", total(scores, 3));  // 60
+    return 0;
+}
 ```
 
-Count it: roughly `n` additions, plus a couple of steps at the ends. Call it `n + 2` steps. That expression is a fact about the *algorithm*. It's true on your laptop, on a server, in C, in Python. The seconds change; the shape `n + 2` does not.
+Count it: roughly `n` additions, plus a couple of steps at the ends. Call it `n + 2` steps. That expression is a fact about the *algorithm*. It's true on your laptop, on a server, and across programming languages. The seconds change; the shape `n + 2` does not.
 
 :::key
 Complexity analysis replaces "how long did it take?" with "how many steps does it take, expressed in terms of the input size n?" The first is a property of your afternoon. The second is a property of your algorithm.
@@ -67,16 +75,28 @@ Buying a faster computer is like widening a road: everything moves a bit quicker
 
 You're asked to find whether a list of usernames contains any duplicates. The obvious approach is to compare every name with every later name:
 
-```python
-def has_duplicate_pairs(names):
-    for i in range(len(names)):
-        for j in range(i + 1, len(names)):
-            if names[i] == names[j]:
-                return True
-    return False
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
-print(has_duplicate_pairs(["ana", "bo", "ana"]))
-# True
+bool has_duplicate_pairs(const char *names[], size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = i + 1; j < n; j++) {
+            if (strcmp(names[i], names[j]) == 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int main(void) {
+    const char *names[] = {"ana", "bo", "ana"};
+    printf("%s\n", has_duplicate_pairs(names, 3) ? "true" : "false");  // true
+    return 0;
+}
 ```
 
 For a list of n names this does at most `n(n-1)/2` comparisons — every pair, once. That's roughly `n²/2`, so we call it a **quadratic** approach.
@@ -85,19 +105,73 @@ At n = 100 that's `100 × 99 / 2 = 4,950` comparisons. Nothing. It finishes befo
 
 Then the product succeeds and the list grows to 1,000,000 names. Now it's `1,000,000 × 999,999 / 2`, which is about **500,000,000,000** comparisons — five hundred billion. As a thought experiment, suppose a machine that manages 100 million comparisons per second (a round number, not a measurement). Five hundred billion divided by a hundred million is 5,000 seconds: about **1 hour and 23 minutes**, for a check that felt instant in testing.
 
-Now the hash-table version, using a set:
+Now the hash-table version, using a small open-addressed set:
 
-```python
-def has_duplicate_set(names):
-    seen = set()
-    for name in names:
-        if name in seen:
-            return True
-        seen.add(name)
-    return False
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-print(has_duplicate_set(["ana", "bo", "ana"]))
-# True
+typedef struct {
+    const char **slots;
+    size_t capacity;
+} StringSet;
+
+size_t hash_string(const char *text) {
+    size_t hash = 5381;
+    for (const unsigned char *p = (const unsigned char *)text; *p != '\0'; p++) {
+        hash = hash * 33 + *p;
+    }
+    return hash;
+}
+
+bool string_set_init(StringSet *set, size_t expected_items) {
+    set->capacity = 2;
+    while (set->capacity < expected_items * 2) {
+        set->capacity *= 2;
+    }
+    set->slots = calloc(set->capacity, sizeof *set->slots);
+    return set->slots != NULL;
+}
+
+bool string_set_contains_or_add(StringSet *set, const char *name) {
+    size_t index = hash_string(name) % set->capacity;
+    while (set->slots[index] != NULL) {
+        if (strcmp(set->slots[index], name) == 0) {
+            return true;
+        }
+        index = (index + 1) % set->capacity;
+    }
+    set->slots[index] = name;
+    return false;
+}
+
+bool has_duplicate_set(const char *names[], size_t n) {
+    StringSet seen;
+    if (!string_set_init(&seen, n)) {
+        fprintf(stderr, "could not allocate hash set\n");
+        exit(EXIT_FAILURE);
+    }
+
+    bool found = false;
+    for (size_t i = 0; i < n; i++) {
+        if (string_set_contains_or_add(&seen, names[i])) {
+            found = true;
+            break;
+        }
+    }
+
+    free(seen.slots);
+    return found;
+}
+
+int main(void) {
+    const char *names[] = {"ana", "bo", "ana"};
+    printf("%s\n", has_duplicate_set(names, 3) ? "true" : "false");  // true
+    return 0;
+}
 ```
 
 Each name is added and looked up once, and set lookups are fast on average — so this is roughly `n` steps, not `n²/2`. At n = 1,000,000 that's a million operations: about **0.01 seconds** at the same imaginary rate. Same problem, same machine, same language. The difference is entirely the growth rate.

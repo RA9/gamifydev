@@ -63,6 +63,7 @@ func seededTableCounts(t *testing.T, db *sql.DB) map[string]int {
 		"problems",
 		"problem_starters",
 		"problem_tests",
+		"course_problems",
 	}
 	counts := make(map[string]int, len(tables))
 	for _, table := range tables {

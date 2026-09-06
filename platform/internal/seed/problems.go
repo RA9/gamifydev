@@ -9,10 +9,9 @@ import (
 
 // The practice problem bank.
 //
-// These are deliberately not coursework. A problem gates nothing, belongs to no
-// path, and can be attempted by someone who has never signed in — it exists so
-// a visitor can find out in ninety seconds whether they like writing code here,
-// and so a learner between lessons has something to sharpen on.
+// Problems remain open practice that gates nothing and can be attempted without
+// signing in. A curated subset is also linked from courses so practical work sits
+// beside the theory it reinforces; the public bank remains available to everyone.
 //
 // **They are also deliberately not the canon.** "Two sum", "valid parentheses"
 // and "group anagrams" have a worked solution on the first page of every search
@@ -44,6 +43,8 @@ type seedProblem struct {
 	timeLimitMs                    int
 	starters                       map[string]string
 	tests                          []store.Check
+	workloadMinutes                int
+	mode, language, solutionLang   string
 	// solution is a correct answer, kept beside the problem so a test can prove
 	// the problem is solvable rather than leaving a learner to discover it
 	// isn't. Never served to anyone.
@@ -70,9 +71,13 @@ func hid(label, test string) store.Check {
 	return store.Check{Label: label, Test: test, Points: 1, Hidden: true}
 }
 
-// py is the starter set for a Python-only problem, which is all of them today.
+// py and cStarter declare the languages a problem accepts.
 func py(starter string) map[string]string {
 	return map[string]string{"python": starter}
+}
+
+func cStarter(starter string) map[string]string {
+	return map[string]string{"c": starter}
 }
 
 // seedProblems is the whole bank, assembled from the themed groups.
@@ -92,6 +97,7 @@ var seedProblems = func() []seedProblem {
 		stackProblems,
 		intervalProblems,
 		graphProblems,
+		foundationProblems,
 	} {
 		all = append(all, group...)
 	}
@@ -116,9 +122,14 @@ func inlineCode(s string) string {
 // stacking a second copy beside it.
 func seedProblemBank(ctx context.Context, st *store.Store) (int, error) {
 	for i, p := range seedProblems {
+		language := p.language
+		if language == "" {
+			language = "python"
+		}
 		id, err := st.UpsertProblem(ctx, store.Problem{
 			Slug: p.slug, Title: p.title, Difficulty: p.difficulty, Topic: p.topic,
 			Statement: inlineCode(p.statement), TimeLimitMs: p.timeLimitMs, Sort: i, Published: true,
+			WorkloadMinutes: p.workloadMinutes, Mode: p.mode, Language: language,
 		})
 		if err != nil {
 			return 0, err

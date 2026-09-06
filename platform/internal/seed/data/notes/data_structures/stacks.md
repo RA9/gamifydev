@@ -34,25 +34,44 @@ A stack is the pile of unread mail on your desk. Each new letter lands on top, a
 
 Notice what a stack never has to do: search, shift, or reorder. Both operations touch exactly one end, and that end is always known. So `push`, `pop`, `peek` and `is_empty` are all **O(1)** — constant time, regardless of how many items are stacked up.
 
-In Python you get a stack for free by using a list and only ever touching its end:
+In C, a stack can pair an array with a size that marks the next free slot:
 
-```python
-stack = []
+```c
+#include <stdbool.h>
+#include <stdio.h>
 
-stack.append("a")   # push
-stack.append("b")
-stack.append("c")
+#define STACK_CAPACITY 8
 
-print(stack[-1])    # peek -> c
-print(stack.pop())  # c
-print(stack.pop())  # b
-print(stack)        # ['a']
+typedef struct { char data[STACK_CAPACITY]; size_t size; } CharStack;
+
+bool push(CharStack *stack, char value) {
+    if (stack->size == STACK_CAPACITY) return false;
+    stack->data[stack->size++] = value;
+    return true;
+}
+
+bool pop(CharStack *stack, char *value) {
+    if (stack->size == 0) return false;
+    *value = stack->data[--stack->size];
+    return true;
+}
+
+int main(void) {
+    CharStack stack = {{0}, 0};
+    push(&stack, 'a'); push(&stack, 'b'); push(&stack, 'c');
+    printf("%c\n", stack.data[stack.size - 1]); // peek -> c
+    char value;
+    pop(&stack, &value); printf("%c\n", value); // c
+    pop(&stack, &value); printf("%c\n", value); // b
+    printf("[%c]\n", stack.data[0]);            // [a]
+    return 0;
+}
 ```
 
-`append` and `pop()` with no argument both work at the end of the list, which — as you saw in the Arrays lesson — needs no shifting. That's why a dynamic array makes such a natural stack.
+Both `push` and `pop` work at the end of the active array, which — as you saw in the Arrays lesson — needs no shifting. That's why a dynamic array makes such a natural stack.
 
 :::warning
-`stack.pop()` on an empty list raises `IndexError`. A stack has no "top" when it's empty, and no data structure can invent one. Always check `if stack:` before popping, or wrap the pop in a guard that returns a sensible default.
+Popping an empty stack has no valid result. A C API should report failure, as `pop` does above, and callers must check that result before using the output value.
 :::
 
 ## Two ways to build one
@@ -65,26 +84,39 @@ You can implement a stack on top of either structure from the previous lessons, 
 
 Here's the linked-list version, written out so you can see there's no loop anywhere:
 
-```python
-class Stack:
-    def __init__(self):
-        self.head = None      # top of the stack
+```c
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-    def push(self, value):
-        self.head = {"value": value, "next": self.head}
+typedef struct StackNode { int value; struct StackNode *next; } StackNode;
+typedef struct { StackNode *head; } Stack;
 
-    def pop(self):
-        if self.head is None:
-            raise IndexError("pop from empty stack")
-        node = self.head
-        self.head = node["next"]
-        return node["value"]
+bool stack_push(Stack *stack, int value) {
+    StackNode *node = malloc(sizeof *node);
+    if (node == NULL) return false;
+    *node = (StackNode){value, stack->head};
+    stack->head = node;
+    return true;
+}
 
-s = Stack()
-s.push(1)
-s.push(2)
-print(s.pop())   # 2
-print(s.pop())   # 1
+bool stack_pop(Stack *stack, int *value) {
+    if (stack->head == NULL) return false;
+    StackNode *node = stack->head;
+    *value = node->value;
+    stack->head = node->next;
+    free(node);
+    return true;
+}
+
+int main(void) {
+    Stack stack = {NULL};
+    stack_push(&stack, 1); stack_push(&stack, 2);
+    int value;
+    stack_pop(&stack, &value); printf("%d\n", value); // 2
+    stack_pop(&stack, &value); printf("%d\n", value); // 1
+    return 0;
+}
 ```
 
 :::key
@@ -101,21 +133,39 @@ Once you know the shape, you start seeing stacks everywhere.
 
 **Balanced brackets.** Checking whether `([]{})` is properly nested is a textbook stack problem. Push every opening bracket; on a closing bracket, pop and check it matches.
 
-```python
-def balanced(text):
-    pairs = {")": "(", "]": "[", "}": "{"}
-    stack = []
-    for ch in text:
-        if ch in "([{":
-            stack.append(ch)
-        elif ch in pairs:
-            if not stack or stack.pop() != pairs[ch]:
-                return False
-    return not stack
+```c
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
-print(balanced("([]{})"))   # True
-print(balanced("(]"))       # False
-print(balanced("(("))       # False
+char matching_open(char close) {
+    if (close == ')') return '(';
+    if (close == ']') return '[';
+    if (close == '}') return '{';
+    return '\0';
+}
+
+bool balanced(const char *text) {
+    char stack[256];
+    size_t size = 0;
+    for (size_t i = 0; text[i] != '\0'; i++) {
+        char ch = text[i];
+        if (ch == '(' || ch == '[' || ch == '{') {
+            if (size == sizeof stack) return false;
+            stack[size++] = ch;
+        } else if (matching_open(ch) != '\0') {
+            if (size == 0 || stack[--size] != matching_open(ch)) return false;
+        }
+    }
+    return size == 0;
+}
+
+int main(void) {
+    printf("%s\n", balanced("([]{})") ? "true" : "false"); // true
+    printf("%s\n", balanced("(]") ? "true" : "false");     // false
+    printf("%s\n", balanced("((") ? "true" : "false");     // false
+    return 0;
+}
 ```
 
 Trace `"([]{})"`: push `(`, push `[`, then `]` pops `[` and matches, push `{`, then `}` pops `{` and matches, then `)` pops `(` and matches. The stack ends empty, so everything was closed in the right order.
@@ -123,7 +173,7 @@ Trace `"([]{})"`: push `(`, push `[`, then `]` pops `[` and matches, push `{`, t
 **Expression evaluation.** Calculators and compilers use stacks to evaluate arithmetic while respecting precedence and parentheses — numbers on one stack, operators on another.
 
 :::example
-For `"(("` the loop pushes both open brackets and never pops. `return not stack` then reports `False`, because leftover items mean something was opened and never closed.
+For `"(("` the loop pushes both open brackets and never pops. The final `size == 0` check reports `false`, because leftover items mean something was opened and never closed.
 :::
 
 ## The call stack
@@ -144,10 +194,10 @@ main() calls greet(), greet() calls shout()
 
 When `shout()` returns, its frame is popped and control resumes exactly where `greet()` left off. This is why functions return in the reverse order they were called — LIFO, enforced by hardware and the language runtime.
 
-It also explains something from the recursion lesson. A recursive function that never reaches its base case keeps pushing frames without popping any. Eventually the stack runs out of room, and Python raises `RecursionError` — a stack overflow, the most famously named error in programming. It's not mysterious at all once you know the structure underneath it.
+It also explains something from the recursion lesson. A recursive function that never reaches its base case keeps pushing frames without popping any. Eventually the call stack runs out of room and the program suffers a stack overflow, often terminating with a runtime fault. It's not mysterious at all once you know the structure underneath it.
 
 :::tip
-When you're debugging and see a "stack trace" or "traceback", you're reading the call stack printed top to bottom. The innermost call is the one that failed; each line below it is the caller that's still waiting.
+When a debugger shows a backtrace, you're reading the call stack. The innermost call is the one that failed; each following frame is a caller that's still waiting.
 :::
 
 ## Check Your Understanding
@@ -163,14 +213,13 @@ E: LIFO is "last in, first out" — push and pop both act on the same end, so th
 
 :::predict
 Q: What does this print?
-```python
-stack = []
-for ch in "PIX":
-    stack.append(ch)
-out = ""
-while stack:
-    out += stack.pop()
-print(out)
+```c
+CharStack stack = {{0}, 0};
+const char *input = "PIX";
+for (size_t i = 0; input[i] != '\0'; i++) push(&stack, input[i]);
+char value;
+while (pop(&stack, &value)) putchar(value);
+putchar('\n');
 ```
 - XIP *
 - PIX
@@ -181,7 +230,7 @@ E: The characters are pushed P, I, X and popped in reverse order — a stack rev
 
 :::fill
 Q: Complete the method name for the operation that looks at the top item without removing it.
-`top = stack.___()`
+`stack_ ___ (&stack, &top);`
 - peek *
 - push
 - pop

@@ -4,6 +4,7 @@
 {{ $step := index .Data "step" }}
 {{ $idx := index .Data "index" }}
 {{ $total := index .Data "total" }}
+{{ $serverRun := or (eq $step.Lang "pyserver") (eq $step.Lang "c") (eq $step.Lang "shell") }}
 <div class="step-lab"
      data-lang="{{ $step.Lang }}"
      data-scaffold="{{ $step.Scaffold }}"
@@ -28,7 +29,7 @@
 
         <ul class="step-checks" id="stepChecks">
           {{ range index .Data "checks" }}
-          <li data-test="{{ .Test }}"><span class="check-mark" aria-hidden="true">○</span> <span>{{ .Text }}</span></li>
+          <li{{ if not $serverRun }} data-test="{{ .Test }}"{{ end }}><span class="check-mark" aria-hidden="true">○</span> <span>{{ .Text }}</span></li>
           {{ end }}
         </ul>
 
@@ -40,11 +41,11 @@
       <div class="step-editor-card">
         <div class="step-editor-bar">
           <span class="step-editor-tag">
-            {{ if eq $step.Lang "js" }}JavaScript{{ else if eq $step.Lang "python" }}Python{{ else if eq $step.Lang "pyserver" }}Python{{ else }}HTML{{ end }}
+            {{ if eq $step.Lang "js" }}JavaScript{{ else if eq $step.Lang "python" }}Python{{ else if eq $step.Lang "pyserver" }}Python{{ else if eq $step.Lang "c" }}C{{ else if eq $step.Lang "shell" }}Shell{{ else }}HTML{{ end }}
           </span>
           <button id="resetBtn" type="button" class="step-tool-btn" title="Reset to the starting code">{{ icon "refresh" }}<span>Reset</span></button>
         </div>
-        <gd-code-editor theme="dark" lang="{{ if eq $step.Lang "js" }}javascript{{ else if or (eq $step.Lang "python") (eq $step.Lang "pyserver") }}python{{ else }}html{{ end }}">
+        <gd-code-editor theme="dark" lang="{{ if eq $step.Lang "js" }}javascript{{ else if or (eq $step.Lang "python") (eq $step.Lang "pyserver") }}python{{ else if eq $step.Lang "c" }}c{{ else if eq $step.Lang "shell" }}shell{{ else }}html{{ end }}">
           <textarea id="stepCode" class="gd-editor-ta" spellcheck="false" data-starter="{{ $step.Starter }}">{{ $step.Starter }}</textarea>
         </gd-code-editor>
       </div>
@@ -55,8 +56,8 @@
           <button id="checkBtn" class="btn btn-primary btn-sm" type="button">Check my code</button>
         </div>
 
-        {{ if eq $step.Lang "pyserver" }}
-        <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run it on the server and see output here.</div></div>
+        {{ if $serverRun }}
+        <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run it safely on the server and see output here.</div></div>
         {{ else if eq $step.Lang "python" }}
         <div id="stepConsole" class="step-console"><div class="console-empty">Click “Check my code” to run your Python and see its output here.</div></div>
         {{ else if eq $step.Lang "js" }}

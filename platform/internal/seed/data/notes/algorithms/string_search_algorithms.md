@@ -15,19 +15,27 @@ pattern:          C A B A B      -> match starts at index 4
 
 The naive method lines the pattern up at position 0, compares characters until they disagree, slides right by one, and repeats.
 
-```python
-def naive_search(text, pattern):
-    n, m = len(text), len(pattern)
-    for start in range(n - m + 1):
-        j = 0
-        while j < m and text[start + j] == pattern[j]:
-            j += 1
-        if j == m:                      # matched all m characters
-            return start
-    return -1
+```c
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
-print(naive_search("ababcababd", "cabab"))   # 4
-print(naive_search("ababcababd", "xyz"))     # -1
+ptrdiff_t naive_search(const char *text, const char *pattern) {
+    size_t n = strlen(text), m = strlen(pattern);
+    if (m > n) return -1;
+    for (size_t start = 0; start <= n - m; ++start) {
+        size_t j = 0;
+        while (j < m && text[start + j] == pattern[j]) ++j;
+        if (j == m) return (ptrdiff_t)start;
+    }
+    return -1;
+}
+
+int main(void) {
+    printf("%td\n", naive_search("ababcababd", "cabab")); /* 4 */
+    printf("%td\n", naive_search("ababcababd", "xyz"));   /* -1 */
+    return 0;
+}
 ```
 
 **Cost: O(n·m) worst case.** There are up to n-m+1 starting positions and each can cost up to m comparisons. In practice it's usually much faster — on ordinary English text the first character mismatches almost immediately, so the average is close to O(n). The killer input is one with lots of near-misses:
@@ -48,29 +56,38 @@ Naive search is O(n·m) worst case and O(n) average on typical text. Its flaw is
 
 Rabin-Karp's idea: instead of comparing m characters at every position, compare a single **hash** of the window against the hash of the pattern — one integer comparison instead of m character comparisons. That would be pointless if hashing each window cost O(m). The trick is a **rolling hash**, which computes the next window's hash from the current one in O(1): as the window slides one character right, you subtract the outgoing character's contribution, shift, and add the incoming one.
 
-```python
-def rabin_karp(text, pattern, base=256, mod=1_000_003):
-    n, m = len(text), len(pattern)
-    if m > n:
-        return -1
-    high = pow(base, m - 1, mod)              # value of the leading position
+```c
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
-    p_hash = t_hash = 0
-    for i in range(m):                        # hash the pattern and first window
-        p_hash = (p_hash * base + ord(pattern[i])) % mod
-        t_hash = (t_hash * base + ord(text[i])) % mod
+ptrdiff_t rabin_karp(const char *text, const char *pattern) {
+    const uint64_t base = 256, mod = 1000003;
+    size_t n = strlen(text), m = strlen(pattern);
+    if (m == 0) return 0;
+    if (m > n) return -1;
 
-    for start in range(n - m + 1):
-        if p_hash == t_hash:                  # hashes agree — now verify
-            if text[start:start + m] == pattern:
-                return start
-        if start < n - m:                     # roll the window one right
-            t_hash = (t_hash - ord(text[start]) * high) % mod
-            t_hash = (t_hash * base + ord(text[start + m])) % mod
-    return -1
+    uint64_t high = 1;
+    for (size_t i = 1; i < m; ++i) high = (high * base) % mod;
+    uint64_t p_hash = 0, t_hash = 0;
+    for (size_t i = 0; i < m; ++i) {
+        p_hash = (p_hash * base + (unsigned char)pattern[i]) % mod;
+        t_hash = (t_hash * base + (unsigned char)text[i]) % mod;
+    }
 
-print(rabin_karp("ababcababd", "cabab"))   # 4
-print(rabin_karp("ababcababd", "xyz"))     # -1
+    for (size_t start = 0; start <= n - m; ++start) {
+        if (p_hash == t_hash && memcmp(text + start, pattern, m) == 0) {
+            return (ptrdiff_t)start;
+        }
+        if (start < n - m) {
+            uint64_t outgoing = ((unsigned char)text[start] * high) % mod;
+            t_hash = (t_hash + mod - outgoing) % mod;
+            t_hash = (t_hash * base + (unsigned char)text[start + m]) % mod;
+        }
+    }
+    return -1;
+}
 ```
 
 The verification step is essential: two different strings can hash to the same value — a **collision** — so a hash match is only a *candidate*. **Cost: O(n + m) average**, because collisions are rare with a good hash and a large modulus, so the expensive verification almost never runs; **O(n·m) worst case**, if extreme bad luck (or an adversary) makes every window collide.
@@ -97,41 +114,63 @@ table[3] = 2  because "ABAB" ends with "AB", which is also how it starts.
 
 That number tells you how much of your progress survives a mismatch. If you matched "ABAB" and then failed, you don't restart — the "AB" at the end is already a valid start of a fresh attempt, so you resume comparing from pattern index 2.
 
-```python
-def build_prefix_table(pattern):
-    table = [0] * len(pattern)
-    length = 0                             # length of the current prefix-suffix
-    for i in range(1, len(pattern)):
-        while length > 0 and pattern[i] != pattern[length]:
-            length = table[length - 1]     # fall back to a shorter prefix
-        if pattern[i] == pattern[length]:
-            length += 1
-        table[i] = length
-    return table
+```c
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-print(build_prefix_table("ABABC"))    # [0, 0, 1, 2, 0]
-print(build_prefix_table("AAAB"))     # [0, 1, 2, 0]
+size_t *build_prefix_table(const char *pattern, size_t m) {
+    size_t *table = calloc(m, sizeof *table);
+    if (table == NULL && m != 0) return NULL;
+    size_t length = 0;
+    for (size_t i = 1; i < m; ++i) {
+        while (length > 0 && pattern[i] != pattern[length]) {
+            length = table[length - 1];
+        }
+        if (pattern[i] == pattern[length]) ++length;
+        table[i] = length;
+    }
+    return table;                         /* Caller owns this allocation. */
+}
+
+int main(void) {
+    const char *pattern = "ABABC";
+    size_t m = strlen(pattern);
+    size_t *table = build_prefix_table(pattern, m);
+    if (table == NULL) return EXIT_FAILURE;
+    for (size_t i = 0; i < m; ++i) printf("%zu%s", table[i], i + 1 == m ? "\n" : " ");
+    free(table);
+    return 0;
+}
 ```
 
 The search then walks the text with a single pointer that **never moves backwards**:
 
-```python
-def kmp_search(text, pattern):
-    if not pattern:
-        return 0
-    table = build_prefix_table(pattern)
-    j = 0                                   # how much of the pattern matches
-    for i in range(len(text)):              # i never goes back
-        while j > 0 and text[i] != pattern[j]:
-            j = table[j - 1]                # shift using what we already know
-        if text[i] == pattern[j]:
-            j += 1
-        if j == len(pattern):
-            return i - len(pattern) + 1
-    return -1
+```c
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
-print(kmp_search("ababcababd", "cabab"))   # 4
-print(kmp_search("aaaaaaaaab", "aaab"))    # 6
+ptrdiff_t kmp_search(const char *text, const char *pattern) {
+    size_t n = strlen(text), m = strlen(pattern);
+    if (m == 0) return 0;
+    size_t *table = build_prefix_table(pattern, m);
+    if (table == NULL) return -1;
+
+    size_t j = 0;
+    ptrdiff_t result = -1;
+    for (size_t i = 0; i < n; ++i) {       /* i never moves backwards. */
+        while (j > 0 && text[i] != pattern[j]) j = table[j - 1];
+        if (text[i] == pattern[j]) ++j;
+        if (j == m) {
+            result = (ptrdiff_t)(i - m + 1);
+            break;
+        }
+    }
+    free(table);
+    return result;
+}
 ```
 
 **Cost: O(n + m) in the worst case** — O(m) to build the table, O(n) to scan. That's a genuine guarantee, not an average. Because `i` only ever increases and each character of the text is examined a bounded number of times, there is no bad input at all. Extra space is O(m) for the table.
@@ -187,7 +226,7 @@ Boyer-Moore    sublinear    O(n + m)**   O(m + a)      long patterns, big alphab
 All four algorithms **preprocess the pattern**. If instead you're going to search the *same text* many times with different patterns, it pays to preprocess the text instead — that's what **suffix arrays** and **suffix trees** do, giving O(m) searches after an O(n) build, and a **trie** does the same for matching many patterns at once.
 
 :::tip
-In everyday code, use your language's built-in search — Python's `in` and `str.find` are implemented in C with algorithms in this family, and will beat anything you hand-write. Learn these to understand the trade-offs and to recognise when a specialised structure is what you actually need.
+In everyday C code, use a well-tested library routine when it fits: `strstr` searches null-terminated strings, while `memmem` is a common non-standard extension for byte ranges. Learn these algorithms to understand the trade-offs and to recognise when a specialised structure is what you actually need.
 :::
 
 ## Check Your Understanding

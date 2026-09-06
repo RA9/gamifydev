@@ -73,11 +73,12 @@ func (s *Store) ListChecks(ctx context.Context, assignmentID int64) ([]Check, er
 	return out, rows.Err()
 }
 
-// ReplaceChecks swaps an assignment's checks for the given set and recomputes
-// whether the assignment can be auto-graded.
+// ReplaceChecks synchronizes an assignment's checks and recomputes whether it
+// can be auto-graded. Existing rows are updated by position so startup reseeding
+// preserves submission_checks associations.
 //
-// Auto-gradable requires a language the sandbox can execute — Python or C. An
-// assignment in any other language may still carry checks (they document the
+// Auto-gradable requires a language the sandbox can execute — Python, C, or
+// shell. An assignment in any other language may still carry checks (they document the
 // spec) but they will never run, and it falls back to mentor grading.
 func (s *Store) ReplaceChecks(ctx context.Context, assignmentID int64, checks []Check) error {
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -86,8 +87,22 @@ func (s *Store) ReplaceChecks(ctx context.Context, assignmentID int64, checks []
 	}
 	defer tx.Rollback() //nolint:errcheck
 
-	if _, err := tx.ExecContext(ctx,
-		`DELETE FROM assignment_checks WHERE assignment_id = ?`, assignmentID); err != nil {
+	rows, err := tx.QueryContext(ctx,
+		`SELECT id FROM assignment_checks WHERE assignment_id = ? ORDER BY sort, id`, assignmentID)
+	if err != nil {
+		return err
+	}
+	var existing []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		existing = append(existing, id)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
 		return err
 	}
 	for i, c := range checks {
@@ -98,11 +113,31 @@ func (s *Store) ReplaceChecks(ctx context.Context, assignmentID int64, checks []
 		if c.Points < 0 {
 			c.Points = 0
 		}
+		if i < len(existing) {
+			if _, err := tx.ExecContext(ctx, `
+				UPDATE assignment_checks
+				SET sort=?, label=?, test=?, hidden=?, points=?, stdin=?
+				WHERE id=?`,
+				i, c.Label, c.Test, hidden, c.Points, c.Stdin, existing[i]); err != nil {
+				return err
+			}
+			continue
+		}
 		if _, err := tx.ExecContext(ctx, `
 			INSERT INTO assignment_checks (assignment_id, sort, label, test, hidden, points, stdin)
 			VALUES (?, ?, ?, ?, ?, ?, ?)`,
 			assignmentID, i, c.Label, c.Test, hidden, c.Points, c.Stdin); err != nil {
 			return err
+		}
+	}
+	if len(existing) > len(checks) {
+		for _, id := range existing[len(checks):] {
+			if _, err := tx.ExecContext(ctx, `DELETE FROM submission_checks WHERE check_id = ?`, id); err != nil {
+				return err
+			}
+			if _, err := tx.ExecContext(ctx, `DELETE FROM assignment_checks WHERE id = ?`, id); err != nil {
+				return err
+			}
 		}
 	}
 	// Which languages are runnable is the runner's fact, not this query's —

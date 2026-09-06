@@ -57,16 +57,25 @@ That's a contract. The precondition is what you demand from the caller; the post
 
 To argue that a loop actually meets its postcondition, you use an **invariant**: something true before the loop starts and still true after every single pass.
 
-```python
-def maximum(nums):
-    best = nums[0]
-    # invariant: best is the largest value among nums[0..i-1]
-    for i in range(1, len(nums)):
-        if nums[i] > best:
-            best = nums[i]
-    return best
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(maximum([3, 9, 2, 9, 4]))   # 9
+/* Precondition: n > 0. */
+int maximum(const int nums[], size_t n) {
+    int best = nums[0];
+    /* Invariant: best is the largest value in nums[0..i). */
+    for (size_t i = 1; i < n; ++i) {
+        if (nums[i] > best) best = nums[i];
+    }
+    return best;
+}
+
+int main(void) {
+    int nums[] = {3, 9, 2, 9, 4};
+    printf("%d\n", maximum(nums, sizeof nums / sizeof nums[0])); /* 9 */
+    return 0;
+}
 ```
 
 The invariant holds at the start (`best` is the largest of the first one element — trivially true). Each pass keeps it true: if the new element is bigger, `best` becomes it; otherwise `best` was already the largest. When the loop ends, `i` has passed every index, so `best` is the largest of the whole list. That's a proof, not a hope.
@@ -88,7 +97,7 @@ ALGORITHM linear_maximum(nums)
   RETURN best
 ```
 
-Good pseudocode names its steps, shows its control flow, and skips everything irrelevant — no type declarations, no imports, no error handling. Python is close enough to pseudocode that we'll mostly write real Python in this course, but the habit of sketching the shape first is what keeps you from coding yourself into a corner.
+Good pseudocode names its steps, shows its control flow, and skips everything irrelevant — no type declarations, headers, allocation details, or error handling. The examples in this course use C99, but sketching the language-neutral shape first keeps syntax and resource management from obscuring the algorithm.
 
 :::warning
 Pseudocode is allowed to be informal, but it is not allowed to be *vague*. "Sort the list somehow" hides the most expensive step in the whole algorithm. If a line hides real work, expand it — otherwise your cost analysis will be wrong.
@@ -98,33 +107,90 @@ Pseudocode is allowed to be informal, but it is not allowed to be *vague*. "Sort
 
 **Brute force** means trying every possibility. It has a bad reputation it doesn't deserve. Suppose you want to know whether any two numbers in a list add up to a target:
 
-```python
-def has_pair_bruteforce(nums, target):
-    for i in range(len(nums)):
-        for j in range(i + 1, len(nums)):
-            if nums[i] + nums[j] == target:
-                return True
-    return False
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 
-print(has_pair_bruteforce([4, 1, 9, 7], 16))   # True
-print(has_pair_bruteforce([4, 1, 9, 7], 20))   # False
+bool has_pair_bruteforce(const int nums[], size_t n, int target) {
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = i + 1; j < n; ++j) {
+            if ((int64_t)nums[i] + nums[j] == target) return true;
+        }
+    }
+    return false;
+}
+
+int main(void) {
+    int nums[] = {4, 1, 9, 7};
+    size_t n = sizeof nums / sizeof nums[0];
+    printf("%s\n", has_pair_bruteforce(nums, n, 16) ? "true" : "false");
+    printf("%s\n", has_pair_bruteforce(nums, n, 20) ? "true" : "false");
+    return 0;
+}
 ```
 
 Two nested loops over `n` items is O(n²). But look at what this version gives you: it's obviously correct, you can read it in ten seconds, and it's now a **reference implementation** you can test any faster version against.
 
 And here is the faster version, which uses a hash set to remember what it has already seen:
 
-```python
-def has_pair_fast(nums, target):
-    seen = set()
-    for x in nums:
-        if target - x in seen:
-            return True
-        seen.add(x)
-    return False
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-print(has_pair_fast([4, 1, 9, 7], 16))   # True
-print(has_pair_fast([4, 1, 9, 7], 20))   # False
+typedef struct {
+    int *keys;
+    bool *used;
+    size_t capacity;
+} IntSet;
+
+static size_t hash_int(int value, size_t capacity) {
+    return ((uint32_t)value * UINT32_C(2654435761)) % capacity;
+}
+
+static bool set_contains(const IntSet *set, int value) {
+    size_t i = hash_int(value, set->capacity);
+    while (set->used[i]) {
+        if (set->keys[i] == value) return true;
+        i = (i + 1) % set->capacity;
+    }
+    return false;
+}
+
+static void set_add(IntSet *set, int value) {
+    size_t i = hash_int(value, set->capacity);
+    while (set->used[i] && set->keys[i] != value) i = (i + 1) % set->capacity;
+    set->used[i] = true;
+    set->keys[i] = value;
+}
+
+bool has_pair_fast(const int nums[], size_t n, int target) {
+    if (n == 0 || n > (SIZE_MAX - 1) / 2) return false;
+    IntSet seen = {.capacity = 2 * n + 1};
+    if (seen.capacity > SIZE_MAX / sizeof *seen.keys) return false;
+    seen.keys = malloc(seen.capacity * sizeof *seen.keys);
+    seen.used = calloc(seen.capacity, sizeof *seen.used);
+    if (seen.keys == NULL || seen.used == NULL) {
+        free(seen.keys);
+        free(seen.used);
+        return false;
+    }
+
+    bool found = false;
+    for (size_t i = 0; i < n && !found; ++i) {
+        int64_t complement = (int64_t)target - nums[i];
+        if (complement >= INT32_MIN && complement <= INT32_MAX) {
+            found = set_contains(&seen, (int)complement);
+        }
+        set_add(&seen, nums[i]);
+    }
+    free(seen.keys);
+    free(seen.used);
+    return found;
+}
 ```
 
 One pass, O(n) average time thanks to O(1) average set lookups, at the cost of O(n) extra memory. That's the whole game in miniature: start from something correct, understand where the cost is, spend memory or structure to remove it.

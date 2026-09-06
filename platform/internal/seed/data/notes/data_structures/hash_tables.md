@@ -2,22 +2,30 @@
 
 In the first lesson you saw a list scan through a million names to answer "is this taken?", while a set answered almost instantly. This is the lesson where that magic gets explained. A **hash table** turns a key into an array index by arithmetic, so instead of *searching* for where something lives, it *computes* where it lives.
 
-Python's `dict` and `set`, Java's `HashMap` and `HashSet`, JavaScript's `Map` — all hash tables. It's arguably the most-used data structure in working software, so it's worth getting precisely right, including the part where it isn't fast.
+Hash-table libraries for C, Java's `HashMap` and `HashSet`, and JavaScript's `Map` all implement this idea. It's arguably the most-used data structure in working software, so it's worth getting precisely right, including the part where it isn't fast.
 
 ## From key to bucket index
 
 Underneath, a hash table is just an array. The slots are called **buckets**. The clever part is the **hash function**: a piece of code that takes a key of any shape and produces a number.
 
-```python
-def simple_hash(key, num_buckets):
-    total = 0
-    for ch in key:
-        total += ord(ch)      # ord() gives a character's numeric code
-    return total % num_buckets
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(simple_hash("cat", 8))   # 0
-print(simple_hash("dog", 8))   # 2
-print(simple_hash("bird", 8))  # 1
+size_t simple_hash(const char *key, size_t bucket_count) {
+    size_t total = 0;
+    for (const unsigned char *ch = (const unsigned char *)key; *ch != '\0'; ch++) {
+        total += *ch;          // each char is converted to its numeric code
+    }
+    return total % bucket_count;
+}
+
+int main(void) {
+    printf("%zu\n", simple_hash("cat", 8));   // 0
+    printf("%zu\n", simple_hash("dog", 8));   // 2
+    printf("%zu\n", simple_hash("bird", 8));  // 1
+    return 0;
+}
 ```
 
 Two steps, always. First, turn the key into a number — here by adding up character codes. Second, squeeze that number into the valid range of bucket indices with `% num_buckets`. Now `"cat"` doesn't need to be *found*; it belongs in bucket 0, and it always will.
@@ -53,9 +61,9 @@ There are infinitely many possible keys and only a finite number of buckets, so 
 
 Our toy hash function collides very easily, because addition doesn't care about order:
 
-```python
-print(simple_hash("cat", 8))   # 0
-print(simple_hash("act", 8))   # 0  -- same letters, same sum
+```c
+printf("%zu\n", simple_hash("cat", 8));   // 0
+printf("%zu\n", simple_hash("act", 8));   // 0, same letters and same sum
 ```
 
 Every hash table needs a plan for this. There are two families of answers.
@@ -63,9 +71,9 @@ Every hash table needs a plan for this. There are two families of answers.
 **Chaining.** Each bucket holds a small collection — usually a linked list — of all the pairs that landed there. On lookup, you hash to the bucket and then scan that short chain.
 
 ```text
-  0: ("cat", 9) -> ("act", 1) -> None
+  0: ("cat", 9) -> ("act", 1) -> NULL
   1:
-  2: ("dog", 4) -> None
+  2: ("dog", 4) -> NULL
 ```
 
 **Open addressing.** Every bucket holds at most one pair. On a collision, you *probe* for another slot by a fixed rule — the simplest being "try the next slot, and the next, wrapping around" (linear probing). Lookups follow the same probe sequence until they find the key or hit an empty slot.
@@ -78,7 +86,7 @@ Every hash table needs a plan for this. There are two families of answers.
   2: ("dog", 4)
 ```
 
-Both work. Chaining is simpler to reason about and handles a full-ish table gracefully; open addressing keeps everything in one contiguous array, which is kinder to the cache. Real implementations vary — Python's dict uses a form of open addressing, and Java's HashMap uses chaining (upgrading long chains into trees).
+Both work. Chaining is simpler to reason about and handles a full-ish table gracefully; open addressing keeps everything in one contiguous array, which is kinder to the cache. Real implementations vary: many compact C hash tables use open addressing, while Java's `HashMap` uses chaining and upgrades long chains into trees.
 
 ## Average O(1), worst case O(n) — say both
 
@@ -128,24 +136,40 @@ If you know roughly how many items you'll store, creating the table with that ca
 
 For any of this to work, a key must satisfy two rules.
 
-**It must produce a hash value.** In Python that means implementing `__hash__`; most built-in types do.
+**It must produce a hash value.** In C, the table's API usually accepts a hash function for the key type, or defines one internally.
 
 **Its hash must never change while it's stored.** This is the important one. If you use an object as a key, and then mutate it so its hash changes, the table will compute a different bucket next time and simply fail to find an item that's definitely in there.
 
-Python enforces this by refusing to hash mutable types at all:
+In C, the table cannot enforce immutability for you, so store stable key data or copy it into table-owned memory:
 
-```python
-scores = {}
-scores[("ada", 1815)] = 10     # a tuple is immutable -> fine
-print(scores[("ada", 1815)])   # 10
+```c
+#include <stdio.h>
+#include <string.h>
 
-try:
-    scores[["ada", 1815]] = 10          # a list is mutable
-except TypeError:
-    print("lists are unhashable")       # lists are unhashable
+typedef struct {
+    char name[16];
+    int birth_year;
+} PersonKey;
+
+size_t person_hash(const PersonKey *key, size_t bucket_count) {
+    size_t hash = (size_t)key->birth_year;
+    for (const unsigned char *ch = (const unsigned char *)key->name; *ch != '\0'; ch++) {
+        hash = hash * 31u + *ch;
+    }
+    return hash % bucket_count;
+}
+
+int main(void) {
+    PersonKey key = {"ada", 1815};
+    PersonKey stored_key = key;  // copy the key into table-owned storage
+    printf("bucket %zu\n", person_hash(&stored_key, 8));
+    strcpy(key.name, "grace");  // changing the caller's copy cannot move stored_key
+    printf("bucket %zu\n", person_hash(&stored_key, 8));
+    return 0;
+}
 ```
 
-Strings, numbers, and tuples of immutable things are hashable. Lists, dicts and sets are not. That restriction isn't Python being fussy — it's protecting you from a bug that would be nearly impossible to find.
+Integer values and copied strings or structs can make stable keys. A pointer to mutable caller-owned data is risky unless the table copies the pointed-to value. C leaves that contract to the implementation, so documenting ownership is essential.
 
 :::key
 Equal keys must have equal hashes, and a key's hash must not change while it's in the table. This is why hash-table keys are almost always **immutable** values.
@@ -155,16 +179,80 @@ Equal keys must have equal hashes, and a key's hash must not change while it's i
 
 You've been using all of this already:
 
-```python
-inventory = {"potion": 3, "sword": 1}
-inventory["shield"] = 2         # insert, average O(1)
-print(inventory["potion"])      # 3, average O(1)
-del inventory["sword"]          # delete, average O(1)
-print("sword" in inventory)     # False, average O(1)
-print(inventory)                # {'potion': 3, 'shield': 2}
+```c
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
+#define CAPACITY 8
+
+typedef enum { EMPTY, OCCUPIED, DELETED } SlotState;
+typedef struct { char key[16]; int value; SlotState state; } Entry;
+typedef struct { Entry entries[CAPACITY]; } HashTable;
+
+size_t simple_hash(const char *key, size_t bucket_count);
+
+size_t find_key(const HashTable *table, const char *key) {
+    size_t index = simple_hash(key, CAPACITY);
+    for (size_t probes = 0; probes < CAPACITY; probes++) {
+        const Entry *entry = &table->entries[index];
+        if (entry->state == EMPTY) break;
+        if (entry->state == OCCUPIED && strcmp(entry->key, key) == 0) return index;
+        index = (index + 1) % CAPACITY;
+    }
+    return CAPACITY;
+}
+
+bool set(HashTable *table, const char *key, int value) {
+    size_t index = simple_hash(key, CAPACITY);
+    size_t available = CAPACITY;
+    for (size_t probes = 0; probes < CAPACITY; probes++) {
+        Entry *entry = &table->entries[index];
+        if (entry->state == OCCUPIED && strcmp(entry->key, key) == 0) {
+            entry->value = value;
+            return true;
+        }
+        if (entry->state == DELETED && available == CAPACITY) available = index;
+        if (entry->state == EMPTY) {
+            available = available == CAPACITY ? index : available;
+            break;
+        }
+        index = (index + 1) % CAPACITY;
+    }
+    if (available == CAPACITY) return false;
+    Entry *entry = &table->entries[available];
+    snprintf(entry->key, sizeof entry->key, "%s", key);
+    entry->value = value;
+    entry->state = OCCUPIED;
+    return true;
+}
+
+bool get(const HashTable *table, const char *key, int *value) {
+    size_t index = find_key(table, key);
+    if (index == CAPACITY) return false;
+    *value = table->entries[index].value;
+    return true;
+}
+
+void remove_key(HashTable *table, const char *key) {
+    size_t index = find_key(table, key);
+    if (index != CAPACITY) table->entries[index].state = DELETED;
+}
+
+int main(void) {
+    HashTable inventory = {0};
+    int count;
+    set(&inventory, "potion", 3);
+    set(&inventory, "sword", 1);
+    set(&inventory, "shield", 2);       // insert, average O(1)
+    if (get(&inventory, "potion", &count)) printf("%d\n", count);
+    remove_key(&inventory, "sword");    // delete, average O(1)
+    printf("%s\n", get(&inventory, "sword", &count) ? "true" : "false");
+    return 0;
+}
 ```
 
-One thing a hash table cannot give you: order that means anything. Buckets are assigned by arithmetic, so there's no notion of "the smallest key" or "the next key after this one" without looking at everything. (Python dicts do remember *insertion* order as a separate convenience, but that's not sorted order, and it isn't something hash tables give you in general.) When you need sorted or ranged queries, you want a tree — which is where we're heading.
+One thing a hash table cannot give you: order that means anything. Buckets are assigned by arithmetic, so there's no notion of "the smallest key" or "the next key after this one" without looking at everything. An implementation can maintain insertion order as separate metadata, but that is not sorted order and is not something hashing provides. When you need sorted or ranged queries, you want a tree — which is where we're heading.
 
 ## Check Your Understanding
 
@@ -179,14 +267,10 @@ E: If every key collides into one bucket, the lookup degenerates into scanning a
 
 :::predict
 Q: What does this print?
-```python
-def simple_hash(key, num_buckets):
-    total = 0
-    for ch in key:
-        total += ord(ch)
-    return total % num_buckets
+```c
+#include <stdio.h>
 
-print(simple_hash("cat", 8), simple_hash("act", 8))
+printf("%zu %zu\n", simple_hash("cat", 8), simple_hash("act", 8));
 ```
 - 0 0 *
 - 0 1

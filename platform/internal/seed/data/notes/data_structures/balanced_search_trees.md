@@ -8,37 +8,66 @@ A **balanced search tree** is a BST that actively maintains its own shape. After
 
 Two trees, the same seven keys, built by inserting in different orders:
 
-```python
-class Node:
-    def __init__(self, key):
-        self.key = key
-        self.left = None
-        self.right = None
+```c
+#include <stdio.h>
+#include <stdlib.h>
 
-def insert(node, key):
-    if node is None:
-        return Node(key)
-    if key < node.key:
-        node.left = insert(node.left, key)
-    elif key > node.key:
-        node.right = insert(node.right, key)
-    return node
+typedef struct Node {
+    int key;
+    struct Node *left;
+    struct Node *right;
+} Node;
 
-def height(node):
-    if node is None:
-        return -1                 # empty tree has height -1, a leaf has 0
-    return 1 + max(height(node.left), height(node.right))
+Node *insert(Node *node, int key) {
+    if (node == NULL) {
+        Node *created = malloc(sizeof *created);
+        if (created == NULL) {
+            return NULL;
+        }
+        *created = (Node){key, NULL, NULL};
+        return created;
+    }
+    if (key < node->key) {
+        Node *left = insert(node->left, key);
+        if (left != NULL) node->left = left;
+    } else if (key > node->key) {
+        Node *right = insert(node->right, key);
+        if (right != NULL) node->right = right;
+    }
+    return node;
+}
 
-sorted_tree = None
-for k in [1, 2, 3, 4, 5, 6, 7]:
-    sorted_tree = insert(sorted_tree, k)
+int height(const Node *node) {
+    if (node == NULL) {
+        return -1;                 // empty tree has height -1, a leaf has 0
+    }
+    int left = height(node->left);
+    int right = height(node->right);
+    return 1 + (left > right ? left : right);
+}
 
-bushy_tree = None
-for k in [4, 2, 6, 1, 3, 5, 7]:
-    bushy_tree = insert(bushy_tree, k)
+void free_tree(Node *node) {
+    if (node == NULL) return;
+    free_tree(node->left);
+    free_tree(node->right);
+    free(node);
+}
 
-print(height(sorted_tree))   # 6
-print(height(bushy_tree))    # 2
+int main(void) {
+    int sorted_keys[] = {1, 2, 3, 4, 5, 6, 7};
+    int bushy_keys[] = {4, 2, 6, 1, 3, 5, 7};
+    Node *sorted_tree = NULL;
+    Node *bushy_tree = NULL;
+
+    for (size_t i = 0; i < 7; i++) sorted_tree = insert(sorted_tree, sorted_keys[i]);
+    for (size_t i = 0; i < 7; i++) bushy_tree = insert(bushy_tree, bushy_keys[i]);
+
+    printf("%d\n", height(sorted_tree));   // 6
+    printf("%d\n", height(bushy_tree));    // 2
+    free_tree(sorted_tree);
+    free_tree(bushy_tree);
+    return 0;
+}
 ```
 
 Same data, same code, same ordering rule satisfied in both. One tree answers a search in up to 7 comparisons; the other in 3. Scale that to a million keys and it's a million comparisons versus twenty.
@@ -151,7 +180,7 @@ High **fan-out** means low height. When each step down the tree costs a slow dis
 That's four different balancing strategies, and you will almost certainly never write one from scratch.
 
 :::tip
-You rarely implement these yourself. What you use daily is the result: a Python `dict` is a hash table, but a database index is almost certainly a B-tree, and a Java `TreeMap` is a red-black tree. Knowing which is which tells you what the thing is fast at.
+You rarely implement these yourself. What you use daily is the result: a conventional C hash table uses buckets, but a database index is almost certainly a B-tree, and many ordered-map libraries use red-black trees. Knowing which is which tells you what the thing is fast at.
 :::
 
 ## Check Your Understanding

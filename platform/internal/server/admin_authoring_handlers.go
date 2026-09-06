@@ -64,12 +64,15 @@ func (s *Server) handleAdminCourseUpdate(w http.ResponseWriter, r *http.Request)
 func courseFromForm(r *http.Request) store.Course {
 	title := strings.TrimSpace(r.FormValue("title"))
 	return store.Course{
-		Title:       title,
-		Slug:        slugOr(r.FormValue("slug"), title),
-		Emoji:       strings.TrimSpace(r.FormValue("emoji")),
-		Tagline:     strings.TrimSpace(r.FormValue("tagline")),
-		Description: strings.TrimSpace(r.FormValue("description")),
-		Published:   r.FormValue("published") == "1",
+		Title:             title,
+		Slug:              slugOr(r.FormValue("slug"), title),
+		Emoji:             strings.TrimSpace(r.FormValue("emoji")),
+		Tagline:           strings.TrimSpace(r.FormValue("tagline")),
+		Description:       strings.TrimSpace(r.FormValue("description")),
+		PrimaryLanguage:   strings.TrimSpace(r.FormValue("primary_language")),
+		LanguagePolicy:    strings.TrimSpace(r.FormValue("language_policy")),
+		LanguageException: strings.TrimSpace(r.FormValue("language_exception")),
+		Published:         r.FormValue("published") == "1",
 	}
 }
 
@@ -288,19 +291,26 @@ func (s *Server) handleAdminLessonPreview(w http.ResponseWriter, r *http.Request
 
 func lessonFromForm(r *http.Request) store.Lesson {
 	title := strings.TrimSpace(r.FormValue("title"))
+	workload, _ := strconv.Atoi(r.FormValue("workload_minutes"))
+	if workload <= 0 {
+		workload = 30
+	}
 	kind := strings.TrimSpace(r.FormValue("kind"))
 	if kind == "" {
 		kind = "theory"
 	}
 	return store.Lesson{
-		Title:    title,
-		Slug:     slugOr(r.FormValue("slug"), title),
-		Summary:  strings.TrimSpace(r.FormValue("summary")),
-		Body:     r.FormValue("body"),
-		VideoURL: strings.TrimSpace(r.FormValue("video_url")),
-		AudioURL: strings.TrimSpace(r.FormValue("audio_url")),
-		Section:  strings.TrimSpace(r.FormValue("section")),
-		Kind:     kind,
+		Title:           title,
+		Slug:            slugOr(r.FormValue("slug"), title),
+		Summary:         strings.TrimSpace(r.FormValue("summary")),
+		Body:            r.FormValue("body"),
+		VideoURL:        strings.TrimSpace(r.FormValue("video_url")),
+		AudioURL:        strings.TrimSpace(r.FormValue("audio_url")),
+		Section:         strings.TrimSpace(r.FormValue("section")),
+		Kind:            kind,
+		WorkloadMinutes: workload,
+		Mode:            strings.TrimSpace(r.FormValue("mode")),
+		Language:        strings.TrimSpace(r.FormValue("language")),
 	}
 }
 
@@ -457,17 +467,23 @@ func assignmentFromForm(r *http.Request) store.Assignment {
 	if passPts < 0 {
 		passPts = 0
 	}
+	workload, _ := strconv.Atoi(r.FormValue("workload_minutes"))
+	if workload <= 0 {
+		workload = 60
+	}
 	return store.Assignment{
-		Title:      title,
-		Slug:       slugOr(r.FormValue("slug"), title),
-		CourseID:   courseID,
-		Language:   lang,
-		Prompt:     r.FormValue("prompt"),
-		Starter:    r.FormValue("starter"),
-		MaxPoints:  pts,
-		Published:  r.FormValue("published") == "1",
-		Required:   r.FormValue("required") == "1",
-		PassPoints: passPts,
+		Title:           title,
+		Slug:            slugOr(r.FormValue("slug"), title),
+		CourseID:        courseID,
+		Language:        lang,
+		Prompt:          r.FormValue("prompt"),
+		Starter:         r.FormValue("starter"),
+		MaxPoints:       pts,
+		Published:       r.FormValue("published") == "1",
+		Required:        r.FormValue("required") == "1",
+		PassPoints:      passPts,
+		WorkloadMinutes: workload,
+		Mode:            strings.TrimSpace(r.FormValue("mode")),
 	}
 }
 

@@ -69,7 +69,7 @@ const (
 // skip. Linux is intentionally absent: nothing in the diagnostic tests it, so
 // it is never exempted.
 var topicCourses = map[string][]string{
-	TopicProgramming:    {"c", "java"},
+	TopicProgramming:    {"c"},
 	TopicDataStructures: {"data_structures"},
 	TopicComplexity:     {"complexity_and_analysis"},
 	TopicAlgorithms:     {"algorithms"},

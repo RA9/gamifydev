@@ -53,12 +53,16 @@ func main() {
 	// the probe can't confirm containment, refuse to serve — fail closed.
 	requireSandbox := envOr("EXECD_REQUIRE_SANDBOX", "0") == "1"
 	if envOr("EXECD_SELFTEST", "1") == "1" {
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		rep, perr := runner.Probe(ctx, exec)
+		cerr := runner.ProbeC(ctx, exec)
 		cancel()
+		if cerr != nil {
+			log.Fatalf("execd: C toolchain self-test FAILED — refusing to start without required C execution: %v", cerr)
+		}
 		switch {
 		case perr == nil && rep.Sandboxed:
-			log.Printf("execd: sandbox self-test PASSED — network blocked, host FS hidden, bwrap mount active")
+			log.Printf("execd: sandbox self-test PASSED — network blocked, host FS hidden, bwrap mount active, C toolchain ready")
 		case requireSandbox:
 			log.Fatalf("execd: sandbox self-test FAILED and EXECD_REQUIRE_SANDBOX=1 — refusing to serve untrusted code unsandboxed. Reasons: %v (raw: %s)", rep.Reasons, rep.Raw)
 		default:
@@ -120,12 +124,19 @@ func runSelftest() {
 	if err != nil {
 		log.Fatalf("selftest: %v", err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	rep, err := runner.Probe(ctx, exec)
-	out, _ := json.MarshalIndent(rep, "", "  ")
-	os.Stdout.Write(append(out, '\n'))
-	if err != nil || !rep.Sandboxed {
+	cErr := runner.ProbeC(ctx, exec)
+	out, _ := json.MarshalIndent(struct {
+		Sandbox runner.SandboxReport `json:"sandbox"`
+		CReady  bool                 `json:"c_ready"`
+	}{Sandbox: rep, CReady: cErr == nil}, "", "  ")
+	_, _ = os.Stdout.Write(append(out, '\n'))
+	if err != nil || !rep.Sandboxed || cErr != nil {
+		if cErr != nil {
+			log.Printf("selftest: %v", cErr)
+		}
 		os.Exit(1)
 	}
 }

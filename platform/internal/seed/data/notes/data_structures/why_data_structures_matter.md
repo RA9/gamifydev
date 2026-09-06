@@ -22,7 +22,7 @@ Arrangement B — scattered, each piece pointing to the next (a linked list)
 
   addr 340        addr 812        addr 108
   +----+----+     +----+----+     +----+------+
-  | 10 | 812| --> | 20 | 108| --> | 30 | null |
+  | 10 | 812| --> | 20 | 108| --> | 30 | NULL |
   +----+----+     +----+----+     +----+------+
 ```
 
@@ -36,27 +36,76 @@ A data structure is a decision about **how data is laid out and linked in memory
 
 Here's the motivating example. Suppose you have a million usernames and you need to answer one question over and over: "is this name taken?"
 
-Stored as a Python list, checking membership means scanning:
+Stored as a C array, checking membership means scanning:
 
-```python
-names = ["ada", "grace", "linus", "margaret", "alan"]
+```c
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
-print("linus" in names)   # True
-print("pixel" in names)   # False
+bool contains_linear(const char *names[], size_t count, const char *target) {
+    for (size_t i = 0; i < count; i++) {
+        if (strcmp(names[i], target) == 0) return true;
+    }
+    return false;
+}
+
+int main(void) {
+    const char *names[] = {"ada", "grace", "linus", "margaret", "alan"};
+    size_t count = sizeof names / sizeof names[0];
+    printf("%s\n", contains_linear(names, count, "linus") ? "true" : "false");
+    printf("%s\n", contains_linear(names, count, "pixel") ? "true" : "false");
+    return 0;
+}
 ```
 
-That reads beautifully, but look at what the machine does for `"pixel"`: it compares against `"ada"`, then `"grace"`, then `"linus"`, then `"margaret"`, then `"alan"` — every single item — before it can say `False`. With a million names, that's a million comparisons.
+The loop is simple, but look at what the machine does for `"pixel"`: it compares against `"ada"`, then `"grace"`, then `"linus"`, then `"margaret"`, then `"alan"` — every single item — before it can report `false`. With a million names, that's a million comparisons.
 
-Now store the same data as a Python `set` (a hash-based structure you'll meet in the Hash Tables lesson):
+Now store the same data in a small open-addressed hash set (the structure you'll meet in the Hash Tables lesson):
 
-```python
-names = {"ada", "grace", "linus", "margaret", "alan"}
+```c
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
-print("linus" in names)   # True
-print("pixel" in names)   # False
+#define SET_CAPACITY 16
+
+typedef struct { const char *slots[SET_CAPACITY]; } StringSet;
+
+size_t hash_string(const char *text) {
+    size_t hash = 2166136261u;
+    for (const unsigned char *ch = (const unsigned char *)text; *ch != '\0'; ch++) {
+        hash = (hash ^ *ch) * 16777619u;
+    }
+    return hash;
+}
+
+void set_insert(StringSet *set, const char *value) {
+    size_t index = hash_string(value) % SET_CAPACITY;
+    while (set->slots[index] != NULL) index = (index + 1) % SET_CAPACITY;
+    set->slots[index] = value;
+}
+
+bool set_contains(const StringSet *set, const char *value) {
+    size_t index = hash_string(value) % SET_CAPACITY;
+    while (set->slots[index] != NULL) {
+        if (strcmp(set->slots[index], value) == 0) return true;
+        index = (index + 1) % SET_CAPACITY;
+    }
+    return false;
+}
+
+int main(void) {
+    StringSet names = {{NULL}};
+    const char *values[] = {"ada", "grace", "linus", "margaret", "alan"};
+    for (size_t i = 0; i < 5; i++) set_insert(&names, values[i]);
+    printf("%s\n", set_contains(&names, "linus") ? "true" : "false");
+    printf("%s\n", set_contains(&names, "pixel") ? "true" : "false");
+    return 0;
+}
 ```
 
-The code you *type* barely changed. But the set doesn't scan. It computes a number from the name and jumps more or less straight to the right spot. Whether it holds five names or a million, the work per lookup stays roughly the same.
+The set needs more implementation code, but each lookup does not scan all names. It computes a number from the name and jumps more or less straight to the right spot. With a properly resized table, the average work per lookup stays roughly the same as the collection grows.
 
 :::analogy
 Searching a list is like looking for a word by reading a dictionary cover to cover. Searching a hash-based structure is like using the alphabetical thumb-tabs: you jump to the "P" section immediately. Same book, same words — a completely different amount of walking.

@@ -6,16 +6,28 @@ In this lesson you'll implement both, understand exactly why the visited set is 
 
 ## The graph we'll explore
 
-We'll use an **adjacency list** — a dictionary mapping each node to a list of its neighbours. It's the representation you'll want almost every time, because it stores only the edges that exist.
+We'll use an **adjacency list** — an array indexed by node, where each entry points to that node's neighbours. It's the representation you'll want almost every time, because it stores only the edges that exist.
 
-```python
-graph = {
-    "A": ["B", "C"],
-    "B": ["A", "D"],
-    "C": ["A", "D"],
-    "D": ["B", "C", "E"],
-    "E": ["D"],
-}
+```c
+#include <stddef.h>
+
+enum { A, B, C, D, E, NODE_COUNT };
+
+typedef struct {
+    const size_t *items;
+    size_t count;
+} Neighbours;
+
+static const size_t from_a[] = {B, C};
+static const size_t from_b[] = {A, D};
+static const size_t from_c[] = {A, D};
+static const size_t from_d[] = {B, C, E};
+static const size_t from_e[] = {D};
+
+static const Neighbours graph[NODE_COUNT] = {
+    {from_a, 2}, {from_b, 2}, {from_c, 2}, {from_d, 3}, {from_e, 1}
+};
+static const char names[NODE_COUNT] = {'A', 'B', 'C', 'D', 'E'};
 ```
 
 ```text
@@ -34,23 +46,39 @@ Note that A-B-D-C-A forms a **cycle**: starting at A you can walk in a loop and 
 
 BFS explores in rings. Visit the start node, then all its neighbours, then everything one step beyond those, and so on outwards. The tool is a **queue** — first in, first out — exactly like level-order traversal of a tree.
 
-```python
-from collections import deque
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-def bfs(graph, start):
-    visited = {start}                       # nodes already queued or seen
-    order = []
-    queue = deque([start])
-    while queue:
-        node = queue.popleft()              # take from the FRONT
-        order.append(node)
-        for neighbour in graph[node]:
-            if neighbour not in visited:
-                visited.add(neighbour)      # mark on ENQUEUE, not on visit
-                queue.append(neighbour)
-    return order
+size_t bfs(const Neighbours graph[], size_t node_count, size_t start,
+           size_t order[]) {
+    bool visited[NODE_COUNT] = {false};
+    size_t queue[NODE_COUNT], front = 0, back = 0, out = 0;
+    visited[start] = true;
+    queue[back++] = start;
 
-print(bfs(graph, "A"))   # ['A', 'B', 'C', 'D', 'E']
+    while (front < back) {
+        size_t node = queue[front++];        /* Take from the front. */
+        order[out++] = node;
+        for (size_t i = 0; i < graph[node].count; ++i) {
+            size_t neighbour = graph[node].items[i];
+            if (!visited[neighbour]) {
+                visited[neighbour] = true;  /* Mark when enqueued. */
+                queue[back++] = neighbour;
+            }
+        }
+    }
+    return out;
+}
+
+int main(void) {
+    size_t order[NODE_COUNT];
+    size_t count = bfs(graph, NODE_COUNT, A, order);
+    for (size_t i = 0; i < count; ++i) printf("%c%s", names[order[i]], i + 1 == count ? "\n" : " ");
+    /* A B C D E */
+    return 0;
+}
 ```
 
 ```text
@@ -71,40 +99,55 @@ Mark a node visited when you **enqueue** it, not when you dequeue it. Otherwise 
 
 DFS commits: it follows one path as far as it goes, backtracking only when it runs out of unvisited neighbours. The recursive version is natural, since the call stack does the remembering.
 
-```python
-def dfs(graph, node, visited=None, order=None):
-    if visited is None:
-        visited, order = set(), []
-    visited.add(node)
-    order.append(node)
-    for neighbour in graph[node]:
-        if neighbour not in visited:
-            dfs(graph, neighbour, visited, order)
-    return order
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-print(dfs(graph, "A"))   # ['A', 'B', 'D', 'C', 'E']
+void dfs(const Neighbours graph[], size_t node, bool visited[],
+         size_t order[], size_t *count) {
+    visited[node] = true;
+    order[(*count)++] = node;
+    for (size_t i = 0; i < graph[node].count; ++i) {
+        size_t neighbour = graph[node].items[i];
+        if (!visited[neighbour]) dfs(graph, neighbour, visited, order, count);
+    }
+}
+
+int main(void) {
+    bool visited[NODE_COUNT] = {false};
+    size_t order[NODE_COUNT], count = 0;
+    dfs(graph, A, visited, order, &count);
+    for (size_t i = 0; i < count; ++i) printf("%c%s", names[order[i]], i + 1 == count ? "\n" : " ");
+    /* A B D C E */
+    return 0;
+}
 ```
 
-Follow it: A → B → D → C, and from C both neighbours are already visited, so it backs up to D and finds E. Compare that to BFS's `['A', 'B', 'C', 'D', 'E']` — same graph, same start, a completely different shape of exploration.
+Follow it: A → B → D → C, and from C both neighbours are already visited, so it backs up to D and finds E. Compare that to BFS's `A B C D E` — same graph, same start, a completely different shape of exploration.
 
 The iterative version swaps the queue for a **stack** — last in, first out — and is otherwise nearly identical to BFS. That similarity is the point.
 
-```python
-def dfs_iterative(graph, start):
-    visited, order = set(), []
-    stack = [start]
-    while stack:
-        node = stack.pop()                  # take from the BACK (vs popleft)
-        if node in visited:
-            continue
-        visited.add(node)
-        order.append(node)
-        for neighbour in reversed(graph[node]):
-            if neighbour not in visited:
-                stack.append(neighbour)
-    return order
+```c
+#include <stdbool.h>
+#include <stddef.h>
 
-print(dfs_iterative(graph, "A"))   # ['A', 'B', 'D', 'C', 'E']
+size_t dfs_iterative(const Neighbours graph[], size_t start, size_t order[]) {
+    bool visited[NODE_COUNT] = {false};
+    size_t stack[NODE_COUNT], top = 0, out = 0;
+    stack[top++] = start;
+    while (top > 0) {
+        size_t node = stack[--top];          /* Take from the back. */
+        if (visited[node]) continue;
+        visited[node] = true;
+        order[out++] = node;
+        for (size_t i = graph[node].count; i > 0; --i) {
+            size_t neighbour = graph[node].items[i - 1];
+            if (!visited[neighbour]) stack[top++] = neighbour;
+        }
+    }
+    return out;
+}
 ```
 
 :::key
@@ -142,26 +185,46 @@ With an **adjacency matrix** instead of a list, finding a node's neighbours mean
 
 Here's BFS's headline property. Because it finishes each distance-ring before starting the next, **the first time BFS reaches a node is via a path with the fewest edges**. Track each node's parent and you get the actual route.
 
-```python
-def shortest_path(graph, start, goal):
-    if start == goal:
-        return [start]
-    parent = {start: None}
-    queue = deque([start])
-    while queue:
-        node = queue.popleft()
-        for neighbour in graph[node]:
-            if neighbour not in parent:
-                parent[neighbour] = node
-                if neighbour == goal:                # rebuild the path
-                    path = [goal]
-                    while parent[path[-1]] is not None:
-                        path.append(parent[path[-1]])
-                    return list(reversed(path))
-                queue.append(neighbour)
-    return None                                       # goal unreachable
+```c
+#include <stdbool.h>
+#include <stddef.h>
 
-print(shortest_path(graph, "A", "E"))   # ['A', 'B', 'D', 'E']
+bool shortest_path(const Neighbours graph[], size_t start, size_t goal,
+                   size_t path[], size_t *path_length) {
+    size_t parent[NODE_COUNT], queue[NODE_COUNT], front = 0, back = 0;
+    bool seen[NODE_COUNT] = {false};
+    seen[start] = true;
+    parent[start] = start;
+    queue[back++] = start;
+
+    while (front < back && !seen[goal]) {
+        size_t node = queue[front++];
+        for (size_t i = 0; i < graph[node].count; ++i) {
+            size_t neighbour = graph[node].items[i];
+            if (!seen[neighbour]) {
+                seen[neighbour] = true;
+                parent[neighbour] = node;
+                queue[back++] = neighbour;
+            }
+        }
+    }
+    if (!seen[goal]) return false;
+
+    size_t length = 0;
+    for (size_t node = goal;; node = parent[node]) {
+        path[length++] = node;
+        if (node == start) break;
+    }
+    for (size_t i = 0; i < length / 2; ++i) {
+        size_t tmp = path[i];
+        path[i] = path[length - 1 - i];
+        path[length - 1 - i] = tmp;
+    }
+    *path_length = length;
+    return true;
+}
+
+/* shortest_path(graph, A, E, path, &length) produces A B D E. */
 ```
 
 The words **unweighted** and **fewest edges** are load-bearing. BFS counts hops, treating every edge as costing the same. The moment edges carry different costs — road distances, network latencies, ticket prices — a three-hop cheap route can beat a two-hop expensive one, and BFS's guarantee collapses. That's the problem the next lesson solves.

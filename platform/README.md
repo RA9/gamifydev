@@ -130,6 +130,22 @@ Both `/login` and `/forgot` answer identically whether or not an account exists,
 including timing — a miss burns the same bcrypt work a real comparison would, so
 the form can't be used to enumerate who is registered.
 
+## Curriculum model
+
+Every lesson, guided problem, and checkpoint carries an estimated workload and a
+learning mode: `fun`, `theoretical`, or `practical`. The seeded Computer Science
+Foundations path totals 2,000 minutes and is enforced at **15% fun, 30%
+theoretical, and 55% practical**. Labs are step-based lessons embedded in each
+course, while selected problems from the public practice bank are linked directly
+from the course they reinforce.
+
+Foundations uses **C** for all general programming material, labs, integrated
+problems, and checkpoints. The only language exception is the Linux course,
+where command-line labs and its operations checkpoint use shell because shell
+interaction is itself the subject being taught. Java is not part of the
+Foundations path. Seed policy tests verify the workload ratio, integrations,
+checkpoint languages, step languages, and Markdown code fences.
+
 ## Checkpoints
 
 A checkpoint is an assignment marked **required**: passing it opens the next

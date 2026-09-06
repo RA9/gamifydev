@@ -27,17 +27,27 @@ Partitioning places the pivot in its **final** position and guarantees everythin
 
 There are two classic partition schemes. **Lomuto's** is the easier one to read, so we'll use it. It picks the last element as pivot and sweeps left to right, maintaining a boundary index `i` that marks the end of the "smaller than pivot" region.
 
-```python
-def partition(items, low, high):
-    pivot = items[high]                       # pivot = last element
-    i = low - 1                               # end of the "smaller" region
-    for j in range(low, high):
-        if items[j] <= pivot:
-            i += 1
-            items[i], items[j] = items[j], items[i]
-        # else: leave items[j] in the "larger" region
-    items[i + 1], items[high] = items[high], items[i + 1]   # pivot into place
-    return i + 1                              # pivot's final index
+```c
+#include <stddef.h>
+
+static void swap(int *a, int *b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+size_t partition(int items[], size_t low, size_t high) {
+    int pivot = items[high];                  /* Pivot is the last element. */
+    size_t boundary = low;                    /* Start of the larger region. */
+    for (size_t j = low; j < high; ++j) {
+        if (items[j] <= pivot) {
+            swap(&items[boundary], &items[j]);
+            ++boundary;
+        }
+    }
+    swap(&items[boundary], &items[high]);     /* Put the pivot in place. */
+    return boundary;
+}
 ```
 
 Trace it on `[7, 2, 9, 4, 1, 8]` with `low=0, high=5`, so `pivot = 8`:
@@ -53,30 +63,41 @@ end  swap items[4], items[5]            [7, 2, 4, 1, 8, 9]
      return 4  -> 8 is final at index 4
 ```
 
-The invariant that makes this work: everything in `items[low..i]` is `<= pivot`, and everything in `items[i+1..j-1]` is `> pivot`.
+The invariant that makes this work: everything in `items[low..boundary)` is `<= pivot`, and everything in `items[boundary..j)` is `> pivot`.
 
 The other scheme, **Hoare's**, walks two pointers inwards from both ends and swaps out-of-place pairs when they meet. It performs fewer swaps on average and is what most optimised libraries use, but its index bookkeeping is fiddlier, so Lomuto is the better one to learn on.
 
 ## The full sort
 
-```python
-def quick_sort(items, low=0, high=None):
-    if high is None:
-        high = len(items) - 1
-    if low < high:                             # base case: 0 or 1 element
-        p = partition(items, low, high)
-        quick_sort(items, low, p - 1)          # sort the left region
-        quick_sort(items, p + 1, high)         # sort the right region
-    return items
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(quick_sort([7, 2, 9, 4, 1, 8]))   # [1, 2, 4, 7, 8, 9]
-print(quick_sort([3, 3, 1]))            # [1, 3, 3]
+void quick_sort_range(int items[], size_t low, size_t high) {
+    if (low >= high) return;                    /* Zero or one element. */
+    size_t p = partition(items, low, high);
+    if (p > low) quick_sort_range(items, low, p - 1);
+    quick_sort_range(items, p + 1, high);
+}
+
+void quick_sort(int items[], size_t n) {
+    if (n > 1) quick_sort_range(items, 0, n - 1);
+}
+
+int main(void) {
+    int items[] = {7, 2, 9, 4, 1, 8};
+    size_t n = sizeof items / sizeof items[0];
+    quick_sort(items, n);
+    for (size_t i = 0; i < n; ++i) printf("%d%s", items[i], i + 1 == n ? "\n" : " ");
+    /* 1 2 4 7 8 9 */
+    return 0;
+}
 ```
 
 Note `p - 1` and `p + 1`: the pivot itself is excluded from both recursive calls, because it's already final. Forgetting that and passing `p` into a recursive call gives you a sub-problem that never shrinks — an infinite recursion.
 
 :::warning
-`quick_sort(items, low, p)` instead of `quick_sort(items, low, p - 1)` is the classic quick sort bug. The pivot never leaves the range, the sub-problem never gets smaller, and you get a `RecursionError` instead of a sort.
+`quick_sort_range(items, low, p)` instead of `quick_sort_range(items, low, p - 1)` is the classic quick sort bug. The pivot never leaves the range, the sub-problem never gets smaller, and recursion eventually exhausts the call stack instead of sorting.
 :::
 
 ## Average case vs worst case
@@ -122,13 +143,16 @@ The fix is not to make the worst case impossible — for any deterministic pivot
 
 **Randomised pivot.** Pick a random index and swap it to the pivot position before partitioning.
 
-```python
-import random
+```c
+#include <stddef.h>
+#include <stdlib.h>
 
-def partition_random(items, low, high):
-    r = random.randint(low, high)
-    items[r], items[high] = items[high], items[r]   # random element becomes pivot
-    return partition(items, low, high)
+size_t partition_random(int items[], size_t low, size_t high) {
+    /* For non-adversarial teaching code; security-sensitive code needs a stronger RNG. */
+    size_t r = low + (size_t)rand() % (high - low + 1);
+    swap(&items[r], &items[high]);           /* Random element becomes pivot. */
+    return partition(items, low, high);
+}
 ```
 
 Now no particular input is bad; the worst case requires an unlucky *sequence of coin flips*, and the probability of that is vanishingly small for any reasonable n. Expected time is O(n log n) for every input.
@@ -145,7 +169,7 @@ Combine both habits: randomise or median-of-three for the pivot, and recurse int
 
 **In-place.** Partitioning only swaps elements within the original array. The only extra memory is the recursion stack: O(log n) with good pivots, O(n) in the worst case. Merge sort's O(n) auxiliary array is always there.
 
-**Not stable.** Partition swaps elements across long distances, which can easily reorder equal values. If you need stability, use merge sort — or sort by a tuple that includes the original index.
+**Not stable.** Partition swaps elements across long distances, which can easily reorder equal values. If you need stability, use merge sort — or sort records by a key that includes the original index.
 
 **Usually faster than merge sort in practice**, despite the worse bound. Three reasons: it does no allocation, so it never pays for memory management; it works entirely within one contiguous array, so its sequential sweeps make excellent use of the CPU cache; and its inner loop is a comparison and a swap, with a smaller constant factor than merge's copying.
 
@@ -175,7 +199,7 @@ E: With the last element as pivot, a sorted list means every pivot is the maximu
 
 :::fill
 Q: Complete the recursive call so the pivot is excluded from the left partition.
-`quick_sort(items, low, ___)`
+`quick_sort_range(items, low, ___)`
 - p - 1 *
 - p
 - p + 1

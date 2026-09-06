@@ -7,14 +7,15 @@ import (
 	"strings"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
+	"github.com/RA9/gamifydev/platform/internal/jobs"
 	"github.com/RA9/gamifydev/platform/internal/pyharness"
 	"github.com/RA9/gamifydev/platform/internal/runner"
+	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
-// handleStepRun executes a server-side lab step: it runs the learner's Python
-// (a Flask/FastAPI app or plain program) plus the step's authored checks inside
-// the sandbox, and returns per-check pass/fail. Checks live server-side, so —
-// unlike the client-run labs — a learner can't read or tamper with them.
+// handleStepRun executes a server-side Python, C, or shell lab step plus its
+// authored checks inside the sandbox. Checks live server-side, so unlike the
+// client-run labs a learner cannot read or tamper with them.
 func (s *Server) handleStepRun(w http.ResponseWriter, r *http.Request) {
 	u := auth.CurrentUser(r.Context()) // guaranteed by requireAuth
 	writeJSON := func(status int, v any) {
@@ -33,7 +34,7 @@ func (s *Server) handleStepRun(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if step.Lang != "pyserver" {
+	if step.Lang != "pyserver" && step.Lang != runner.LangC && step.Lang != runner.LangShell {
 		writeJSON(http.StatusBadRequest, map[string]string{"error": "this step is not a server-side lab"})
 		return
 	}
@@ -62,10 +63,6 @@ func (s *Server) handleStepRun(w http.ResponseWriter, r *http.Request) {
 
 	var checks []stepCheck
 	_ = json.Unmarshal([]byte(step.Checks), &checks)
-	tests := make([]string, len(checks))
-	for i, c := range checks {
-		tests[i] = c.Test
-	}
 
 	rel, ok := s.runlim.acquire(r.Context())
 	if !ok {
@@ -74,6 +71,42 @@ func (s *Server) handleStepRun(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rel()
 
+	if step.Lang == runner.LangC || step.Lang == runner.LangShell {
+		gradeChecks := make([]store.Check, len(checks))
+		for i, check := range checks {
+			gradeChecks[i] = store.Check{ID: int64(i + 1), Sort: i, Label: check.Text, Test: check.Test, Points: 1}
+		}
+		grade, err := jobs.Grade(r.Context(), s.exec, step.Lang, body.Code, nil, gradeChecks)
+		if err != nil {
+			writeJSON(http.StatusBadGateway, map[string]string{"error": "The runner had a problem: " + err.Error()})
+			return
+		}
+		results := make([]bool, len(gradeChecks))
+		for i, check := range gradeChecks {
+			results[i] = grade.Passed[check.ID]
+		}
+		errText := ""
+		if grade.TimedOut {
+			errText = "Your code didn't finish in time — check for an infinite loop."
+		} else if grade.CompileFailed {
+			errText = "Your program did not compile. Review the compiler output below."
+		} else if grade.Crashed {
+			errText = "Your program exited before the checks completed."
+		}
+		logs := []string{}
+		if strings.TrimSpace(grade.Output) != "" {
+			logs = append(logs, grade.Output)
+		}
+		writeJSON(http.StatusOK, map[string]any{
+			"results": results, "logs": logs, "error": errText, "timedOut": grade.TimedOut,
+		})
+		return
+	}
+
+	tests := make([]string, len(checks))
+	for i, check := range checks {
+		tests[i] = check.Test
+	}
 	res, err := s.exec.Run(r.Context(), runner.Request{Code: pyharness.Build(body.Code, tests)})
 	if err != nil {
 		writeJSON(http.StatusBadGateway, map[string]string{"error": "The runner had a problem: " + err.Error()})

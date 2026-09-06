@@ -8,19 +8,21 @@ import (
 )
 
 type Assignment struct {
-	ID         int64
-	CourseID   sql.NullInt64
-	Slug       string
-	Title      string
-	Language   string
-	Prompt     string
-	Starter    string
-	MaxPoints  int
-	Published  bool
-	Sort       int
-	CourseName string // joined for display
-	Required   bool   // a checkpoint that gates the next course
-	PassPoints int    // min score to pass (0 = any graded submission)
+	ID              int64
+	CourseID        sql.NullInt64
+	Slug            string
+	Title           string
+	Language        string
+	Prompt          string
+	Starter         string
+	MaxPoints       int
+	Published       bool
+	Sort            int
+	CourseName      string // joined for display
+	Required        bool   // a checkpoint that gates the next course
+	PassPoints      int    // min score to pass (0 = any graded submission)
+	WorkloadMinutes int
+	Mode            string // fun | theoretical | practical
 }
 
 type Submission struct {
@@ -46,27 +48,43 @@ type Submission struct {
 
 func (s Submission) IsGraded() bool { return s.Status == "graded" }
 
+func normalizeAssignmentMetadata(a *Assignment) {
+	if a.WorkloadMinutes <= 0 {
+		a.WorkloadMinutes = 60
+	}
+	if a.Mode == "" {
+		a.Mode = "practical"
+	}
+}
+
 // UpsertAssignment inserts/updates an assignment by slug (used by the seeder).
 func (s *Store) UpsertAssignment(ctx context.Context, a Assignment) error {
+	normalizeAssignmentMetadata(&a)
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO assignments (course_id, slug, title, language, prompt, starter, max_points, published, sort, required, pass_points, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+		INSERT INTO assignments
+			(course_id, slug, title, language, prompt, starter, max_points, published,
+			 sort, required, pass_points, workload_minutes, mode, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 		ON CONFLICT(slug) DO UPDATE SET
 			course_id=excluded.course_id, title=excluded.title, language=excluded.language,
 			prompt=excluded.prompt, starter=excluded.starter, max_points=excluded.max_points,
 			published=excluded.published, sort=excluded.sort, required=excluded.required,
-			pass_points=excluded.pass_points, updated_at=datetime('now')`,
-		a.CourseID, a.Slug, a.Title, a.Language, a.Prompt, a.Starter, a.MaxPoints, boolToInt(a.Published), a.Sort,
-		boolToInt(a.Required), a.PassPoints)
+			pass_points=excluded.pass_points, workload_minutes=excluded.workload_minutes,
+			mode=excluded.mode, updated_at=datetime('now')`,
+		a.CourseID, a.Slug, a.Title, a.Language, a.Prompt, a.Starter, a.MaxPoints,
+		boolToInt(a.Published), a.Sort, boolToInt(a.Required), a.PassPoints,
+		a.WorkloadMinutes, a.Mode)
 	return err
 }
 
-const assignmentCols = `a.id, a.course_id, a.slug, a.title, a.language, a.prompt, a.starter, a.max_points, a.published, a.sort, COALESCE(c.title,''), a.required, a.pass_points`
+const assignmentCols = `a.id, a.course_id, a.slug, a.title, a.language, a.prompt, a.starter, a.max_points, a.published, a.sort, COALESCE(c.title,''), a.required, a.pass_points, a.workload_minutes, a.mode`
 
 func scanAssignment(sc interface{ Scan(...any) error }) (*Assignment, error) {
 	var a Assignment
 	var pub, req int
-	if err := sc.Scan(&a.ID, &a.CourseID, &a.Slug, &a.Title, &a.Language, &a.Prompt, &a.Starter, &a.MaxPoints, &pub, &a.Sort, &a.CourseName, &req, &a.PassPoints); err != nil {
+	if err := sc.Scan(&a.ID, &a.CourseID, &a.Slug, &a.Title, &a.Language, &a.Prompt,
+		&a.Starter, &a.MaxPoints, &pub, &a.Sort, &a.CourseName, &req, &a.PassPoints,
+		&a.WorkloadMinutes, &a.Mode); err != nil {
 		return nil, err
 	}
 	a.Published = pub == 1

@@ -13,9 +13,9 @@ Here's a small project folder. Keep this diagram in view for the rest of the les
                      /      |      \
                  src/     docs/   README.md
                 /    \        \
-          main.py   utils/   guide.md
+          main.c    utils/   guide.md
                        \
-                    helpers.py
+                    helpers.c
 ```
 
 Eight items, connected in a hierarchy. Every folder contains things; every file sits inside exactly one folder. That "exactly one" is the essence of a tree.
@@ -32,9 +32,9 @@ A family tree, an org chart, a table of contents, and the folders on your comput
 
 **Root.** The single node at the top, with nothing above it. Here that's `project/`. A tree has exactly one root.
 
-**Parent and child.** If an edge runs from `src/` down to `main.py`, then `src/` is the **parent** and `main.py` is the **child**. Every node has exactly one parent, except the root, which has none. Nodes sharing a parent are **siblings** — `main.py` and `utils/` are siblings.
+**Parent and child.** If an edge runs from `src/` down to `main.c`, then `src/` is the **parent** and `main.c` is the **child**. Every node has exactly one parent, except the root, which has none. Nodes sharing a parent are **siblings** — `main.c` and `utils/` are siblings.
 
-**Leaf.** A node with no children. Our leaves are `main.py`, `helpers.py`, `guide.md` and `README.md` — the actual files, as it happens.
+**Leaf.** A node with no children. Our leaves are `main.c`, `helpers.c`, `guide.md` and `README.md` — the actual files, as it happens.
 
 **Internal node.** Any node that isn't a leaf; it has at least one child. Here: `project/`, `src/`, `docs/`, `utils/`.
 
@@ -46,15 +46,15 @@ Root at the top, leaves at the bottom, one parent per node. Everything else in t
 
 ## Path, depth and height
 
-**Path.** The sequence of nodes you walk through to get from one node to another. From the root to `helpers.py` the path is `project/ -> src/ -> utils/ -> helpers.py`. In a tree, there is exactly **one** path between any two nodes — never zero, never two.
+**Path.** The sequence of nodes you walk through to get from one node to another. From the root to `helpers.c` the path is `project/ -> src/ -> utils/ -> helpers.c`. In a tree, there is exactly **one** path between any two nodes — never zero, never two.
 
 **Depth** (of a node). How many edges lie between the root and that node. The root has depth 0.
 
 ```text
  depth 0:  project/
  depth 1:  src/    docs/    README.md
- depth 2:  main.py    utils/    guide.md
- depth 3:  helpers.py
+ depth 2:  main.c     utils/    guide.md
+ depth 3:  helpers.c
 ```
 
 **Height** (of a node). The number of edges on the longest downward path from that node to a leaf. Every leaf has height 0. `utils/` has height 1. `src/` has height 2. The **height of the tree** is the height of its root — here, **3**.
@@ -65,7 +65,7 @@ Depth counts downwards from the root; height counts upwards from the leaves. Beg
 Some textbooks count depth and height in *nodes* rather than *edges*, which shifts every number by one. Neither is wrong — but before you compare answers with someone, agree on which convention you're using. This course counts edges.
 :::
 
-**Subtree.** Pick any node; that node together with everything hanging below it is a subtree. The subtree rooted at `src/` contains `src/`, `main.py`, `utils/` and `helpers.py`. This idea is quietly powerful: *a subtree is itself a tree*, which is exactly why tree code is so naturally recursive.
+**Subtree.** Pick any node; that node together with everything hanging below it is a subtree. The subtree rooted at `src/` contains `src/`, `main.c`, `utils/` and `helpers.c`. This idea is quietly powerful: *a subtree is itself a tree*, which is exactly why tree code is so naturally recursive.
 
 :::example
 The subtree rooted at `docs/` is `docs/ -> guide.md`. It has its own root (`docs/`), its own leaf (`guide.md`), and a height of 1 — a complete little tree in its own right.
@@ -106,44 +106,74 @@ Trees model containment and ranking, and software is full of both.
 
 ## Trees in code
 
-The natural representation mirrors the picture: a node holds its value and a list of references to its children.
+The natural representation mirrors the picture: a node holds its value and a dynamic array of pointers to its children.
 
-```python
-class TreeNode:
-    def __init__(self, name):
-        self.name = name
-        self.children = []
+```c
+#include <stdio.h>
+#include <stdlib.h>
 
-root = TreeNode("project/")
-src = TreeNode("src/")
-docs = TreeNode("docs/")
-utils = TreeNode("utils/")
+typedef struct TreeNode {
+    const char *name;
+    struct TreeNode **children;
+    size_t child_count;
+} TreeNode;
 
-root.children = [src, docs, TreeNode("README.md")]
-src.children = [TreeNode("main.py"), utils]
-docs.children = [TreeNode("guide.md")]
-utils.children = [TreeNode("helpers.py")]
+TreeNode *tree_node_create(const char *name) {
+    TreeNode *node = malloc(sizeof *node);
+    if (node != NULL) *node = (TreeNode){name, NULL, 0};
+    return node;
+}
 
-print(len(root.children))     # 3
-print(root.children[0].name)  # src/
+int add_child(TreeNode *parent, TreeNode *child) {
+    TreeNode **children = realloc(parent->children,
+                                  (parent->child_count + 1) * sizeof *children);
+    if (children == NULL) return 0;
+    parent->children = children;
+    parent->children[parent->child_count++] = child;
+    return 1;
+}
+
+void free_tree(TreeNode *node) {
+    if (node == NULL) return;
+    for (size_t i = 0; i < node->child_count; i++) free_tree(node->children[i]);
+    free(node->children);
+    free(node);
+}
+
+TreeNode *root = tree_node_create("project/");
+TreeNode *src = tree_node_create("src/");
+TreeNode *docs = tree_node_create("docs/");
+TreeNode *utils = tree_node_create("utils/");
+add_child(root, src); add_child(root, docs); add_child(root, tree_node_create("README.md"));
+add_child(src, tree_node_create("main.c")); add_child(src, utils);
+add_child(docs, tree_node_create("guide.md"));
+add_child(utils, tree_node_create("helpers.c"));
+
+printf("%zu\n", root->child_count);     // 3
+printf("%s\n", root->children[0]->name); // src/
 ```
 
-That's the linked-list idea again, with a *list* of next-pointers instead of a single one.
+That's the linked-list idea again, with a dynamic array of child pointers instead of a single next pointer.
 
 Because every subtree is a tree, tree code is almost always recursive: handle this node, then call yourself on each child. Height is a perfect example — the height of a node is one more than the tallest of its children's heights, and a leaf's height is 0.
 
-```python
-def height(node):
-    if not node.children:      # base case: a leaf
-        return 0
-    return 1 + max(height(child) for child in node.children)
+```c
+size_t height(const TreeNode *node) {
+    size_t maximum = 0;
+    for (size_t i = 0; i < node->child_count; i++) {
+        size_t child_height = 1 + height(node->children[i]);
+        if (child_height > maximum) maximum = child_height;
+    }
+    return maximum;            // a leaf has no children, so returns 0
+}
 
-print(height(root))    # 3
-print(height(src))     # 2
-print(height(docs))    # 1
+printf("%zu\n", height(root)); // 3
+printf("%zu\n", height(src));  // 2
+printf("%zu\n", height(docs)); // 1
+free_tree(root);
 ```
 
-Compare that with the diagram: the longest path from `project/` down is to `helpers.py`, three edges away. The function agrees.
+Compare that with the diagram: the longest path from `project/` down is to `helpers.c`, three edges away. The function agrees.
 
 :::tip
 When a tree problem feels hard, ask: "what's the answer for a leaf, and how do I combine my children's answers into mine?" That's the base case and the recursive case, and it solves a startling share of tree exercises.
@@ -157,7 +187,7 @@ Q: In the project tree, what is the depth of `utils/` and the height of `src/`?
 - depth 2, height 2 *
 - depth 3, height 0
 - depth 2, height 3
-E: `utils/` is two edges below the root, so depth 2. From `src/` the longest downward path is src -> utils -> helpers.py, two edges, so height 2.
+E: `utils/` is two edges below the root, so depth 2. From `src/` the longest downward path is src -> utils -> helpers.c, two edges, so height 2.
 :::
 
 :::match

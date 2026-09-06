@@ -18,15 +18,32 @@ A **binary tree** is a tree where every node has at most two children, conventio
 
 The left/right distinction matters even when a node has only one child. `C` above has a right child and no left child, and that's a genuinely different tree from one where `C` has a left child and no right child.
 
-```python
-class Node:
-    def __init__(self, key):
-        self.key = key
-        self.left = None
-        self.right = None
+```c
+#include <stdlib.h>
+
+typedef struct Node {
+    int key;
+    struct Node *left;
+    struct Node *right;
+} Node;
+
+Node *node_create(int key) {
+    Node *node = malloc(sizeof *node);
+    if (node != NULL) {
+        *node = (Node){key, NULL, NULL};
+    }
+    return node;
+}
+
+void free_tree(Node *node) {
+    if (node == NULL) return;
+    free_tree(node->left);
+    free_tree(node->right);
+    free(node);
+}
 ```
 
-Two pointers instead of a list of children. Simple, and it's what the rest of this course builds on.
+Two pointers instead of an array of children. Simple, and it's what the rest of this course builds on.
 
 ## Full, complete, perfect, balanced
 
@@ -88,50 +105,71 @@ A BST is the guessing game "higher or lower". Every node you visit tells you whi
 
 Search follows the rule mechanically: compare, then go left or right. Each comparison eliminates an entire subtree.
 
-```python
-def search(node, key):
-    while node is not None:
-        if key == node.key:
-            return True
-        node = node.left if key < node.key else node.right
-    return False
+```c
+#include <stdbool.h>
+
+bool search(const Node *node, int key) {
+    while (node != NULL) {
+        if (key == node->key) {
+            return true;
+        }
+        node = key < node->key ? node->left : node->right;
+    }
+    return false;
+}
 ```
 
 Looking for 40 in the tree above: at 50, 40 is smaller, go left. At 30, 40 is bigger, go right. At 40 — found, three comparisons.
 
 Insert works the same way. Walk down as if searching, and when you fall off the bottom, that empty spot is exactly where the new key belongs.
 
-```python
-def insert(node, key):
-    if node is None:
-        return Node(key)
-    if key < node.key:
-        node.left = insert(node.left, key)
-    elif key > node.key:
-        node.right = insert(node.right, key)
-    return node          # duplicate keys are ignored here
+```c
+#include <stdio.h>
 
-root = None
-for k in [50, 30, 70, 20, 40, 60, 80]:
-    root = insert(root, k)
+Node *insert(Node *node, int key) {
+    if (node == NULL) {
+        return node_create(key);
+    }
+    if (key < node->key) {
+        Node *left = insert(node->left, key);
+        if (left != NULL) node->left = left;
+    } else if (key > node->key) {
+        Node *right = insert(node->right, key);
+        if (right != NULL) node->right = right;
+    }
+    return node;          // duplicate keys are ignored here
+}
 
-print(search(root, 40))   # True
-print(search(root, 45))   # False
+int main(void) {
+    int keys[] = {50, 30, 70, 20, 40, 60, 80};
+    Node *root = NULL;
+    for (size_t i = 0; i < sizeof keys / sizeof keys[0]; i++) {
+        root = insert(root, keys[i]);
+    }
+
+    printf("%s\n", search(root, 40) ? "true" : "false");
+    printf("%s\n", search(root, 45) ? "true" : "false");
+    free_tree(root);
+    return 0;
+}
 ```
 
 There's a free bonus in the ordering rule. Visit the left subtree, then the node, then the right subtree — an **in-order traversal** — and the keys come out sorted:
 
-```python
-def inorder(node, out):
-    if node is None:
-        return
-    inorder(node.left, out)
-    out.append(node.key)
-    inorder(node.right, out)
+```c
+#include <stdio.h>
 
-out = []
-inorder(root, out)
-print(out)   # [20, 30, 40, 50, 60, 70, 80]
+void inorder(const Node *node) {
+    if (node == NULL) {
+        return;
+    }
+    inorder(node->left);
+    printf("%d ", node->key);
+    inorder(node->right);
+}
+
+inorder(root);   // 20 30 40 50 60 70 80
+putchar('\n');
 ```
 
 A hash table could never do that. This is what we traded ordering away for, and here we get it back.
@@ -155,10 +193,12 @@ A billion items, about thirty comparisons. That's the promise of a balanced BST,
 
 Now watch it break. Insert the same keys in *sorted* order:
 
-```python
-root = None
-for k in [20, 30, 40, 50, 60, 70, 80]:
-    root = insert(root, k)
+```c
+int keys[] = {20, 30, 40, 50, 60, 70, 80};
+Node *root = NULL;
+for (size_t i = 0; i < sizeof keys / sizeof keys[0]; i++) {
+    root = insert(root, keys[i]);
+}
 ```
 
 Every key is bigger than the one before, so every insert goes right, and right again, and right again:
@@ -194,22 +234,25 @@ E: If the keys were inserted in sorted order the tree degenerates into a chain o
 
 :::predict
 Q: Using the `insert` function from this lesson, what does this print?
-```python
-root = None
-for k in [8, 3, 10, 1]:
-    root = insert(root, k)
-print(root.left.left.key)
+```c
+int keys[] = {8, 3, 10, 1};
+Node *root = NULL;
+for (size_t i = 0; i < sizeof keys / sizeof keys[0]; i++) {
+    root = insert(root, keys[i]);
+}
+printf("%d\n", root->left->left->key);
+free_tree(root);
 ```
 - 1 *
 - 3
 - 8
 - 10
-E: 3 goes left of 8, then 1 is smaller than both so it goes left of 3. `root.left.left` is the node holding 1.
+E: 3 goes left of 8, then 1 is smaller than both so it goes left of 3. `root->left->left` is the node holding 1.
 :::
 
 :::fill
 Q: Complete the binary search tree ordering rule.
-`all keys in the left subtree < node.key < all keys in the ___ subtree`
+`all keys in the left subtree < node->key < all keys in the ___ subtree`
 - right *
 - parent
 - sibling

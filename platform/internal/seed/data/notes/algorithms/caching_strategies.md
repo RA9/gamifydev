@@ -79,39 +79,97 @@ hash map                doubly linked list (most recent -> least recent)
 
 The doubly linked part is essential: to unlink a node in O(1) you need a pointer to its *predecessor*, and only a doubly linked list gives you that.
 
-Python's `OrderedDict` provides exactly these operations, so a working LRU cache is short:
+Here is a compact C implementation for small non-negative integer keys. The `by_key` table provides direct O(1) lookup (a hash table would fill the same role for arbitrary keys), while the nodes form a doubly linked recency list:
 
-```python
-from collections import OrderedDict
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-class LRUCache:
-    def __init__(self, capacity):
-        self.capacity = capacity
-        self.data = OrderedDict()
-        self.hits = self.misses = 0
+#define KEY_SPACE 256
 
-    def get(self, key):
-        if key not in self.data:
-            self.misses += 1
-            return None
-        self.hits += 1
-        self.data.move_to_end(key)               # mark as most recently used
-        return self.data[key]
+typedef struct LRUNode {
+    int key, value;
+    struct LRUNode *newer, *older;
+} LRUNode;
 
-    def put(self, key, value):
-        if key in self.data:
-            self.data.move_to_end(key)
-        self.data[key] = value
-        if len(self.data) > self.capacity:
-            self.data.popitem(last=False)        # evict the oldest
+typedef struct {
+    size_t capacity, size, hits, misses;
+    LRUNode *nodes, *newest, *oldest;
+    LRUNode *by_key[KEY_SPACE];
+} LRUCache;
 
-cache = LRUCache(2)
-cache.put("a", 1)
-cache.put("b", 2)
-print(cache.get("a"))     # 1   — this makes "a" the most recent
-cache.put("c", 3)         # cache is full: evicts "b", not "a"
-print(cache.get("b"))     # None — "b" was evicted
-print(cache.hits, cache.misses)   # 1 1
+bool lru_init(LRUCache *cache, size_t capacity) {
+    *cache = (LRUCache){.capacity = capacity};
+    if (capacity == 0) return true;
+    cache->nodes = calloc(capacity, sizeof *cache->nodes);
+    return cache->nodes != NULL;
+}
+
+void lru_destroy(LRUCache *cache) {
+    free(cache->nodes);
+    *cache = (LRUCache){0};
+}
+
+static void unlink_node(LRUCache *cache, LRUNode *node) {
+    if (node->newer != NULL) node->newer->older = node->older;
+    else cache->newest = node->older;
+    if (node->older != NULL) node->older->newer = node->newer;
+    else cache->oldest = node->newer;
+}
+
+static void make_newest(LRUCache *cache, LRUNode *node) {
+    node->newer = NULL;
+    node->older = cache->newest;
+    if (cache->newest != NULL) cache->newest->newer = node;
+    else cache->oldest = node;
+    cache->newest = node;
+}
+
+bool lru_get(LRUCache *cache, unsigned key, int *value) {
+    if (key >= KEY_SPACE || cache->by_key[key] == NULL) {
+        ++cache->misses;
+        return false;
+    }
+    ++cache->hits;
+    LRUNode *node = cache->by_key[key];
+    unlink_node(cache, node);
+    make_newest(cache, node);
+    *value = node->value;
+    return true;
+}
+
+bool lru_put(LRUCache *cache, unsigned key, int value) {
+    if (key >= KEY_SPACE || cache->capacity == 0) return false;
+    LRUNode *node = cache->by_key[key];
+    if (node != NULL) {
+        unlink_node(cache, node);
+    } else if (cache->size < cache->capacity) {
+        node = &cache->nodes[cache->size++];
+    } else {
+        node = cache->oldest;
+        unlink_node(cache, node);
+        cache->by_key[node->key] = NULL;
+    }
+    node->key = (int)key; node->value = value;
+    cache->by_key[key] = node;
+    make_newest(cache, node);
+    return true;
+}
+
+int main(void) {
+    LRUCache cache;
+    if (!lru_init(&cache, 2)) return EXIT_FAILURE;
+    lru_put(&cache, 'a', 1); lru_put(&cache, 'b', 2);
+    int value;
+    printf("%d\n", lru_get(&cache, 'a', &value) ? value : -1); /* 1 */
+    lru_put(&cache, 'c', 3);                              /* Evicts b. */
+    printf("%s\n", lru_get(&cache, 'b', &value) ? "hit" : "miss");
+    printf("%zu %zu\n", cache.hits, cache.misses);       /* 1 1 */
+    lru_destroy(&cache);
+    return 0;
+}
 ```
 
 **Cost: O(1) for both get and put**, with O(capacity) space.
@@ -124,38 +182,57 @@ LRU has one classic failure: a **sequential scan** of data larger than the cache
 
 LFU counts accesses and evicts the item with the lowest count. It bets on long-run popularity rather than recency, which suits workloads with a stable set of hot items — a CDN serving the same popular files for months, or a database caching a handful of heavily-read reference tables.
 
-```python
-from collections import Counter
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
 
-class LFUCache:
-    def __init__(self, capacity):
-        self.capacity = capacity
-        self.data = {}
-        self.counts = Counter()
+typedef struct { int key, value; size_t count; bool used; } LFUEntry;
+typedef struct { LFUEntry *entries; size_t capacity; } LFUCache;
 
-    def get(self, key):
-        if key not in self.data:
-            return None
-        self.counts[key] += 1
-        return self.data[key]
+bool lfu_init(LFUCache *cache, size_t capacity) {
+    cache->capacity = capacity;
+    cache->entries = capacity == 0 ? NULL : calloc(capacity, sizeof *cache->entries);
+    return capacity == 0 || cache->entries != NULL;
+}
 
-    def put(self, key, value):
-        if key not in self.data and len(self.data) >= self.capacity:
-            coldest = min(self.data, key=lambda k: self.counts[k])
-            del self.data[coldest]
-            del self.counts[coldest]
-        self.data[key] = value
-        self.counts[key] += 1
+void lfu_destroy(LFUCache *cache) {
+    free(cache->entries);
+    *cache = (LFUCache){0};
+}
 
-cache = LFUCache(2)
-cache.put("x", 1)
-cache.put("y", 2)
-cache.get("x"); cache.get("x")     # x now has a high count
-cache.put("z", 3)                  # evicts y, the least frequently used
-print(cache.get("y"), cache.get("x"))   # None 1
+bool lfu_get(LFUCache *cache, int key, int *value) {
+    for (size_t i = 0; i < cache->capacity; ++i) {
+        if (cache->entries[i].used && cache->entries[i].key == key) {
+            ++cache->entries[i].count;
+            *value = cache->entries[i].value;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool lfu_put(LFUCache *cache, int key, int value) {
+    if (cache->capacity == 0) return false;
+    size_t slot = cache->capacity;
+    for (size_t i = 0; i < cache->capacity; ++i) {
+        if (cache->entries[i].used && cache->entries[i].key == key) { slot = i; break; }
+        if (!cache->entries[i].used && slot == cache->capacity) slot = i;
+    }
+    if (slot == cache->capacity) {
+        slot = 0;
+        for (size_t i = 1; i < cache->capacity; ++i) {
+            if (cache->entries[i].count < cache->entries[slot].count) slot = i;
+        }
+    }
+    cache->entries[slot] = (LFUEntry){key, value, cache->entries[slot].used && cache->entries[slot].key == key ? cache->entries[slot].count + 1 : 1, true};
+    return true;
+}
+
+/* With capacity 2: put x, put y, get x twice, then put z; y is evicted. */
 ```
 
-That `min` scan makes eviction O(n); a production LFU keeps buckets of items grouped by count to get back to O(1).
+That scan for the lowest count makes eviction O(n); a production LFU keeps buckets of items grouped by count to get back to O(1).
 
 LFU's real weakness is **cache pollution by history**. An item that was hugely popular last week has a big count and will sit there indefinitely, even though nobody wants it any more. LRU forgets naturally; LFU has to be made to forget, usually by ageing the counts downwards over time.
 

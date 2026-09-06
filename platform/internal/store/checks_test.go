@@ -28,7 +28,7 @@ func mkSubmission(t *testing.T, st *Store, assignmentID, userID int64, code stri
 	return id
 }
 
-func TestAutoGradableRequiresPythonAndChecks(t *testing.T) {
+func TestAutoGradableRequiresRunnableLanguageAndChecks(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t)
 
@@ -48,8 +48,8 @@ func TestAutoGradableRequiresPythonAndChecks(t *testing.T) {
 		t.Fatal("a Python assignment with checks is not auto-gradable")
 	}
 
-	// The sandbox runs Python only. Checks on another language may exist as
-	// documentation but must never claim they can be executed.
+	// Checks on a language the sandbox cannot run may document the specification
+	// but must never claim they can execute.
 	if err := st.ReplaceChecks(ctx, js, checks); err != nil {
 		t.Fatalf("replace js: %v", err)
 	}
@@ -168,6 +168,40 @@ func TestAdvisoryChecksDoNotBlock(t *testing.T) {
 	results, _ := st.SubmissionCheckResults(ctx, sub)
 	if len(results) != 2 {
 		t.Fatalf("%d results, want 2", len(results))
+	}
+}
+
+func TestReplaceChecksPreservesExistingResultAssociations(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	uid := mkUser(t, st, "check-history@example.com")
+	assignmentID := mkAssignment(t, st, "stable-checks", "c", 0)
+	if err := st.ReplaceChecks(ctx, assignmentID, []Check{
+		{Label: "first", Test: "True", Points: 1},
+		{Label: "second", Test: "True", Points: 1},
+	}); err != nil {
+		t.Fatalf("seed checks: %v", err)
+	}
+	checks, _ := st.ListChecks(ctx, assignmentID)
+	submissionID := mkSubmission(t, st, assignmentID, uid, "code")
+	mustExec(t, st, `INSERT INTO submission_checks (submission_id, check_id, passed) VALUES (?, ?, 1)`, submissionID, checks[0].ID)
+
+	if err := st.ReplaceChecks(ctx, assignmentID, []Check{
+		{Label: "first updated", Test: "True", Points: 1},
+		{Label: "second updated", Test: "True", Points: 1},
+	}); err != nil {
+		t.Fatalf("reseed checks: %v", err)
+	}
+	updated, _ := st.ListChecks(ctx, assignmentID)
+	if updated[0].ID != checks[0].ID || updated[1].ID != checks[1].ID {
+		t.Fatalf("reseeding replaced check ids: before=%v after=%v", checks, updated)
+	}
+	var associated int
+	if err := st.db.QueryRow(`SELECT COUNT(*) FROM submission_checks WHERE submission_id = ? AND check_id = ?`, submissionID, checks[0].ID).Scan(&associated); err != nil {
+		t.Fatalf("read historical result: %v", err)
+	}
+	if associated != 1 {
+		t.Fatal("reseeding orphaned a historical check result")
 	}
 }
 

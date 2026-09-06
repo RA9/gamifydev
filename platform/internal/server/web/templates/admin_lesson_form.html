@@ -28,6 +28,19 @@
         </select></label>
     </div>
     <div class="form-row">
+      <label class="field"><span>Workload minutes</span>
+        <input type="number" name="workload_minutes" min="1" value="{{ if $l }}{{ $l.WorkloadMinutes }}{{ else }}30{{ end }}" /></label>
+      <label class="field"><span>Learning mode</span>
+        {{ $mode := "theoretical" }}{{ if $l }}{{ $mode = $l.Mode }}{{ end }}
+        <select name="mode" class="role-select">
+          <option value="fun" {{ if eq $mode "fun" }}selected{{ end }}>Fun</option>
+          <option value="theoretical" {{ if eq $mode "theoretical" }}selected{{ end }}>Theoretical</option>
+          <option value="practical" {{ if eq $mode "practical" }}selected{{ end }}>Practical</option>
+        </select></label>
+      <label class="field"><span>Language</span>
+        <input name="language" value="{{ if $l }}{{ $l.Language }}{{ else }}none{{ end }}" /></label>
+    </div>
+    <div class="form-row">
       <label class="field"><span>Video URL <span class="muted">(optional)</span></span>
         <input name="video_url" value="{{ if $l }}{{ $l.VideoURL }}{{ end }}" placeholder="https://..." /></label>
       <label class="field"><span>Audio URL <span class="muted">(optional)</span></span>

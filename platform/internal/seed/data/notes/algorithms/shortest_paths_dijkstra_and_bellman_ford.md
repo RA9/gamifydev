@@ -8,13 +8,19 @@ This lesson covers the two classic answers. **Dijkstra's algorithm** is fast and
 
 We'll store weights alongside neighbours: each entry is a `(neighbour, cost)` pair.
 
-```python
-graph = {
-    "A": [("B", 1), ("C", 4)],
-    "B": [("C", 2), ("D", 6)],
-    "C": [("D", 3)],
-    "D": [],
-}
+```c
+#include <stddef.h>
+
+enum { A, B, C, D, VERTEX_COUNT };
+typedef struct { size_t to; int weight; } Arc;
+typedef struct { const Arc *arcs; size_t count; } Adjacency;
+
+static const Arc from_a[] = {{B, 1}, {C, 4}};
+static const Arc from_b[] = {{C, 2}, {D, 6}};
+static const Arc from_c[] = {{D, 3}};
+static const Adjacency graph[VERTEX_COUNT] = {
+    {from_a, 2}, {from_b, 2}, {from_c, 1}, {NULL, 0}
+};
 ```
 
 ```text
@@ -39,10 +45,11 @@ Both algorithms in this lesson are built on one operation, and understanding it 
 
 > Is going to `u` and then taking this edge cheaper than the best route to `v` I already know?
 
-```python
-if dist[u] + w < dist[v]:
-    dist[v] = dist[u] + w
-    parent[v] = u
+```c
+if (dist[u] != INT_MAX && w <= INT_MAX - dist[u] && dist[u] + w < dist[v]) {
+    dist[v] = dist[u] + w;
+    parent[v] = u;
+}
 ```
 
 That's **relaxation**. The name comes from thinking of `dist[v]` as an over-tight upper bound on the true distance that gets relaxed downwards as you discover better routes.
@@ -66,27 +73,65 @@ Relaxation is comparing routes on a travel site. You have a saved best price for
 
 Dijkstra's policy is greedy: **always expand the unfinished node with the smallest known distance.** Once you expand a node, you declare its distance final and never revisit it. To always get the smallest, you need a **priority queue** — a min-heap, exactly the structure from the Data Structures course. It's BFS with the plain queue swapped for a heap ordered by distance.
 
-```python
-import heapq
+```c
+#include <limits.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-def dijkstra(graph, start):
-    dist = {node: float("inf") for node in graph}
-    dist[start] = 0
-    heap = [(0, start)]                        # (distance, node)
-    done = set()
-    while heap:
-        d, u = heapq.heappop(heap)             # smallest known distance
-        if u in done:
-            continue                           # a stale, worse entry
-        done.add(u)
-        for v, w in graph[u]:
-            if d + w < dist[v]:                # relax the edge u -> v
-                dist[v] = d + w
-                heapq.heappush(heap, (dist[v], v))
-    return dist
+typedef struct { size_t vertex; int distance; } QueueItem;
 
-print(dijkstra(graph, "A"))
-# {'A': 0, 'B': 1, 'C': 3, 'D': 6}
+static void push(QueueItem heap[], size_t *size, QueueItem item) {
+    size_t i = (*size)++;
+    while (i > 0) {
+        size_t parent = (i - 1) / 2;
+        if (heap[parent].distance <= item.distance) break;
+        heap[i] = heap[parent]; i = parent;
+    }
+    heap[i] = item;
+}
+
+static QueueItem pop(QueueItem heap[], size_t *size) {
+    QueueItem result = heap[0], last = heap[--*size]; size_t i = 0;
+    while (2 * i + 1 < *size) {
+        size_t child = 2 * i + 1;
+        if (child + 1 < *size && heap[child + 1].distance < heap[child].distance) ++child;
+        if (last.distance <= heap[child].distance) break;
+        heap[i] = heap[child]; i = child;
+    }
+    if (*size > 0) heap[i] = last;
+    return result;
+}
+
+void dijkstra(const Adjacency graph[], size_t start, int dist[]) {
+    bool done[VERTEX_COUNT] = {false};
+    QueueItem heap[16]; size_t heap_size = 0;
+    for (size_t i = 0; i < VERTEX_COUNT; ++i) dist[i] = INT_MAX;
+    dist[start] = 0; push(heap, &heap_size, (QueueItem){start, 0});
+
+    while (heap_size > 0) {
+        QueueItem item = pop(heap, &heap_size);
+        size_t u = item.vertex;
+        if (done[u]) continue;                    /* Stale entry. */
+        done[u] = true;
+        for (size_t i = 0; i < graph[u].count; ++i) {
+            size_t v = graph[u].arcs[i].to;
+            int w = graph[u].arcs[i].weight;
+            if (w >= 0 && item.distance <= INT_MAX - w && item.distance + w < dist[v]) {
+                dist[v] = item.distance + w;
+                push(heap, &heap_size, (QueueItem){v, dist[v]});
+            }
+        }
+    }
+}
+
+int main(void) {
+    int dist[VERTEX_COUNT];
+    dijkstra(graph, A, dist);
+    for (size_t i = 0; i < VERTEX_COUNT; ++i) printf("%c:%d%s", (char)('A' + i), dist[i], i + 1 == VERTEX_COUNT ? "\n" : " ");
+    /* A:0 B:1 C:3 D:6 */
+    return 0;
+}
 ```
 
 ```text
@@ -134,28 +179,46 @@ Dijkstra **requires** non-negative edge weights. On a graph with a negative edge
 
 Bellman-Ford throws away the cleverness. Its policy: **relax every edge in the graph, and repeat V-1 times.** Why V-1? Any shortest path in a graph with V nodes uses at most V-1 edges — more than that and it would have to revisit a node, meaning it contains a cycle, and dropping the cycle gives a path that's no longer. After round 1, every correct one-edge path is settled; after round 2, every two-edge path; after V-1 rounds, everything.
 
-```python
-def bellman_ford(graph, start):
-    dist = {node: float("inf") for node in graph}
-    dist[start] = 0
-    edges = [(u, v, w) for u in graph for v, w in graph[u]]
+```c
+#include <limits.h>
+#include <stdbool.h>
+#include <stddef.h>
 
-    for _ in range(len(graph) - 1):            # V-1 rounds
-        changed = False
-        for u, v, w in edges:
-            if dist[u] != float("inf") and dist[u] + w < dist[v]:
-                dist[v] = dist[u] + w
-                changed = True
-        if not changed:                        # settled early
-            break
+typedef struct { size_t from, to; int weight; } Edge;
 
-    for u, v, w in edges:                      # one extra round: still improving?
-        if dist[u] != float("inf") and dist[u] + w < dist[v]:
-            raise ValueError("graph contains a negative cycle")
-    return dist
+bool bellman_ford(size_t vertex_count, const Edge edges[], size_t edge_count,
+                  size_t start, int dist[]) {
+    for (size_t i = 0; i < vertex_count; ++i) dist[i] = INT_MAX;
+    dist[start] = 0;
 
-print(bellman_ford(graph, "A"))
-# {'A': 0, 'B': 1, 'C': 3, 'D': 6}
+    for (size_t round = 1; round < vertex_count; ++round) {
+        bool changed = false;
+        for (size_t i = 0; i < edge_count; ++i) {
+            Edge e = edges[i];
+            if (dist[e.from] != INT_MAX &&
+                ((e.weight >= 0 && dist[e.from] <= INT_MAX - e.weight) ||
+                 (e.weight < 0 && dist[e.from] >= INT_MIN - e.weight)) &&
+                dist[e.from] + e.weight < dist[e.to]) {
+                dist[e.to] = dist[e.from] + e.weight;
+                changed = true;
+            }
+        }
+        if (!changed) break;
+    }
+
+    for (size_t i = 0; i < edge_count; ++i) {
+        Edge e = edges[i];
+        if (dist[e.from] != INT_MAX &&
+            ((e.weight >= 0 && dist[e.from] <= INT_MAX - e.weight) ||
+             (e.weight < 0 && dist[e.from] >= INT_MIN - e.weight)) &&
+            dist[e.from] + e.weight < dist[e.to]) return false;
+    }
+    return true;
+}
+
+Edge edges[] = {{A,B,1}, {A,C,4}, {B,C,2}, {B,D,6}, {C,D,3}};
+int dist[VERTEX_COUNT];
+/* bellman_ford(VERTEX_COUNT, edges, 5, A, dist) yields 0, 1, 3, 6. */
 ```
 
 Because it never commits to a node being final, negative edges are no problem — a later round simply improves the value. **Complexity: O(V · E)** — V-1 rounds over E edges, dramatically worse than Dijkstra on a large graph. The `changed` flag stops early when nothing improved, but the worst case stands.

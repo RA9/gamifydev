@@ -84,43 +84,54 @@ Three properties make UTF-8 excellent. It is **ASCII-compatible**: any pure-ASCI
 
 **UTF-16** uses two bytes for most common characters and four for the rest. **UTF-32** always uses four, which makes indexing simple but doubles or quadruples the size of ordinary text. Both also have a byte-order problem that UTF-8 doesn't — a topic for the next lesson.
 
-## Why len() surprises you
+## Why string length surprises you
 
-Now the fun part. Ask "how long is this string?" and there are at least three defensible answers.
-
-```python
-s = "café"
-print(len(s))                    # 4   — code points (Python 3)
-print(len(s.encode("utf-8")))    # 5   — bytes: é takes two
-```
-
-C works at the byte level, so `strlen` counts bytes, not characters:
+Now the fun part. Ask "how long is this string?" and there are at least three defensible answers. C's `strlen` counts bytes, not characters, so UTF-8 code points must be counted separately:
 
 ```c
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
+size_t utf8_code_points(const char *s) {
+    const unsigned char *p = (const unsigned char *)s;
+    size_t count = 0;
+
+    for (; *p != '\0'; ++p) {
+        if ((*p & 0xC0u) != 0x80u) {  /* not a continuation byte */
+            ++count;
+        }
+    }
+    return count;
+}
+
 int main(void) {
-    const char *s = "café";        /* source file saved as UTF-8 */
-    printf("%zu\n", strlen(s));    /* 5, not 4 */
+    const char *s = "café";  /* source file saved as UTF-8 */
+
+    printf("%zu\n", utf8_code_points(s));  /* 4 code points */
+    printf("%zu\n", strlen(s));            /* 5 bytes */
     return 0;
 }
 ```
 
+This compact counter assumes the input is already valid UTF-8. Code handling untrusted input must validate each sequence as it decodes it.
+
 It gets stranger. Some characters can be written more than one way. `é` might be the single code point U+00E9, or it might be a plain `e` followed by a **combining acute accent** (U+0301). They look identical on screen and compare as different strings:
 
-```python
-a = "é"            # U+00E9
-b = "é"      # 'e' + combining accent
-print(a == b)      # False
-print(len(a), len(b))   # 1 2
+```c
+const char *a = "é";  /* U+00E9 */
+const char *b = "é";  /* 'e' + U+0301 combining acute accent */
+
+printf("%d\n", strcmp(a, b) == 0);  /* 0 (false) */
+printf("%zu %zu\n",
+       utf8_code_points(a), utf8_code_points(b));  /* 1 2 */
 ```
 
 And emoji push it further. What a reader calls "one character" — the thing that moves the cursor one step — is a **grapheme cluster**, which may be several code points glued together. A family emoji is built from several people joined by invisible zero-width joiners; a flag is two regional-indicator letters.
 
-```python
-print(len("👨‍👩‍👧"))   # 5  — three people plus two joiners
-print(len("🇬🇧"))       # 2  — two regional indicator symbols
+```c
+printf("%zu\n", utf8_code_points("👨‍👩‍👧"));  /* 5: three people plus two joiners */
+printf("%zu\n", utf8_code_points("🇬🇧"));      /* 2: two regional indicators */
 ```
 
 :::tip
@@ -131,9 +142,13 @@ Before slicing or truncating a string, ask which unit you actually mean: bytes (
 
 **Mojibake** — from Japanese, roughly "character transformation" — is what you get when bytes written in one encoding are read as another. The classic:
 
-```python
-b = "café".encode("utf-8")     # b'caf\xc3\xa9'
-print(b.decode("latin-1"))     # café
+```c
+const unsigned char bytes[] = {'c', 'a', 'f', 0xC3, 0xA9};
+
+printf("%c%c%c U+%04X U+%04X\n",
+       bytes[0], bytes[1], bytes[2],
+       (unsigned int)bytes[3], (unsigned int)bytes[4]);
+/* Treating each byte as Latin-1 gives caf + U+00C3 + U+00A9: "cafÃ©". */
 ```
 
 The two bytes `C3 A9` are one `é` in UTF-8. Read as single-byte Latin-1, they're `Ã` and `©`. Nothing is corrupted; the bytes are exactly what was written. Only the agreement broke.
@@ -142,14 +157,36 @@ Three rules keep you out of this:
 
 **Use UTF-8 everywhere.** Source files, databases, config files, APIs, filenames. It is the sane default and the web's standard.
 
-**Be explicit at I/O boundaries.** Every time bytes become text or text becomes bytes — opening a file, reading a socket, writing a response — state the encoding rather than accepting a platform default that may differ between machines.
+**Be explicit at I/O boundaries.** Standard C file I/O reads bytes and has no parameter that declares an encoding. Open text payloads in binary mode, then pass those bytes through the UTF-8 validator or decoder chosen by your program instead of relying on a locale-dependent conversion.
 
-```python
-with open("notes.txt", encoding="utf-8") as f:
-    text = f.read()
+```c
+#include <stdio.h>
+
+int main(void) {
+    FILE *file = fopen("notes.txt", "rb");
+    unsigned char bytes[4096];
+    size_t count;
+
+    if (file == NULL) {
+        perror("notes.txt");
+        return 1;
+    }
+
+    while ((count = fread(bytes, 1, sizeof bytes, file)) > 0) {
+        /* Feed bytes[0..count) to a streaming UTF-8 validator/decoder. */
+    }
+
+    if (ferror(file)) {
+        perror("notes.txt");
+        fclose(file);
+        return 1;
+    }
+    fclose(file);
+    return 0;
+}
 ```
 
-**Decode at the edges, work in text in the middle.** Convert incoming bytes to strings as early as you can, do all your logic on strings, and encode once on the way out. Programs that pass half-decoded bytes around are where these bugs breed.
+**Validate and decode at the edges, then keep one representation in the middle.** C strings are byte arrays, so code that needs Unicode code points or grapheme clusters should use a Unicode-aware library and document the encoding of every string. Programs that pass unvalidated or partly decoded bytes around are where these bugs breed.
 
 ## Check Your Understanding
 
@@ -163,9 +200,22 @@ E: Unicode assigns every character a number such as U+00E9. UTF-8, UTF-16 and UT
 :::
 
 :::predict
-```python
-s = "héllo"
-print(len(s), len(s.encode("utf-8")))
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    const char *s = "héllo";
+    size_t code_points = 0;
+
+    for (const unsigned char *p = (const unsigned char *)s; *p != '\0'; ++p) {
+        if ((*p & 0xC0u) != 0x80u) {
+            ++code_points;
+        }
+    }
+    printf("%zu %zu\n", code_points, strlen(s));
+    return 0;
+}
 ```
 - 5 6 *
 - 5 5
@@ -175,7 +225,7 @@ E: The string is five code points, but `é` needs two bytes in UTF-8, so the enc
 :::
 
 :::quiz
-Q: You open a file and see `café` where `café` should be. What most likely happened?
+Q: You open a file and see `cafÃ©` where `café` should be. What most likely happened?
 - The file is corrupted and the data is lost
 - UTF-8 bytes were decoded as a single-byte encoding such as Latin-1 *
 - The file was saved as UTF-32

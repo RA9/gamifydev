@@ -71,20 +71,28 @@ A heap needs no pointers. Because it's a **complete** tree, the array index enco
 
 To insert, put the new key in the only place that keeps the tree complete — the end of the array — and then let it climb until the heap property holds again. Swapping a node with its parent while it's smaller is called **sifting up** (or bubbling up).
 
-```python
-def sift_up(heap, i):
-    while i > 0:
-        parent = (i - 1) // 2
-        if heap[i] < heap[parent]:
-            heap[i], heap[parent] = heap[parent], heap[i]
-            i = parent
-        else:
-            break
+```c
+#include <stdio.h>
 
-heap = [1, 3, 6, 5, 9, 8]
-heap.append(2)
-sift_up(heap, len(heap) - 1)
-print(heap)   # [1, 3, 2, 5, 9, 8, 6]
+void sift_up(int heap[], size_t index) {
+    while (index > 0) {
+        size_t parent = (index - 1) / 2;
+        if (heap[index] >= heap[parent]) break;
+        int temporary = heap[index];
+        heap[index] = heap[parent];
+        heap[parent] = temporary;
+        index = parent;
+    }
+}
+
+int main(void) {
+    int heap[7] = {1, 3, 6, 5, 9, 8};
+    size_t size = 6;
+    heap[size++] = 2;
+    sift_up(heap, size - 1);
+    for (size_t i = 0; i < size; i++) printf("%d%c", heap[i], i + 1 == size ? '\n' : ' ');
+    return 0;   // prints 1 3 2 5 9 8 6
+}
 ```
 
 Trace it. The 2 lands at index 6; its parent is index 2, holding 6. Since 2 < 6 they swap. Now 2 is at index 2, whose parent is index 0, holding 1. Since 2 > 1 it stops. Two comparisons, one swap.
@@ -108,19 +116,59 @@ Removing the root is the mirror image. You can't just delete index 0 — that wo
 
 Like the climb, the sink is bounded by the height, so **extract-min is O(log n)**.
 
-Python's standard library gives you all of this as `heapq`, which works directly on an ordinary list:
+C's standard library has no heap container, so a small implementation makes the array operations explicit:
 
-```python
-import heapq
+```c
+#include <stdbool.h>
+#include <stdio.h>
 
-heap = []
-for x in [5, 1, 9, 3]:
-    heapq.heappush(heap, x)
+#define HEAP_CAPACITY 16
 
-print(heap[0])              # 1   -- peek, O(1)
-print(heapq.heappop(heap))  # 1
-print(heapq.heappop(heap))  # 3
-print(heap)                 # [5, 9]
+typedef struct { int data[HEAP_CAPACITY]; size_t size; } MinHeap;
+
+void sift_up(int heap[], size_t index);
+
+bool heap_push(MinHeap *heap, int value) {
+    if (heap->size == HEAP_CAPACITY) return false;
+    heap->data[heap->size] = value;
+    sift_up(heap->data, heap->size++);
+    return true;
+}
+
+void sift_down(int heap[], size_t size, size_t index) {
+    for (;;) {
+        size_t left = 2 * index + 1;
+        size_t right = left + 1;
+        size_t smallest = index;
+        if (left < size && heap[left] < heap[smallest]) smallest = left;
+        if (right < size && heap[right] < heap[smallest]) smallest = right;
+        if (smallest == index) return;
+        int temporary = heap[index];
+        heap[index] = heap[smallest];
+        heap[smallest] = temporary;
+        index = smallest;
+    }
+}
+
+bool heap_pop(MinHeap *heap, int *minimum) {
+    if (heap->size == 0) return false;
+    *minimum = heap->data[0];
+    heap->data[0] = heap->data[--heap->size];
+    sift_down(heap->data, heap->size, 0);
+    return true;
+}
+
+int main(void) {
+    MinHeap heap = {{0}, 0};
+    int values[] = {5, 1, 9, 3};
+    for (size_t i = 0; i < 4; i++) heap_push(&heap, values[i]);
+    printf("%d\n", heap.data[0]);  // 1, peek is O(1)
+    int minimum;
+    heap_pop(&heap, &minimum); printf("%d\n", minimum);  // 1
+    heap_pop(&heap, &minimum); printf("%d\n", minimum);  // 3
+    printf("[%d, %d]\n", heap.data[0], heap.data[1]);    // [5, 9]
+    return 0;
+}
 ```
 
 :::warning
@@ -131,12 +179,24 @@ Don't print a heap and expect a sorted list. `[1, 3, 2, 5, 9, 8, 6]` is a perfec
 
 If you already have all n items, you don't need n separate inserts. Start from the array as-is and sift *down* every internal node, working backwards from the last one. Surprisingly, this is **O(n)** overall — cheaper than the O(n log n) you'd pay for n inserts — because most nodes are near the bottom and have almost nowhere to sink.
 
-```python
-import heapq
+```c
+#include <stdio.h>
 
-nums = [9, 4, 7, 1, 8]
-heapq.heapify(nums)    # O(n)
-print(nums[0])         # 1
+void sift_down(int heap[], size_t size, size_t index);
+
+void heapify(int values[], size_t size) {
+    for (size_t i = size / 2; i > 0; i--) {
+        sift_down(values, size, i - 1);
+    }
+}
+
+int main(void) {
+    int nums[] = {9, 4, 7, 1, 8};
+    size_t size = sizeof nums / sizeof nums[0];
+    heapify(nums, size);        // O(n)
+    printf("%d\n", nums[0]);   // 1
+    return 0;
+}
 ```
 
 :::example
@@ -168,7 +228,7 @@ Where you'll meet priority queues:
 - **Top-k problems.** To keep the 10 largest items from a huge stream, hold a min-heap of size 10: compare each new item to the root, and if it's bigger, replace the root and sift down. Memory stays constant no matter how long the stream is.
 
 :::tip
-`heapq` is a min-heap only. For a max-heap, push negated values (`heapq.heappush(h, -x)`) and negate again on the way out, or push tuples like `(-priority, item)` so the largest priority sorts first.
+To turn this C min-heap into a max-heap, reverse the comparisons in `sift_up` and `sift_down`. For records with separate values and priorities, store a struct in the array and compare its `priority` field.
 :::
 
 ## Check Your Understanding
@@ -184,12 +244,13 @@ E: With zero-based indexing the children of i are at 2i+1 and 2i+2, and the pare
 
 :::predict
 Q: What does this print?
-```python
-import heapq
-heap = []
-for x in [4, 7, 2, 9]:
-    heapq.heappush(heap, x)
-print(heapq.heappop(heap), heap[0])
+```c
+MinHeap heap = {{0}, 0};
+int values[] = {4, 7, 2, 9};
+for (size_t i = 0; i < 4; i++) heap_push(&heap, values[i]);
+int minimum;
+heap_pop(&heap, &minimum);
+printf("%d %d\n", minimum, heap.data[0]);
 ```
 - 2 4 *
 - 4 7
@@ -200,7 +261,7 @@ E: The heap always keeps its smallest value at the root, so `heappop` returns 2 
 
 :::fill
 Q: Complete the operation performed on a newly appended item to restore the heap property.
-`sift_ ___ (heap, len(heap) - 1)`
+`sift_ ___ (heap, size - 1);`
 - up *
 - down
 - out

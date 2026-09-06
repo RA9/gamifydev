@@ -2,7 +2,7 @@
 
 A **recursive** function is one that calls itself to solve a smaller copy of the same problem. It's the shape behind merge sort, quick sort, tree traversal, graph search and backtracking — nearly everything in the second half of this course. So it's worth more than a passing look.
 
-In this lesson you'll write recursion deliberately, trace it by hand, understand exactly what it costs in memory, and learn what a **tail call** is and why some languages can turn one back into a loop. Python, as you'll see, is not one of those languages.
+In this lesson you'll write recursion deliberately, trace it by hand, understand exactly what it costs in memory, and learn what a **tail call** is and why some compilers can turn one back into a loop. C permits that optimisation, but does not guarantee it.
 
 ## Base case and recursive case
 
@@ -12,13 +12,18 @@ The **base case** is the input so small you can answer it directly, with no furt
 
 The **recursive case** calls the function on a strictly smaller input, moving one step closer to the base case.
 
-```python
-def factorial(n):
-    if n == 0:                      # base case
-        return 1
-    return n * factorial(n - 1)     # recursive case, on a smaller n
+```c
+#include <stdio.h>
 
-print(factorial(5))   # 120
+unsigned long long factorial(unsigned int n) {
+    if (n == 0) return 1;               /* Base case. */
+    return n * factorial(n - 1);        /* Recursive case on a smaller n. */
+}
+
+int main(void) {
+    printf("%llu\n", factorial(5));     /* 120 */
+    return 0;
+}
 ```
 
 The word "smaller" is doing all the work. Because `n` shrinks by one each call, it must eventually hit `0`. If the input doesn't shrink *toward* the base case, the recursion never ends.
@@ -63,20 +68,35 @@ factorial(3)
 Read it top to bottom: calls stack *up* on the way down, then values fold *back* on the way up. Every recursion you meet in this course follows that motion.
 
 :::warning
-Python caps recursion depth at roughly 1000 frames by default and raises `RecursionError` past it. That cap is a feature — it catches runaway recursion early — but it also means a recursive walk over a million-item linked list will crash where a loop would not.
+C does not specify a recursion-depth limit or provide a standard exception for exhausting the call stack. A recursion that is too deep can terminate the program or cause undefined behaviour, so a recursive walk over a million-item linked list is unsafe where a loop would use constant stack space.
 :::
 
 ## Tracing a small recursion
 
 Let's trace something with a return value that isn't just multiplication. This one reverses a string:
 
-```python
-def reverse(s):
-    if len(s) <= 1:            # base case: "" and "a" are their own reverse
-        return s
-    return reverse(s[1:]) + s[0]
+```c
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 
-print(reverse("pixel"))   # lexip
+void reverse_into(const char *s, size_t length, char out[]) {
+    if (length == 0) {                  /* Base case: terminate the result. */
+        out[0] = '\0';
+        return;
+    }
+    reverse_into(s + 1, length - 1, out);
+    out[length - 1] = s[0];             /* Attach the first character last. */
+    out[length] = '\0';
+}
+
+int main(void) {
+    const char *word = "pixel";
+    char reversed[6];                   /* Five characters plus '\0'. */
+    reverse_into(word, strlen(word), reversed);
+    printf("%s\n", reversed);           /* lexip */
+    return 0;
+}
 ```
 
 Walk it by hand:
@@ -100,18 +120,23 @@ When a recursion confuses you, trace it on paper for an input of size 3. Write o
 
 Look closely at these two functions. They compute the same thing, but they are structurally different:
 
-```python
-def fact_normal(n):
-    if n == 0:
-        return 1
-    return n * fact_normal(n - 1)      # multiply AFTER the call returns
+```c
+#include <stdio.h>
 
-def fact_tail(n, acc=1):
-    if n == 0:
-        return acc
-    return fact_tail(n - 1, acc * n)   # the call IS the whole return
+unsigned long long fact_normal(unsigned int n) {
+    if (n == 0) return 1;
+    return n * fact_normal(n - 1);      /* Multiply after the call returns. */
+}
 
-print(fact_normal(5), fact_tail(5))    # 120 120
+unsigned long long fact_tail(unsigned int n, unsigned long long acc) {
+    if (n == 0) return acc;
+    return fact_tail(n - 1, acc * n);   /* The call is the whole return. */
+}
+
+int main(void) {
+    printf("%llu %llu\n", fact_normal(5), fact_tail(5, 1)); /* 120 120 */
+    return 0;
+}
 ```
 
 In `fact_normal`, the recursive call is not the last thing that happens — there's still a multiplication waiting for its result. The frame must stay alive to do that multiplication.
@@ -122,66 +147,75 @@ In `fact_tail`, the recursive call is the *entire* return expression. Nothing is
 A call is a **tail call** when its result is returned directly, with no pending work in the caller. The caller's frame has nothing left to do, so in principle it could be discarded rather than kept.
 :::
 
-## Tail call optimisation (and why Python has none)
+## Tail call optimisation (and what C guarantees)
 
-Because a tail-calling frame has nothing left to do, a compiler can *reuse* it instead of pushing a new one. That transformation is **tail call optimisation** (TCO), and it turns a recursion of depth `n` from O(n) stack space into O(1) — effectively a loop. Scheme requires it. Several functional languages guarantee it, and some compilers for C-family languages apply it as an optimisation.
+Because a tail-calling frame has nothing left to do, a compiler can *reuse* it instead of pushing a new one. That transformation is **tail call optimisation** (TCO), and it turns a recursion of depth `n` from O(n) stack space into O(1) — effectively a loop. Scheme requires it. C compilers often apply it when optimisation is enabled, but the C99 standard does not require them to.
 
-Python deliberately does not do this. The reasoning is that discarding those frames also discards the stack trace, and Python's designers decided that readable tracebacks are worth more than free recursion depth. So in Python:
+```c
+unsigned long long fact_tail(unsigned int n, unsigned long long acc) {
+    if (n == 0) return acc;
+    return fact_tail(n - 1, acc * n);
+}
 
-```python
-def fact_tail(n, acc=1):
-    if n == 0:
-        return acc
-    return fact_tail(n - 1, acc * n)
-
-# fact_tail(5000)  ->  RecursionError: maximum recursion depth exceeded
+/* Do not assume a large call such as fact_tail(5000, 1) uses constant stack. */
 ```
 
-Writing it in tail form buys you nothing in Python. It's still worth *recognising* the shape, because a tail-recursive function is always the easiest kind to convert into a loop by hand.
+Writing it in tail form may let a C compiler optimise it, but portable code cannot rely on that. It is still worth *recognising* the shape, because a tail-recursive function is always the easiest kind to convert into a loop by hand.
 
 :::warning
-Don't assume "it's tail recursive, so it's safe." That's only true in a language that guarantees the optimisation. In Python, a tail-recursive function of depth 5000 crashes exactly like any other.
+Don't assume "it's tail recursive, so it's safe." That is only true in a language or implementation that guarantees the optimisation. C99 does not; if stack usage matters, write the loop explicitly.
 :::
 
 ## Converting recursion to iteration
 
 A tail-recursive function converts to a loop mechanically. The accumulator becomes a variable, and the recursive call becomes a reassignment:
 
-```python
-def fact_loop(n):
-    acc = 1
-    while n > 0:
-        acc = acc * n      # same update as the accumulator argument
-        n = n - 1          # same update as the n argument
-    return acc
+```c
+#include <stdio.h>
 
-print(fact_loop(5))       # 120
-print(fact_loop(5000) == fact_loop(5000))   # True — no stack limit at all
+unsigned long long fact_loop(unsigned int n) {
+    unsigned long long acc = 1;
+    while (n > 0) {
+        acc *= n;          /* Same update as the accumulator argument. */
+        --n;               /* Same update as the n argument. */
+    }
+    return acc;
+}
+
+int main(void) {
+    printf("%llu\n", fact_loop(5)); /* 120 */
+    return 0;
+}
 ```
 
-Non-tail recursion — where work waits on the way back up — can also be converted, but you have to supply the stack yourself with an explicit list. That's exactly what you'll do in the tree traversal lesson.
+Non-tail recursion — where work waits on the way back up — can also be converted, but you have to supply the stack yourself with an explicit array or linked structure. That's exactly what you'll do in the tree traversal lesson.
 
 :::example
-Reversing a string iteratively needs no stack at all, because you can build the answer as you go: `out = ""` then `for ch in s: out = ch + out`. For `"cat"` that builds `"c"`, then `"ac"`, then `"tac"`.
+Reversing a mutable C string iteratively needs no stack or extra allocation at all: keep one index at each end and swap those characters while the indices move inward. For `"cat"`, swapping `c` and `t` produces `"tac"`.
 :::
 
 ## Check Your Understanding
 
 :::predict
 Q: What does this print?
-```python
-def count_down(n):
-    if n <= 0:
-        return "go"
-    return count_down(n - 2)
+```c
+#include <stdio.h>
 
-print(count_down(5))
+const char *count_down(int n) {
+    if (n <= 0) return "go";
+    return count_down(n - 2);
+}
+
+int main(void) {
+    printf("%s\n", count_down(5));
+    return 0;
+}
 ```
 - go *
-- RecursionError
+- The program exhausts the call stack
 - 1
-- None
-E: 5 -> 3 -> 1 -> -1, and `-1 <= 0` is true, so the base case catches it and returns "go". Using `<=` instead of `== 0` is what saves it from overshooting.
+- NULL
+E: 5 -> 3 -> 1 -> -1, and `-1 <= 0` is true, so the base case catches it and returns `"go"`. Using `<=` instead of `== 0` is what saves it from overshooting.
 :::
 
 :::quiz
@@ -204,7 +238,7 @@ E: A tail call's result is returned directly with no pending work. The others al
 
 ## Talk about it
 
-> Python refuses to optimise tail calls so that error tracebacks stay complete and readable. That's a deliberate trade of performance for debuggability. Describe another place in programming where you'd happily give up speed to make failures easier to understand — and one where you wouldn't.
+> C leaves tail-call optimisation to the compiler, so portable code cannot depend on it. Describe a situation where relying on an optional optimisation would be acceptable — and one where you would insist on predictable resource usage instead.
 
 ## What's next
 

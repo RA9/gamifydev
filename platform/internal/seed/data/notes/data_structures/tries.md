@@ -25,7 +25,7 @@ Here's a trie holding `cat`, `car`, `card` and `dog`. The `*` marks a node where
 Read the paths: root → c → a → t is "cat". Root → c → a → r → d is "card". Notice that `cat`, `car` and `card` all share the `c`-`a` portion — stored once, not three times. That sharing is the trie's whole personality.
 
 :::key
-A trie stores keys along **paths**, not in nodes. The node itself often holds no key at all — just a map of outgoing characters and a flag saying "a word ends here".
+A trie stores keys along **paths**, not in nodes. The node itself often holds no key at all — just an array or table of outgoing character pointers and a flag saying "a word ends here".
 :::
 
 ## The end-of-word flag
@@ -34,25 +34,48 @@ That flag isn't decoration; without it the trie would be wrong. Look at the node
 
 So every node carries a boolean. Reaching a node tells you the prefix exists. The flag tells you whether that prefix is also a stored word.
 
-```python
-class TrieNode:
-    def __init__(self):
-        self.children = {}      # character -> TrieNode
-        self.is_word = False
+```c
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-def insert(root, word):
-    node = root
-    for ch in word:
-        if ch not in node.children:
-            node.children[ch] = TrieNode()
-        node = node.children[ch]
-    node.is_word = True         # mark the last node
+#define ALPHABET_SIZE 26
 
-root = TrieNode()
-for w in ["cat", "car", "card", "dog"]:
-    insert(root, w)
+typedef struct TrieNode {
+    struct TrieNode *children[ALPHABET_SIZE];
+    bool is_word;
+} TrieNode;
 
-print(len(root.children))   # 2  -- 'c' and 'd'
+TrieNode *trie_node_create(void) {
+    return calloc(1, sizeof(TrieNode));
+}
+
+bool insert(TrieNode *root, const char *word) {
+    TrieNode *node = root;
+    for (size_t i = 0; word[i] != '\0'; i++) {
+        size_t index = (size_t)(word[i] - 'a');
+        if (index >= ALPHABET_SIZE) return false;
+        if (node->children[index] == NULL) {
+            node->children[index] = trie_node_create();
+            if (node->children[index] == NULL) return false;
+        }
+        node = node->children[index];
+    }
+    node->is_word = true;       // mark the last node
+    return true;
+}
+
+void trie_free(TrieNode *node) {
+    if (node == NULL) return;
+    for (size_t i = 0; i < ALPHABET_SIZE; i++) trie_free(node->children[i]);
+    free(node);
+}
+
+TrieNode *root = trie_node_create();
+const char *words[] = {"cat", "car", "card", "dog"};
+for (size_t i = 0; i < 4; i++) insert(root, words[i]);
+printf("%d\n", (root->children['c' - 'a'] != NULL) +
+                 (root->children['d' - 'a'] != NULL)); // 2
 ```
 
 :::warning
@@ -63,23 +86,25 @@ Forgetting the end-of-word flag is the classic trie bug. Without it, a trie hold
 
 Searching means walking the key's characters down from the root. If any character has no matching edge, the key isn't there.
 
-```python
-def walk(root, s):
-    """Return the node reached by spelling out s, or None."""
-    node = root
-    for ch in s:
-        if ch not in node.children:
-            return None
-        node = node.children[ch]
-    return node
+```c
+const TrieNode *walk(const TrieNode *root, const char *text) {
+    const TrieNode *node = root;
+    for (size_t i = 0; text[i] != '\0'; i++) {
+        size_t index = (size_t)(text[i] - 'a');
+        if (index >= ALPHABET_SIZE || node->children[index] == NULL) return NULL;
+        node = node->children[index];
+    }
+    return node;
+}
 
-def contains(root, word):
-    node = walk(root, word)
-    return node is not None and node.is_word
+bool contains(const TrieNode *root, const char *word) {
+    const TrieNode *node = walk(root, word);
+    return node != NULL && node->is_word;
+}
 
-print(contains(root, "car"))          # True
-print(contains(root, "ca"))           # False  -- a prefix, not a word
-print(walk(root, "ca") is not None)   # True   -- but it IS a prefix
+printf("%s\n", contains(root, "car") ? "true" : "false"); // true
+printf("%s\n", contains(root, "ca") ? "true" : "false");  // false, prefix only
+printf("%s\n", walk(root, "ca") != NULL ? "true" : "false"); // true
 ```
 
 Count the work: one step per character. Looking up a 4-letter word takes 4 steps. Insert is the same walk with node creation, so also one step per character.
@@ -94,22 +119,33 @@ A trie is the tabbed index of an encyclopedia, one tab per letter, then tabs wit
 
 Here's what tries are actually for. Every key beginning with a given prefix lives in the subtree hanging below that prefix's node. So "find everything starting with X" is: walk to X's node, then collect every word beneath it.
 
-```python
-def words_with_prefix(root, prefix):
-    start = walk(root, prefix)
-    out = []
-    if start is None:
-        return out
-    def collect(node, path):
-        if node.is_word:
-            out.append(path)
-        for ch, child in node.children.items():
-            collect(child, path + ch)
-    collect(start, prefix)
-    return out
+```c
+#include <string.h>
 
-print(words_with_prefix(root, "ca"))   # ['cat', 'car', 'card']
-print(words_with_prefix(root, "z"))    # []
+void collect(const TrieNode *node, char path[], size_t length, size_t capacity) {
+    if (node->is_word) printf("%s ", path);
+    for (size_t i = 0; i < ALPHABET_SIZE && length + 1 < capacity; i++) {
+        if (node->children[i] != NULL) {
+            path[length] = (char)('a' + i);
+            path[length + 1] = '\0';
+            collect(node->children[i], path, length + 1, capacity);
+        }
+    }
+}
+
+void words_with_prefix(const TrieNode *root, const char *prefix) {
+    const TrieNode *start = walk(root, prefix);
+    if (start == NULL) return;
+    char path[128];
+    snprintf(path, sizeof path, "%s", prefix);
+    collect(start, path, strlen(path), sizeof path);
+}
+
+words_with_prefix(root, "ca"); // car card cat
+putchar('\n');
+words_with_prefix(root, "z");  // prints no words
+putchar('\n');
+trie_free(root);
 ```
 
 The walk to the prefix costs O(m), and then you visit exactly the nodes that lead to matching words — nothing else in the trie is touched. The total is O(m + k), where k is the size of what you collect. You never look at `dog`, or at the other nine million entries.
@@ -125,7 +161,7 @@ Type "ca" into a search box backed by a trie of a million product names. The str
 Tries look like a strict upgrade until you check the details. They aren't.
 
 ```text
-                        hash table (dict)      trie
+                        hash table             trie
  ----------------------------------------------------------------
  exact lookup           O(m) average           O(m) worst case
  worst-case lookup      O(n)                   O(m)
@@ -133,7 +169,7 @@ Tries look like a strict upgrade until you check the details. They aren't.
  keys in sorted order   no                     yes (walk children
                                                 in order)
  memory                 one entry per key      one node per distinct
-                                                prefix + child maps
+                                                prefix + child arrays
  cache behaviour        good                   poorer (pointer chasing)
 ```
 
@@ -143,7 +179,7 @@ A few things worth being precise about.
 
 **The trie's real edge is the worst case and the prefix query.** Its O(m) has no collision story attached, and prefix search is something a hash table simply cannot do without scanning everything.
 
-**Memory is the trie's weak point.** Every distinct prefix needs a node, and every node needs a way to store its children. A dictionary per node is flexible but has real overhead; a fixed array of 26 (or 128) pointers per node is faster but wastes space on nodes with one child. Long keys with few shared prefixes are the bad case — you get a node per character and share almost nothing.
+**Memory is the trie's weak point.** Every distinct prefix needs a node, and every node needs a way to store its children. A small hash table per node is flexible but has real overhead; a fixed array of 26 (or 128) pointers per node is faster but wastes space on nodes with one child. Long keys with few shared prefixes are the bad case — you get a node per character and share almost nothing.
 
 :::tip
 A **compressed trie** (also called a radix tree) fixes the worst of that waste by collapsing chains of single-child nodes into one node holding a whole string. Storing "card" alone becomes one node labelled `card` instead of four nodes.
@@ -168,21 +204,23 @@ E: A trie walks one node per character, so the cost depends on the key's length,
 
 :::predict
 Q: A trie holds only the word "card". What does this print?
-```python
-root = TrieNode()
-insert(root, "card")
-print(contains(root, "car"), walk(root, "car") is not None)
+```c
+TrieNode *root = trie_node_create();
+insert(root, "card");
+printf("%s %s\n", contains(root, "car") ? "true" : "false",
+       walk(root, "car") != NULL ? "true" : "false");
+trie_free(root);
 ```
-- False True *
-- True True
-- False False
-- True False
+- false true *
+- true true
+- false false
+- true false
 E: The node for "car" exists on the path to "card", so it is a valid prefix — but its `is_word` flag was never set, so it is not a stored word.
 :::
 
 :::fill
 Q: Complete the field that marks a node as the end of a stored word.
-`node.is_ ___ = True`
+`node->is_ ___ = true;`
 - word *
 - leaf
 - root

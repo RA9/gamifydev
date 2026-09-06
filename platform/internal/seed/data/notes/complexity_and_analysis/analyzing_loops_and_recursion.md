@@ -6,68 +6,117 @@ Knowing the common runtimes is one thing; looking at unfamiliar code and working
 
 **Rule 1: a loop over n items is O(n).** One pass, constant work inside, `n` iterations.
 
-```python
-def count_wins(matches):
-    wins = 0
-    for m in matches:        # n iterations
-        if m == "W":
-            wins += 1
-    return wins
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(count_wins(["W", "L", "W"]))
-# 2
+size_t count_wins(const char matches[], size_t n) {
+    size_t wins = 0;
+    for (size_t i = 0; i < n; i++) {  // n iterations
+        if (matches[i] == 'W') {
+            wins++;
+        }
+    }
+    return wins;
+}
+
+int main(void) {
+    const char matches[] = {'W', 'L', 'W'};
+    printf("%zu\n", count_wins(matches, 3));  // 2
+    return 0;
+}
 ```
 
 **Rule 2: nested loops multiply.** If the outer runs n times and the inner runs n times *for each* outer iteration, that's n × n.
 
-```python
-def all_pairs(players):
-    pairs = []
-    for a in players:            # n
-        for b in players:        # n, for each a
-            pairs.append((a, b))
-    return pairs
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(len(all_pairs([1, 2, 3])))
-# 9
+typedef struct {
+    int first;
+    int second;
+} Pair;
+
+size_t all_pairs(const int players[], size_t n, Pair pairs[]) {
+    size_t count = 0;
+    for (size_t i = 0; i < n; i++) {      // n
+        for (size_t j = 0; j < n; j++) {  // n, for each i
+            pairs[count++] = (Pair){players[i], players[j]};
+        }
+    }
+    return count;
+}
+
+int main(void) {
+    const int players[] = {1, 2, 3};
+    Pair pairs[9];
+    printf("%zu\n", all_pairs(players, 3, pairs));  // 9
+    return 0;
+}
 ```
 
 Three players give 3 × 3 = 9 pairs. In general n², so `O(n²)`. A third level of nesting would give `O(n³)`.
 
 **Rule 3: sequential blocks add — so take the biggest.** Code that runs one after another sums its costs, and Big O then keeps only the dominant term.
 
-```python
-def summarise(nums):
-    total = 0
-    for x in nums:               # O(n)
-        total += x
+```c
+#include <stddef.h>
 
-    for i in range(len(nums)):   # O(n^2)
-        for j in range(len(nums)):
-            if nums[i] == nums[j]:
-                pass
-    return total
+typedef struct {
+    long total;
+    size_t equal_pairs;
+} Summary;
+
+Summary summarise(const int nums[], size_t n) {
+    long total = 0;
+    for (size_t i = 0; i < n; i++) {      // O(n)
+        total += nums[i];
+    }
+
+    size_t equal_pairs = 0;
+    for (size_t i = 0; i < n; i++) {      // O(n^2)
+        for (size_t j = 0; j < n; j++) {
+            if (nums[i] == nums[j]) {
+                equal_pairs++;
+            }
+        }
+    }
+    return (Summary){total, equal_pairs};
+}
 ```
 
 That's `n + n²` steps, which is `O(n²)`. The linear pass is free by comparison — it makes no difference at all to the answer.
 
 **Rule 4: halving means logarithmic.** If the range shrinks by a constant *fraction* each iteration (rather than a constant *amount*), the loop count is logarithmic.
 
-```python
-def binary_search(sorted_nums, target):
-    lo, hi = 0, len(sorted_nums) - 1
-    while lo <= hi:
-        mid = (lo + hi) // 2
-        if sorted_nums[mid] == target:
-            return mid
-        if sorted_nums[mid] < target:
-            lo = mid + 1          # throw away the lower half
-        else:
-            hi = mid - 1          # throw away the upper half
-    return -1
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(binary_search([2, 4, 6, 8, 10], 8))
-# 3
+ptrdiff_t binary_search(const int sorted_nums[], size_t n, int target) {
+    size_t lo = 0;
+    size_t hi = n;
+
+    while (lo < hi) {
+        size_t mid = lo + (hi - lo) / 2;
+        if (sorted_nums[mid] == target) {
+            return (ptrdiff_t)mid;
+        }
+        if (sorted_nums[mid] < target) {
+            lo = mid + 1;  // throw away the lower half
+        } else {
+            hi = mid;      // throw away the upper half
+        }
+    }
+    return -1;
+}
+
+int main(void) {
+    const int nums[] = {2, 4, 6, 8, 10};
+    printf("%td\n", binary_search(nums, 5, 8));  // 3
+    return 0;
+}
 ```
 
 Each pass discards half the remaining range, so the number of passes is how many times you can halve n before reaching 1 — that's `log₂ n`, hence `O(log n)`.
@@ -80,16 +129,24 @@ Loop analysis in four lines: one loop over n → **multiply by n**. Nested loops
 
 Here's the pattern that trips people up, because the inner loop's length changes:
 
-```python
-def triangle(n):
-    count = 0
-    for i in range(n):         # i = 0, 1, 2, ..., n-1
-        for j in range(i):     # runs i times
-            count += 1
-    return count
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(triangle(5))
-# 10
+size_t triangle(size_t n) {
+    size_t count = 0;
+    for (size_t i = 0; i < n; i++) {      // i = 0, 1, 2, ..., n-1
+        for (size_t j = 0; j < i; j++) {  // runs i times
+            count++;
+        }
+    }
+    return count;
+}
+
+int main(void) {
+    printf("%zu\n", triangle(5));  // 10
+    return 0;
+}
 ```
 
 The inner loop runs 0 times, then 1, then 2, then 3, then 4. The total is `0 + 1 + 2 + 3 + 4 = 10`. Not n², so surely it's better than quadratic?
@@ -112,17 +169,21 @@ A common misreading is "the inner loop doesn't run n times, so it isn't O(n²)."
 
 ## Watch for hidden loops
 
-Not every loop looks like a `for` — some of Python's most convenient operations quietly iterate:
+Not every loop looks like a `for` — some convenient function calls quietly iterate:
 
-```python
-if name in name_list:      # a list: O(n) - it scans
-if name in name_set:       # a set: O(1) on average - it hashes
+```c
+if (linear_search(name_list, name_count, name)) {  // array: O(n) - it scans
+    /* found */
+}
+if (string_set_contains(&name_set, name)) {        // hash set: O(1) on average
+    /* found */
+}
 ```
 
 Put the first one inside a loop over n names and you've written an `O(n²)` algorithm that has only one visible loop — exactly the duplicate-usernames trap from the first lesson.
 
 :::tip
-Before analysing code, ask of every function call and operator: "what does this cost?" A list `in`, a `list.remove`, a slice like `nums[1:]`, joining strings with `+` in a loop — each is linear, and each will multiply whatever loop it sits inside.
+Before analysing code, ask of every function call and operator: "what does this cost?" A linear-search helper, removing an array element with `memmove`, copying a subarray, or repeatedly growing a string with `realloc` — each can be linear, and each will multiply whatever loop it sits inside.
 :::
 
 ## Recursion as a tree
@@ -144,14 +205,20 @@ Every level costs about n, because the pieces get smaller but there are proporti
 
 **Shape 3: `T(n) = T(n-1) + O(1)` → O(n).** One call, on an input one *smaller* — not halved. That's n levels of constant work.
 
-```python
-def countdown(n):
-    if n == 0:
-        return 0
-    return 1 + countdown(n - 1)
+```c
+#include <stdio.h>
 
-print(countdown(5))
-# 5
+unsigned countdown(unsigned n) {
+    if (n == 0) {
+        return 0;
+    }
+    return 1 + countdown(n - 1);
+}
+
+int main(void) {
+    printf("%u\n", countdown(5));  // 5
+    return 0;
+}
 ```
 
 Compare shapes 1 and 3 carefully: `n/2` gives log n, `n - 1` gives n. Subtracting is dramatically weaker than dividing.
@@ -172,14 +239,20 @@ Naive recursive Fibonacci is `T(n) = T(n-1) + T(n-2) + O(1)` — a branching sha
 
 :::predict
 Q: What is the time complexity of this function?
-```python
-def f(nums):
-    n = len(nums)
-    for i in range(n):
-        for j in range(i):
-            print(nums[i], nums[j])
-    for k in range(n):
-        print(nums[k])
+```c
+#include <stddef.h>
+#include <stdio.h>
+
+void f(const int nums[], size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < i; j++) {
+            printf("%d %d\n", nums[i], nums[j]);
+        }
+    }
+    for (size_t k = 0; k < n; k++) {
+        printf("%d\n", nums[k]);
+    }
+}
 ```
 - O(n)
 - O(n log n)
@@ -198,9 +271,9 @@ E: One call on half the input means log₂ n levels, with constant work at each 
 :::
 
 :::fill
-Q: Complete the loop condition so this runs in O(log n) rather than O(n).
-`while n > 1: n = n ___ 2`
-- // *
+Q: Complete the update so this C loop runs in O(log n) rather than O(n).
+`while (n > 1) { n ___= 2; }`
+- / *
 - -
 - +
 E: Integer-dividing by 2 halves the value each pass, giving log₂ n iterations. Subtracting 2 would give n/2 iterations, which is still O(n).

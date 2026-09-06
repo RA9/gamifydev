@@ -48,36 +48,67 @@ Think of the cut property as a rule about bridges. However you divide a country 
 
 Prim's starts from a single vertex and grows one connected blob outwards, at each step adding the cheapest edge that connects a vertex *inside* the tree to a vertex *outside* it. Finding that cheapest crossing edge is exactly a job for a **priority queue** — the same min-heap Dijkstra used.
 
-```python
-import heapq
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-def prim(graph, start):
-    """graph: {node: [(neighbour, weight), ...]} — undirected, both directions."""
-    in_tree = {start}
-    edges = []                                     # (weight, from, to)
-    for v, w in graph[start]:
-        heapq.heappush(edges, (w, start, v))
-    mst, total = [], 0
-    while edges and len(in_tree) < len(graph):
-        w, u, v = heapq.heappop(edges)             # cheapest crossing edge
-        if v in in_tree:
-            continue                               # both ends inside: a cycle
-        in_tree.add(v)
-        mst.append((u, v, w))
-        total += w
-        for nxt, w2 in graph[v]:                   # v's edges may now cross
-            if nxt not in in_tree:
-                heapq.heappush(edges, (w2, v, nxt))
-    return mst, total
+enum { A, B, C, D, VERTICES };
+typedef struct { size_t from, to; int weight; } Edge;
+typedef struct { const Edge *items; size_t count; } Adjacency;
 
-graph = {
-    "A": [("B", 1), ("C", 4), ("D", 2)],
-    "B": [("A", 1), ("D", 5)],
-    "C": [("A", 4), ("D", 3)],
-    "D": [("A", 2), ("B", 5), ("C", 3)],
+static const Edge from_a[] = {{A,B,1}, {A,C,4}, {A,D,2}};
+static const Edge from_b[] = {{B,A,1}, {B,D,5}};
+static const Edge from_c[] = {{C,A,4}, {C,D,3}};
+static const Edge from_d[] = {{D,A,2}, {D,B,5}, {D,C,3}};
+static const Adjacency graph[] = {{from_a,3}, {from_b,2}, {from_c,2}, {from_d,3}};
+
+static void push(Edge heap[], size_t *n, Edge edge) {
+    size_t i = (*n)++;
+    while (i > 0) {
+        size_t parent = (i - 1) / 2;
+        if (heap[parent].weight <= edge.weight) break;
+        heap[i] = heap[parent]; i = parent;
+    }
+    heap[i] = edge;
 }
-print(prim(graph, "A"))
-# ([('A', 'B', 1), ('A', 'D', 2), ('D', 'C', 3)], 6)
+
+static Edge pop(Edge heap[], size_t *n) {
+    Edge result = heap[0], last = heap[--*n]; size_t i = 0;
+    while (2 * i + 1 < *n) {
+        size_t child = 2 * i + 1;
+        if (child + 1 < *n && heap[child + 1].weight < heap[child].weight) ++child;
+        if (last.weight <= heap[child].weight) break;
+        heap[i] = heap[child]; i = child;
+    }
+    if (*n > 0) heap[i] = last;
+    return result;
+}
+
+size_t prim(const Adjacency graph[], size_t start, Edge mst[], int *total) {
+    bool in_tree[VERTICES] = {false}; Edge heap[16];
+    size_t heap_size = 0, count = 0;
+    *total = 0; in_tree[start] = true;
+    for (size_t i = 0; i < graph[start].count; ++i) push(heap, &heap_size, graph[start].items[i]);
+    while (heap_size > 0 && count + 1 < VERTICES) {
+        Edge edge = pop(heap, &heap_size);
+        if (in_tree[edge.to]) continue;
+        in_tree[edge.to] = true; mst[count++] = edge; *total += edge.weight;
+        for (size_t i = 0; i < graph[edge.to].count; ++i) {
+            Edge next = graph[edge.to].items[i];
+            if (!in_tree[next.to]) push(heap, &heap_size, next);
+        }
+    }
+    return count;
+}
+
+int main(void) {
+    Edge mst[VERTICES - 1]; int total;
+    size_t count = prim(graph, A, mst, &total);
+    for (size_t i = 0; i < count; ++i) printf("%c-%c %d\n", (char)('A' + mst[i].from), (char)('A' + mst[i].to), mst[i].weight);
+    printf("total = %d\n", total); /* 6 */
+    return 0;
+}
 ```
 
 Trace it:
@@ -103,28 +134,50 @@ Kruskal's algorithm needs to answer one question fast: *would adding this edge c
 
 Adding an edge creates a cycle precisely when both endpoints already `find` to the same representative.
 
-```python
-class UnionFind:
-    def __init__(self, items):
-        self.parent = {x: x for x in items}        # each item starts alone
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-    def find(self, x):
-        while self.parent[x] != x:
-            self.parent[x] = self.parent[self.parent[x]]   # path compression
-            x = self.parent[x]
-        return x
+typedef struct { size_t *parent, *rank; size_t count; } UnionFind;
 
-    def union(self, x, y):
-        rx, ry = self.find(x), self.find(y)
-        if rx == ry:
-            return False                           # already together: a cycle
-        self.parent[rx] = ry
-        return True
+bool uf_init(UnionFind *uf, size_t count) {
+    *uf = (UnionFind){.count = count};
+    if (count > SIZE_MAX / sizeof(size_t)) return false;
+    uf->parent = malloc(count * sizeof *uf->parent);
+    uf->rank = calloc(count, sizeof *uf->rank);
+    if ((uf->parent == NULL || uf->rank == NULL) && count != 0) {
+        free(uf->parent); free(uf->rank); *uf = (UnionFind){0}; return false;
+    }
+    for (size_t i = 0; i < count; ++i) uf->parent[i] = i;
+    return true;
+}
 
-uf = UnionFind(["A", "B", "C"])
-print(uf.union("A", "B"))   # True   — two separate groups, now merged
-print(uf.union("A", "B"))   # False  — already together; adding this edge = a cycle
-print(uf.find("A") == uf.find("B"))   # True
+void uf_destroy(UnionFind *uf) {
+    free(uf->parent); free(uf->rank); *uf = (UnionFind){0};
+}
+
+size_t uf_find(UnionFind *uf, size_t x) {
+    while (uf->parent[x] != x) {
+        uf->parent[x] = uf->parent[uf->parent[x]]; /* Path compression. */
+        x = uf->parent[x];
+    }
+    return x;
+}
+
+bool uf_union(UnionFind *uf, size_t x, size_t y) {
+    size_t rx = uf_find(uf, x), ry = uf_find(uf, y);
+    if (rx == ry) return false;
+    if (uf->rank[rx] < uf->rank[ry]) uf->parent[rx] = ry;
+    else {
+        uf->parent[ry] = rx;
+        if (uf->rank[rx] == uf->rank[ry]) ++uf->rank[rx];
+    }
+    return true;
+}
+
+/* After uf_init(&uf, 3), uf_union(&uf, A, B) is true once, then false. */
 ```
 
 Each group is stored as a tree of parent pointers, and the path-compression line flattens those trees as it walks them, pointing nodes straight at their grandparents. With that optimisation, find and union are effectively constant time — technically O(α(n)), where α is the inverse Ackermann function, a value below 5 for any n you will ever encounter.
@@ -137,22 +190,35 @@ Union-find is worth knowing well beyond Kruskal's. It's the standard tool for "a
 
 Kruskal's takes a global view. Sort every edge by weight, then walk the sorted list taking each edge unless it would create a cycle. Unlike Prim's, the partial result is a *forest* of separate pieces that gradually merge into one tree.
 
-```python
-def kruskal(nodes, edge_list):
-    """edge_list: [(weight, u, v), ...]"""
-    uf = UnionFind(nodes)
-    mst, total = [], 0
-    for w, u, v in sorted(edge_list):              # cheapest edges first
-        if uf.union(u, v):                         # False means it'd be a cycle
-            mst.append((u, v, w))
-            total += w
-            if len(mst) == len(nodes) - 1:         # V-1 edges: done
-                break
-    return mst, total
+```c
+#include <stddef.h>
+#include <stdlib.h>
 
-edges = [(1, "A", "B"), (2, "A", "D"), (3, "C", "D"), (4, "A", "C"), (5, "B", "D")]
-print(kruskal(["A", "B", "C", "D"], edges))
-# ([('A', 'B', 1), ('A', 'D', 2), ('C', 'D', 3)], 6)
+static int edge_by_weight(const void *a, const void *b) {
+    const Edge *x = a, *y = b;
+    return (x->weight > y->weight) - (x->weight < y->weight);
+}
+
+bool kruskal(size_t vertex_count, Edge edges[], size_t edge_count,
+             Edge mst[], size_t *mst_count, int *total) {
+    UnionFind uf;
+    if (!uf_init(&uf, vertex_count)) return false;
+    qsort(edges, edge_count, sizeof *edges, edge_by_weight);
+    *mst_count = 0; *total = 0;
+    for (size_t i = 0; i < edge_count && *mst_count + 1 < vertex_count; ++i) {
+        if (uf_union(&uf, edges[i].from, edges[i].to)) {
+            mst[(*mst_count)++] = edges[i];
+            *total += edges[i].weight;
+        }
+    }
+    bool connected = vertex_count == 0 || *mst_count + 1 == vertex_count;
+    uf_destroy(&uf);
+    return connected;
+}
+
+Edge edges[] = {{A,B,1}, {A,D,2}, {C,D,3}, {A,C,4}, {B,D,5}};
+Edge mst[VERTICES - 1]; size_t mst_count; int total;
+/* kruskal(VERTICES, edges, 5, mst, &mst_count, &total) produces total 6. */
 ```
 
 Trace it:

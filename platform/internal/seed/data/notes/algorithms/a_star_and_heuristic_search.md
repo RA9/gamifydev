@@ -75,24 +75,38 @@ On a grid, the natural heuristics are geometric distances that ignore all obstac
 
 **Manhattan distance** — for a grid where you can only move up, down, left and right:
 
-```python
-def manhattan(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+```c
+#include <stdio.h>
+#include <stdlib.h>
 
-print(manhattan((1, 2), (4, 6)))   # 7
+typedef struct { int row, col; } Cell;
+
+int manhattan(Cell a, Cell b) {
+    return abs(a.row - b.row) + abs(a.col - b.col);
+}
+
+int main(void) {
+    printf("%d\n", manhattan((Cell){1, 2}, (Cell){4, 6})); /* 7 */
+    return 0;
+}
 ```
 
 Three steps across plus four steps down is 7 moves minimum, walls or no walls. Never an overestimate — admissible.
 
 **Euclidean distance** — for movement in any direction:
 
-```python
-import math
+```c
+#include <math.h>
+#include <stdio.h>
 
-def euclidean(a, b):
-    return math.hypot(a[0] - b[0], a[1] - b[1])
+double euclidean(Cell a, Cell b) {
+    return hypot((double)a.row - b.row, (double)a.col - b.col);
+}
 
-print(round(euclidean((1, 2), (4, 6)), 2))   # 5.0
+int main(void) {
+    printf("%.2f\n", euclidean((Cell){1, 2}, (Cell){4, 6})); /* 5.00 */
+    return 0;
+}
 ```
 
 The straight line is the shortest possible route between two points, so it can never overestimate either.
@@ -105,45 +119,123 @@ Using **Euclidean** distance on a grid that only allows four-way movement is adm
 
 The implementation is Dijkstra with `f` in the heap instead of `g`.
 
-```python
-import heapq
+```c
+#include <limits.h>
+#include <stdbool.h>
+#include <stddef.h>
 
-def a_star(neighbours, start, goal, h):
-    """neighbours(n) -> list of (node, cost);  h(n) -> estimate to goal."""
-    g = {start: 0}
-    parent = {start: None}
-    heap = [(h(start), start)]                     # (f, node)
-    while heap:
-        _, current = heapq.heappop(heap)
-        if current == goal:
-            path = [current]                       # rebuild by walking parents
-            while parent[path[-1]] is not None:
-                path.append(parent[path[-1]])
-            return list(reversed(path))
-        for nxt, cost in neighbours(current):
-            tentative = g[current] + cost          # relaxation, as before
-            if nxt not in g or tentative < g[nxt]:
-                g[nxt] = tentative
-                parent[nxt] = current
-                heapq.heappush(heap, (tentative + h(nxt), nxt))
-    return None                                    # goal unreachable
+typedef struct { size_t node; int cost; } Edge;
+typedef struct { size_t node; int priority; } HeapEntry;
+typedef size_t (*NeighbourFn)(size_t node, Edge out[], size_t capacity);
+typedef int (*HeuristicFn)(size_t node);
+
+static bool heap_push(HeapEntry heap[], size_t *size, size_t capacity, HeapEntry item) {
+    if (*size == capacity) return false;
+    size_t i = (*size)++;
+    while (i > 0) {
+        size_t parent = (i - 1) / 2;
+        if (heap[parent].priority <= item.priority) break;
+        heap[i] = heap[parent];
+        i = parent;
+    }
+    heap[i] = item;
+    return true;
+}
+
+static HeapEntry heap_pop(HeapEntry heap[], size_t *size) {
+    HeapEntry result = heap[0], last = heap[--*size];
+    size_t i = 0;
+    while (2 * i + 1 < *size) {
+        size_t child = 2 * i + 1;
+        if (child + 1 < *size && heap[child + 1].priority < heap[child].priority) ++child;
+        if (last.priority <= heap[child].priority) break;
+        heap[i] = heap[child];
+        i = child;
+    }
+    if (*size > 0) heap[i] = last;
+    return result;
+}
+
+bool a_star(size_t node_count, size_t start, size_t goal, NeighbourFn neighbours,
+            HeuristicFn h, size_t path[], size_t path_capacity, size_t *path_length) {
+    int g[64]; size_t parent[64];
+    HeapEntry heap[256]; size_t heap_size = 0;
+    if (node_count > 64) return false;
+    for (size_t i = 0; i < node_count; ++i) g[i] = INT_MAX;
+    g[start] = 0; parent[start] = start;
+    if (!heap_push(heap, &heap_size, 256, (HeapEntry){start, h(start)})) return false;
+
+    while (heap_size > 0) {
+        HeapEntry entry = heap_pop(heap, &heap_size);
+        size_t current = entry.node;
+        if (entry.priority != g[current] + h(current)) continue; /* Stale entry. */
+        if (current == goal) {
+            size_t length = 0;
+            for (size_t node = goal;; node = parent[node]) {
+                if (length == path_capacity) return false;
+                path[length++] = node;
+                if (node == start) break;
+            }
+            for (size_t i = 0; i < length / 2; ++i) {
+                size_t tmp = path[i]; path[i] = path[length - 1 - i]; path[length - 1 - i] = tmp;
+            }
+            *path_length = length;
+            return true;
+        }
+        Edge edges[8];
+        size_t count = neighbours(current, edges, 8);
+        for (size_t i = 0; i < count; ++i) {
+            size_t next = edges[i].node;
+            if (next < node_count && edges[i].cost >= 0 &&
+                g[current] <= INT_MAX - edges[i].cost) {
+                int tentative = g[current] + edges[i].cost;
+                if (tentative < g[next]) {
+                    g[next] = tentative; parent[next] = current;
+                    if (!heap_push(heap, &heap_size, 256, (HeapEntry){next, tentative + h(next)})) return false;
+                }
+            }
+        }
+    }
+    return false;
+}
 ```
 
 And a small runnable example on a 4×4 grid with one wall:
 
-```python
-walls = {(1, 1), (1, 2)}
-def grid_neighbours(cell):
-    r, c = cell
-    out = []
-    for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        n = (r + dr, c + dc)
-        if 0 <= n[0] < 4 and 0 <= n[1] < 4 and n not in walls:
-            out.append((n, 1))
-    return out
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-path = a_star(grid_neighbours, (0, 0), (3, 3), lambda n: manhattan(n, (3, 3)))
-print(len(path))   # 7  (6 moves: the Manhattan distance, no detour needed)
+static const bool walls[4][4] = {
+    {false, false, false, false},
+    {false, true,  true,  false},
+    {false, false, false, false},
+    {false, false, false, false}
+};
+
+size_t grid_neighbours(size_t node, Edge out[], size_t capacity) {
+    static const int directions[4][2] = {{1,0}, {-1,0}, {0,1}, {0,-1}};
+    int row = (int)(node / 4), col = (int)(node % 4); size_t count = 0;
+    for (size_t i = 0; i < 4; ++i) {
+        int r = row + directions[i][0], c = col + directions[i][1];
+        if (r >= 0 && r < 4 && c >= 0 && c < 4 && !walls[r][c] && count < capacity) {
+            out[count++] = (Edge){(size_t)(r * 4 + c), 1};
+        }
+    }
+    return count;
+}
+
+int grid_heuristic(size_t node) {
+    Cell cell = {(int)(node / 4), (int)(node % 4)};
+    return manhattan(cell, (Cell){3, 3});
+}
+
+int main(void) {
+    size_t path[16], length = 0;
+    if (!a_star(16, 0, 15, grid_neighbours, grid_heuristic, path, 16, &length)) return 1;
+    printf("%zu\n", length); /* 7 nodes, or 6 moves. */
+    return 0;
+}
 ```
 
 **Complexity.** In the worst case A* degenerates to Dijkstra and is O((V + E) log V) — that happens when the heuristic gives no useful information. In practice a good heuristic can cut the number of expanded nodes enormously. Big O doesn't capture that improvement at all, because the heuristic changes the constant and the explored fraction, not the growth class.

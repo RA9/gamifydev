@@ -48,7 +48,7 @@ services:
       - ALL
     read_only: true
     tmpfs:
-      - /tmp
+      - /tmp:exec,mode=1777
       - /home/sandbox
     pids_limit: 256
     mem_limit: 512m

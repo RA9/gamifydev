@@ -12,24 +12,37 @@ Every backtracking algorithm has the same three-beat rhythm:
 2. **Explore** — recurse to make the following decision, given that choice.
 3. **Un-choose** — undo the choice, so the next option can be tried from a clean state.
 
-```python
-def solve(partial):
-    if is_complete(partial):
-        return partial                # found a full solution
-    for option in options(partial):
-        if is_valid(partial, option):  # PRUNE: skip doomed branches
-            partial.append(option)     # choose
-            result = solve(partial)    # explore
-            if result is not None:
-                return result
-            partial.pop()              # un-choose (backtrack)
-    return None                        # every option failed here
+```c
+#include <stdbool.h>
+#include <stddef.h>
+
+#define MAX_CHOICES 64
+
+bool is_complete(const int partial[], size_t length);
+size_t options(const int partial[], size_t length, int choices[], size_t capacity);
+bool is_valid(const int partial[], size_t length, int option);
+
+bool solve(int partial[], size_t *length, size_t capacity) {
+    if (is_complete(partial, *length)) return true;
+
+    int choices[MAX_CHOICES];
+    size_t choice_count = options(partial, *length, choices, MAX_CHOICES);
+    for (size_t i = 0; i < choice_count; ++i) {
+        int option = choices[i];
+        if (*length < capacity && is_valid(partial, *length, option)) {
+            partial[(*length)++] = option;       /* Choose. */
+            if (solve(partial, length, capacity)) return true; /* Explore. */
+            --*length;                           /* Un-choose. */
+        }
+    }
+    return false;
+}
 ```
 
 That skeleton — with `is_valid` doing the pruning — is behind sudoku solvers, maze solvers, crossword fillers and every constraint puzzle you've ever seen.
 
 :::key
-Backtracking = choose, explore, un-choose. The `is_valid` check is what separates it from brute force: it kills a branch **before** the recursion, rather than discovering the failure at the very bottom.
+Backtracking = choose, explore, un-choose. The `is_valid` check is what separates it from brute force: it kills a branch **before** the recursion, rather than discovering the failure at the very bottom. In C, the partial solution's current length also makes the un-choose operation explicit.
 :::
 
 ## The state-space tree
@@ -58,39 +71,54 @@ The classic worked example. Place N chess queens on an N×N board so that no two
 
 Brute force would be hopeless: on an 8×8 board there are over four billion ways to place 8 pieces on 64 squares. Backtracking makes it instant, using two observations. First, each queen must be in a different row, so we can place exactly one queen per row and only choose its *column*. Second, we can check each placement against the queens already placed, and reject immediately.
 
-```python
-def solve_n_queens(n):
-    cols = []                            # cols[r] = column of the queen in row r
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-    def is_safe(row, col):
-        for r, c in enumerate(cols):
-            if c == col:                          # same column
-                return False
-            if abs(row - r) == abs(col - c):      # same diagonal
-                return False
-        return True
+static bool is_safe(const size_t cols[], size_t row, size_t col) {
+    for (size_t r = 0; r < row; ++r) {
+        size_t row_gap = row - r;
+        size_t col_gap = cols[r] > col ? cols[r] - col : col - cols[r];
+        if (cols[r] == col || row_gap == col_gap) return false;
+    }
+    return true;
+}
 
-    def place(row):
-        if row == n:                     # all n rows filled: solved
-            return list(cols)
-        for col in range(n):
-            if is_safe(row, col):        # PRUNE
-                cols.append(col)         # choose
-                result = place(row + 1)  # explore
-                if result is not None:
-                    return result
-                cols.pop()               # un-choose
-        return None                      # no column works in this row
+static bool place_queen(size_t cols[], size_t n, size_t row) {
+    if (row == n) return true;
+    for (size_t col = 0; col < n; ++col) {
+        if (is_safe(cols, row, col)) {
+            cols[row] = col;                     /* Choose. */
+            if (place_queen(cols, n, row + 1)) return true; /* Explore. */
+            /* Un-choose: the next column overwrites cols[row]. */
+        }
+    }
+    return false;
+}
 
-    return place(0)
+size_t *solve_n_queens(size_t n) {
+    if (n == 0 || n > SIZE_MAX / sizeof(size_t)) return NULL;
+    size_t *cols = malloc(n * sizeof *cols);
+    if (cols == NULL) return NULL;
+    if (!place_queen(cols, n, 0)) { free(cols); return NULL; }
+    return cols;                                  /* Caller must free it. */
+}
 
-print(solve_n_queens(4))   # [1, 3, 0, 2]
-print(solve_n_queens(8))   # [0, 4, 7, 5, 2, 6, 1, 3]
+int main(void) {
+    size_t *cols = solve_n_queens(4);
+    if (cols == NULL) return EXIT_FAILURE;
+    for (size_t row = 0; row < 4; ++row) printf("%zu%s", cols[row], row == 3 ? "\n" : " ");
+    free(cols);                                    /* 1 3 0 2 */
+    return 0;
+}
 ```
 
 The diagonal test is the neat bit: two squares are on the same diagonal exactly when the difference in their rows equals the difference in their columns.
 
-Here's the 4-queens solution `[1, 3, 0, 2]` — row 0 has its queen in column 1, row 1 in column 3, and so on:
+Here's the 4-queens solution `{1, 3, 0, 2}` — row 0 has its queen in column 1, row 1 in column 3, and so on:
 
 ```text
     . Q . .        row 0, col 1
@@ -117,33 +145,47 @@ row 0: try col 1  -> place
 Notice how quickly whole branches die. That's pruning doing its job.
 
 :::tip
-To find *all* solutions rather than the first, don't return early — collect the completed solution into a list and keep going. The un-choose step is what makes that work: after recording a solution you `pop()` and continue exploring as normal.
+To find *all* solutions rather than the first, don't return early — copy each completed `cols` array into caller-owned storage and keep going. The un-choose step is what makes that work: after recording a solution, return to the previous row and continue trying columns as normal.
 :::
 
 ## Other classic backtracking problems
 
 **Maze solving.** From your current cell, try each of the four directions. If a direction is a wall, or off the grid, or already on your current path, prune it. Otherwise step there and recurse. If every direction fails, un-step and report failure to the caller. The path list *is* the partial solution.
 
-```python
-def solve_maze(grid, pos, goal, path):
-    r, c = pos
-    if not (0 <= r < len(grid) and 0 <= c < len(grid[0])):
-        return None                       # off the grid
-    if grid[r][c] == "#" or pos in path:  # wall, or already on this path
-        return None
-    path.append(pos)                      # choose
-    if pos == goal:
-        return list(path)
-    for step in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        found = solve_maze(grid, (r + step[0], c + step[1]), goal, path)
-        if found is not None:             # explore
-            return found
-    path.pop()                            # un-choose
-    return None
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-maze = ["...#", ".#..", "...."]
-print(solve_maze(maze, (0, 0), (2, 3), []))
-# [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2), (1, 2), (1, 3), (2, 3)]
+typedef struct { int row, col; } Cell;
+
+static bool same_cell(Cell a, Cell b) { return a.row == b.row && a.col == b.col; }
+
+bool solve_maze(const char *grid[], int rows, int cols, Cell pos, Cell goal,
+                Cell path[], size_t *length, size_t capacity) {
+    if (pos.row < 0 || pos.row >= rows || pos.col < 0 || pos.col >= cols) return false;
+    if (grid[pos.row][pos.col] == '#') return false;
+    for (size_t i = 0; i < *length; ++i) if (same_cell(path[i], pos)) return false;
+    if (*length == capacity) return false;
+
+    path[(*length)++] = pos;                       /* Choose. */
+    if (same_cell(pos, goal)) return true;
+    static const Cell steps[] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    for (size_t i = 0; i < 4; ++i) {
+        Cell next = {pos.row + steps[i].row, pos.col + steps[i].col};
+        if (solve_maze(grid, rows, cols, next, goal, path, length, capacity)) return true;
+    }
+    --*length;                                      /* Un-choose. */
+    return false;
+}
+
+int main(void) {
+    const char *maze[] = {"...#", ".#..", "...."};
+    Cell path[12]; size_t length = 0;
+    if (!solve_maze(maze, 3, 4, (Cell){0, 0}, (Cell){2, 3}, path, &length, 12)) return 1;
+    for (size_t i = 0; i < length; ++i) printf("(%d,%d)%s", path[i].row, path[i].col, i + 1 == length ? "\n" : " ");
+    return 0;
+}
 ```
 
 Note that the route it returns wanders — it steps up to row 1 near the end rather than going straight along the bottom. Backtracking returns the **first** path it finds, not the shortest one. If you need the shortest, that's BFS's job, not backtracking's.
@@ -190,13 +232,13 @@ E: Both search the same space, but backtracking prunes doomed partial solutions 
 :::
 
 :::fill
-Q: Complete the missing "un-choose" step that lets backtracking try the next option.
-`partial.___()`
-- pop *
-- append
+Q: Complete the missing "un-choose" step when `length` tracks the used portion of a C array.
+`___length;`
+- -- *
+- ++
 - clear
 - sort
-E: After exploring a choice fails, you remove it so the state is clean for the next option. Forgetting this leaves stale choices in the partial solution and corrupts every branch that follows.
+E: After exploring a choice fails, decrement the used length so the next option overwrites that slot. Forgetting this leaves stale choices in the partial solution and corrupts every branch that follows.
 :::
 
 :::quiz

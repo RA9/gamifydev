@@ -73,15 +73,25 @@ Check it at n = 4: `1 + 2 + 3 + 4 = 10`, and `4 × 5 / 2 = 10`. And at n = 100: 
 
 Why it's true, without a proof: pair the first with the last, the second with the second-to-last. `1 + 100 = 101`. `2 + 99 = 101`. Every pair sums to `n + 1`, and there are `n/2` pairs. Multiply.
 
-```python
-def check(n):
-    return sum(range(1, n + 1)) == n * (n + 1) // 2
+```c
+#include <stdbool.h>
+#include <stdio.h>
 
-print(check(100))
-# True
+bool check(unsigned n) {
+    unsigned long long sum = 0;
+    for (unsigned i = 1; i <= n; i++) {
+        sum += i;
+    }
+    return sum == (unsigned long long)n * (n + 1) / 2;
+}
+
+int main(void) {
+    printf("%s\n", check(100) ? "true" : "false");  // true
+    return 0;
+}
 ```
 
-This is the formula behind the triangle loop. `for i in range(n)` with `for j in range(i)` inside runs `0 + 1 + ... + (n-1) = n(n-1)/2` times. Multiply that out and it's `n²/2 - n/2`, which Big O flattens to `O(n²)`. Whenever you see a nested loop whose inner length depends on the outer counter, this formula is what tells you it's still quadratic.
+This is the formula behind the triangle loop. `for (size_t i = 0; i < n; i++)` with `for (size_t j = 0; j < i; j++)` inside runs `0 + 1 + ... + (n-1) = n(n-1)/2` times. Multiply that out and it's `n²/2 - n/2`, which Big O flattens to `O(n²)`. Whenever you see a nested loop whose inner length depends on the outer counter, this formula is what tells you it's still quadratic.
 
 ## Counting: permutations and combinations
 

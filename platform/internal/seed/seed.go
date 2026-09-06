@@ -22,10 +22,13 @@ type appJSON struct {
 		Paths []struct {
 			Name    string `json:"name"`
 			Modules []struct {
-				Title       string `json:"title"`
-				Description string `json:"description"`
-				Section     string `json:"section"`
-				Kind        string `json:"kind"`
+				Title           string `json:"title"`
+				Description     string `json:"description"`
+				Section         string `json:"section"`
+				Kind            string `json:"kind"`
+				WorkloadMinutes int    `json:"workload_minutes"`
+				Mode            string `json:"mode"`
+				Language        string `json:"language"`
 			} `json:"modules"`
 		} `json:"paths"`
 	} `json:"config"`
@@ -100,10 +103,9 @@ var seedPaths = []struct {
 		"Combine frontend and backend skills to build complete applications end to end.",
 		[]string{"html_mastery", "css_fundamentals", "css_layout", "javascript_fundamentals", "javascript_and_the_dom", "async_javascript_and_apis", "backend", "fullstack"}},
 	{"cs-foundations", "Computer Science Foundations", "The fundamentals behind every language", "⚙️", "Beginner",
-		"The core of a computer science education, structured after roadmap.sh/computer-science: learn a language close to the machine, then data structures, complexity analysis, algorithms, and how the machine underneath actually works. C is the language the path is taught in; Java sits alongside it as optional practice.",
+		"A guided computer science core taught through C: data structures, complexity analysis, algorithms, and how the machine underneath actually works. Linux uses shell only where command-line practice requires it.",
 		[]string{
 			"c",
-			"java",
 			"data_structures",
 			"complexity_and_analysis",
 			"algorithms",
@@ -131,8 +133,10 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 	for ci, p := range app.Config.Paths {
 		cslug := slugify(p.Name)
 		m := courseMeta[cslug]
+		primaryLanguage, languagePolicy, languageException := courseLanguageMetadata(cslug)
 		courseID, err := st.UpsertCourse(ctx, store.Course{
 			Slug: cslug, Title: p.Name, Emoji: m.Emoji, Tagline: m.Tagline, Sort: ci, Published: true,
+			PrimaryLanguage: primaryLanguage, LanguagePolicy: languagePolicy, LanguageException: languageException,
 		})
 		if err != nil {
 			return res, err
@@ -148,9 +152,19 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 			if kind == "" {
 				kind = "theory"
 			}
+			workload, mode, language := lessonCurriculumMetadata(cslug, kind, li)
+			if mod.WorkloadMinutes > 0 {
+				workload = mod.WorkloadMinutes
+			}
+			if mod.Mode != "" {
+				mode = mod.Mode
+			}
+			if mod.Language != "" {
+				language = mod.Language
+			}
 			if err := st.UpsertLesson(ctx, store.Lesson{
 				CourseID: courseID, Slug: lslug, Title: mod.Title, Summary: mod.Description, Body: body, Sort: li,
-				Section: mod.Section, Kind: kind,
+				Section: mod.Section, Kind: kind, WorkloadMinutes: workload, Mode: mode, Language: language,
 			}); err != nil {
 				return res, err
 			}
@@ -158,15 +172,25 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		}
 	}
 
+	labs, err := seedFoundationLabs(ctx, st)
+	if err != nil {
+		return res, err
+	}
+	res.Lessons += labs
+
 	for i, a := range sampleAssignments {
 		var courseID sql.NullInt64
 		if c, err := st.GetCourseBySlug(ctx, a.course); err == nil {
 			courseID = sql.NullInt64{Int64: c.ID, Valid: true}
 		}
+		workload, mode := 60, store.ModePractical
+		if foundationCourses[a.course] {
+			workload = 70
+		}
 		if err := st.UpsertAssignment(ctx, store.Assignment{
 			CourseID: courseID, Slug: a.slug, Title: a.title, Language: a.lang,
 			Prompt: a.prompt, Starter: a.starter, MaxPoints: 100, Published: true, Sort: i,
-			Required: !a.elective, // gate the next course unless explicitly elective
+			Required: !a.elective, WorkloadMinutes: workload, Mode: mode,
 		}); err != nil {
 			return res, err
 		}
@@ -235,6 +259,15 @@ func Run(ctx context.Context, st *store.Store) (Result, error) {
 		return res, err
 	}
 	res.Problems = problems
+	for courseSlug, problemSlugs := range foundationCourseProblems {
+		course, err := st.GetCourseBySlug(ctx, courseSlug)
+		if err != nil {
+			return res, err
+		}
+		if err := st.SetCourseProblemsBySlug(ctx, course.ID, problemSlugs); err != nil {
+			return res, err
+		}
+	}
 
 	return res, nil
 }
@@ -1354,9 +1387,9 @@ type seedA struct {
 // Every course in the compulsory CS Foundations path has one, because that path
 // is what a learner is locked into after failing placement — a gate with
 // nothing behind it would let them walk straight through. Where the language
-// runs in the sandbox the checks grade it outright; Java and JavaScript have no
-// sandbox yet, so those fall to a mentor and carry no checks rather than
-// pretending to auto-grade.
+// runs in the sandbox the checks grade it outright; JavaScript has no sandbox
+// yet, so that falls to a mentor and carries no checks rather than pretending
+// to auto-grade.
 var sampleAssignments = []seedA{
 	{slug: "py-sum-list", title: "Sum a List", course: "python", lang: "python",
 		prompt:  "Write a function `sum_list(nums)` that returns the sum of all numbers in the list `nums`. An empty list should return `0`.",
@@ -1389,78 +1422,149 @@ var sampleAssignments = []seedA{
 				test: `_out.strip() == "8"`},
 		}},
 
-	// Elective. Java has no sandbox, so a gate here would put a mentor's
-	// availability in front of the five auto-graded courses that follow it —
-	// the whole rest of a path nobody can opt out of. C is the language this
-	// path is taught in; Java is here for anyone who wants it.
-	{slug: "java-bank-account", title: "Model a Bank Account", course: "java", lang: "java",
-		elective: true,
-		prompt:   "Optional — this one doesn't gate the next course, so take it if you want the practice and the feedback.\n\nWrite a `BankAccount` class with a private `balance`, a `deposit(double)` and a `withdraw(double)` method, and a `getBalance()`.\n\nThe rules a mentor will look for:\n\n- `balance` cannot be reached or changed from outside the class.\n- A deposit or withdrawal of zero or less is rejected.\n- A withdrawal larger than the balance is rejected and leaves the balance untouched.\n\nJava doesn't run in our sandbox, so a mentor reads this one and it takes as long as it takes. In the note, say how you chose to signal a rejected operation — an exception, a boolean, something else — and why.",
-		starter:  "public class BankAccount {\n    // your code here\n}\n"},
+	{slug: "ds-hash-map-c", title: "Build a Hash Map", course: "data_structures", lang: "c",
+		prompt: "Build a chained hash map with exactly 8 buckets for integer keys and values. Bucket `key` in its non-negative remainder modulo 8; colliding keys must remain independently retrievable. `PUT` replaces an existing key's value and must not increase the size.\n\nStandard input starts with an operation count, followed by that many commands:\n\n- `PUT key value` stores or replaces a pair and prints nothing.\n- `GET key` prints its value, or `NOT_FOUND` when absent.\n- `SIZE` prints the number of distinct keys.\n\nPrint one line for each `GET` or `SIZE`, and nothing else. Keys and values fit in an `int`.",
+		starter: `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-	{slug: "ds-hash-map", title: "Build a Hash Map", course: "data_structures", lang: "python",
-		prompt:  "Implement a `HashMap` class with chaining — **without** using a Python `dict` to do the work for you.\n\nIt needs:\n\n- `put(key, value)` — stores the pair, replacing the value if the key is already there.\n- `get(key)` — returns the value, or `None` if the key isn't stored.\n- `__len__` — how many keys are stored.\n- an attribute `buckets`, the list of buckets your keys hash into.\n\nHash the key, pick the bucket with `%`, and keep the colliding pairs in that bucket. That last part is the whole exercise: a hash map is fast because collisions are rare, not because they're impossible.",
-		starter: "class HashMap:\n    def __init__(self, size=8):\n        self.buckets = [[] for _ in range(size)]\n\n    def put(self, key, value):\n        # your code here\n        pass\n\n    def get(self, key):\n        # your code here\n        pass\n\n    def __len__(self):\n        # your code here\n        pass\n",
+#define BUCKET_COUNT 8
+
+typedef struct Entry {
+    int key;
+    int value;
+    struct Entry *next;
+} Entry;
+
+typedef struct {
+    Entry *buckets[BUCKET_COUNT];
+    int size;
+} HashMap;
+
+static int bucket_index(int key) {
+    int index = key % BUCKET_COUNT;
+    return index < 0 ? index + BUCKET_COUNT : index;
+}
+
+static void put(HashMap *map, int key, int value) {
+    /* store or replace the pair */
+}
+
+static int get(const HashMap *map, int key, int *value) {
+    /* return 1 and write value when found; otherwise return 0 */
+    return 0;
+}
+
+int main(void) {
+    HashMap map = {0};
+    int operations;
+    if (scanf("%d", &operations) != 1) return 1;
+
+    for (int i = 0; i < operations; i++) {
+        char command[8];
+        if (scanf("%7s", command) != 1) return 1;
+        /* process PUT, GET, and SIZE */
+    }
+    return 0;
+}
+`,
 		checks: []seedCheck{
-			{label: "stores a pair and gets it back",
-				test: `(lambda m: (m.put("a", 1), m.get("a"))[1])(HashMap()) == 1`},
-			{label: "a missing key returns None", test: `HashMap().get("nope") is None`},
-			{label: "keeps its keys in a list of buckets",
-				test: `isinstance(HashMap().buckets, list) and len(HashMap().buckets) > 1`},
-			{label: "len() counts the keys stored",
-				test: `(lambda m: ([m.put(c, 1) for c in "abcde"], len(m) == 5)[1])(HashMap())`},
-			{label: "putting a key twice replaces the value instead of adding a second copy",
-				test: `(lambda m: ([m.put("k", 1), m.put("k", 2)], m.get("k") == 2 and len(m) == 1)[1])(HashMap())`},
-			{label: "finds every key when far more keys than buckets collide", hidden: true,
-				test: `(lambda m: ([m.put(str(i), i) for i in range(200)], all(m.get(str(i)) == i for i in range(200)) and len(m) == 200)[1])(HashMap())`},
+			{stdin: "2\nPUT 4 9\nGET 4\n", label: "stores a pair and gets it back", test: `_out == "9\n"`},
+			{stdin: "1\nGET 99\n", label: "a missing key prints NOT_FOUND", test: `_out == "NOT_FOUND\n"`},
+			{stdin: "6\nPUT 1 10\nPUT 9 90\nPUT 17 170\nGET 1\nGET 9\nGET 17\n", label: "keeps colliding keys independently retrievable", test: `_out == "10\n90\n170\n"`},
+			{stdin: "4\nPUT 2 20\nPUT 3 30\nPUT 4 40\nSIZE\n", label: "SIZE counts distinct keys", test: `_out == "3\n"`},
+			{stdin: "5\nPUT 9 1\nPUT 9 2\nGET 9\nSIZE\nGET 1\n", label: "putting a key twice replaces the value instead of adding a second copy", test: `_out == "2\n1\nNOT_FOUND\n"`},
+			{stdin: "8\nPUT -1 7\nPUT 7 8\nPUT 15 9\nGET -1\nGET 7\nGET 15\nSIZE\nGET 23\n", label: "handles negative keys and a full collision chain", hidden: true, test: `_out == "7\n8\n9\n3\nNOT_FOUND\n"`},
 		}},
 
-	{slug: "cx-pair-sum", title: "Make It Linear", course: "complexity_and_analysis", lang: "python",
-		prompt:  "Write `has_pair_summing_to(nums, target)` — `True` when some two *different* elements of `nums` add up to `target`, `False` otherwise.\n\nThe obvious answer compares every element with every other one. That's O(n²), and the last check here feeds you 200,000 numbers with the answer at the very end: a nested loop will not finish before the time limit.\n\nSo this checkpoint isn't really about pairs. It's about spending memory to buy time — walk the list once, remember what you've seen, and ask whether the number you need has already gone past.\n\nChecks report one at a time, so if you time out you'll still see which ones you'd passed.",
-		starter: "def has_pair_summing_to(nums, target):\n    # your code here\n    pass\n",
+	{slug: "cx-pair-sum-c", title: "Make It Linear", course: "complexity_and_analysis", lang: "c",
+		prompt: "Read `n` and `target`, then `n` integers. Print `YES` when two different input positions add to `target`; otherwise print `NO`. Print exactly one answer followed by a newline.\n\n`0 <= n <= 200000`, and all values, differences, and sums fit in an `int`. An O(n²) pair-by-pair search will time out on the largest check. Use an O(n) hash set: as each number arrives, look for its complement among values already seen, then insert it.",
+		starter: `#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int n, target;
+    if (scanf("%d %d", &n, &target) != 2) return 1;
+
+    /* Build a hash set and scan the n values once. */
+
+    return 0;
+}
+`,
 		checks: []seedCheck{
-			{label: "finds a pair that exists", test: `bool(has_pair_summing_to([2, 7, 11, 15], 9)) is True`},
-			{label: "says no when no pair adds up", test: `bool(has_pair_summing_to([1, 2, 3], 100)) is False`},
-			{label: "won't use the same element twice", test: `bool(has_pair_summing_to([5], 10)) is False`},
-			{label: "handles an empty list", test: `bool(has_pair_summing_to([], 0)) is False`},
-			{label: "handles negative numbers", test: `bool(has_pair_summing_to([-3, 8, 1], -2)) is True`},
-			{label: "finishes on 200,000 numbers — a nested loop won't",
-				test: `bool(has_pair_summing_to(list(range(200000)), 399997)) is True`},
+			{stdin: "4 9\n2 7 11 15\n", label: "finds a pair that exists", test: `_out == "YES\n"`},
+			{stdin: "3 100\n1 2 3\n", label: "says no when no pair adds up", test: `_out == "NO\n"`},
+			{stdin: "1 10\n5\n", label: "won't use the same element twice", test: `_out == "NO\n"`},
+			{stdin: "0 0\n", label: "handles an empty input", test: `_out == "NO\n"`},
+			{stdin: "3 -2\n-3 8 1\n", label: "handles negative numbers", test: `_out == "YES\n"`},
+			{stdin: "200000 3\n" + strings.Repeat("0 ", 199998) + "1 2\n", label: "finishes on 200,000 numbers — a nested loop won't", test: `_out == "YES\n"`},
 		}},
 
-	{slug: "algo-shortest-path", title: "Shortest Path", course: "algorithms", lang: "python",
-		prompt:  "Write `shortest_path(graph, start, goal)`.\n\n`graph` maps a node to the list of nodes it points at — `{\"a\": [\"b\", \"c\"], \"b\": [\"c\"], \"c\": []}`. Return the shortest route from `start` to `goal` as a list of nodes including both ends, or `None` if there's no route at all.\n\nTwo things will catch a solution that isn't quite right: depth-first search will happily return a long route when a short one exists, and a graph with a cycle in it will loop forever unless you remember where you've been.",
-		starter: "from collections import deque\n\n\ndef shortest_path(graph, start, goal):\n    # your code here\n    pass\n",
+	{slug: "algo-shortest-path-c", title: "Shortest Path", course: "algorithms", lang: "c",
+		prompt: "Read a directed, unweighted graph and print a shortest path. The first line is `n m start goal`: vertices are numbered `0` through `n-1`, followed by `m` directed edges `from to`, one per line. `1 <= n <= 100`.\n\nPrint the path from `start` to `goal`, including both endpoints, as space-separated vertex numbers followed by a newline. Print `NONE` when the goal is unreachable. If start equals goal, print that one vertex. The checks with multiple routes have a unique shortest route.\n\nUse breadth-first search and remember each vertex's parent. Depth-first search can find a route without finding the shortest one, and a visited set is required for cycles.",
+		starter: `#include <stdio.h>
+
+#define MAX_VERTICES 100
+
+int main(void) {
+    int n, m, start, goal;
+    if (scanf("%d %d %d %d", &n, &m, &start, &goal) != 4) return 1;
+
+    int edges[MAX_VERTICES][MAX_VERTICES] = {{0}};
+    for (int i = 0; i < m; i++) {
+        int from, to;
+        if (scanf("%d %d", &from, &to) != 2) return 1;
+        edges[from][to] = 1;
+    }
+
+    /* Use BFS, reconstruct the path through parent links, and print it. */
+
+    return 0;
+}
+`,
 		checks: []seedCheck{
-			{label: "follows a single edge",
-				test: `shortest_path({"a": ["b"], "b": []}, "a", "b") == ["a", "b"]`},
-			{label: "a node reaches itself in one step",
-				test: `shortest_path({"a": []}, "a", "a") == ["a"]`},
-			{label: "returns None when the goal can't be reached",
-				test: `shortest_path({"a": [], "b": []}, "a", "b") is None`},
-			{label: "takes the short route, not the first one it finds",
-				test: `shortest_path({"a": ["b", "z"], "b": ["c"], "c": ["z"], "z": []}, "a", "z") == ["a", "z"]`},
-			{label: "doesn't loop forever on a cycle",
-				test: `shortest_path({"a": ["b"], "b": ["a", "c"], "c": []}, "a", "c") == ["a", "b", "c"]`},
-			{label: "finds the shortest of several routes through a larger graph", hidden: true,
-				test: `shortest_path({"a": ["b", "c"], "b": ["d"], "c": ["d", "e"], "d": ["f"], "e": ["f"], "f": []}, "a", "f") in (["a", "b", "d", "f"], ["a", "c", "d", "f"], ["a", "c", "e", "f"])`},
+			{stdin: "2 1 0 1\n0 1\n", label: "follows a single edge", test: `_out == "0 1\n"`},
+			{stdin: "3 2 1 1\n0 1\n1 2\n", label: "a node reaches itself with a one-vertex path", test: `_out == "1\n"`},
+			{stdin: "3 1 0 2\n0 1\n", label: "prints NONE when the goal can't be reached", test: `_out == "NONE\n"`},
+			{stdin: "5 4 0 4\n0 1\n1 2\n2 4\n0 4\n", label: "takes the short route, not the first one it finds", test: `_out == "0 4\n"`},
+			{stdin: "3 3 0 2\n0 1\n1 0\n1 2\n", label: "doesn't loop forever on a cycle", test: `_out == "0 1 2\n"`},
+			{stdin: "8 9 0 7\n0 1\n0 2\n1 3\n3 4\n4 7\n2 5\n5 6\n6 4\n2 7\n", label: "finds the unique shortest route through a larger graph", hidden: true, test: `_out == "0 2 7\n"`},
 		}},
 
-	{slug: "hcw-twos-complement", title: "Two's Complement by Hand", course: "how_computers_work", lang: "python",
-		prompt:  "A negative integer isn't stored with a minus sign — it's stored as two's complement. Implement both directions:\n\n- `to_twos_complement(n, bits)` — the `bits`-wide pattern for `n`, as a string of `0`s and `1`s.\n- `from_twos_complement(s)` — the integer that pattern represents, negative when the leading bit is `1`.\n\n`to_twos_complement(-5, 8)` is `\"11111011\"`, and `from_twos_complement(\"11111011\")` is `-5`.\n\nPython's built-ins won't shortcut this: `bin(-5)` gives you `\"-0b101\"`, and `int(\"11111011\", 2)` gives you `251`. Neither is the answer, because neither knows how wide the number is — and width is the whole idea.",
-		starter: "def to_twos_complement(n, bits):\n    # your code here\n    pass\n\n\ndef from_twos_complement(s):\n    # your code here\n    pass\n",
+	{slug: "hcw-twos-complement-c", title: "Two's Complement by Hand", course: "how_computers_work", lang: "c",
+		prompt: "Write a CLI that converts fixed-width two's-complement values in either direction. Standard input is exactly one operation:\n\n- `ENCODE bits n` prints the `bits`-wide binary representation of signed integer `n`.\n- `DECODE pattern` prints the signed integer represented by the binary string.\n\nUse widths from 2 through 32; inputs are always valid and in range. For example, `ENCODE 8 -5` prints `11111011`, while `DECODE 11111011` prints `-5`. Print only the result followed by a newline. Width matters: the leading bit has weight `-(2^(bits-1))`, not a separate minus sign.",
+		starter: `#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+int main(void) {
+    char operation[8];
+    if (scanf("%7s", operation) != 1) return 1;
+
+    if (strcmp(operation, "ENCODE") == 0) {
+        int bits;
+        long long value;
+        if (scanf("%d %lld", &bits, &value) != 2) return 1;
+        /* print exactly bits binary digits */
+    } else if (strcmp(operation, "DECODE") == 0) {
+        char pattern[33];
+        if (scanf("%32s", pattern) != 1) return 1;
+        /* print the signed value */
+    }
+    return 0;
+}
+`,
 		checks: []seedCheck{
-			{label: "encodes a positive number", test: `to_twos_complement(5, 8) == "00000101"`},
-			{label: "encodes zero", test: `to_twos_complement(0, 8) == "00000000"`},
-			{label: "encodes a negative number", test: `to_twos_complement(-5, 8) == "11111011"`},
-			{label: "encodes -1 as all ones", test: `to_twos_complement(-1, 8) == "11111111"`},
-			{label: "encodes the most negative value that fits", test: `to_twos_complement(-128, 8) == "10000000"`},
-			{label: "decodes a positive pattern", test: `from_twos_complement("00000101") == 5`},
-			{label: "decodes a negative pattern", test: `from_twos_complement("11111011") == -5`},
-			{label: "works at a width other than 8",
-				test: `to_twos_complement(-1, 16) == "1" * 16 and from_twos_complement("1000") == -8`},
-			{label: "round-trips every value an 8-bit integer can hold", hidden: true,
-				test: `all(from_twos_complement(to_twos_complement(n, 8)) == n for n in range(-128, 128))`},
+			{stdin: "ENCODE 8 5\n", label: "encodes a positive number", test: `_out == "00000101\n"`},
+			{stdin: "ENCODE 8 0\n", label: "encodes zero", test: `_out == "00000000\n"`},
+			{stdin: "ENCODE 8 -5\n", label: "encodes a negative number", test: `_out == "11111011\n"`},
+			{stdin: "ENCODE 8 -1\n", label: "encodes -1 as all ones", test: `_out == "11111111\n"`},
+			{stdin: "ENCODE 8 -128\n", label: "encodes the most negative value that fits", test: `_out == "10000000\n"`},
+			{stdin: "DECODE 00000101\n", label: "decodes a positive pattern", test: `_out == "5\n"`},
+			{stdin: "DECODE 11111011\n", label: "decodes a negative pattern", test: `_out == "-5\n"`},
+			{stdin: "ENCODE 16 -1\n", label: "encodes at a width other than 8", test: `_out == "1111111111111111\n"`},
+			{stdin: "DECODE 1000\n", label: "decodes at a width other than 8", test: `_out == "-8\n"`},
+			{stdin: "ENCODE 32 -2147483648\n", label: "handles the full 32-bit width", hidden: true, test: `_out == "10000000000000000000000000000000\n"`},
 		}},
 
 	{slug: "linux-top-talkers", title: "Find the Top Talkers", course: "linux", lang: "shell",

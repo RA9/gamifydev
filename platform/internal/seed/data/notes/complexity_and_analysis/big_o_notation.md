@@ -65,78 +65,121 @@ The technique is: count what dominates, then simplify. Let's do several.
 
 **A single pass.**
 
-```python
-def largest(nums):
-    best = nums[0]
-    for x in nums:      # runs n times
-        if x > best:
-            best = x
-    return best
+```c
+#include <stddef.h>
+#include <stdio.h>
 
-print(largest([4, 9, 2]))
-# 9
+int largest(const int nums[], size_t n) {
+    int best = nums[0];
+    for (size_t i = 0; i < n; i++) {  // runs n times
+        if (nums[i] > best) {
+            best = nums[i];
+        }
+    }
+    return best;
+}
+
+int main(void) {
+    const int nums[] = {4, 9, 2};
+    printf("%d\n", largest(nums, 3));  // 9
+    return 0;
+}
 ```
 
 One loop over n items, constant work inside. Roughly `n` steps plus a fixed handful → `O(n)`.
 
 **Two loops in a row.**
 
-```python
-def sum_then_max(nums):
-    total = 0
-    for x in nums:      # n steps
-        total += x
-    best = nums[0]
-    for x in nums:      # another n steps
-        if x > best:
-            best = x
-    return total, best
+```c
+#include <stddef.h>
+
+typedef struct {
+    long total;
+    int best;
+} Summary;
+
+Summary sum_then_max(const int nums[], size_t n) {
+    long total = 0;
+    for (size_t i = 0; i < n; i++) {  // n steps
+        total += nums[i];
+    }
+
+    int best = nums[0];
+    for (size_t i = 0; i < n; i++) {  // another n steps
+        if (nums[i] > best) {
+            best = nums[i];
+        }
+    }
+    return (Summary){total, best};
+}
 ```
 
 That's `n + n = 2n` steps. Drop the constant → `O(n)`. Sequential work *adds*, and adding two linear passes is still linear.
 
 **A loop inside a loop.**
 
-```python
-def any_pair_sums_to(nums, target):
-    for a in nums:          # n times
-        for b in nums:      # n times, for each a
-            if a + b == target:
-                return True
-    return False
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-print(any_pair_sums_to([1, 5, 9], 10))
-# True
+bool any_pair_sums_to(const int nums[], size_t n, int target) {
+    for (size_t i = 0; i < n; i++) {      // n times
+        for (size_t j = 0; j < n; j++) {  // n times, for each i
+            if (nums[i] + nums[j] == target) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int main(void) {
+    const int nums[] = {1, 5, 9};
+    printf("%s\n", any_pair_sums_to(nums, 3, 10) ? "true" : "false");  // true
+    return 0;
+}
 ```
 
 The inner loop runs n times for each of the n outer iterations: `n × n = n²` → `O(n²)`. Nested work *multiplies*.
 
 :::example
-Note the early `return True`. Big O usually describes the **worst case** unless someone says otherwise, and the worst case here is "no pair matches," where both loops run to completion. If you want to talk about the lucky case, say so explicitly: "O(1) best case, O(n²) worst case."
+Note the early `return true`. Big O usually describes the **worst case** unless someone says otherwise, and the worst case here is "no pair matches," where both loops run to completion. If you want to talk about the lucky case, say so explicitly: "O(1) best case, O(n²) worst case."
 :::
 
 **A fixed number of iterations.**
 
-```python
-def first_ten(nums):
-    for i in range(10):     # always 10, regardless of n
-        print(nums[i])
+```c
+#include <stddef.h>
+#include <stdio.h>
+
+void first_ten(const int nums[static 10]) {
+    for (size_t i = 0; i < 10; i++) {  // always 10, regardless of n
+        printf("%d\n", nums[i]);
+    }
+}
 ```
 
-Ten iterations whether the list holds 12 items or 12 million. The work doesn't grow with n at all → `O(1)`. Constant time doesn't mean *fast*; it means *unchanging as n grows*.
+Ten iterations whether the array holds 12 items or 12 million. The work doesn't grow with n at all → `O(1)`. Constant time doesn't mean *fast*; it means *unchanging as n grows*.
 
 **Halving the range.**
 
-```python
-def count_halvings(n):
-    steps = 0
-    while n > 1:
-        n = n // 2       # the range shrinks by half each time
-        steps += 1
-    return steps
+```c
+#include <stdio.h>
 
-print(count_halvings(1000))
-# 9
+unsigned count_halvings(unsigned n) {
+    unsigned steps = 0;
+    while (n > 1) {
+        n /= 2;  // the range shrinks by half each time
+        steps++;
+    }
+    return steps;
+}
+
+int main(void) {
+    printf("%u\n", count_halvings(1000));  // 9
+    return 0;
+}
 ```
 
 Starting at 1,000, `n` goes 500, 250, 125, 62, 31, 15, 7, 3, 1 — nine steps. Double the input to 2,000 and you get just one more step. That's the signature of `O(log n)`.
@@ -177,15 +220,21 @@ E: Drop the constant multiplier 6 and the lower-order term 300. The fastest-grow
 
 :::predict
 Q: What Big O describes this function's running time?
-```python
-def f(grid, n):
-    total = 0
-    for i in range(n):
-        for j in range(n):
-            total += grid[i][j]
-    for i in range(n):
-        total += i
-    return total
+```c
+#include <stddef.h>
+
+long f(size_t n, const int grid[n][n]) {
+    long total = 0;
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+            total += grid[i][j];
+        }
+    }
+    for (size_t i = 0; i < n; i++) {
+        total += (long)i;
+    }
+    return total;
+}
 ```
 - O(n)
 - O(n²) *

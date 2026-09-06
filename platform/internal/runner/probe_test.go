@@ -65,6 +65,24 @@ func TestProbeFailsClosed(t *testing.T) {
 	}
 }
 
+type cProbeExecutor struct{ result Result }
+
+func (e cProbeExecutor) Run(context.Context, Request) (Result, error) { return e.result, nil }
+func (cProbeExecutor) Kind() string                                   { return "local" }
+func (cProbeExecutor) Enabled() bool                                  { return true }
+
+func TestProbeCRequiresCompiledProgramToRun(t *testing.T) {
+	if err := ProbeC(context.Background(), cProbeExecutor{result: Result{Stdout: cProbeMarker + "\n"}}); err != nil {
+		t.Fatalf("healthy C probe: %v", err)
+	}
+	if err := ProbeC(context.Background(), cProbeExecutor{result: Result{CompileFailed: true, Stderr: "cc missing"}}); err == nil {
+		t.Fatal("compile failure passed the C readiness probe")
+	}
+	if err := ProbeC(context.Background(), cProbeExecutor{result: Result{ExitCode: 126, Stderr: "permission denied"}}); err == nil {
+		t.Fatal("non-executable compiled binary passed the C readiness probe")
+	}
+}
+
 func TestProbeRealExecutorNotSandboxedHere(t *testing.T) {
 	// On this dev host there's no bwrap, so a real run must report NOT sandboxed
 	// (cwd is a temp dir, not /box). This guards against the probe ever
