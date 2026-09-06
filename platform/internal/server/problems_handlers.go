@@ -317,6 +317,12 @@ func (s *Server) handleProblem(w http.ResponseWriter, r *http.Request) {
 		"languages": languageChoices(starters),
 		"starters":  starters,
 		"judgeable": s.exec != nil && s.exec.Enabled(),
+		// The console's case list, unrun until Run fills it in.
+		"caseData": caseData(samples, nil),
+		"tab":      tabOr(r.URL.Query().Get("tab"), "problem"),
+	}
+	if subs, err := s.st.ProblemSubmissionsFor(r.Context(), p.ID, by, 25); err == nil {
+		data["submissions"] = subs
 	}
 	if sub, err := s.st.LatestProblemSubmission(r.Context(), p.ID, by); err == nil {
 		data["submission"] = sub
@@ -327,8 +333,19 @@ func (s *Server) handleProblem(w http.ResponseWriter, r *http.Request) {
 		log.Printf("problem %s: latest submission: %v", p.Slug, err)
 	}
 	data["mainClass"] = ""
-	data["bodyClass"] = "practice-problem"
+	data["bodyClass"] = "problem-ide"
 	s.render(w, r, "problem.html", ViewData{Title: p.Title, Data: data})
+}
+
+// tabOr keeps the left pane's tab to the ones that exist. The name arrives in
+// the query string, and an unknown one should land on the problem rather than
+// on an empty pane.
+func tabOr(want, fallback string) string {
+	switch want {
+	case "problem", "submissions":
+		return want
+	}
+	return fallback
 }
 
 // languageChoices orders the languages a problem accepts, so the picker doesn't
@@ -412,6 +429,125 @@ func (s *Server) handleProblemSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.problemResult(w, r, sub, "")
+}
+
+// handleProblemRun grades the visible tests and shows the result per case,
+// without recording a submission.
+//
+// Run and Submit are genuinely different, which is why both exist. Run answers
+// "does my code do what the examples say?" against the cases the learner can
+// read, costs them nothing, and leaves no trace. Submit judges everything —
+// including the hidden tests that are the actual bar — and goes on the record.
+// A Run that quietly counted, or a pair of buttons doing the same thing, would
+// be worse than having only one.
+func (s *Server) handleProblemRun(w http.ResponseWriter, r *http.Request) {
+	p, err := s.st.GetProblemBySlug(r.Context(), r.PathValue("slug"))
+	if err != nil {
+		s.notFound(w, r)
+		return
+	}
+	if s.exec == nil || !s.exec.Enabled() {
+		s.renderPartial(w, r, "problem.html", "cases", map[string]any{
+			"message": "Code execution is switched off on this server.",
+		})
+		return
+	}
+	code := strings.TrimSpace(r.FormValue("code"))
+	if code == "" {
+		s.renderPartial(w, r, "problem.html", "cases", map[string]any{"message": "Write some code first."})
+		return
+	}
+	lang, err := s.acceptedLanguage(r.Context(), p.ID, r.FormValue("language"))
+	if err != nil {
+		s.renderPartial(w, r, "problem.html", "cases", map[string]any{"message": "That language isn't accepted for this problem."})
+		return
+	}
+
+	by, err := s.solverForWrite(w, r)
+	if err != nil {
+		http.Error(w, "could not start a session", http.StatusInternalServerError)
+		return
+	}
+	if wait, ok := s.runlim.allow(rateKey(by)); !ok {
+		s.renderPartial(w, r, "problem.html", "cases", map[string]any{
+			"message": "Easy — wait " + strconv.Itoa(int(wait.Seconds()+1)) + "s before running again.",
+		})
+		return
+	}
+
+	visible, err := s.visibleTests(r.Context(), p.ID)
+	if err != nil || len(visible) == 0 {
+		s.renderPartial(w, r, "problem.html", "cases", map[string]any{"message": "This problem has no example cases to run."})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), judgeWait)
+	defer cancel()
+	rel, ok := s.runlim.acquire(ctx)
+	if !ok {
+		s.renderPartial(w, r, "problem.html", "cases", map[string]any{"message": "The runner is busy — try again in a moment."})
+		return
+	}
+	res, err := jobs.GradeWithin(ctx, s.exec, lang, code, nil, visible, p.TimeLimitMs)
+	rel()
+	if err != nil {
+		log.Printf("problem %s: run: %v", p.Slug, err)
+		s.renderPartial(w, r, "problem.html", "cases", map[string]any{"message": "Could not run your code. This is our fault, not yours."})
+		return
+	}
+	s.renderPartial(w, r, "problem.html", "cases", caseData(visible, &res))
+}
+
+// visibleTests are the example cases: the ones a learner can read, in author
+// order, with the ids the grader reports against.
+func (s *Server) visibleTests(ctx context.Context, problemID int64) ([]store.Check, error) {
+	all, err := s.st.ProblemTests(ctx, problemID)
+	if err != nil {
+		return nil, err
+	}
+	var out []store.Check
+	for _, t := range all {
+		if !t.Hidden {
+			out = append(out, t)
+		}
+	}
+	return out, nil
+}
+
+// caseRow is one example case as the console panel shows it.
+type caseRow struct {
+	N      int
+	Label  string
+	Stdin  string
+	Ran    bool
+	Passed bool
+}
+
+// caseData builds the console's case list. res is nil before anything has run,
+// which is the state the page first loads in.
+func caseData(tests []store.Check, res *jobs.GradeResult) map[string]any {
+	rows := make([]caseRow, 0, len(tests))
+	passed := 0
+	for i, t := range tests {
+		row := caseRow{N: i + 1, Label: t.Label, Stdin: t.Stdin}
+		if res != nil {
+			row.Ran = true
+			row.Passed = res.Passed[t.ID]
+			if row.Passed {
+				passed++
+			}
+		}
+		rows = append(rows, row)
+	}
+	data := map[string]any{"cases": rows}
+	if res != nil {
+		data["ran"] = true
+		data["passed"] = passed
+		data["total"] = len(rows)
+		data["output"] = res.Output
+		data["ok"] = passed == len(rows)
+	}
+	return data
 }
 
 // handleProblemResult is what the page polls while a submission is still with

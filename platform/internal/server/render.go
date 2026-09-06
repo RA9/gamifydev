@@ -152,10 +152,11 @@ var funcMap = template.FuncMap{
 		}
 		return strings.ToUpper(s[:1]) + s[1:]
 	},
-	"hasprefix": strings.HasPrefix,
-	"json":      jsonValue,
-	"pct":       pct,
-	"int64":     func(i int) int64 { return int64(i) },
+	"hasprefix":   strings.HasPrefix,
+	"json":        jsonValue,
+	"verdicthead": verdictHeadline,
+	"pct":         pct,
+	"int64":       func(i int) int64 { return int64(i) },
 	"seq": func(n int) []int {
 		s := make([]int, n)
 		for i := range s {

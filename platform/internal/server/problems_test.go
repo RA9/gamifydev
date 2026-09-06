@@ -3,11 +3,13 @@ package server
 import (
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
+	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
 
@@ -203,4 +205,97 @@ func TestASubmissionCannotNameALanguageTheProblemDoesNotAccept(t *testing.T) {
 	if got, err := ts.acceptedLanguage(t.Context(), p.ID, "python"); err != nil || got != "python" {
 		t.Errorf("acceptedLanguage(python) = %q, %v; want python, nil", got, err)
 	}
+}
+
+// Run and Submit are different actions, and the difference is the point: Run
+// checks the cases the learner can read and costs them nothing; Submit judges
+// the hidden tests too and goes on the record. If Run started recording, every
+// experiment would show up as a failed attempt.
+func TestRunningTheExampleCasesRecordsNothing(t *testing.T) {
+	ts := newTestServerWith(t, pythonExecutor(t))
+	cookie, by := ts.guest(t)
+	form := url.Values{"language": {"python"}, "code": {"def total(nums):\n    return 0\n"}}
+
+	w := ts.do(t, http.MethodPost, "/problems/double-tiles/run", form, cookie)
+	if w.Code != http.StatusOK {
+		t.Fatalf("run: status %d", w.Code)
+	}
+	p, err := ts.st.GetProblemBySlug(t.Context(), "double-tiles")
+	if err != nil {
+		t.Fatalf("get problem: %v", err)
+	}
+	subs, err := ts.st.ProblemSubmissionsFor(t.Context(), p.ID, by, 10)
+	if err != nil {
+		t.Fatalf("submissions: %v", err)
+	}
+	if len(subs) != 0 {
+		t.Errorf("Run recorded %d submission(s); it should leave no trace", len(subs))
+	}
+}
+
+// Whatever Run reports, it must never be the hidden tests — those are the
+// actual bar, and showing them would hand over the answer.
+func TestRunOnlyReportsTheVisibleCases(t *testing.T) {
+	ts := newTestServerWith(t, pythonExecutor(t))
+	cookie, _ := ts.guest(t)
+	p, _ := ts.st.GetProblemBySlug(t.Context(), "double-tiles")
+	all, _ := ts.st.ProblemTests(t.Context(), p.ID)
+	visible := 0
+	var hiddenLabels []string
+	for _, c := range all {
+		if c.Hidden {
+			hiddenLabels = append(hiddenLabels, c.Label)
+		} else {
+			visible++
+		}
+	}
+	if visible == 0 || len(hiddenLabels) == 0 {
+		t.Skip("this problem has no mix of visible and hidden tests to distinguish")
+	}
+
+	body := ts.do(t, http.MethodPost, "/problems/double-tiles/run", url.Values{
+		"language": {"python"}, "code": {"def score(values, gold):\n    return 0\n"},
+	}, cookie).Body.String()
+	if got := strings.Count(body, `class="case`); got < visible {
+		t.Errorf("run listed %d case rows, want at least the %d visible ones", got, visible)
+	}
+	for _, label := range hiddenLabels {
+		if strings.Contains(body, label) {
+			t.Errorf("run leaked the hidden test %q", label)
+		}
+	}
+}
+
+// The left pane's tab comes from the query string, and an unknown one must land
+// somewhere real rather than on an empty pane.
+func TestTheWorkspaceTabsAreBothReachable(t *testing.T) {
+	ts := newTestServer(t)
+	for _, tc := range []struct{ query, want string }{
+		{"", `Example cases`},
+		{"?tab=problem", `Example cases`},
+		{"?tab=submissions", `Your submissions`},
+		{"?tab=nonsense", `Example cases`},
+	} {
+		w := ts.do(t, http.MethodGet, "/problems/double-tiles"+tc.query, nil)
+		if w.Code != http.StatusOK {
+			t.Errorf("%q: status %d", tc.query, w.Code)
+			continue
+		}
+		if !strings.Contains(w.Body.String(), tc.want) {
+			t.Errorf("%q does not show %q", tc.query, tc.want)
+		}
+	}
+}
+
+// pythonExecutor is a real local sandbox for the tests that need code to run.
+func pythonExecutor(t *testing.T) runner.Executor {
+	t.Helper()
+	if _, err := exec.LookPath("python3"); err != nil {
+		t.Skip("no python3 on PATH")
+	}
+	e, err := runner.New(runner.Config{Mode: "local", PythonPath: "python3", AllowUnsafe: true})
+	if err != nil {
+		t.Fatalf("new executor: %v", err)
+	}
+	return e
 }

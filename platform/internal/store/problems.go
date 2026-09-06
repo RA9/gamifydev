@@ -489,6 +489,37 @@ type Verdict struct {
 	FailedLabel string
 }
 
+// ProblemSubmissionsFor lists a solver's attempts at one problem, newest first
+// — the history behind the Submissions tab.
+func (s *Store) ProblemSubmissionsFor(ctx context.Context, problemID int64, by Solver, limit int) ([]ProblemSubmission, error) {
+	if !by.valid() {
+		return nil, nil
+	}
+	userID, guestID := by.cols()
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT ps.id, ps.language, ps.verdict, ps.passed, ps.total, ps.failed_label,
+		       ps.runtime_ms, ps.created_at
+		FROM problem_submissions ps
+		WHERE ps.problem_id = ? AND (ps.user_id = ? OR ps.guest_id = ?)
+		ORDER BY ps.id DESC LIMIT ?`, problemID, userID, guestID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []ProblemSubmission
+	for rows.Next() {
+		var sub ProblemSubmission
+		if err := rows.Scan(&sub.ID, &sub.Language, &sub.Verdict, &sub.Passed, &sub.Total,
+			&sub.FailedLabel, &sub.RuntimeMs, &sub.CreatedAt); err != nil {
+			return nil, err
+		}
+		sub.ProblemID = problemID
+		sub.By = by
+		out = append(out, sub)
+	}
+	return out, rows.Err()
+}
+
 // RecordVerdict stores the judge's decision.
 func (s *Store) RecordVerdict(ctx context.Context, id int64, v Verdict) error {
 	_, err := s.db.ExecContext(ctx, `

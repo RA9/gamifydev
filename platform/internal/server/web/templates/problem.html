@@ -2,126 +2,217 @@
 {{ $p := index .Data "problem" }}
 {{ $sub := index .Data "submission" }}
 {{ $langs := index .Data "languages" }}
-<div class="pb-page pb-solve">
+{{ $tab := index .Data "tab" }}
+<div class="ide" id="ide">
 
-  <header class="pb-brief">
-    <a class="pb-back" href="/problems">{{ icon "arrowleft" }} All problems</a>
-    <h1>{{ $p.Title }}</h1>
-    <div class="pb-brief-meta">
-      <span class="pb-pill pb-diff-{{ $p.Difficulty }}">{{ titlecase $p.Difficulty }}</span>
-      {{ with $p.Topic }}<span class="pb-pill pb-pill-quiet">{{ . }}</span>{{ end }}
-      <span class="pb-pill pb-pill-quiet">{{ $p.TimeLimitMs }}ms limit</span>
-      {{ if and $sub (eq $sub.Verdict "accepted") }}
-        <span class="pb-pill pb-pill-solved">{{ icon "check" }} Solved</span>
-      {{ end }}
-    </div>
-  </header>
+  {{/* ---------------- left: the problem ---------------- */}}
+  <section class="ide-pane ide-left" aria-label="Problem">
+    <nav class="ide-tabs" aria-label="Problem panes">
+      <a class="ide-tab{{ if eq $tab "problem" }} is-on{{ end }}" href="/problems/{{ $p.Slug }}"
+         {{ if eq $tab "problem" }}aria-current="page"{{ end }}>{{ icon "file" }} Problem</a>
+      <a class="ide-tab{{ if eq $tab "submissions" }} is-on{{ end }}" href="/problems/{{ $p.Slug }}?tab=submissions"
+         {{ if eq $tab "submissions" }}aria-current="page"{{ end }}>{{ icon "activity" }} Submissions</a>
+      <a class="ide-tab ide-tab-out" href="/problems">{{ icon "arrowleft" }} All problems</a>
+    </nav>
 
-  <div class="pb-work">
-    <div class="pb-statement">
-      <div class="prose">{{ index .Data "statement" }}</div>
-
-      {{ with index .Data "samples" }}
-      <section class="pb-checks" aria-labelledby="pb-checks-title">
-        <h2 id="pb-checks-title">What's checked</h2>
-        <ul role="list">
-          {{ range . }}
-          <li>
-            <span class="pb-check-mark" aria-hidden="true">{{ icon "dot" }}</span>
-            <span>{{ .Label }}{{ with .Stdin }} <code>input: {{ . }}</code>{{ end }}</span>
-          </li>
+    <div class="ide-scroll">
+      {{ if eq $tab "submissions" }}
+        <h1 class="ide-h1">Your submissions</h1>
+        {{ with index .Data "submissions" }}
+          <ol class="sub-list" role="list">
+            {{ range . }}
+            <li class="sub-row sub-{{ .Verdict }}">
+              <span class="sub-verdict">{{ verdicthead .Verdict }}</span>
+              <span class="sub-meta">
+                {{ if .Total }}{{ .Passed }}/{{ .Total }} tests{{ end }}
+                {{ if .RuntimeMs }} · {{ .RuntimeMs }}ms{{ end }} · {{ .Language }}
+              </span>
+              <span class="sub-when">{{ reltime .CreatedAt }}</span>
+            </li>
+            {{ end }}
+          </ol>
+        {{ else }}
+          <p class="ide-empty">Nothing submitted yet. Your attempts at this problem will be listed here.</p>
+        {{ end }}
+      {{ else }}
+        <h1 class="ide-h1">{{ $p.Title }}</h1>
+        <div class="ide-meta">
+          <span class="ide-pill ide-{{ $p.Difficulty }}">{{ titlecase $p.Difficulty }}</span>
+          {{ with $p.Topic }}<span class="ide-chip">{{ icon "layers" }} {{ . }}</span>{{ end }}
+          <span class="ide-chip">{{ icon "lock" }} {{ $p.TimeLimitMs }}ms</span>
+          {{ if and $sub (eq $sub.Verdict "accepted") }}
+            <span class="ide-chip is-solved">{{ icon "check" }} Solved</span>
           {{ end }}
-        </ul>
-        <p class="pb-checks-note">
-          Hidden tests run too — passing the ones listed here is not the same as
-          solving it.
-        </p>
-      </section>
-      {{ end }}
-    </div>
-
-    <div class="pb-solver">
-      {{ if index .Data "judgeable" }}
-      <form class="pb-form"
-            hx-post="/problems/{{ $p.Slug }}/submit"
-            hx-target="#pb-result"
-            hx-swap="innerHTML"
-            hx-disabled-elt="find button[type=submit]">
-        <div class="pb-form-head">
-          {{ if gt (len $langs) 1 }}
-            <label class="pb-lang">
-              <span class="visually-hidden">Language</span>
-              <select name="language" id="pb-lang">
-                {{ range $langs }}
-                  <option value="{{ . }}"{{ if and $sub (eq $sub.Language .) }} selected{{ end }}>{{ titlecase . }}</option>
-                {{ end }}
-              </select>
-            </label>
-          {{ else }}
-            <input type="hidden" name="language" value="{{ index $langs 0 }}" />
-            <span class="pb-lang-tag">{{ index $langs 0 }}</span>
-          {{ end }}
-          <button class="btn btn-primary btn-sm" type="submit">Run tests</button>
         </div>
 
-        <gd-code-editor id="pb-editor" lang="{{ if $sub }}{{ $sub.Language }}{{ else }}{{ index $langs 0 }}{{ end }}">
-          <textarea name="code" id="pb-code" class="gd-editor-ta" rows="18" spellcheck="false" required
+        <div class="ide-prose">{{ index .Data "statement" }}</div>
+
+        {{ with index .Data "samples" }}
+          <h2 class="ide-h2">Example cases</h2>
+          {{ range $i, $c := . }}
+          <details class="ide-case" open>
+            <summary>
+              <span class="ide-case-tag">Case {{ add $i 1 }}</span>
+              <span class="ide-case-label">{{ $c.Label }}</span>
+              <span class="ide-case-chev" aria-hidden="true">{{ icon "chevup" }}</span>
+            </summary>
+            <div class="ide-case-body">
+              <div class="ide-io">
+                <span class="ide-io-tag">Checks</span>
+                <code data-copy>{{ $c.Test }}</code>
+                <button type="button" class="ide-copy" data-copy-btn
+                        aria-label="Copy this check">{{ icon "copy" }}</button>
+              </div>
+              {{ with $c.Stdin }}
+              <div class="ide-io">
+                <span class="ide-io-tag is-in">Input</span>
+                <code data-copy>{{ . }}</code>
+                <button type="button" class="ide-copy" data-copy-btn
+                        aria-label="Copy this input">{{ icon "copy" }}</button>
+              </div>
+              {{ end }}
+            </div>
+          </details>
+          {{ end }}
+          <p class="ide-note">
+            {{ icon "shield" }} Hidden tests run on submit. Passing every case here is
+            not the same as solving it.
+          </p>
+        {{ end }}
+      {{ end }}
+    </div>
+  </section>
+
+  <div class="ide-split" id="ideSplit" role="separator" aria-orientation="vertical"
+       aria-label="Resize panes" tabindex="0"><span></span></div>
+
+  {{/* ---------------- right: the workspace ---------------- */}}
+  <section class="ide-pane ide-right" aria-label="Workspace">
+    <form id="plForm" class="ide-form"
+          hx-post="/problems/{{ $p.Slug }}/submit"
+          hx-target="#ide-console-body"
+          hx-swap="innerHTML"
+          hx-disabled-elt=".ide-act">
+      <header class="ide-bar">
+        {{ if gt (len $langs) 1 }}
+          <label class="ide-lang">
+            <span class="visually-hidden">Language</span>
+            <select name="language" id="pb-lang">
+              {{ range $langs }}
+                <option value="{{ . }}"{{ if and $sub (eq $sub.Language .) }} selected{{ end }}>{{ titlecase . }}</option>
+              {{ end }}
+            </select>
+          </label>
+        {{ else }}
+          <input type="hidden" name="language" value="{{ index $langs 0 }}" />
+          <span class="ide-lang-tag">{{ index $langs 0 }}</span>
+        {{ end }}
+        <div class="ide-bar-right">
+          <button type="button" class="ide-icon" id="ideReset" title="Reset to the starter"
+                  aria-label="Reset to the starter">{{ icon "refresh" }}</button>
+        </div>
+      </header>
+
+      <div class="ide-editor">
+        <gd-code-editor id="pb-editor" theme="dark" lang="{{ if $sub }}{{ $sub.Language }}{{ else }}{{ index $langs 0 }}{{ end }}">
+          <textarea name="code" id="pb-code" class="gd-editor-ta" spellcheck="false" required
             >{{ if $sub }}{{ $sub.Code }}{{ else }}{{ index (index $.Data "starters") (index $langs 0) }}{{ end }}</textarea>
         </gd-code-editor>
-
-        {{/* The starters the picker swaps between. Read with JSON.parse, never
-             evaluated — see problems.js. */}}
-        <script type="application/json" id="pb-starters">{{ json (index .Data "starters") }}</script>
-      </form>
-      {{ else }}
-        <p class="pb-notice">
-          Code execution is switched off on this server, so this can't be judged
-          right now.
-        </p>
-      {{ end }}
-
-      <div id="pb-result" class="pb-result-slot" aria-live="polite">
-        {{ with index .Data "result" }}{{ template "result" . }}{{ end }}
       </div>
-    </div>
-  </div>
+
+      {{/* The starters the picker swaps between. Read with JSON.parse, never
+           evaluated — see problems.js. */}}
+      <script type="application/json" id="pb-starters">{{ json (index .Data "starters") }}</script>
+
+      <div class="ide-console">
+        <header class="ide-console-bar">
+          <nav class="ide-console-tabs" aria-label="Console">
+            <button type="button" class="ide-ctab is-on" data-panel="cases">{{ icon "clipboard" }} Test cases</button>
+            <button type="button" class="ide-ctab" data-panel="output">{{ icon "terminal" }} Output</button>
+          </nav>
+          {{ if index .Data "judgeable" }}
+          <div class="ide-actions">
+            <button type="button" class="btn ide-act ide-run" id="ideRun"
+                    hx-post="/problems/{{ $p.Slug }}/run"
+                    hx-include="#plForm"
+                    hx-target="#ide-console-body"
+                    hx-swap="innerHTML">{{ icon "play" }} Run</button>
+            <button type="submit" class="btn ide-act ide-submit">{{ icon "send" }} Submit</button>
+          </div>
+          {{ end }}
+        </header>
+        <div class="ide-console-body" id="ide-console-body">
+          {{ if index .Data "judgeable" }}
+            {{ with index .Data "result" }}{{ template "result" . }}{{ else }}{{ template "cases" (index $.Data "caseData") }}{{ end }}
+          {{ else }}
+            <p class="ide-off">
+              Code execution is switched off on this server, so nothing can be judged.
+              The problem and its cases are still here to read.
+            </p>
+          {{ end }}
+        </div>
+      </div>
+    </form>
+  </section>
 </div>
 <script src="/static/js/problems.js" type="module"></script>
 {{ end }}
 
 
-{{/* The verdict panel. Swapped in by the submit request, and re-fetched by the
-     poll below while a submission is still with the background judge. */}}
-{{ define "result" }}
-  {{ with index . "message" }}
-    <div class="pb-notice">{{ . }}</div>
+{{/* The test-case panel: every visible case, and how it did on the last Run. */}}
+{{ define "cases" }}
+  {{ with index . "message" }}<p class="ide-off">{{ . }}</p>{{ end }}
+  {{ with index . "cases" }}
+    {{ if index $ "ran" }}
+      <p class="case-head {{ if index $ "ok" }}is-ok{{ else }}is-bad{{ end }}">
+        {{ index $ "passed" }} of {{ index $ "total" }} example cases passed
+        <small>Hidden tests only run on submit.</small>
+      </p>
+    {{ end }}
+    <ul class="case-list" role="list">
+      {{ range . }}
+      <li class="case{{ if .Ran }}{{ if .Passed }} is-pass{{ else }} is-fail{{ end }}{{ end }}">
+        <span class="case-n">Case {{ .N }}</span>
+        <span class="case-label">{{ .Label }}</span>
+        {{ if .Ran }}
+          <span class="case-mark">{{ if .Passed }}{{ icon "check" }}{{ else }}✗{{ end }}</span>
+        {{ else }}
+          <span class="case-mark is-idle" aria-hidden="true">{{ icon "dot" }}</span>
+        {{ end }}
+      </li>
+      {{ end }}
+    </ul>
+    {{ with index $ "output" }}<pre class="ide-output">{{ . }}</pre>{{ end }}
   {{ end }}
+{{ end }}
+
+
+{{/* The verdict panel, swapped in by Submit and re-fetched while judging. */}}
+{{ define "result" }}
+  {{ with index . "message" }}<p class="ide-off">{{ . }}</p>{{ end }}
   {{ with index . "sub" }}
     {{ if index $ "pending" }}
-      <div class="pb-verdict is-pending"
+      <div class="verdict is-pending"
            hx-get="/problems/result/{{ .ID }}"
            hx-trigger="load delay:2s"
-           hx-target="#pb-result"
+           hx-target="#ide-console-body"
            hx-swap="innerHTML">
-        <span class="pb-spinner" aria-hidden="true"></span>
-        <div>
-          <strong>Judging…</strong>
-          <p>Your submission is queued. This updates on its own.</p>
-        </div>
+        <span class="verdict-spin" aria-hidden="true"></span>
+        <div><strong>Judging…</strong><p>Queued. This updates on its own.</p></div>
       </div>
     {{ else }}
-      <div class="pb-verdict {{ if index $ "ok" }}is-ok{{ else }}is-bad{{ end }}">
-        <div class="pb-verdict-head">
+      <div class="verdict {{ if index $ "ok" }}is-ok{{ else }}is-bad{{ end }}">
+        <div class="verdict-head">
           <strong>{{ index $ "headline" }}</strong>
-          {{ if .Total }}<span class="pb-count">{{ .Passed }}/{{ .Total }} tests</span>{{ end }}
-          {{ if .RuntimeMs }}<span class="pb-runtime">{{ .RuntimeMs }}ms</span>{{ end }}
+          {{ if .Total }}<span class="verdict-count">{{ .Passed }}/{{ .Total }} tests</span>{{ end }}
+          {{ if .RuntimeMs }}<span class="verdict-ms">{{ .RuntimeMs }}ms</span>{{ end }}
         </div>
         {{ if index $ "ok" }}
-          <p class="pb-verdict-note">Every test passed. Nicely done.</p>
+          <p class="verdict-note">Every test passed, hidden ones included. Nicely done.</p>
         {{ else if .FailedLabel }}
-          <p class="pb-verdict-note">First failure: <strong>{{ .FailedLabel }}</strong></p>
+          <p class="verdict-note">First failure: <strong>{{ .FailedLabel }}</strong></p>
         {{ end }}
-        {{ with .Output }}<pre class="pb-output">{{ . }}</pre>{{ end }}
+        {{ with .Output }}<pre class="ide-output">{{ . }}</pre>{{ end }}
       </div>
     {{ end }}
   {{ end }}

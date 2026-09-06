@@ -14,6 +14,7 @@ import (
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
 	"github.com/RA9/gamifydev/platform/internal/jobs"
+	"github.com/RA9/gamifydev/platform/internal/runner"
 	"github.com/RA9/gamifydev/platform/internal/seed"
 	"github.com/RA9/gamifydev/platform/internal/store"
 )
@@ -35,6 +36,13 @@ type testServer struct {
 
 func newTestServer(t *testing.T) *testServer {
 	t.Helper()
+	return newTestServerWith(t, nil)
+}
+
+// newTestServerWith is newTestServer with an executor, for the handful of tests
+// that need code to actually run rather than to be told execution is off.
+func newTestServerWith(t *testing.T, exec runner.Executor) *testServer {
+	t.Helper()
 	ctx := context.Background()
 
 	st, err := store.Open(filepath.Join(t.TempDir(), "smoke.db"))
@@ -52,7 +60,7 @@ func newTestServer(t *testing.T) *testServer {
 		t.Fatalf("seed: %v", err)
 	}
 
-	srv, err := New(st, nil, nil, nil, jobs.New(st, "test"), false, false)
+	srv, err := New(st, nil, nil, exec, jobs.New(st, "test"), false, false)
 	if err != nil {
 		t.Fatalf("new server: %v", err)
 	}

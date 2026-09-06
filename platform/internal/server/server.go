@@ -78,6 +78,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /problems", s.handleProblems)
 	mux.HandleFunc("GET /problems/result/{id}", s.handleProblemResult)
 	mux.HandleFunc("GET /problems/{slug}", s.handleProblem)
+	mux.HandleFunc("POST /problems/{slug}/run", s.handleProblemRun)
 	mux.HandleFunc("POST /problems/{slug}/submit", s.handleProblemSubmit)
 	mux.HandleFunc("GET /blog", s.handleBlog)
 	mux.HandleFunc("GET /blog/{slug}", s.handleBlogPost)
