@@ -69,7 +69,7 @@ func TestResolveAttendanceOnlyCoversScheduledDays(t *testing.T) {
 	}
 }
 
-func TestResolveIsIdempotentAndReflectsLaterSignals(t *testing.T) {
+func TestResolveIsIdempotentAndIgnoresUnscheduledActivity(t *testing.T) {
 	ctx := context.Background()
 	st := newTestStore(t)
 	cid, uid := attendanceFixture(t, st)
@@ -80,8 +80,8 @@ func TestResolveIsIdempotentAndReflectsLaterSignals(t *testing.T) {
 	days, _ := st.AttendanceDays(ctx, uid)
 	first := days[0].Day
 
-	// A signal arrives late (the rollup ran after midnight). Re-resolving must
-	// upgrade the day rather than leaving a stale absence.
+	// Generic activity on that date is not enough: attendance counts only the
+	// cohort's scheduled work or its standup.
 	if err := st.MarkActive(ctx, uid, first, "standup"); err != nil {
 		t.Fatalf("mark active: %v", err)
 	}
@@ -92,8 +92,26 @@ func TestResolveIsIdempotentAndReflectsLaterSignals(t *testing.T) {
 	if len(days) != 5 {
 		t.Fatalf("re-resolving duplicated marks: %d rows", len(days))
 	}
-	if days[0].State != attendance.Present {
-		t.Fatalf("day %s = %q after activity arrived, want present", days[0].Day, days[0].State)
+	if days[0].State != attendance.Absent {
+		t.Fatalf("day %s = %q after unrelated activity, want absent", days[0].Day, days[0].State)
+	}
+}
+
+func TestResolveAttendanceSkipsDaysWithOnlyExemptWork(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	cid, uid := attendanceFixture(t, st)
+	mustExec(t, st, `UPDATE enrollments SET placement_exemptions = '["c1"]' WHERE user_id = ? AND cohort_id = ?`, uid, cid)
+
+	n, err := st.ResolveAttendance(ctx, cid, "2020-01-01")
+	if err != nil {
+		t.Fatalf("resolve: %v", err)
+	}
+	if n != 0 {
+		t.Fatalf("resolved %d exempt learner-days, want 0", n)
+	}
+	if days, err := st.AttendanceDays(ctx, uid); err != nil || len(days) != 0 {
+		t.Fatalf("exempt attendance = %+v, %v", days, err)
 	}
 }
 
@@ -226,9 +244,13 @@ func TestRealSanctionDropsButDoesNotBan(t *testing.T) {
 	if state != AccountActive {
 		t.Fatalf("account state = %q after an attendance drop, want active", state)
 	}
-	// And re-application is possible — that's what "drop, not ban" means.
+	// Reapplication remains possible, but only after the recovery cooldown.
+	if _, err := st.EnsureEnrollment(ctx, uid); !errors.Is(err, ErrReapplicationCooldown) {
+		t.Fatalf("immediate reapplication err = %v, want cooldown", err)
+	}
+	mustExec(t, st, `UPDATE enrollments SET ended_at = datetime('now', '-15 days') WHERE user_id = ?`, uid)
 	if _, err := st.EnsureEnrollment(ctx, uid); err != nil {
-		t.Fatalf("dropped learner cannot re-enroll: %v", err)
+		t.Fatalf("dropped learner cannot re-enroll after cooldown: %v", err)
 	}
 }
 
@@ -260,9 +282,10 @@ func TestRealSanctionBindsAndDropsExactEnrollmentAtomically(t *testing.T) {
 		t.Fatalf("sanction binding = enrollment:%d applied:%+v, want %d and applied", boundID, appliedAt, original.ID)
 	}
 
+	mustExec(t, st, `UPDATE enrollments SET ended_at = datetime('now', '-15 days') WHERE id = ?`, original.ID)
 	fresh, err := st.EnsureEnrollment(ctx, uid)
 	if err != nil {
-		t.Fatalf("new enrollment: %v", err)
+		t.Fatalf("new enrollment after cooldown: %v", err)
 	}
 	newPath := mkPath(t, st, "post-sanction-path")
 	if err := st.PlaceEnrollment(ctx, fresh.ID, newPath, "new application"); err != nil {
@@ -296,6 +319,7 @@ func TestAppealGrantedRestoresTheLearner(t *testing.T) {
 
 	// A later enrollment can be dropped from the same cohort while the old appeal
 	// is pending. The appeal must still restore the exact enrollment it sanctioned.
+	mustExec(t, st, `UPDATE enrollments SET ended_at = datetime('now', '-15 days') WHERE id = (SELECT enrollment_id FROM sanctions WHERE id = ?)`, id)
 	newer, err := st.EnsureEnrollment(ctx, uid)
 	if err != nil {
 		t.Fatalf("ensure later enrollment: %v", err)
@@ -319,10 +343,11 @@ func TestAppealGrantedRestoresTheLearner(t *testing.T) {
 	if len(open) != 1 {
 		t.Fatalf("%d open appeals, want 1", len(open))
 	}
-	// Placement-result rendering may passively ensure a blank row while the appeal
-	// is pending. It is not a new enrollment decision and must not block restore.
+	// Once that later enrollment's cooldown has elapsed, a passive blank row must
+	// still not block restoration of the exact enrollment under appeal.
+	mustExec(t, st, `UPDATE enrollments SET ended_at = datetime('now', '-15 days') WHERE id = ?`, newer.ID)
 	if _, err := st.EnsureEnrollment(ctx, uid); err != nil {
-		t.Fatalf("ensure passive enrollment: %v", err)
+		t.Fatalf("ensure passive enrollment after cooldown: %v", err)
 	}
 
 	if err := st.DecideAppeal(ctx, open[0].ID, admin, true, "confirmed"); err != nil {
@@ -359,9 +384,10 @@ func TestAppealGrantDoesNotHijackNewApplication(t *testing.T) {
 	if err := st.FileAppeal(ctx, id, uid, "please restore me"); err != nil {
 		t.Fatalf("appeal: %v", err)
 	}
+	mustExec(t, st, `UPDATE enrollments SET ended_at = datetime('now', '-15 days') WHERE id = (SELECT enrollment_id FROM sanctions WHERE id = ?)`, id)
 	fresh, err := st.EnsureEnrollment(ctx, uid)
 	if err != nil {
-		t.Fatalf("new application: %v", err)
+		t.Fatalf("new application after cooldown: %v", err)
 	}
 	newPath := mkPath(t, st, "new-application")
 	if err := st.PlaceEnrollment(ctx, fresh.ID, newPath, "new application"); err != nil {
@@ -441,11 +467,9 @@ func TestLessonCompletionCountsAsAttendance(t *testing.T) {
 	if err := st.MarkLessonComplete(ctx, uid, lessonID); err != nil {
 		t.Fatalf("complete: %v", err)
 	}
-	// Backdate it onto the scheduled day, then roll up.
+	// Backdate it onto the scheduled day. Attendance reads the scheduled completion
+	// directly rather than trusting the generic activity ledger.
 	mustExec(t, st, `UPDATE lesson_progress SET completed_at = ? || ' 12:00:00' WHERE lesson_id = ?`, day, lessonID)
-	if _, err := st.RollupActivity(ctx, "2019-01-01"); err != nil {
-		t.Fatalf("rollup: %v", err)
-	}
 	if _, err := st.ResolveAttendance(ctx, cid, "2020-01-01"); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}

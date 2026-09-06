@@ -310,6 +310,9 @@ func (s *Server) handleProblem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	by := s.solver(r)
+	if by.UserID != 0 && writeWorkAccessError(w, s.st.RequireProblemAvailable(r.Context(), by.UserID, p.ID)) {
+		return
+	}
 	data := map[string]any{
 		"problem":   p,
 		"statement": content.Render(p.Statement),
@@ -406,6 +409,9 @@ func (s *Server) handleProblemSubmit(w http.ResponseWriter, r *http.Request) {
 
 	subID, err := s.st.CreateProblemSubmission(r.Context(), p.ID, by, lang, code)
 	if err != nil {
+		if writeWorkAccessError(w, err) {
+			return
+		}
 		http.Error(w, "could not save your submission", http.StatusInternalServerError)
 		return
 	}

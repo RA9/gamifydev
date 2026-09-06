@@ -103,14 +103,18 @@ func TestEnrollmentLifecycle(t *testing.T) {
 		t.Fatalf("dropped->active err = %v, want ErrBadTransition", err)
 	}
 
-	// A dropped enrollment is not "live", so the learner can enroll again —
-	// that's the reapplication path, and it must produce a new row.
+	// A dropped enrollment is not live, but a fresh application must wait through
+	// the recovery period before it can produce a new row.
 	if live, _ := st.LiveEnrollment(ctx, uid); live != nil {
 		t.Fatalf("dropped enrollment still reads as live: %+v", live)
 	}
+	if _, err := st.EnsureEnrollment(ctx, uid); !errors.Is(err, ErrReapplicationCooldown) {
+		t.Fatalf("immediate re-enroll err = %v, want ErrReapplicationCooldown", err)
+	}
+	mustExec(t, st, `UPDATE enrollments SET ended_at = datetime('now', '-15 days') WHERE id = ?`, e.ID)
 	fresh, err := st.EnsureEnrollment(ctx, uid)
 	if err != nil {
-		t.Fatalf("re-enroll: %v", err)
+		t.Fatalf("re-enroll after cooldown: %v", err)
 	}
 	if fresh.ID == e.ID {
 		t.Fatal("re-enrollment reused the dropped row instead of creating a new one")
@@ -440,6 +444,45 @@ func TestEnrollFromPlacementRollsBackMalformedSnapshot(t *testing.T) {
 	}
 	if got.ID != original.ID || got.State != EnrollUnplaced || got.PathID.Valid || got.PlacementResultID.Valid || got.TZBand != "" {
 		t.Fatalf("failed transaction partially mutated enrollment: %+v", got)
+	}
+}
+
+func TestRestrictedAccountsCannotApplyJoinOrSubmitWork(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	pathID := mkPath(t, st, "restricted-path")
+	courseID := mkCourse(t, st, pathID, "restricted-course", 0, 1, false)
+	uid := enroll(t, st, "restricted@example.com", pathID, "europe_africa")
+	if err := st.SetAccountState(ctx, uid, AccountSuspended, "conduct review", nil); err != nil {
+		t.Fatalf("suspend: %v", err)
+	}
+
+	groups, err := st.PlacementQueue(ctx)
+	if err != nil {
+		t.Fatalf("queue: %v", err)
+	}
+	for _, group := range groups {
+		if group.PathID == pathID && group.Waiting != 0 {
+			t.Fatalf("restricted learner remained in placement queue: %+v", group)
+		}
+	}
+	cid, err := st.CreateCohort(ctx, Cohort{PathID: pathID, Name: "Restricted", TZBand: "europe_africa", StartsOn: "2020-01-06"})
+	if err != nil {
+		t.Fatalf("cohort: %v", err)
+	}
+	if users, err := st.TakeFromQueue(ctx, cid, pathID, "europe_africa", 1); err != nil || len(users) != 0 {
+		t.Fatalf("restricted queue claim = %v, %v", users, err)
+	}
+	if _, err := st.EnrollFromPlacement(ctx, uid, 1, "europe_africa"); !errors.Is(err, ErrAccountRestricted) {
+		t.Fatalf("restricted enrollment err = %v, want ErrAccountRestricted", err)
+	}
+
+	var lessonID int64
+	if err := st.db.QueryRow(`SELECT id FROM lessons WHERE course_id = ?`, courseID).Scan(&lessonID); err != nil {
+		t.Fatalf("lesson: %v", err)
+	}
+	if err := st.MarkLessonComplete(ctx, uid, lessonID); !errors.Is(err, ErrAccountRestricted) {
+		t.Fatalf("restricted work err = %v, want ErrAccountRestricted", err)
 	}
 }
 

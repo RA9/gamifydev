@@ -18,6 +18,9 @@ import (
 
 // MarkLessonComplete records that a user finished a lesson (idempotent).
 func (s *Store) MarkLessonComplete(ctx context.Context, userID, lessonID int64) error {
+	if err := s.RequireLessonAvailable(ctx, userID, lessonID); err != nil {
+		return err
+	}
 	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO lesson_progress (user_id, lesson_id) VALUES (?, ?)
 		 ON CONFLICT(user_id, lesson_id) DO NOTHING`, userID, lessonID)
@@ -229,6 +232,7 @@ type ScheduleItem struct {
 	ProblemID      sql.NullInt64
 	Problem        string
 	ProblemSlug    string
+	Mode           string
 
 	// Per-learner state.
 	Done    bool
@@ -254,14 +258,21 @@ func (i ScheduleItem) IsCheckpoint() bool { return i.Kind == schedule.KindCheckp
 // IsProblem reports whether this item is integrated guided practice.
 func (i ScheduleItem) IsProblem() bool { return i.Kind == schedule.KindProblem }
 
+// Practical reports whether pacing and prerequisite gates apply to this item.
+func (i ScheduleItem) Practical() bool { return i.Mode == "practical" || i.Mode == "fun" }
+
 const scheduleSelect = `
 	SELECT s.id, s.day_index, s.sprint, s.due_on, s.kind, s.course_id,
 	       COALESCE(c.title,''), COALESCE(c.slug,''),
 	       s.lesson_id, COALESCE(l.title,''), COALESCE(l.slug,''),
 	       s.assignment_id, COALESCE(a.title,''), COALESCE(a.slug,''),
 	       s.problem_id, COALESCE(pr.title,''), COALESCE(pr.slug,''),
+	       COALESCE(l.mode, a.mode, pr.mode, 'theoretical'),
 	       CASE WHEN s.lesson_id IS NOT NULL AND lp.lesson_id IS NOT NULL THEN 1
-	            WHEN s.assignment_id IS NOT NULL AND sub.id IS NOT NULL THEN 1
+	            WHEN s.assignment_id IS NOT NULL AND EXISTS (
+	              SELECT 1 FROM passed_checkpoints pc
+	              WHERE pc.assignment_id = s.assignment_id AND pc.user_id = ?
+	            ) THEN 1
 	            WHEN s.problem_id IS NOT NULL AND EXISTS (
 	              SELECT 1 FROM problem_submissions ps
 	              WHERE ps.problem_id = s.problem_id AND ps.user_id = ?
@@ -275,8 +286,6 @@ const scheduleSelect = `
 	LEFT JOIN assignments a ON a.id = s.assignment_id
 	LEFT JOIN problems pr ON pr.id = s.problem_id
 	LEFT JOIN lesson_progress lp ON lp.lesson_id = s.lesson_id AND lp.user_id = ?
-	LEFT JOIN submissions sub ON sub.assignment_id = s.assignment_id AND sub.user_id = ?
-	                          AND sub.status = 'graded'
 `
 
 func (s *Store) scanSchedule(rows *sql.Rows, exempt map[string]bool) ([]ScheduleItem, error) {
@@ -288,7 +297,7 @@ func (s *Store) scanSchedule(rows *sql.Rows, exempt map[string]bool) ([]Schedule
 		if err := rows.Scan(&it.ID, &it.DayIndex, &it.Sprint, &it.DueOn, &it.Kind, &it.CourseID,
 			&it.Course, &it.CourseSlug, &it.LessonID, &it.Lesson, &it.LessonSlug,
 			&it.AssignmentID, &it.Assignment, &it.AssignmentSlug,
-			&it.ProblemID, &it.Problem, &it.ProblemSlug, &done, &overdue); err != nil {
+			&it.ProblemID, &it.Problem, &it.ProblemSlug, &it.Mode, &done, &overdue); err != nil {
 			return nil, err
 		}
 		it.Done, it.Overdue = done == 1, overdue == 1
@@ -445,4 +454,159 @@ func (s *Store) Progress(ctx context.Context, cohortID, userID int64) (ScheduleP
 		WHERE cohort_id = ? AND date(due_on) <= date('now')`, cohortID).Scan(&p.DayIndex)
 	p.Sprint = p.DayIndex/schedule.DaysPerSprint + 1
 	return p, nil
+}
+
+// CompletionResult reports terminal transitions made by AdvanceCompletions.
+type CompletionResult struct {
+	Enrollments int
+	Cohorts     int
+}
+
+// AdvanceCompletions transactionally completes active path enrollments once the
+// cohort has reached its final scheduled date and every non-exempt item is done.
+// A cohort completes after its last live learner finishes; dropped learners do
+// not block the group. Re-running is an idempotent no-op.
+func (s *Store) AdvanceCompletions(ctx context.Context) (CompletionResult, error) {
+	var result CompletionResult
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return result, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	rows, err := tx.QueryContext(ctx, `
+		SELECT e.id, e.user_id, e.cohort_id, e.placement_exemptions
+		FROM enrollments e
+		WHERE e.state = 'active' AND e.cohort_id IS NOT NULL
+		  AND EXISTS (SELECT 1 FROM cohort_schedule cs WHERE cs.cohort_id = e.cohort_id)
+		  AND date((SELECT MAX(cs.due_on) FROM cohort_schedule cs WHERE cs.cohort_id = e.cohort_id)) <= date('now')`)
+	if err != nil {
+		return result, err
+	}
+	type candidate struct {
+		enrollmentID int64
+		userID       int64
+		cohortID     int64
+		exemptions   string
+	}
+	var candidates []candidate
+	for rows.Next() {
+		var c candidate
+		if err := rows.Scan(&c.enrollmentID, &c.userID, &c.cohortID, &c.exemptions); err != nil {
+			rows.Close()
+			return result, err
+		}
+		candidates = append(candidates, c)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return result, err
+	}
+
+	for _, c := range candidates {
+		var incomplete int
+		if err := tx.QueryRowContext(ctx, `
+			SELECT COUNT(*)
+			FROM cohort_schedule cs
+			JOIN courses course ON course.id = cs.course_id
+			WHERE cs.cohort_id = ?
+			  AND NOT EXISTS (
+			    SELECT 1 FROM json_each(?) ex
+			    WHERE CAST(ex.value AS TEXT) = course.slug
+			  )
+			  AND (
+			    (cs.lesson_id IS NOT NULL AND NOT EXISTS (
+			      SELECT 1 FROM lesson_progress lp
+			      WHERE lp.user_id = ? AND lp.lesson_id = cs.lesson_id
+			    ))
+			    OR (cs.assignment_id IS NOT NULL AND NOT EXISTS (
+			      SELECT 1 FROM passed_checkpoints pc
+			      WHERE pc.user_id = ? AND pc.assignment_id = cs.assignment_id
+			    ))
+			    OR (cs.problem_id IS NOT NULL AND NOT EXISTS (
+			      SELECT 1 FROM problem_submissions ps
+			      WHERE ps.user_id = ? AND ps.problem_id = cs.problem_id AND ps.verdict = 'accepted'
+			    ))
+			  )`, c.cohortID, c.exemptions, c.userID, c.userID, c.userID).Scan(&incomplete); err != nil {
+			return result, err
+		}
+		if incomplete != 0 {
+			continue
+		}
+		res, err := tx.ExecContext(ctx, `
+			UPDATE enrollments
+			SET state = 'completed', reason = 'path requirements completed',
+			    ended_at = datetime('now'), updated_at = datetime('now')
+			WHERE id = ? AND state = 'active'`, c.enrollmentID)
+		if err != nil {
+			return result, err
+		}
+		n, err := res.RowsAffected()
+		if err != nil {
+			return result, err
+		}
+		if n == 0 {
+			continue
+		}
+		if _, err := tx.ExecContext(ctx, `
+			UPDATE cohort_members SET left_at = datetime('now')
+			WHERE cohort_id = ? AND user_id = ? AND left_at IS NULL`, c.cohortID, c.userID); err != nil {
+			return result, err
+		}
+		result.Enrollments++
+	}
+
+	cohortRows, err := tx.QueryContext(ctx, `
+		SELECT c.id
+		FROM cohorts c
+		WHERE c.state = 'active'
+		  AND EXISTS (SELECT 1 FROM cohort_schedule cs WHERE cs.cohort_id = c.id)
+		  AND date((SELECT MAX(cs.due_on) FROM cohort_schedule cs WHERE cs.cohort_id = c.id)) <= date('now')
+		  AND EXISTS (SELECT 1 FROM enrollments e WHERE e.cohort_id = c.id AND e.state = 'completed')
+		  AND NOT EXISTS (
+		    SELECT 1 FROM enrollments e
+		    WHERE e.cohort_id = c.id AND e.state IN ('placed','active','paused')
+		  )`)
+	if err != nil {
+		return result, err
+	}
+	var completableCohorts []int64
+	for cohortRows.Next() {
+		var cohortID int64
+		if err := cohortRows.Scan(&cohortID); err != nil {
+			cohortRows.Close()
+			return result, err
+		}
+		completableCohorts = append(completableCohorts, cohortID)
+	}
+	cohortRows.Close()
+	if err := cohortRows.Err(); err != nil {
+		return result, err
+	}
+
+	for _, cohortID := range completableCohorts {
+		res, err := tx.ExecContext(ctx, `
+			UPDATE cohorts SET state = 'completed', completed_at = datetime('now')
+			WHERE id = ? AND state = 'active'`, cohortID)
+		if err != nil {
+			return result, err
+		}
+		n, err := res.RowsAffected()
+		if err != nil {
+			return result, err
+		}
+		if n > 0 {
+			if _, err := tx.ExecContext(ctx, `
+				UPDATE cohort_members SET left_at = datetime('now')
+				WHERE cohort_id = ? AND left_at IS NULL`, cohortID); err != nil {
+				return result, err
+			}
+			result.Cohorts++
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return CompletionResult{}, err
+	}
+	return result, nil
 }

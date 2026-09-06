@@ -31,11 +31,16 @@ func (s *Server) handleCohort(w http.ResponseWriter, r *http.Request) {
 	}
 	if c == nil {
 		enr, _ := s.st.LiveEnrollment(ctx, u.ID)
+		if enr == nil {
+			enr, _ = s.st.LatestEnrollment(ctx, u.ID)
+		}
 		placed, _ := s.st.LatestPlacement(ctx, u.ID)
 		s.render(w, r, "cohort_waiting.html", ViewData{Title: "Your cohort", Data: map[string]any{
 			"bodyClass":  "cohort-dark",
 			"enrollment": enr,
 			"placed":     placed != nil,
+			"completed":  enr != nil && enr.State == store.EnrollCompleted,
+			"cooldown":   enr != nil && store.EnrollmentTerminal(enr.State),
 			"target":     cohort.TargetSize,
 		}})
 		return

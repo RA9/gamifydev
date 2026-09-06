@@ -2,6 +2,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -105,31 +106,33 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /placement/result", s.handlePlacementResult)
 	mux.HandleFunc("GET /placement/review", s.handlePlacementReview)
 
-	// Learner (auth required)
+	// Learner (auth required). Participation writes additionally enforce account
+	// status; suspended and banned users may still read their record and appeal.
 	in := s.requireAuth
-	mux.Handle("POST /steps/{id}/complete", in(http.HandlerFunc(s.handleStepComplete)))
-	mux.Handle("POST /steps/{id}/run", in(http.HandlerFunc(s.handleStepRun)))
-	mux.Handle("POST /enroll", in(http.HandlerFunc(s.handleEnroll)))
+	participating := s.requireParticipation
+	mux.Handle("POST /steps/{id}/complete", participating(http.HandlerFunc(s.handleStepComplete)))
+	mux.Handle("POST /steps/{id}/run", participating(http.HandlerFunc(s.handleStepRun)))
+	mux.Handle("POST /enroll", participating(http.HandlerFunc(s.handleEnroll)))
 	// Cohort space and the daily standup.
 	mux.Handle("GET /cohort", in(http.HandlerFunc(s.handleCohort)))
-	mux.Handle("POST /cohort/standup", in(http.HandlerFunc(s.handleStandupPost)))
+	mux.Handle("POST /cohort/standup", participating(http.HandlerFunc(s.handleStandupPost)))
 	mux.Handle("GET /schedule", in(http.HandlerFunc(s.handleSchedule)))
 	mux.Handle("GET /attendance", in(http.HandlerFunc(s.handleAttendance)))
-	mux.Handle("POST /attendance/absence", in(http.HandlerFunc(s.handleAbsenceFile)))
+	mux.Handle("POST /attendance/absence", participating(http.HandlerFunc(s.handleAbsenceFile)))
 	mux.Handle("POST /attendance/appeal", in(http.HandlerFunc(s.handleAppealFile)))
-	mux.Handle("POST /lessons/{id}/complete", in(http.HandlerFunc(s.handleLessonComplete)))
+	mux.Handle("POST /lessons/{id}/complete", participating(http.HandlerFunc(s.handleLessonComplete)))
 	mux.Handle("GET /dashboard", in(http.HandlerFunc(s.handleDashboard)))
 	mux.Handle("GET /dashboard/live", in(http.HandlerFunc(s.handleDashboardLive)))
 	mux.Handle("GET /ws", in(http.HandlerFunc(s.handleWS)))
 	mux.Handle("GET /playground", in(http.HandlerFunc(s.handlePlayground)))
-	mux.Handle("POST /api/run", in(http.HandlerFunc(s.handleRunCode)))
+	mux.Handle("POST /api/run", participating(http.HandlerFunc(s.handleRunCode)))
 	mux.Handle("GET /assignments", in(http.HandlerFunc(s.handleAssignments)))
 	mux.Handle("GET /assignments/{slug}", in(http.HandlerFunc(s.handleAssignment)))
-	mux.Handle("POST /assignments/{slug}/submit", in(http.HandlerFunc(s.handleSubmitAssignment)))
+	mux.Handle("POST /assignments/{slug}/submit", participating(http.HandlerFunc(s.handleSubmitAssignment)))
 	mux.Handle("GET /forum/new", in(http.HandlerFunc(s.handleForumNewForm)))
-	mux.Handle("POST /forum", in(http.HandlerFunc(s.handleForumCreate)))
-	mux.Handle("POST /forum/{id}/reply", in(http.HandlerFunc(s.handleForumReply)))
-	mux.Handle("POST /competitions/{slug}/submit", in(http.HandlerFunc(s.handleCompetitionSubmit)))
+	mux.Handle("POST /forum", participating(http.HandlerFunc(s.handleForumCreate)))
+	mux.Handle("POST /forum/{id}/reply", participating(http.HandlerFunc(s.handleForumReply)))
+	mux.Handle("POST /competitions/{slug}/submit", participating(http.HandlerFunc(s.handleCompetitionSubmit)))
 
 	// Admin
 	admin := s.requireRole("admin")
@@ -222,6 +225,25 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) requireParticipation(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u := auth.CurrentUser(r.Context())
+		if u == nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		if err := s.st.RequireActiveAccount(r.Context(), u.ID); err != nil {
+			if errors.Is(err, store.ErrAccountRestricted) {
+				http.Error(w, "403 — this account cannot participate right now.", http.StatusForbidden)
+				return
+			}
+			http.Error(w, "could not verify account status", http.StatusInternalServerError)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (s *Server) requireRole(roles ...string) func(http.Handler) http.Handler {
 	allowed := map[string]bool{}
 	for _, r := range roles {
@@ -236,6 +258,10 @@ func (s *Server) requireRole(roles ...string) func(http.Handler) http.Handler {
 			}
 			if !allowed[u.Role] {
 				http.Error(w, "403 — you don't have access to this area.", http.StatusForbidden)
+				return
+			}
+			if err := s.st.RequireActiveAccount(r.Context(), u.ID); err != nil {
+				http.Error(w, "403 — this account cannot participate right now.", http.StatusForbidden)
 				return
 			}
 			next.ServeHTTP(w, r)

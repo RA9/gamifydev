@@ -403,6 +403,11 @@ func (s *Store) CreateProblemSubmission(ctx context.Context, problemID int64, by
 		return 0, ErrNoSolver
 	}
 	userID, guestID := by.cols()
+	if by.UserID != 0 {
+		if err := s.RequireProblemAvailable(ctx, by.UserID, problemID); err != nil {
+			return 0, err
+		}
+	}
 	var id int64
 	err := s.db.QueryRowContext(ctx, `
 		INSERT INTO problem_submissions (problem_id, user_id, guest_id, language, code)

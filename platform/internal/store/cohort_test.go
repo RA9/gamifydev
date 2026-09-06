@@ -297,8 +297,7 @@ func TestStandupLifecycle(t *testing.T) {
 		t.Fatal("HasPosted false after posting")
 	}
 
-	// Posting records the day in the activity ledger — this is the link phase 5
-	// reads for attendance.
+	// Posting also records the day in the general activity ledger.
 	days, _ := st.ActiveDaysBetween(ctx, uid, "2000-01-01", "2999-01-01")
 	if len(days) != 1 {
 		t.Fatalf("activity days = %v, want one from the standup", days)
@@ -323,6 +322,9 @@ func TestPostAfterCloseIsRejected(t *testing.T) {
 	pid := mkPath(t, st, "frontend")
 	cid, _ := st.CreateCohort(ctx, Cohort{PathID: pid, Name: "C", TZBand: "europe_africa", StartsOn: "2026-09-03"})
 	uid := enroll(t, st, "late@x.com", pid, "europe_africa")
+	if _, err := st.TakeFromQueue(ctx, cid, pid, "europe_africa", 1); err != nil {
+		t.Fatalf("fill: %v", err)
+	}
 
 	id, _, _ := st.EnsureStandup(ctx, cid, "2026-09-03",
 		"2000-01-01 00:00:00", "2000-01-02 00:00:00", "old")

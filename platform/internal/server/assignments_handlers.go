@@ -43,6 +43,9 @@ func (s *Server) handleAssignment(w http.ResponseWriter, r *http.Request) {
 		s.notFound(w, r)
 		return
 	}
+	if writeWorkAccessError(w, s.st.RequireAssignmentAvailable(r.Context(), u.ID, a.ID)) {
+		return
+	}
 	data := map[string]any{
 		"assignment": a,
 		"prompt":     content.Render(a.Prompt),
@@ -84,6 +87,9 @@ func (s *Server) handleSubmitAssignment(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if _, err := s.st.CreateSubmission(r.Context(), a.ID, u.ID, code, note); err != nil {
+		if writeWorkAccessError(w, err) {
+			return
+		}
 		http.Error(w, "could not save submission", http.StatusInternalServerError)
 		return
 	}

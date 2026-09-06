@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -32,6 +33,14 @@ func (s *Server) handleStepRun(w http.ResponseWriter, r *http.Request) {
 	step, err := s.st.GetStep(r.Context(), id)
 	if err != nil {
 		http.NotFound(w, r)
+		return
+	}
+	if err := s.st.RequireLessonAvailable(r.Context(), u.ID, step.LessonID); err != nil {
+		if errors.Is(err, store.ErrWorkLocked) {
+			writeJSON(http.StatusForbidden, map[string]string{"error": "This lab has not opened yet. Complete your earlier scheduled practical work first."})
+			return
+		}
+		writeJSON(http.StatusForbidden, map[string]string{"error": "This account cannot run the lab right now."})
 		return
 	}
 	if step.Lang != "pyserver" && step.Lang != runner.LangC && step.Lang != runner.LangShell {

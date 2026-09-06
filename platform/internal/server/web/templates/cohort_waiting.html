@@ -1,11 +1,19 @@
 {{ define "content" }}
 <div class="co-wrap co-wait">
   <span class="pl-eyebrow">Your cohort</span>
-  {{ if not (index .Data "placed") }}
+  {{ if index .Data "completed" }}
+    <h1 class="co-title">Cohort complete</h1>
+    <p class="co-sub">You completed every scheduled requirement for this path. The cohort is now part of your learning history.</p>
+    <a class="btn btn-primary" href="/dashboard">View your dashboard</a>
+  {{ else if index .Data "cooldown" }}
+    <h1 class="co-title">Enrollment ended</h1>
+    <p class="co-sub">You can apply for a new cohort after the 14-day recovery period.</p>
+    <a class="btn btn-secondary" href="/attendance">View your record</a>
+  {{ else if not (index .Data "placed") }}
     <h1 class="co-title">Take the diagnostic first</h1>
     <p class="co-sub">Your cohort is formed from the path you're placed on, so the diagnostic comes first.</p>
     <a class="btn btn-primary" href="/placement">Start the diagnostic</a>
-  {{ else if not (index .Data "enrollment").PathID.Valid }}
+  {{ else if or (not (index .Data "enrollment")) (not (index .Data "enrollment").PathID.Valid) }}
     <h1 class="co-title">Confirm your generated path</h1>
     <p class="co-sub">Your diagnostic has assigned your starting path. Confirm it and your timezone so we can find your cohort.</p>
     <a class="btn btn-primary" href="/placement/result">See my placement</a>

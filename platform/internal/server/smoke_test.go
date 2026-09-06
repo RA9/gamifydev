@@ -114,6 +114,29 @@ func (ts *testServer) register(t *testing.T, email string) *http.Cookie {
 	return &http.Cookie{Name: auth.SessionCookie, Value: token}
 }
 
+func TestRestrictedAccountCannotUseParticipationRoutes(t *testing.T) {
+	ts := newTestServer(t)
+	session := ts.register(t, "restricted@example.com")
+	u, err := ts.st.GetUserByEmail(t.Context(), "restricted@example.com")
+	if err != nil {
+		t.Fatalf("user: %v", err)
+	}
+	if err := ts.st.SetAccountState(t.Context(), u.ID, store.AccountSuspended, "review", nil); err != nil {
+		t.Fatalf("suspend: %v", err)
+	}
+
+	for _, path := range []string{"/api/run", "/cohort/standup", "/attendance/absence", "/forum"} {
+		w := ts.do(t, http.MethodPost, path, url.Values{}, session)
+		if w.Code != http.StatusForbidden {
+			t.Fatalf("POST %s = %d, want 403", path, w.Code)
+		}
+	}
+	// Record and appeal pages remain readable while participation is restricted.
+	if w := ts.do(t, http.MethodGet, "/attendance", nil, session); w.Code != http.StatusOK {
+		t.Fatalf("GET /attendance = %d, want 200", w.Code)
+	}
+}
+
 // --- public pages -----------------------------------------------------------
 
 func TestPublicPagesRender(t *testing.T) {

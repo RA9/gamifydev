@@ -181,6 +181,14 @@ func (s *Store) MoveStep(ctx context.Context, id int64, dir int) error {
 
 // MarkStepComplete records that a user finished a step (idempotent).
 func (s *Store) MarkStepComplete(ctx context.Context, userID, stepID int64) error {
+	var lessonID int64
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT lesson_id FROM lesson_steps WHERE id = ?`, stepID).Scan(&lessonID); err != nil {
+		return err
+	}
+	if err := s.RequireLessonAvailable(ctx, userID, lessonID); err != nil {
+		return err
+	}
 	_, err := s.db.ExecContext(ctx,
 		`INSERT INTO step_progress (user_id, step_id) VALUES (?, ?)
 		 ON CONFLICT(user_id, step_id) DO NOTHING`, userID, stepID)

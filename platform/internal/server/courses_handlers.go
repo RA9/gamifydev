@@ -105,6 +105,9 @@ func (s *Server) handleLesson(w http.ResponseWriter, r *http.Request) {
 	// Guests can see the lesson exists, but content is gated behind sign-in.
 	u := auth.CurrentUser(r.Context())
 	locked := u == nil
+	if u != nil && writeWorkAccessError(w, s.st.RequireLessonAvailable(r.Context(), u.ID, lesson.ID)) {
+		return
+	}
 	steps, _ := s.st.ListSteps(r.Context(), lesson.ID)
 
 	data := map[string]any{
@@ -208,6 +211,9 @@ func (s *Server) handleStepComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := s.st.MarkStepComplete(r.Context(), u.ID, id); err != nil {
+		if writeWorkAccessError(w, err) {
+			return
+		}
 		http.Error(w, "could not save progress", http.StatusInternalServerError)
 		return
 	}
@@ -230,6 +236,9 @@ func (s *Server) handleLessonComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := s.st.MarkLessonComplete(r.Context(), u.ID, id); err != nil {
+		if writeWorkAccessError(w, err) {
+			return
+		}
 		http.Error(w, "could not save progress", http.StatusInternalServerError)
 		return
 	}

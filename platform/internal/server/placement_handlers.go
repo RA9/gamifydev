@@ -145,6 +145,8 @@ func (s *Server) handlePlacementStart(w http.ResponseWriter, r *http.Request) {
 			s.renderPlacementIntro(w, r, by, "You sat this test recently. There is a seven-day wait after an unsuccessful attempt, and it is counted against your email — a different browser does not reset it.")
 		case errors.Is(err, store.ErrPlacementAttemptLimit):
 			s.renderPlacementIntro(w, r, by, "That email has used three attempts in the last 30 days. Your next attempt opens when the rolling limit resets.")
+		case errors.Is(err, store.ErrAccountRestricted):
+			http.Error(w, "This account cannot take a placement test right now.", http.StatusForbidden)
 		default:
 			http.Error(w, "could not start the placement test", http.StatusInternalServerError)
 		}
@@ -339,11 +341,21 @@ func (s *Server) renderPlacementResult(w http.ResponseWriter, r *http.Request, f
 	var enrollment *store.Enrollment
 	if by.UserID != 0 {
 		enrollment, err = s.st.EnsureEnrollment(ctx, by.UserID)
+		if errors.Is(err, store.ErrReapplicationCooldown) {
+			enrollment, err = s.st.LatestEnrollment(ctx, by.UserID)
+			if flash == "" {
+				flash = "Your previous enrollment has ended. A new application opens after the 14-day recovery period."
+			}
+		}
+		if errors.Is(err, store.ErrAccountRestricted) {
+			http.Error(w, "This account cannot enroll right now.", http.StatusForbidden)
+			return
+		}
 		if err != nil {
 			http.Error(w, "could not load your enrollment", http.StatusInternalServerError)
 			return
 		}
-		if enrollment.PlacementResultID.Valid {
+		if enrollment != nil && enrollment.PlacementResultID.Valid {
 			result, err = s.st.PlacementResultByIDFor(ctx, by, enrollment.PlacementResultID.Int64)
 			if err != nil {
 				http.Error(w, "could not load your enrolled placement", http.StatusInternalServerError)
@@ -477,6 +489,10 @@ func (s *Server) handleEnroll(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		case errors.Is(err, store.ErrEnrollmentPlacementInvalid):
 			s.renderPlacementResult(w, r, "That result cannot be used for enrollment. Review your current placement result and try again.")
+		case errors.Is(err, store.ErrReapplicationCooldown):
+			s.renderPlacementResult(w, r, "Your previous enrollment has just ended. You can apply again after the 14-day recovery period.")
+		case errors.Is(err, store.ErrAccountRestricted):
+			http.Error(w, "This account cannot enroll right now.", http.StatusForbidden)
 		default:
 			http.Error(w, "could not enroll you", http.StatusInternalServerError)
 		}

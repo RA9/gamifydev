@@ -279,6 +279,13 @@ func placementRetryStatus(ctx context.Context, q assessmentQuerier, by Solver, c
 		lockedFor = linked.Int64
 	}
 	if lockedFor != 0 {
+		if err := requireActiveAccount(ctx, q, lockedFor); err != nil {
+			if errors.Is(err, ErrAccountRestricted) {
+				status.Reason = err
+				return status, nil
+			}
+			return status, err
+		}
 		var enrolled int
 		err := q.QueryRowContext(ctx, `
 			SELECT 1 FROM enrollments

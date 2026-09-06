@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -337,6 +339,146 @@ func TestStepLessonAutoCompletes(t *testing.T) {
 	mustExec(t, st, `INSERT INTO lessons (id, course_id, slug, title) VALUES (8, 7, 'l2', 'L2')`)
 	if done, _ := st.MarkLessonCompleteIfStepsDone(ctx, uid, 8); done {
 		t.Fatal("a stepless lesson was auto-completed")
+	}
+}
+
+func TestScheduledPracticalWorkHonorsReleaseAndPrerequisites(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	cid, uid, _ := scheduledCohort(t, st)
+	if _, err := st.MaterializeSchedule(ctx, cid); err != nil {
+		t.Fatalf("materialize: %v", err)
+	}
+	mustExec(t, st, `UPDATE lessons SET mode = 'practical' WHERE course_id = (SELECT id FROM courses WHERE slug = 'c1')`)
+	mustExec(t, st, `UPDATE cohort_schedule SET due_on = date('now', '+1 day') WHERE cohort_id = ?`, cid)
+
+	var first, second int64
+	if err := st.db.QueryRow(`
+		SELECT MIN(lesson_id), MAX(lesson_id) FROM (
+		  SELECT lesson_id FROM cohort_schedule
+		  WHERE cohort_id = ? AND lesson_id IS NOT NULL ORDER BY day_index, sort LIMIT 2
+		)`, cid).Scan(&first, &second); err != nil {
+		t.Fatalf("scheduled lessons: %v", err)
+	}
+	if err := st.RequireLessonAvailable(ctx, uid, first); !errors.Is(err, ErrWorkLocked) {
+		t.Fatalf("future practical access err = %v, want ErrWorkLocked", err)
+	}
+
+	mustExec(t, st, `UPDATE cohort_schedule SET due_on = date('now') WHERE cohort_id = ?`, cid)
+	if err := st.RequireLessonAvailable(ctx, uid, first); err != nil {
+		t.Fatalf("first released practical item: %v", err)
+	}
+	if err := st.RequireLessonAvailable(ctx, uid, second); !errors.Is(err, ErrWorkLocked) {
+		t.Fatalf("second practical access err = %v, want prerequisite lock", err)
+	}
+	if err := st.MarkLessonComplete(ctx, uid, first); err != nil {
+		t.Fatalf("complete prerequisite: %v", err)
+	}
+	if err := st.RequireLessonAvailable(ctx, uid, second); err != nil {
+		t.Fatalf("second practical item stayed locked: %v", err)
+	}
+}
+
+func TestCheckpointPassRuleIsSharedByGateAndSchedule(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	cid, uid, _ := scheduledCohort(t, st)
+	if _, err := st.MaterializeSchedule(ctx, cid); err != nil {
+		t.Fatalf("materialize: %v", err)
+	}
+	var assignmentID, courseID int64
+	if err := st.db.QueryRow(`SELECT assignment_id, course_id FROM cohort_schedule WHERE cohort_id = ? AND assignment_id IS NOT NULL`, cid).
+		Scan(&assignmentID, &courseID); err != nil {
+		t.Fatalf("checkpoint: %v", err)
+	}
+	mustExec(t, st, `UPDATE assignments SET pass_points = 80 WHERE id = ?`, assignmentID)
+	mustExec(t, st, `INSERT INTO submissions (assignment_id, user_id, status, score) VALUES (?, ?, 'graded', 79)`, assignmentID, uid)
+
+	items, err := st.CohortSchedule(ctx, cid, uid)
+	if err != nil {
+		t.Fatalf("schedule: %v", err)
+	}
+	for _, item := range items {
+		if item.AssignmentID.Valid && item.Done {
+			t.Fatal("below-threshold checkpoint counted complete in schedule")
+		}
+	}
+	if gate, err := st.CourseGateFor(ctx, uid, courseID); err != nil || gate.RequiredPassed != 0 {
+		t.Fatalf("gate after failed checkpoint = %+v, %v", gate, err)
+	}
+
+	mustExec(t, st, `INSERT INTO submissions (assignment_id, user_id, status, score) VALUES (?, ?, 'graded', 80)`, assignmentID, uid)
+	items, err = st.CohortSchedule(ctx, cid, uid)
+	if err != nil {
+		t.Fatalf("schedule after pass: %v", err)
+	}
+	passed := false
+	for _, item := range items {
+		if item.AssignmentID.Valid {
+			passed = item.Done
+		}
+	}
+	gate, err := st.CourseGateFor(ctx, uid, courseID)
+	if err != nil || !passed || gate.RequiredPassed != 1 {
+		t.Fatalf("shared pass state: schedule=%t gate=%+v err=%v", passed, gate, err)
+	}
+
+	// Retrying after a pass cannot revoke earned completion.
+	mustExec(t, st, `INSERT INTO submissions (assignment_id, user_id, status, score) VALUES (?, ?, 'graded', 0)`, assignmentID, uid)
+	gate, _ = st.CourseGateFor(ctx, uid, courseID)
+	if gate.RequiredPassed != 1 {
+		t.Fatal("later failed retry revoked a passed checkpoint")
+	}
+}
+
+func TestAdvanceCompletionsFinishesPathAndCohortAfterScheduleEnd(t *testing.T) {
+	ctx := context.Background()
+	st := newTestStore(t)
+	cid, uid, _ := scheduledCohort(t, st)
+	if _, err := st.MaterializeSchedule(ctx, cid); err != nil {
+		t.Fatalf("materialize: %v", err)
+	}
+	items, err := st.CohortSchedule(ctx, cid, uid)
+	if err != nil {
+		t.Fatalf("schedule: %v", err)
+	}
+	for _, item := range items {
+		switch {
+		case item.LessonID.Valid:
+			mustExec(t, st, `INSERT INTO lesson_progress (user_id, lesson_id) VALUES (?, ?)`, uid, item.LessonID.Int64)
+		case item.AssignmentID.Valid:
+			mustExec(t, st, `INSERT INTO submissions (assignment_id, user_id, status, score) VALUES (?, ?, 'graded', 100)`, item.AssignmentID.Int64, uid)
+		}
+	}
+
+	mustExec(t, st, `UPDATE cohort_schedule SET due_on = date('now', '+1 day') WHERE cohort_id = ?`, cid)
+	if result, err := st.AdvanceCompletions(ctx); err != nil || result.Enrollments != 0 || result.Cohorts != 0 {
+		t.Fatalf("early completion = %+v, %v", result, err)
+	}
+	mustExec(t, st, `UPDATE cohort_schedule SET due_on = date('now', '-1 day') WHERE cohort_id = ?`, cid)
+	result, err := st.AdvanceCompletions(ctx)
+	if err != nil || result.Enrollments != 1 || result.Cohorts != 1 {
+		t.Fatalf("completion = %+v, %v", result, err)
+	}
+	if live, err := st.LiveEnrollment(ctx, uid); err != nil || live != nil {
+		t.Fatalf("completed enrollment still live: %+v, %v", live, err)
+	}
+	var enrollmentState, cohortState string
+	var completedAt sql.NullString
+	if err := st.db.QueryRow(`SELECT state FROM enrollments WHERE user_id = ? ORDER BY id DESC LIMIT 1`, uid).Scan(&enrollmentState); err != nil {
+		t.Fatalf("enrollment state: %v", err)
+	}
+	if err := st.db.QueryRow(`SELECT state, completed_at FROM cohorts WHERE id = ?`, cid).Scan(&cohortState, &completedAt); err != nil {
+		t.Fatalf("cohort state: %v", err)
+	}
+	if enrollmentState != EnrollCompleted || cohortState != CohortCompleted || !completedAt.Valid {
+		t.Fatalf("terminal states = enrollment:%s cohort:%s completed:%+v", enrollmentState, cohortState, completedAt)
+	}
+	if again, err := st.AdvanceCompletions(ctx); err != nil || again.Enrollments != 0 || again.Cohorts != 0 {
+		t.Fatalf("completion was not idempotent: %+v, %v", again, err)
+	}
+	if _, err := st.EnsureEnrollment(ctx, uid); !errors.Is(err, ErrReapplicationCooldown) {
+		t.Fatalf("completed learner reapplication err = %v, want cooldown", err)
 	}
 }
 

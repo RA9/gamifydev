@@ -268,14 +268,20 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 	}
 	continueLesson, _ := s.st.ContinueLearning(ctx, u.ID)
 
-	// Placement state drives the dashboard's top card: an unplaced learner is
-	// pointed at the diagnostic rather than at content they cannot yet enroll in.
-	enrollment, _ := s.st.EnsureEnrollment(ctx, u.ID)
+	// Placement and terminal enrollment state drive the dashboard's top card.
+	// During the reapplication cooldown, keep the completed/dropped record visible
+	// instead of pretending the learner needs to confirm their old placement.
+	enrollment, enrollmentErr := s.st.EnsureEnrollment(ctx, u.ID)
+	cooldown := errors.Is(enrollmentErr, store.ErrReapplicationCooldown)
+	if cooldown {
+		enrollment, _ = s.st.LatestEnrollment(ctx, u.ID)
+	}
 	placed, _ := s.st.LatestPlacement(ctx, u.ID)
 	var enrolledPath *store.Path
 	if enrollment != nil && enrollment.PathID.Valid {
 		enrolledPath, _ = s.st.GetPathByID(ctx, enrollment.PathID.Int64)
 	}
+	completed := enrollment != nil && enrollment.State == store.EnrollCompleted
 
 	// Cohort state: whether today's standup is still waiting on this learner is
 	// the single most actionable thing the dashboard can say.
@@ -330,6 +336,8 @@ func (s *Server) dashboardData(ctx context.Context) (map[string]any, error) {
 		"enrollment":   enrollment,
 		"placed":       placed != nil,
 		"enrolledPath": enrolledPath,
+		"completed":    completed,
+		"cooldown":     cooldown,
 		"cohort":       myCohort,
 		"standupDone":  standupDone,
 		"standupOpen":  standupOpen,

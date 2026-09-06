@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/RA9/gamifydev/platform/internal/attendance"
 )
 
 // --- Account participation ---------------------------------------------------
@@ -25,26 +27,7 @@ const (
 // whose expires_at has passed reads as active — sanction:expire tidies the row
 // up later, but the read path must never depend on that job having run.
 func (s *Store) AccountState(ctx context.Context, userID int64) (string, error) {
-	var state string
-	var expires sql.NullString
-	err := s.db.QueryRowContext(ctx,
-		`SELECT state, expires_at FROM account_status WHERE user_id = ?`, userID).
-		Scan(&state, &expires)
-	if errors.Is(err, sql.ErrNoRows) {
-		return AccountActive, nil
-	}
-	if err != nil {
-		return AccountActive, err
-	}
-	if state != AccountActive && expires.Valid {
-		var elapsed int
-		if err := s.db.QueryRowContext(ctx,
-			`SELECT CASE WHEN datetime(?) <= datetime('now') THEN 1 ELSE 0 END`, expires.String).
-			Scan(&elapsed); err == nil && elapsed == 1 {
-			return AccountActive, nil
-		}
-	}
-	return state, nil
+	return effectiveAccountState(ctx, s.db, userID)
 }
 
 // SetAccountState records an account-level participation change.
@@ -101,6 +84,9 @@ var (
 	// user: it is missing, failed, stale, belongs to someone else, or has no
 	// published generated path.
 	ErrEnrollmentPlacementInvalid = errors.New("placement result is not eligible for enrollment")
+	// ErrReapplicationCooldown keeps a terminal enrollment from being replaced
+	// until the attendance policy's recovery window has elapsed.
+	ErrReapplicationCooldown = errors.New("reapplication cooldown is still active")
 )
 
 // EnrollmentTerminal reports whether a state ends the enrollment's life.
@@ -164,6 +150,43 @@ func (s *Store) LiveEnrollment(ctx context.Context, userID int64) (*Enrollment, 
 	return liveEnrollment(ctx, s.db, userID)
 }
 
+// LatestEnrollment returns the newest enrollment in any state, including a
+// terminal completion or drop, so read surfaces can explain what happened.
+func (s *Store) LatestEnrollment(ctx context.Context, userID int64) (*Enrollment, error) {
+	e, err := scanEnrollment(s.db.QueryRowContext(ctx,
+		`SELECT `+enrollCols+` FROM enrollments WHERE user_id = ? ORDER BY id DESC LIMIT 1`, userID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	return e, err
+}
+
+func enforceReapplicationCooldown(ctx context.Context, q accountQuerier, userID int64) error {
+	modifier := fmt.Sprintf("+%d seconds", int(attendance.ReapplyAfter.Seconds()))
+	var retryAt string
+	err := q.QueryRowContext(ctx, `
+		SELECT datetime(ended_at, ?)
+		FROM enrollments
+		WHERE user_id = ? AND state IN ('dropped','completed') AND ended_at IS NOT NULL
+		ORDER BY datetime(ended_at) DESC, id DESC LIMIT 1`, modifier, userID).Scan(&retryAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	var waiting int
+	if err := q.QueryRowContext(ctx,
+		`SELECT CASE WHEN datetime(?) > datetime('now') THEN 1 ELSE 0 END`, retryAt).
+		Scan(&waiting); err != nil {
+		return err
+	}
+	if waiting == 1 {
+		return ErrReapplicationCooldown
+	}
+	return nil
+}
+
 // enrollmentAfterRace turns a concurrent duplicate enrollment into the same
 // idempotent result as a sequential retry after the losing transaction releases
 // its snapshot. A competing different binding remains locked.
@@ -194,6 +217,12 @@ func (s *Store) EnsureEnrollment(ctx context.Context, userID int64) (*Enrollment
 	if e, err := s.LiveEnrollment(ctx, userID); err != nil || e != nil {
 		return e, err
 	}
+	if err := s.RequireActiveAccount(ctx, userID); err != nil {
+		return nil, err
+	}
+	if err := enforceReapplicationCooldown(ctx, s.db, userID); err != nil {
+		return nil, err
+	}
 	// The partial unique index makes the concurrent case a conflict rather than
 	// a duplicate; fall back to re-reading if we lost the race.
 	_, err := s.db.ExecContext(ctx,
@@ -223,6 +252,9 @@ func (s *Store) EnrollFromPlacement(ctx context.Context, userID, resultID int64,
 	}
 	defer tx.Rollback() //nolint:errcheck
 
+	if err := requireActiveAccount(ctx, tx, userID); err != nil {
+		return nil, err
+	}
 	enrollment, err := liveEnrollment(ctx, tx, userID)
 	if err != nil {
 		return nil, err
@@ -232,6 +264,9 @@ func (s *Store) EnrollFromPlacement(ctx context.Context, userID, resultID int64,
 			return enrollment, nil
 		}
 		return nil, ErrEnrollmentLocked
+	}
+	if err := enforceReapplicationCooldown(ctx, tx, userID); err != nil {
+		return nil, err
 	}
 
 	var pathID, attemptID int64
@@ -318,7 +353,8 @@ func (s *Store) TransitionEnrollment(ctx context.Context, id int64, to, reason s
 	defer tx.Rollback() //nolint:errcheck
 
 	var from string
-	if err := tx.QueryRowContext(ctx, `SELECT state FROM enrollments WHERE id = ?`, id).Scan(&from); err != nil {
+	var userID int64
+	if err := tx.QueryRowContext(ctx, `SELECT state, user_id FROM enrollments WHERE id = ?`, id).Scan(&from, &userID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
 		}
@@ -333,6 +369,11 @@ func (s *Store) TransitionEnrollment(ctx context.Context, id int64, to, reason s
 	}
 	if !allowed {
 		return fmt.Errorf("%w: %s -> %s", ErrBadTransition, from, to)
+	}
+	if to == EnrollPlaced || to == EnrollActive {
+		if err := requireActiveAccount(ctx, tx, userID); err != nil {
+			return err
+		}
 	}
 
 	// Stamp the timestamp this state is defined by.
@@ -365,10 +406,11 @@ func (s *Store) PlaceEnrollment(ctx context.Context, id, pathID int64, reason st
 	defer tx.Rollback() //nolint:errcheck
 
 	var from string
+	var userID int64
 	var placementResultID sql.NullInt64
 	if err := tx.QueryRowContext(ctx,
-		`SELECT state, placement_result_id FROM enrollments WHERE id = ?`, id).
-		Scan(&from, &placementResultID); err != nil {
+		`SELECT state, user_id, placement_result_id FROM enrollments WHERE id = ?`, id).
+		Scan(&from, &userID, &placementResultID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
 		}
@@ -376,6 +418,9 @@ func (s *Store) PlaceEnrollment(ctx context.Context, id, pathID int64, reason st
 	}
 	if placementResultID.Valid {
 		return ErrEnrollmentLocked
+	}
+	if err := requireActiveAccount(ctx, tx, userID); err != nil {
+		return err
 	}
 	allowed := false
 	for _, candidate := range enrollTransitions[from] {
@@ -442,7 +487,8 @@ func (s *Store) RollupActivity(ctx context.Context, since string) (int, error) {
 }
 
 // ActiveDaysBetween returns the days (YYYY-MM-DD, ascending) a user was active
-// within an inclusive date range. Phase 5's attendance window reads this.
+// within an inclusive date range. This is a general activity/statistics view;
+// attendance resolves only cohort-scheduled work.
 func (s *Store) ActiveDaysBetween(ctx context.Context, userID int64, from, to string) ([]string, error) {
 	rows, err := s.db.QueryContext(ctx,
 		`SELECT day FROM activity_days

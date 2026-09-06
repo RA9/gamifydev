@@ -30,6 +30,20 @@ type AbsenceNotice struct {
 // FileAbsence records an absence notice. Filing after the fact is allowed: the
 // behaviour being taught is telling your team, not predicting your life.
 func (s *Store) FileAbsence(ctx context.Context, userID, cohortID int64, from, to, reason string) error {
+	if err := s.RequireActiveAccount(ctx, userID); err != nil {
+		return err
+	}
+	if cohortID != 0 {
+		var member int
+		if err := s.db.QueryRowContext(ctx, `
+			SELECT 1 FROM cohort_members
+			WHERE cohort_id = ? AND user_id = ? AND left_at IS NULL`, cohortID, userID).Scan(&member); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return ErrNotFound
+			}
+			return err
+		}
+	}
 	var cohort any
 	if cohortID != 0 {
 		cohort = cohortID
@@ -72,45 +86,30 @@ func (s *Store) AbsenceNotices(ctx context.Context, userID int64, limit int) ([]
 // Idempotent: re-resolving a day overwrites it with the same answer, so the job
 // can safely re-scan a trailing window.
 func (s *Store) ResolveAttendance(ctx context.Context, cohortID int64, since string) (int, error) {
-	// Scheduled days in range that have already passed.
-	dayRows, err := s.db.QueryContext(ctx, `
-		SELECT DISTINCT due_on FROM cohort_schedule
-		WHERE cohort_id = ? AND date(due_on) >= date(?) AND date(due_on) < date('now')
-		ORDER BY due_on`, cohortID, since)
-	if err != nil {
-		return 0, err
+	type member struct {
+		userID     int64
+		exemptions string
 	}
-	var days []string
-	for dayRows.Next() {
-		var d string
-		if err := dayRows.Scan(&d); err != nil {
-			dayRows.Close()
-			return 0, err
-		}
-		days = append(days, d)
-	}
-	dayRows.Close()
-	if err := dayRows.Err(); err != nil {
-		return 0, err
-	}
-	if len(days) == 0 {
-		return 0, nil
-	}
-
 	memberRows, err := s.db.QueryContext(ctx, `
-		SELECT user_id FROM cohort_members
-		WHERE cohort_id = ? AND left_at IS NULL AND role = 'learner'`, cohortID)
+		SELECT m.user_id, e.placement_exemptions
+		FROM cohort_members m
+		JOIN enrollments e
+		  ON e.user_id = m.user_id AND e.cohort_id = m.cohort_id AND e.state = 'active'
+		LEFT JOIN account_status ast ON ast.user_id = m.user_id
+		WHERE m.cohort_id = ? AND m.left_at IS NULL AND m.role = 'learner'
+		  AND (ast.user_id IS NULL OR ast.state = 'active'
+		       OR (ast.expires_at IS NOT NULL AND datetime(ast.expires_at) <= datetime('now')))`, cohortID)
 	if err != nil {
 		return 0, err
 	}
-	var members []int64
+	var members []member
 	for memberRows.Next() {
-		var uid int64
-		if err := memberRows.Scan(&uid); err != nil {
+		var m member
+		if err := memberRows.Scan(&m.userID, &m.exemptions); err != nil {
 			memberRows.Close()
 			return 0, err
 		}
-		members = append(members, uid)
+		members = append(members, m)
 	}
 	memberRows.Close()
 	if err := memberRows.Err(); err != nil {
@@ -118,15 +117,83 @@ func (s *Store) ResolveAttendance(ctx context.Context, cohortID int64, since str
 	}
 
 	n := 0
-	for _, uid := range members {
+	for _, m := range members {
+		// A shared cohort date is an attendance day for this learner only when at
+		// least one non-exempt item is actually owed on it.
+		dayRows, err := s.db.QueryContext(ctx, `
+			SELECT DISTINCT cs.due_on
+			FROM cohort_schedule cs
+			JOIN courses c ON c.id = cs.course_id
+			WHERE cs.cohort_id = ?
+			  AND date(cs.due_on) >= date(?) AND date(cs.due_on) < date('now')
+			  AND NOT EXISTS (
+			    SELECT 1 FROM json_each(?) ex
+			    WHERE CAST(ex.value AS TEXT) = c.slug
+			  )
+			ORDER BY cs.due_on`, cohortID, since, m.exemptions)
+		if err != nil {
+			return 0, err
+		}
+		var days []string
+		for dayRows.Next() {
+			var day string
+			if err := dayRows.Scan(&day); err != nil {
+				dayRows.Close()
+				return 0, err
+			}
+			days = append(days, day)
+		}
+		dayRows.Close()
+		if err := dayRows.Err(); err != nil {
+			return 0, err
+		}
+
 		for _, day := range days {
 			var excused, active int
 			if err := s.db.QueryRowContext(ctx, `
 				SELECT
-				  (SELECT COUNT(*) FROM absence_notices
-				     WHERE user_id = ? AND date(?) BETWEEN date(from_day) AND date(to_day)),
-				  (SELECT COUNT(*) FROM activity_days WHERE user_id = ? AND day = date(?))`,
-				uid, day, uid, day).Scan(&excused, &active); err != nil {
+				  EXISTS (
+				    SELECT 1 FROM absence_notices n
+				    WHERE n.user_id = ?
+				      AND (n.cohort_id IS NULL OR n.cohort_id = ?)
+				      AND date(?) BETWEEN date(n.from_day) AND date(n.to_day)
+				  ),
+				  EXISTS (
+				    SELECT 1 FROM standup_entries se
+				    JOIN standups st ON st.id = se.standup_id
+				    WHERE se.user_id = ? AND st.cohort_id = ? AND date(st.day) = date(?)
+				    UNION ALL
+				    SELECT 1 FROM cohort_schedule cs
+				    JOIN courses c ON c.id = cs.course_id
+				    WHERE cs.cohort_id = ? AND date(cs.due_on) = date(?)
+				      AND NOT EXISTS (
+				        SELECT 1 FROM json_each(?) ex
+				        WHERE CAST(ex.value AS TEXT) = c.slug
+				      )
+				      AND (
+				        (cs.lesson_id IS NOT NULL AND EXISTS (
+				          SELECT 1 FROM lesson_progress lp
+				          WHERE lp.user_id = ? AND lp.lesson_id = cs.lesson_id
+				            AND date(lp.completed_at) = date(?)
+				        ))
+				        OR (cs.assignment_id IS NOT NULL AND EXISTS (
+				          SELECT 1 FROM passed_checkpoints pc
+				          JOIN submissions sub ON sub.id = pc.submission_id
+				          WHERE pc.user_id = ? AND pc.assignment_id = cs.assignment_id
+				            AND date(sub.created_at) = date(?)
+				        ))
+				        OR (cs.problem_id IS NOT NULL AND EXISTS (
+				          SELECT 1 FROM problem_submissions ps
+				          WHERE ps.user_id = ? AND ps.problem_id = cs.problem_id
+				            AND ps.verdict = 'accepted' AND date(ps.created_at) = date(?)
+				        ))
+				      )
+				  )`,
+				m.userID, cohortID, day,
+				m.userID, cohortID, day,
+				cohortID, day, m.exemptions,
+				m.userID, day, m.userID, day, m.userID, day).
+				Scan(&excused, &active); err != nil {
 				return 0, err
 			}
 			state := attendance.Resolve(excused > 0, active > 0)
@@ -136,7 +203,7 @@ func (s *Store) ResolveAttendance(ctx context.Context, cohortID int64, since str
 				ON CONFLICT(user_id, day) DO UPDATE SET
 					state = excluded.state, cohort_id = excluded.cohort_id,
 					resolved_at = excluded.resolved_at`,
-				uid, cohortID, day, state); err != nil {
+				m.userID, cohortID, day, state); err != nil {
 				return 0, err
 			}
 			n++
@@ -468,6 +535,9 @@ func (s *Store) DecideAppeal(ctx context.Context, appealID, deciderID int64, gra
 	}
 
 	if grant && !shadow {
+		if err := requireActiveAccount(ctx, tx, userID); err != nil {
+			return err
+		}
 		if !enrollmentID.Valid {
 			return ErrNotFound
 		}

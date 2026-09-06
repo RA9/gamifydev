@@ -162,45 +162,30 @@ func (g CourseGate) HasGate() bool { return g.RequiredTotal > 0 }
 // Satisfied reports whether every required checkpoint has been passed.
 func (g CourseGate) Satisfied() bool { return g.RequiredPassed >= g.RequiredTotal }
 
-// CourseGateFor computes how many of a course's required, published checkpoints a
-// user has passed. A checkpoint is passed when the user's latest submission is
-// graded and (pass_points == 0 OR score >= pass_points).
+// CourseGateFor computes how many required, published checkpoints a learner has
+// passed. The passed_checkpoints view is the canonical completion rule shared by
+// course gates, schedules, and path completion.
 func (s *Store) CourseGateFor(ctx context.Context, userID, courseID int64) (CourseGate, error) {
 	var g CourseGate
-	rows, err := s.db.QueryContext(ctx, `
-		SELECT a.pass_points,
-		  (SELECT sub.status FROM submissions sub WHERE sub.assignment_id = a.id AND sub.user_id = ? ORDER BY sub.created_at DESC LIMIT 1),
-		  (SELECT sub.score  FROM submissions sub WHERE sub.assignment_id = a.id AND sub.user_id = ? ORDER BY sub.created_at DESC LIMIT 1)
+	err := s.db.QueryRowContext(ctx, `
+		SELECT COUNT(*), COUNT(pc.assignment_id)
 		FROM assignments a
-		WHERE a.course_id = ? AND a.required = 1 AND a.published = 1`, userID, userID, courseID)
-	if err != nil {
-		return g, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var passPts int
-		var status sql.NullString
-		var score sql.NullInt64
-		if err := rows.Scan(&passPts, &status, &score); err != nil {
-			return g, err
-		}
-		g.RequiredTotal++
-		if status.Valid && status.String == "graded" && (passPts == 0 || (score.Valid && int(score.Int64) >= passPts)) {
-			g.RequiredPassed++
-		}
-	}
-	return g, rows.Err()
+		LEFT JOIN passed_checkpoints pc
+		  ON pc.assignment_id = a.id AND pc.user_id = ?
+		WHERE a.course_id = ? AND a.required = 1 AND a.published = 1`, userID, courseID).
+		Scan(&g.RequiredTotal, &g.RequiredPassed)
+	return g, err
 }
 
 // AssignmentPassState returns, for every published assignment in a course, whether
 // the user has passed it — used to badge checkpoints on the course page.
 func (s *Store) AssignmentPassState(ctx context.Context, userID, courseID int64) (map[int64]bool, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT a.id, a.pass_points,
-		  (SELECT sub.status FROM submissions sub WHERE sub.assignment_id = a.id AND sub.user_id = ? ORDER BY sub.created_at DESC LIMIT 1),
-		  (SELECT sub.score  FROM submissions sub WHERE sub.assignment_id = a.id AND sub.user_id = ? ORDER BY sub.created_at DESC LIMIT 1)
+		SELECT a.id, CASE WHEN pc.assignment_id IS NULL THEN 0 ELSE 1 END
 		FROM assignments a
-		WHERE a.course_id = ? AND a.published = 1`, userID, userID, courseID)
+		LEFT JOIN passed_checkpoints pc
+		  ON pc.assignment_id = a.id AND pc.user_id = ?
+		WHERE a.course_id = ? AND a.published = 1`, userID, courseID)
 	if err != nil {
 		return nil, err
 	}
@@ -208,13 +193,11 @@ func (s *Store) AssignmentPassState(ctx context.Context, userID, courseID int64)
 	out := map[int64]bool{}
 	for rows.Next() {
 		var id int64
-		var passPts int
-		var status sql.NullString
-		var score sql.NullInt64
-		if err := rows.Scan(&id, &passPts, &status, &score); err != nil {
+		var passed int
+		if err := rows.Scan(&id, &passed); err != nil {
 			return nil, err
 		}
-		out[id] = status.Valid && status.String == "graded" && (passPts == 0 || (score.Valid && int(score.Int64) >= passPts))
+		out[id] = passed == 1
 	}
 	return out, rows.Err()
 }
@@ -231,6 +214,9 @@ func (s *Store) GetAssignmentBySlug(ctx context.Context, slug string) (*Assignme
 // --- Submissions ------------------------------------------------------------
 
 func (s *Store) CreateSubmission(ctx context.Context, assignmentID, userID int64, code, note string) (int64, error) {
+	if err := s.RequireAssignmentAvailable(ctx, userID, assignmentID); err != nil {
+		return 0, err
+	}
 	var id int64
 	err := s.db.QueryRowContext(ctx,
 		`INSERT INTO submissions (assignment_id, user_id, code, note, status) VALUES (?, ?, ?, ?, 'submitted') RETURNING id`,

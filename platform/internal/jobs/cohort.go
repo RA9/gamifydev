@@ -175,11 +175,26 @@ func registerCohortJobs(r *Runner, st *store.Store) {
 		},
 	})
 
-	// standup:close shuts windows whose time has passed.
-	//
-	// Phase 5 will hang attendance resolution off this; for now closing the
-	// window is all it does, and a post after close is recorded as late rather
-	// than rejected outright.
+	// completion:advance closes learner path enrollments and cohorts only after the
+	// final scheduled date and the canonical completion rule are both satisfied.
+	r.Register(Job{
+		Name:    "completion:advance",
+		Every:   15 * time.Minute,
+		Timeout: 2 * time.Minute,
+		Run: func(ctx context.Context) (string, error) {
+			result, err := st.AdvanceCompletions(ctx)
+			if err != nil {
+				return "", err
+			}
+			if result.Enrollments == 0 && result.Cohorts == 0 {
+				return "", nil
+			}
+			return fmt.Sprintf("completed %d path enrollment(s), %d cohort(s)", result.Enrollments, result.Cohorts), nil
+		},
+	})
+
+	// standup:close shuts windows whose time has passed. Attendance resolution
+	// reads the stored window and entries; posts after closure are rejected.
 	r.Register(Job{
 		Name:    "standup:close",
 		Every:   30 * time.Minute,

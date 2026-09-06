@@ -80,7 +80,21 @@
   </section>
   {{ end }}
 
-  {{ if not (index .Data "placed") }}
+  {{ if index .Data "completed" }}
+  <section class="card continue-card continue-placement">
+    <span class="continue-eyebrow">Path complete</span>
+    <h2 class="continue-title">You finished {{ (index .Data "enrolledPath").Title }}</h2>
+    <p class="muted continue-sub">Every scheduled requirement is complete and your cohort run has closed. Your progress remains on your record.</p>
+    <a class="btn btn-primary continue-btn" href="/paths/{{ (index .Data "enrolledPath").Slug }}">Review the path {{ icon "arrowright" }}</a>
+  </section>
+  {{ else if index .Data "cooldown" }}
+  <section class="card continue-card continue-placement">
+    <span class="continue-eyebrow">Recovery period</span>
+    <h2 class="continue-title">Your previous enrollment has ended</h2>
+    <p class="muted continue-sub">A new application opens after the 14-day recovery period. Your completed work and attendance record remain available.</p>
+    <a class="btn btn-secondary continue-btn" href="/attendance">View my record {{ icon "arrowright" }}</a>
+  </section>
+  {{ else if not (index .Data "placed") }}
   <section class="card continue-card continue-placement">
     <span class="continue-eyebrow">First step</span>
     <h2 class="continue-title">Take the placement diagnostic</h2>

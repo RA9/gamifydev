@@ -96,6 +96,11 @@ func (s *Store) CohortForUser(ctx context.Context, userID int64) (*Cohort, error
 
 // AddMember puts a user in a cohort. Idempotent for an existing active member.
 func (s *Store) AddMember(ctx context.Context, cohortID, userID int64, role string) error {
+	if role == RoleLearner {
+		if err := s.RequireActiveAccount(ctx, userID); err != nil {
+			return err
+		}
+	}
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO cohort_members (cohort_id, user_id, role) VALUES (?, ?, ?)
 		ON CONFLICT(cohort_id, user_id) WHERE left_at IS NULL DO NOTHING`,
@@ -153,8 +158,12 @@ func (s *Store) PlacementQueue(ctx context.Context) ([]QueueGroup, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT e.path_id, COALESCE(p.title,''), e.tz_band, COUNT(*),
 		       CAST((julianday('now') - julianday(MIN(e.placed_at))) * 86400 AS INTEGER)
-		FROM enrollments e LEFT JOIN paths p ON p.id = e.path_id
+		FROM enrollments e
+		LEFT JOIN paths p ON p.id = e.path_id
+		LEFT JOIN account_status ast ON ast.user_id = e.user_id
 		WHERE e.state = 'placed' AND e.cohort_id IS NULL AND e.path_id IS NOT NULL
+		  AND (ast.user_id IS NULL OR ast.state = 'active'
+		       OR (ast.expires_at IS NOT NULL AND datetime(ast.expires_at) <= datetime('now')))
 		GROUP BY e.path_id, e.tz_band
 		ORDER BY COUNT(*) DESC`)
 	if err != nil {
@@ -189,9 +198,12 @@ func (s *Store) TakeFromQueue(ctx context.Context, cohortID, pathID int64, band 
 	defer tx.Rollback() //nolint:errcheck
 
 	rows, err := tx.QueryContext(ctx, `
-		SELECT id, user_id FROM enrollments
-		WHERE state = 'placed' AND cohort_id IS NULL AND path_id = ? AND tz_band = ?
-		ORDER BY placed_at LIMIT ?`, pathID, band, limit)
+		SELECT e.id, e.user_id FROM enrollments e
+		LEFT JOIN account_status ast ON ast.user_id = e.user_id
+		WHERE e.state = 'placed' AND e.cohort_id IS NULL AND e.path_id = ? AND e.tz_band = ?
+		  AND (ast.user_id IS NULL OR ast.state = 'active'
+		       OR (ast.expires_at IS NOT NULL AND datetime(ast.expires_at) <= datetime('now')))
+		ORDER BY e.placed_at LIMIT ?`, pathID, band, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -490,13 +502,20 @@ var ErrStandupClosed = errors.New("standup is closed")
 // PostStandup records a member's entry. Re-posting on the same day updates the
 // existing entry rather than creating a second one.
 //
-// Posting also records the day in the activity ledger: showing up for standup is
-// participation, and phase 5's attendance window reads that ledger.
+// Posting also records the day in the general activity ledger. Attendance reads
+// the cohort-bound standup row directly so unrelated activity cannot count.
 func (s *Store) PostStandup(ctx context.Context, standupID, userID int64, yesterday, today, blockers string) error {
+	if err := s.RequireActiveAccount(ctx, userID); err != nil {
+		return err
+	}
 	var closesAt string
 	var closed int
-	if err := s.db.QueryRowContext(ctx,
-		`SELECT closes_at, closed FROM standups WHERE id = ?`, standupID).Scan(&closesAt, &closed); err != nil {
+	if err := s.db.QueryRowContext(ctx, `
+		SELECT st.closes_at, st.closed
+		FROM standups st
+		JOIN cohort_members m ON m.cohort_id = st.cohort_id
+		WHERE st.id = ? AND m.user_id = ? AND m.left_at IS NULL`, standupID, userID).
+		Scan(&closesAt, &closed); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
 		}
@@ -505,8 +524,8 @@ func (s *Store) PostStandup(ctx context.Context, standupID, userID int64, yester
 	if closed == 1 {
 		return ErrStandupClosed
 	}
-	// A post inside the window is on time; the column exists so phase 5 can tell
-	// "late but present" from "absent" without re-deriving it.
+	// A post inside the window is on time; keep the value with the historical row
+	// rather than re-deriving it after the cohort's policy changes.
 	var late int
 	if err := s.db.QueryRowContext(ctx,
 		`SELECT CASE WHEN datetime('now') > datetime(?) THEN 1 ELSE 0 END`, closesAt).Scan(&late); err != nil {
@@ -581,7 +600,7 @@ func (s *Store) SetEnrollmentBand(ctx context.Context, enrollmentID int64, band 
 
 // CohortStats summarises the program for the admin view.
 type CohortStats struct {
-	Active, Archived, Learners, Queued int
+	Active, Completed, Archived, Learners, Queued int
 }
 
 // CohortOverview aggregates cohort counts.
@@ -590,11 +609,12 @@ func (s *Store) CohortOverview(ctx context.Context) (CohortStats, error) {
 	err := s.db.QueryRowContext(ctx, `
 		SELECT
 		  (SELECT COUNT(*) FROM cohorts WHERE state='active'),
+		  (SELECT COUNT(*) FROM cohorts WHERE state='completed'),
 		  (SELECT COUNT(*) FROM cohorts WHERE state='archived'),
 		  (SELECT COUNT(*) FROM cohort_members m JOIN cohorts c ON c.id=m.cohort_id
 		     WHERE m.left_at IS NULL AND m.role='learner' AND c.state='active'),
 		  (SELECT COUNT(*) FROM enrollments WHERE state='placed' AND cohort_id IS NULL)`).
-		Scan(&st.Active, &st.Archived, &st.Learners, &st.Queued)
+		Scan(&st.Active, &st.Completed, &st.Archived, &st.Learners, &st.Queued)
 	return st, err
 }
 
