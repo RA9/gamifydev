@@ -4,11 +4,33 @@
 {{ $core := index .Data "coreScore" }}
 {{ $signedIn := index .Data "signedIn" }}
 {{ $enrollment := index .Data "enrollment" }}
+{{ $attempt := index .Data "attempt" }}
 <div class="pl-wrap">
   <span class="pl-eyebrow">Placement result</span>
   <h1 class="pl-title">
-    {{ if not $res.Passed }}Not ready yet — but now you know what to work on.{{ else if $res.FoundationsRequired }}You passed into CS Foundations.{{ else }}You passed. Your specialization is ready.{{ end }}
+    {{ if $attempt.Voided }}This sitting was closed.{{ else if not $res.Passed }}Not ready yet — but now you know what to work on.{{ else if $res.FoundationsRequired }}You passed into CS Foundations.{{ else }}You passed. Your specialization is ready.{{ end }}
   </h1>
+
+  {{ if $attempt.Voided }}
+    <div class="pl-void">
+      {{ icon "shield" }}
+      <div>
+        <h2>Failed — flagged for cheating</h2>
+        <p>
+          The test was supervised, and it recorded
+          {{ $attempt.Violations }} violation{{ if ne $attempt.Violations 1 }}s{{ end }}
+          during your sitting: copying the questions, capturing the screen, or
+          leaving the tab. You were warned once. The second time closed the
+          paper and scored it zero.
+        </p>
+        <p>
+          It counts as an attempt. If you believe this was a mistake, contact us
+          before your next one — the record of what was seen is kept with your
+          sitting.
+        </p>
+      </div>
+    </div>
+  {{ end }}
 
   <div class="pl-score">
     <div class="pl-score-num">{{ $core }}<span>%</span></div>

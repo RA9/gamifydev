@@ -100,6 +100,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /placement", s.handlePlacement)
 	mux.HandleFunc("POST /placement/start", s.handlePlacementStart)
 	mux.HandleFunc("POST /placement/submit", s.handlePlacementSubmit)
+	mux.HandleFunc("POST /placement/violation", s.handlePlacementViolation)
 	mux.HandleFunc("GET /placement/result", s.handlePlacementResult)
 	mux.HandleFunc("GET /placement/review", s.handlePlacementReview)
 

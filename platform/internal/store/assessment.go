@@ -68,7 +68,15 @@ type Attempt struct {
 	Score        sql.NullInt64
 	TopicScores  map[string]int
 	Abandoned    bool
+	// Violations is how many times the proctor caught something during this
+	// sitting; VoidedReason is non-empty once that ended the attempt.
+	Violations   int
+	VoidedReason string
 }
+
+// Voided reports whether the sitting was closed by the proctor rather than
+// finished by the candidate.
+func (a Attempt) Voided() bool { return a.VoidedReason != "" }
 
 // Submitted reports whether the attempt has been scored.
 func (a Attempt) Submitted() bool { return a.SubmittedAt.Valid }
@@ -137,7 +145,7 @@ func (s *Store) ReplaceItems(ctx context.Context, assessmentID int64, items []It
 }
 
 const attemptCols = `id, user_id, guest_id, assessment_id, started_at, expires_at,
-	submitted_at, score, topic_scores, abandoned`
+	submitted_at, score, topic_scores, abandoned, violations, voided_reason`
 
 // LiveAttempt is the user-only compatibility wrapper for LiveAttemptFor.
 func (s *Store) LiveAttempt(ctx context.Context, userID int64) (*Attempt, error) {
@@ -190,7 +198,7 @@ func (s *Store) scanAttempt(row interface{ Scan(...any) error }) (*Attempt, erro
 	var userID, guestID sql.NullInt64
 	var topics string
 	err := row.Scan(&a.ID, &userID, &guestID, &a.AssessmentID, &a.StartedAt, &a.ExpiresAt,
-		&a.SubmittedAt, &a.Score, &topics, &a.Abandoned)
+		&a.SubmittedAt, &a.Score, &topics, &a.Abandoned, &a.Violations, &a.VoidedReason)
 	if err != nil {
 		return nil, err
 	}
@@ -511,24 +519,31 @@ func (s *Store) scoreAttempt(ctx context.Context, by Solver, scoped bool, attemp
 	defer tx.Rollback() //nolint:errcheck
 
 	var submitted sql.NullString
+	var voided string
 	var expired int
 	if scoped {
 		userID, guestID := by.cols()
 		err = tx.QueryRowContext(ctx, `
-			SELECT submitted_at, CASE WHEN datetime(expires_at) <= datetime('now') THEN 1 ELSE 0 END
+			SELECT submitted_at, voided_reason, CASE WHEN datetime(expires_at) <= datetime('now') THEN 1 ELSE 0 END
 			FROM assessment_attempts
 			WHERE id = ? AND (user_id = ? OR guest_id = ?)`, attemptID, userID, guestID).
-			Scan(&submitted, &expired)
+			Scan(&submitted, &voided, &expired)
 	} else {
 		err = tx.QueryRowContext(ctx, `
-			SELECT submitted_at, CASE WHEN datetime(expires_at) <= datetime('now') THEN 1 ELSE 0 END
-			FROM assessment_attempts WHERE id = ?`, attemptID).Scan(&submitted, &expired)
+			SELECT submitted_at, voided_reason, CASE WHEN datetime(expires_at) <= datetime('now') THEN 1 ELSE 0 END
+			FROM assessment_attempts WHERE id = ?`, attemptID).Scan(&submitted, &voided, &expired)
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, err
+	}
+	// Checked before "already submitted": voiding sets submitted_at, and a
+	// candidate whose paper the proctor closed is owed the real reason rather
+	// than being told they had already handed it in.
+	if voided != "" {
+		return nil, ErrAttemptVoided
 	}
 	if submitted.Valid {
 		return nil, ErrAlreadySubmitted

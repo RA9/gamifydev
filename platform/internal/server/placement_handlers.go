@@ -1,8 +1,11 @@
 package server
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -35,11 +38,13 @@ func (s *Server) handlePlacement(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			s.render(w, r, "placement.html", ViewData{Title: "Placement test", Data: map[string]any{
-				"bodyClass": "placement-dark",
-				"attempt":   live,
-				"items":     items,
-				"expiresAt": live.ExpiresAt,
-				"total":     len(items),
+				"bodyClass":   "placement-exam",
+				"mainClass":   "",
+				"attempt":     live,
+				"items":       items,
+				"expiresAt":   live.ExpiresAt,
+				"total":       len(items),
+				"strikeLimit": store.ProctorStrikeLimit,
 			}})
 			return
 		}
@@ -66,7 +71,8 @@ func (s *Server) renderPlacementIntro(w http.ResponseWriter, r *http.Request, by
 	}
 
 	s.render(w, r, "placement_intro.html", ViewData{Title: "Placement test", Flash: flash, Data: map[string]any{
-		"bodyClass":            "placement-dark",
+		"bodyClass":            "placement-page",
+		"mainClass":            "",
 		"assessment":           a,
 		"minutes":              a.TimeLimitS / 60,
 		"done":                 prev != nil,
@@ -121,6 +127,13 @@ func (s *Server) handlePlacementSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	live, err := s.st.LiveAttemptFor(ctx, by)
 	if err != nil || live == nil {
+		// No paper open. Usually a double submission or a sitting the proctor
+		// already closed — either way, if there is a result to read, that is
+		// the page that explains what happened, not the introduction.
+		if res, err := s.st.LatestPlacementFor(ctx, by); err == nil && res != nil {
+			http.Redirect(w, r, "/placement/result", http.StatusSeeOther)
+			return
+		}
 		http.Redirect(w, r, "/placement", http.StatusSeeOther)
 		return
 	}
@@ -145,8 +158,15 @@ func (s *Server) handlePlacementSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	attempt, err := s.st.ScoreAttemptFor(ctx, by, live.ID, responses)
+	if errors.Is(err, store.ErrAttemptVoided) {
+		// The proctor closed the sitting between the check above and this
+		// scoring — a narrow race, but the alternative to guarding it is
+		// scoring a paper that has already been failed for cheating.
+		http.Redirect(w, r, "/placement/result", http.StatusSeeOther)
+		return
+	}
 	if errors.Is(err, store.ErrAttemptExpired) {
-		s.render(w, r, "placement_expired.html", ViewData{Title: "Time's up", Data: map[string]any{"bodyClass": "placement-dark"}})
+		s.render(w, r, "placement_expired.html", ViewData{Title: "Time's up", Data: map[string]any{"bodyClass": "placement-page", "mainClass": ""}})
 		return
 	}
 	if err != nil {
@@ -179,6 +199,68 @@ func (s *Server) handlePlacementSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/placement/result", http.StatusSeeOther)
+}
+
+// handlePlacementViolation records what the proctor caught and tells the page
+// where the candidate now stands.
+//
+// The page reports; this decides. Everything the browser can detect a
+// determined candidate can also suppress, so the count and the limit live on
+// the server: a client that stops reporting stops collecting strikes, and can
+// never remove one already recorded.
+func (s *Server) handlePlacementViolation(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	by := s.solver(r)
+	if by == (store.Solver{}) {
+		http.Error(w, "no sitting in progress", http.StatusForbidden)
+		return
+	}
+	live, err := s.st.LiveAttemptFor(ctx, by)
+	if err != nil || live == nil {
+		http.Error(w, "no sitting in progress", http.StatusForbidden)
+		return
+	}
+
+	out, err := s.st.RecordViolation(ctx, by, live.ID, r.FormValue("kind"))
+	if errors.Is(err, store.ErrUnknownViolation) {
+		http.Error(w, "unknown violation", http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		http.Error(w, "could not record that", http.StatusInternalServerError)
+		return
+	}
+
+	// A voided sitting still needs a result, or the candidate is left with a
+	// spent attempt and nothing to read — and the retry rules, which count
+	// results, would not see the failure at all.
+	if out.Voided {
+		if err := s.recordVoidedPlacement(ctx, by, live.ID); err != nil {
+			log.Printf("placement: recording voided result for attempt %d: %v", live.ID, err)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"strikes": out.Strikes,
+		"limit":   out.Limit,
+		"voided":  out.Voided,
+	})
+}
+
+// recordVoidedPlacement writes the failing result behind a closed sitting, so a
+// void reads as a failed placement everywhere the ordinary path does.
+func (s *Server) recordVoidedPlacement(ctx context.Context, by store.Solver, attemptID int64) error {
+	_, err := s.st.SavePlacementResultFor(ctx, by, store.PlacementResult{
+		AttemptID:           attemptID,
+		By:                  by,
+		Passed:              false,
+		FoundationsRequired: true,
+	})
+	if errors.Is(err, store.ErrPlacementResultExists) || errors.Is(err, store.ErrPlacementEnrollmentLocked) {
+		return nil
+	}
+	return err
 }
 
 func (s *Server) handlePlacementResult(w http.ResponseWriter, r *http.Request) {
@@ -248,7 +330,8 @@ func (s *Server) renderPlacementResult(w http.ResponseWriter, r *http.Request, f
 	retry, _ := s.st.PlacementRetryFor(ctx, by)
 
 	s.render(w, r, "placement_result.html", ViewData{Title: "Your placement", Flash: flash, Data: map[string]any{
-		"bodyClass":            "placement-dark",
+		"bodyClass":            "placement-page",
+		"mainClass":            "",
 		"result":               result,
 		"attempt":              attempt,
 		"topics":               rows,

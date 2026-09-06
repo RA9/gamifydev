@@ -118,7 +118,7 @@ func TestPublicPagesRender(t *testing.T) {
 		{"/courses", ""},
 		{"/courses/c", ""},
 		{"/login", "Forgot it?"},
-		{"/placement", "Start with the placement test"},
+		{"/placement", `action="/placement/start"`},
 		{"/forgot", "Reset your password"},
 		{"/forum", ""},
 		{"/competitions", ""},
