@@ -241,25 +241,48 @@ type assessmentQuerier interface {
 	QueryRowContext(context.Context, string, ...any) *sql.Row
 }
 
-func placementRetryStatus(ctx context.Context, q assessmentQuerier, by Solver) (PlacementRetryStatus, error) {
+// placementRetryStatus decides whether another sitting may be opened.
+//
+// It matches on the candidate as well as the cookie. That is the whole point of
+// candidates: keyed on the cookie alone, every rule below — the cooldown, the
+// rolling limit, a pass already earned — resets in a private window. A
+// candidateID of 0 means an identity was never collected, and the checks fall
+// back to cookie scope.
+func placementRetryStatus(ctx context.Context, q assessmentQuerier, by Solver, candidateID int64) (PlacementRetryStatus, error) {
 	var status PlacementRetryStatus
 	userID, guestID := by.cols()
+	// nullable so a zero candidate matches nothing rather than every row whose
+	// candidate_id is also unset.
+	cand := nullableID(candidateID)
 	if err := q.QueryRowContext(ctx, `
 		SELECT COUNT(*)
 		FROM assessment_attempts a
 		JOIN assessments bank ON bank.id = a.assessment_id
 		WHERE bank.kind = 'placement'
-		  AND (a.user_id = ? OR a.guest_id = ?)
-		  AND datetime(a.started_at) >= datetime('now', '-30 days')`, userID, guestID).
+		  AND (a.user_id = ? OR a.guest_id = ? OR a.candidate_id = ?)
+		  AND datetime(a.started_at) >= datetime('now', '-30 days')`, userID, guestID, cand).
 		Scan(&status.AttemptsLast30); err != nil {
 		return status, err
 	}
 
-	if by.UserID != 0 {
+	// An enrollment locks placement. Reached through the candidate too, so
+	// signing out and sitting it again as a guest does not reopen the decision
+	// their schedule was built from.
+	lockedFor := by.UserID
+	if lockedFor == 0 && candidateID != 0 {
+		var linked sql.NullInt64
+		if err := q.QueryRowContext(ctx,
+			`SELECT user_id FROM candidates WHERE id = ?`, candidateID).Scan(&linked); err != nil &&
+			!errors.Is(err, sql.ErrNoRows) {
+			return status, err
+		}
+		lockedFor = linked.Int64
+	}
+	if lockedFor != 0 {
 		var enrolled int
 		err := q.QueryRowContext(ctx, `
 			SELECT 1 FROM enrollments
-			WHERE user_id = ? AND state IN ('placed','active','paused') LIMIT 1`, by.UserID).Scan(&enrolled)
+			WHERE user_id = ? AND state IN ('placed','active','paused') LIMIT 1`, lockedFor).Scan(&enrolled)
 		if err == nil {
 			status.Reason = ErrPlacementEnrollmentLocked
 			return status, nil
@@ -274,8 +297,8 @@ func placementRetryStatus(ctx context.Context, q assessmentQuerier, by Solver) (
 	err := q.QueryRowContext(ctx, `
 		SELECT passed, datetime(created_at, '+7 days')
 		FROM placement_results
-		WHERE user_id = ? OR guest_id = ?
-		ORDER BY datetime(created_at) DESC, id DESC LIMIT 1`, userID, guestID).
+		WHERE user_id = ? OR guest_id = ? OR candidate_id = ?
+		ORDER BY datetime(created_at) DESC, id DESC LIMIT 1`, userID, guestID, cand).
 		Scan(&passed, &retryAt)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return status, err
@@ -305,12 +328,27 @@ func placementRetryStatus(ctx context.Context, q assessmentQuerier, by Solver) (
 	return status, nil
 }
 
+// nullableID turns a zero id into SQL NULL, so "= ?" matches nothing instead of
+// matching every row that also has no candidate.
+func nullableID(id int64) any {
+	if id == 0 {
+		return nil
+	}
+	return id
+}
+
+// PlacementRetryForCandidate reports the retry state for an identity, which is
+// what the gate should ask before opening a sitting.
+func (s *Store) PlacementRetryForCandidate(ctx context.Context, by Solver, candidateID int64) (PlacementRetryStatus, error) {
+	return placementRetryStatus(ctx, s.db, by, candidateID)
+}
+
 // PlacementRetryFor reports the persisted retry state for an owner.
 func (s *Store) PlacementRetryFor(ctx context.Context, by Solver) (PlacementRetryStatus, error) {
 	if !by.valid() {
 		return PlacementRetryStatus{}, ErrNoSolver
 	}
-	return placementRetryStatus(ctx, s.db, by)
+	return placementRetryStatus(ctx, s.db, by, 0)
 }
 
 // StartAttempt is the user-only compatibility wrapper for StartAttemptFor.
@@ -318,10 +356,19 @@ func (s *Store) StartAttempt(ctx context.Context, userID int64, a *Assessment) (
 	return s.StartAttemptFor(ctx, Solver{UserID: userID}, a)
 }
 
-// StartAttemptFor draws a fresh paper and opens a sitting for exactly one owner.
+// StartAttemptFor draws a fresh paper for an owner with no collected identity.
+// Kept for assessments that are not admissions gates, and for tests.
+func (s *Store) StartAttemptFor(ctx context.Context, by Solver, a *Assessment) (*Attempt, error) {
+	return s.StartPlacementFor(ctx, by, 0, a)
+}
+
+// StartPlacementFor draws a fresh paper and opens a sitting for exactly one
+// owner, with the gate read through the candidate's identity rather than only
+// the browser in front of them.
+//
 // Placement attempts enforce a seven-day wait after failure and a rolling limit
 // of three starts per 30 days.
-func (s *Store) StartAttemptFor(ctx context.Context, by Solver, a *Assessment) (*Attempt, error) {
+func (s *Store) StartPlacementFor(ctx context.Context, by Solver, candidateID int64, a *Assessment) (*Attempt, error) {
 	if !by.valid() {
 		return nil, ErrNoSolver
 	}
@@ -351,7 +398,7 @@ func (s *Store) StartAttemptFor(ctx context.Context, by Solver, a *Assessment) (
 		return nil, err
 	}
 	if a.Kind == "placement" {
-		status, err := placementRetryStatus(ctx, tx, by)
+		status, err := placementRetryStatus(ctx, tx, by, candidateID)
 		if err != nil {
 			return nil, err
 		}
@@ -363,8 +410,9 @@ func (s *Store) StartAttemptFor(ctx context.Context, by Solver, a *Assessment) (
 	expires := time.Now().UTC().Add(time.Duration(a.TimeLimitS) * time.Second).Format("2006-01-02 15:04:05")
 	var attemptID int64
 	if err := tx.QueryRowContext(ctx, `
-		INSERT INTO assessment_attempts (user_id, guest_id, assessment_id, expires_at)
-		VALUES (?, ?, ?, ?) RETURNING id`, userID, guestID, a.ID, expires).Scan(&attemptID); err != nil {
+		INSERT INTO assessment_attempts (user_id, guest_id, candidate_id, assessment_id, expires_at)
+		VALUES (?, ?, ?, ?, ?) RETURNING id`,
+		userID, guestID, nullableID(candidateID), a.ID, expires).Scan(&attemptID); err != nil {
 		return nil, err
 	}
 
@@ -713,10 +761,14 @@ func (s *Store) SavePlacementResultFor(ctx context.Context, by Solver, r Placeme
 	var id int64
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO placement_results
-			(attempt_id, user_id, guest_id, recommended_path_id,
+			(attempt_id, user_id, guest_id, candidate_id, recommended_path_id,
 			 foundations_required, passed, exemptions)
-		VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-		r.AttemptID, userID, guestID, r.RecommendedPathID,
+		VALUES (?, ?, ?,
+			-- Copied from the sitting rather than passed in, so a result can
+			-- never be filed against a different identity than the paper.
+			(SELECT candidate_id FROM assessment_attempts WHERE id = ?),
+			?, ?, ?, ?) RETURNING id`,
+		r.AttemptID, userID, guestID, r.AttemptID, r.RecommendedPathID,
 		boolToInt(r.FoundationsRequired), boolToInt(r.Passed), string(ex)).Scan(&id)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "unique") {
@@ -934,6 +986,17 @@ func (s *Store) CreateLearnerFromGuestPlacement(ctx context.Context, guestID int
 	}
 	if _, err := tx.ExecContext(ctx,
 		`INSERT INTO enrollments (user_id, state) VALUES (?, 'unplaced')`, u.ID); err != nil {
+		return nil, err
+	}
+	// Bind the identity that sat the paper to the account it just earned. Only
+	// an unbound candidate is claimed: repointing one at a second account would
+	// be exactly how a spent identity gets laundered into a clean one.
+	if _, err := tx.ExecContext(ctx, `
+		UPDATE candidates SET user_id = ?
+		WHERE user_id IS NULL AND id IN (
+			SELECT candidate_id FROM assessment_attempts
+			WHERE user_id = ? AND candidate_id IS NOT NULL
+		)`, u.ID, u.ID); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {

@@ -12,9 +12,16 @@ import (
 
 // sitting starts a real placement paper as a guest and returns the cookie that
 // identifies them.
+//
+// Each gets its own email, because the gate is now keyed to the candidate: two
+// tests sharing an address would share a cooldown and the second would be
+// refused for reasons that have nothing to do with what it is testing.
 func (ts *testServer) sitting(t *testing.T) *http.Cookie {
 	t.Helper()
-	w := ts.do(t, http.MethodPost, "/placement/start", url.Values{})
+	w := ts.do(t, http.MethodPost, "/placement/start", url.Values{
+		"name":  {"Test Candidate"},
+		"email": {strings.ToLower(strings.NewReplacer("/", "-", " ", "-").Replace(t.Name())) + "@example.com"},
+	})
 	if w.Code != http.StatusSeeOther {
 		t.Fatalf("start placement: status %d, want 303", w.Code)
 	}
@@ -148,5 +155,77 @@ func TestTheRulesAreStatedBeforeTheClockStarts(t *testing.T) {
 	}
 	if !strings.Contains(paper, "proctor.js") {
 		t.Error("the paper does not load the proctor")
+	}
+}
+
+// The bypass this whole identity layer exists to close: sit the test, get
+// caught, then open a private window. Two different cookie jars, one email.
+func TestAnotherBrowserDoesNotGetAFreshPlacement(t *testing.T) {
+	ts := newTestServer(t)
+	details := url.Values{"name": {"Ada Lovelace"}, "email": {"ada@example.com"}}
+
+	// First browser: start, get caught twice, sitting closed and failed.
+	w := ts.do(t, http.MethodPost, "/placement/start", details)
+	if w.Code != http.StatusSeeOther {
+		t.Fatalf("first start = %d, want 303", w.Code)
+	}
+	var first *http.Cookie
+	for _, c := range w.Result().Cookies() {
+		if c.Name == "gd_guest" {
+			first = c
+		}
+	}
+	for _, kind := range []string{"copy", "hidden"} {
+		ts.reportViolation(t, kind, first)
+	}
+
+	// Second browser: no cookie at all, same person.
+	w = ts.do(t, http.MethodPost, "/placement/start", details)
+	if w.Code == http.StatusSeeOther {
+		t.Fatal("a fresh browser was handed a new sitting — the gate is still cookie-deep")
+	}
+	if !strings.Contains(w.Body.String(), "seven-day wait") {
+		t.Errorf("the refusal does not explain itself:\n%s", w.Body.String()[:min(600, w.Body.Len())])
+	}
+
+	// And plus-addressing is not a second identity either.
+	tagged := url.Values{"name": {"Ada Lovelace"}, "email": {"Ada+again@Example.com"}}
+	if w := ts.do(t, http.MethodPost, "/placement/start", tagged); w.Code == http.StatusSeeOther {
+		t.Error("a +tag on the same address opened a fresh sitting")
+	}
+}
+
+// Details are required, and the page says why rather than silently doing
+// nothing.
+func TestAPaperCannotStartWithoutIdentifyingTheCandidate(t *testing.T) {
+	ts := newTestServer(t)
+	for _, bad := range []url.Values{
+		{},
+		{"name": {"Ada"}},
+		{"email": {"ada@example.com"}},
+		{"name": {"A"}, "email": {"ada@example.com"}},
+		{"name": {"Ada Lovelace"}, "email": {"not-an-email"}},
+	} {
+		w := ts.do(t, http.MethodPost, "/placement/start", bad)
+		if w.Code == http.StatusSeeOther {
+			t.Errorf("%v started a sitting", bad)
+			continue
+		}
+		if !strings.Contains(w.Body.String(), "full name and a real email") {
+			t.Errorf("%v was refused without saying why", bad)
+		}
+	}
+}
+
+// A signed-in learner is already identified, so they are never asked again.
+func TestASignedInLearnerIsNotAskedWhoTheyAre(t *testing.T) {
+	ts := newTestServer(t)
+	admin := ts.register(t, "admin@example.com")
+	body := ts.do(t, http.MethodGet, "/placement", nil, admin).Body.String()
+	if strings.Contains(body, `name="email"`) {
+		t.Error("a signed-in user is being asked for details the account already has")
+	}
+	if w := ts.do(t, http.MethodPost, "/placement/start", url.Values{}, admin); w.Code != http.StatusSeeOther {
+		t.Errorf("a signed-in start = %d, want 303", w.Code)
 	}
 }

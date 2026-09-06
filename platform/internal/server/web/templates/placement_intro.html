@@ -22,7 +22,7 @@
               <button class="pl-text-link" type="submit">Retake the test</button>
             </form>
           {{ end }}
-        {{ else }}
+        {{ else if index .Data "signedIn" }}
           <form method="post" action="/placement/start" class="inline">
             <button class="btn btn-primary btn-lg" type="submit">Begin the test {{ icon "arrowright" }}</button>
           </form>
@@ -37,6 +37,27 @@
       {{ end }}
     </div>
 
+    {{ if and (not $result) (not (index .Data "signedIn")) }}
+    <form class="pl-signup" method="post" action="/placement/start">
+      <p class="pl-signup-head">Who is sitting the test?</p>
+      <label>
+        <span>Full name</span>
+        <input type="text" name="name" required minlength="2" autocomplete="name"
+               value="{{ index .Data "name" }}" placeholder="Ada Lovelace" />
+      </label>
+      <label>
+        <span>Email address</span>
+        <input type="email" name="email" required autocomplete="email"
+               value="{{ index .Data "email" }}" placeholder="ada@example.com" />
+      </label>
+      <button class="btn btn-primary btn-lg" type="submit">Begin the test {{ icon "arrowright" }}</button>
+      <p class="pl-signup-fine">
+        {{ icon "lock" }}
+        Your result is recorded against this address. The seven-day wait and the
+        attempt limit follow it, so opening another browser will not reset them.
+      </p>
+    </form>
+    {{ else }}
     <aside class="pl-facts" aria-label="What the test is">
       <div class="pl-facts-head">
         <span>THE PAPER</span>
@@ -49,6 +70,7 @@
       </ol>
       <p>{{ icon "lock" }} The clock is kept by the server, not your browser.</p>
     </aside>
+    {{ end }}
   </section>
 
   {{/* Stated before they begin, not sprung on them mid-paper. A proctoring rule

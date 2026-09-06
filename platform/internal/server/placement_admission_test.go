@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/RA9/gamifydev/platform/internal/auth"
@@ -244,7 +245,13 @@ func TestPlacementSubmissionAppliesAcceptedScoreBands(t *testing.T) {
 				t.Fatalf("replace bank: %v", err)
 			}
 			cookie, by := ts.guest(t)
-			if w := ts.do(t, http.MethodPost, "/placement/start", url.Values{}, cookie); w.Code != http.StatusSeeOther {
+			// Starting a paper now identifies the candidate. Each subtest gets
+			// its own address, since the retry gate is keyed to it.
+			start := url.Values{
+				"name":  {"Band Case"},
+				"email": {strings.ToLower(strings.ReplaceAll(tc.name, " ", "-")) + "@example.com"},
+			}
+			if w := ts.do(t, http.MethodPost, "/placement/start", start, cookie); w.Code != http.StatusSeeOther {
 				t.Fatalf("start = %d", w.Code)
 			}
 			attempt, _ := ts.st.LiveAttemptFor(t.Context(), by)

@@ -26,7 +26,13 @@
     <body class="landing {{ index .Data "bodyClass" }}">
         {{ template "site_header" . }}
 
-        <main class="lp-main">{{ block "content" . }}{{ end }}</main>
+        <main class="lp-main">
+            {{/* Without this a refusal on this shell — a placement retry too
+                 soon, an attempt limit reached — was rendered into nothing, and
+                 the visitor saw the form come back with no explanation. */}}
+            {{ if .Flash }}<div class="lp-flash">{{ .Flash }}</div>{{ end }}
+            {{ block "content" . }}{{ end }}
+        </main>
 
         {{ template "site_footer" . }}
     </body>

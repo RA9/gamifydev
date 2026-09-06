@@ -7250,3 +7250,75 @@ body.portal.paths-index {
     .pb-bar > span { transition: none; }
     .pb-row:hover { transform: none; }
 }
+
+/* A refusal on the public shell — placement gating, mostly. Sits above the page
+   rather than inside it, because the page it interrupts is usually a form the
+   visitor just submitted. */
+.lp-flash {
+    max-width: 1200px;
+    margin: 20px auto -8px;
+    padding: 14px 18px;
+    border: 1px solid #f6dcae;
+    border-radius: 14px;
+    background: #fdf6e7;
+    color: #7a5307;
+    font-size: 0.93rem;
+    line-height: 1.6;
+}
+@media (max-width: 640px) {
+    .lp-flash { margin: 14px 16px -4px; }
+}
+
+/* The candidate's details, in the hero panel's place. Deliberately the most
+   prominent thing on the page after the headline: nothing else on it matters
+   until the test knows who is sitting it. */
+.pl-signup {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 28px 26px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.pl-signup-head {
+    margin: 0;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+.pl-signup label { display: flex; flex-direction: column; gap: 6px; }
+.pl-signup label > span {
+    color: #7f8da3;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.pl-signup input {
+    font: inherit;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(10, 12, 22, 0.5);
+    color: #fff;
+}
+.pl-signup input::placeholder { color: #5c6a7e; }
+.pl-signup input:focus-visible {
+    outline: none;
+    border-color: #b7f34a;
+    box-shadow: 0 0 0 3px rgba(183, 243, 74, 0.16);
+}
+.pl-signup button { margin-top: 4px; }
+.pl-signup-fine {
+    display: flex;
+    gap: 8px;
+    margin: 4px 0 0;
+    color: #93a1b5;
+    font-size: 0.8rem;
+    line-height: 1.55;
+}
+.pl-signup-fine .ic { width: 1rem; height: 1rem; flex: 0 0 auto; margin-top: 1px; color: #b7f34a; }

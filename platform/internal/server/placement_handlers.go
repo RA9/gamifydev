@@ -63,22 +63,41 @@ func (s *Server) renderPlacementIntro(w http.ResponseWriter, r *http.Request, by
 
 	var prev *store.PlacementResult
 	retry := store.PlacementRetryStatus{Allowed: true}
+	// If we already know who this is — signed in, or they just typed an email
+	// the form rejected — read the gate through that identity, so the page
+	// tells them the truth rather than what this browser happens to know.
+	var candidateID int64
+	name, email := strings.TrimSpace(r.FormValue("name")), strings.TrimSpace(r.FormValue("email"))
+	if u := auth.CurrentUser(ctx); u != nil {
+		name, email = u.Name, u.Email
+	}
+	if email != "" {
+		if cand, err := s.st.CandidateByEmail(ctx, email); err == nil {
+			candidateID = cand.ID
+		}
+	}
 	if by != (store.Solver{}) {
 		prev, _ = s.st.LatestPlacementFor(ctx, by)
-		if status, err := s.st.PlacementRetryFor(ctx, by); err == nil {
+	}
+	if by != (store.Solver{}) || candidateID != 0 {
+		if status, err := s.st.PlacementRetryForCandidate(ctx, by, candidateID); err == nil {
 			retry = status
 		}
 	}
 
 	s.render(w, r, "placement_intro.html", ViewData{Title: "Placement test", Flash: flash, Data: map[string]any{
-		"bodyClass":            "placement-page",
-		"mainClass":            "",
-		"assessment":           a,
-		"minutes":              a.TimeLimitS / 60,
-		"done":                 prev != nil,
-		"result":               prev,
-		"retry":                retry,
-		"topics":               placement.AllTopics,
+		"bodyClass":  "placement-page",
+		"mainClass":  "",
+		"assessment": a,
+		"minutes":    a.TimeLimitS / 60,
+		"done":       prev != nil,
+		"result":     prev,
+		"retry":      retry,
+		"topics":     placement.AllTopics,
+		"signedIn":   auth.CurrentUser(ctx) != nil,
+		// Handed back so a rejected form does not clear what they typed.
+		"name":                 name,
+		"email":                email,
 		"passThreshold":        placement.PassThreshold,
 		"foundationsThreshold": placement.FoundationsThreshold,
 	}})
@@ -86,36 +105,74 @@ func (s *Server) renderPlacementIntro(w http.ResponseWriter, r *http.Request, by
 
 // handlePlacementStart creates a guest identity only when a visitor actually
 // starts a paper. Merely browsing the introduction creates no database state.
+//
+// It also collects who is sitting the test. Without that, every rule the
+// introduction promises — the seven-day wait, the three-attempt limit, a
+// sitting closed for cheating — is enforced against a cookie the candidate
+// owns, and resets in a private window.
 func (s *Server) handlePlacementStart(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	by, err := s.solverForWrite(w, r)
 	if err != nil {
 		http.Error(w, "could not start the placement test", http.StatusInternalServerError)
 		return
 	}
-	if live, _ := s.st.LiveAttemptFor(r.Context(), by); live != nil {
+	if live, _ := s.st.LiveAttemptFor(ctx, by); live != nil {
 		http.Redirect(w, r, "/placement", http.StatusSeeOther)
 		return
 	}
 
-	a, err := s.st.GetAssessment(r.Context(), "placement")
+	cand, err := s.candidateFor(ctx, r)
+	if errors.Is(err, store.ErrInvalidCandidate) {
+		s.renderPlacementIntro(w, r, by, "Enter your full name and a real email address — your result is recorded against them.")
+		return
+	}
+	if err != nil {
+		http.Error(w, "could not start the placement test", http.StatusInternalServerError)
+		return
+	}
+
+	a, err := s.st.GetAssessment(ctx, "placement")
 	if err != nil {
 		http.Error(w, "the placement test is not available", http.StatusServiceUnavailable)
 		return
 	}
-	if _, err := s.st.StartAttemptFor(r.Context(), by, a); err != nil {
+	if _, err := s.st.StartPlacementFor(ctx, by, cand.ID, a); err != nil {
 		switch {
 		case errors.Is(err, store.ErrPlacementAlreadyPassed), errors.Is(err, store.ErrPlacementEnrollmentLocked):
 			http.Redirect(w, r, "/placement/result", http.StatusSeeOther)
 		case errors.Is(err, store.ErrPlacementRetryTooSoon):
-			s.renderPlacementIntro(w, r, by, "You need to wait seven days after an unsuccessful attempt before trying again.")
+			s.renderPlacementIntro(w, r, by, "You sat this test recently. There is a seven-day wait after an unsuccessful attempt, and it is counted against your email — a different browser does not reset it.")
 		case errors.Is(err, store.ErrPlacementAttemptLimit):
-			s.renderPlacementIntro(w, r, by, "You have used three attempts in the last 30 days. Your next attempt opens when the rolling limit resets.")
+			s.renderPlacementIntro(w, r, by, "That email has used three attempts in the last 30 days. Your next attempt opens when the rolling limit resets.")
 		default:
 			http.Error(w, "could not start the placement test", http.StatusInternalServerError)
 		}
 		return
 	}
 	http.Redirect(w, r, "/placement", http.StatusSeeOther)
+}
+
+// candidateFor resolves who is sitting the paper.
+//
+// A signed-in learner is already identified, so their account supplies the
+// details and the form is never shown to them. A guest has to type them, and
+// the address is what the gate is keyed to from then on.
+func (s *Server) candidateFor(ctx context.Context, r *http.Request) (*store.Candidate, error) {
+	if u := auth.CurrentUser(ctx); u != nil {
+		cand, err := s.st.UpsertCandidate(ctx, u.Name, u.Email)
+		if err != nil {
+			return nil, err
+		}
+		// Bind it now rather than at registration: this one already has an
+		// account, and the binding is what makes their enrollment visible to a
+		// later signed-out sitting.
+		if err := s.st.LinkCandidateToUser(ctx, cand.ID, u.ID); err != nil {
+			return nil, err
+		}
+		return cand, nil
+	}
+	return s.st.UpsertCandidate(ctx, r.FormValue("name"), r.FormValue("email"))
 }
 
 func (s *Server) handlePlacementSubmit(w http.ResponseWriter, r *http.Request) {
