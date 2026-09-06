@@ -302,6 +302,41 @@ func TestGradingIsOpenToGradersButTheRestOfAdminIsNot(t *testing.T) {
 
 // --- sessions ---------------------------------------------------------------
 
+func TestLearnerPortalAlwaysUsesSidebarLayout(t *testing.T) {
+	ts := newTestServer(t)
+	learner := ts.register(t, "sidebar-learner@example.com")
+	admin := ts.register(t, "admin@example.com")
+	grader := ts.register(t, "sidebar-grader@example.com")
+	graderUser, err := ts.st.GetUserByEmail(t.Context(), "sidebar-grader@example.com")
+	if err != nil {
+		t.Fatalf("grader: %v", err)
+	}
+	if err := ts.st.SetUserRole(t.Context(), graderUser.ID, "grader"); err != nil {
+		t.Fatalf("set grader role: %v", err)
+	}
+
+	for name, session := range map[string]*http.Cookie{"learner": learner, "grader": grader, "admin": admin} {
+		t.Run(name, func(t *testing.T) {
+			w := ts.do(t, http.MethodGet, "/dashboard", nil, session)
+			body := w.Body.String()
+			if w.Code != http.StatusOK {
+				t.Fatalf("dashboard = %d, want 200", w.Code)
+			}
+			for _, want := range []string{`class="learner-shell"`, `class="learner-sidebar"`, `id="learnerNav"`, `aria-label="Learner navigation"`} {
+				if !strings.Contains(body, want) {
+					t.Errorf("dashboard missing %s", want)
+				}
+			}
+			if strings.Contains(body, `class="app-header"`) {
+				t.Error("learner portal still uses the old top navigation")
+			}
+			if name == "admin" && !strings.Contains(body, `href="/admin"`) {
+				t.Error("admin learner sidebar is missing the administration link")
+			}
+		})
+	}
+}
+
 func TestSessionLifecycle(t *testing.T) {
 	ts := newTestServer(t)
 	c := ts.register(t, "someone@example.com")

@@ -12,7 +12,8 @@
     <script type="module" src="/static/js/code-editor.js"></script>
   </head>
   {{ $lab := eq (index .Data "bodyClass") "lesson-lab" }}
-  <body class="portal {{ index .Data "bodyClass" }}">
+  {{ $learnerShell := not $lab }}
+  <body class="portal{{ if $learnerShell }} learner-portal{{ end }} {{ index .Data "bodyClass" }}">
     {{ if $lab }}
     {{ $labCourse := index .Data "course" }}
     {{ $labLesson := index .Data "lesson" }}
@@ -37,68 +38,106 @@
         </div>
       </div>
     </header>
-    {{ else }}
-    <header class="app-header">
-      <!-- Focusable, visually-hidden checkbox drives the mobile menu (keyboard: Tab + Space). -->
-      <input type="checkbox" id="appNav" class="app-nav-cb visually-hidden" />
-      <div class="app-nav">
-        <a href="/dashboard" class="brand app-brand">Gamify<span>Dev</span></a>
-
-        {{ $p := .Path }}
-        <nav class="app-links" aria-label="Learner navigation">
-          <a href="/dashboard" class="{{ if eq $p "/dashboard" }}active{{ end }}">{{ icon "grid" }}<span>Dashboard</span></a>
-          <a href="/schedule" class="{{ if hasprefix $p "/schedule" }}active{{ end }}">{{ icon "calendar" }}<span>Schedule</span></a>
-          <a href="/cohort" class="{{ if hasprefix $p "/cohort" }}active{{ end }}">{{ icon "users" }}<span>Cohort</span></a>
-          <a href="/paths" class="{{ if or (hasprefix $p "/paths") (hasprefix $p "/courses") }}active{{ end }}">{{ icon "compass" }}<span>Curriculum</span></a>
-          <a href="/assignments" class="{{ if hasprefix $p "/assignments" }}active{{ end }}">{{ icon "clipboard" }}<span>Assignments</span></a>
-          <a href="/problems" class="{{ if hasprefix $p "/problems" }}active{{ end }}">{{ icon "terminal" }}<span>Practice</span></a>
-          {{ if index .Data "execEnabled" }}<a href="/playground" class="{{ if eq $p "/playground" }}active{{ end }}">{{ icon "terminal" }}<span>Playground</span></a>{{ end }}
-          <a href="/competitions" class="{{ if hasprefix $p "/competitions" }}active{{ end }}">{{ icon "trophy" }}<span>Competitions</span></a>
-          <a href="/forum" class="{{ if hasprefix $p "/forum" }}active{{ end }}">{{ icon "chat" }}<span>Forum</span></a>
-          <a href="/blog" class="{{ if hasprefix $p "/blog" }}active{{ end }}">{{ icon "file" }}<span>Blog</span></a>
-        </nav>
-
-        <div class="app-right">
-          {{ if .User.CanGrade }}<a href="/admin/grading" class="app-staff" title="Grading">{{ icon "clipboard" }}</a>{{ end }}
-          {{ if .User.IsAdmin }}<a href="/admin" class="app-staff" title="Admin">{{ icon "shield" }}</a>{{ end }}
-          <span class="avatar avatar-sm" title="{{ .User.Name }}">{{ initials .User.Name }}</span>
-          <form method="post" action="/logout" class="inline">
-            <button class="app-signout" type="submit" title="Sign out" aria-label="Sign out">{{ icon "logout" }}</button>
-          </form>
-          <label for="appNav" class="app-burger" aria-label="Toggle navigation menu">
-            <span class="app-burger-open">{{ icon "grid" }}</span>
-            <span class="app-burger-close">✕</span>
-          </label>
-        </div>
-      </div>
-    </header>
-    {{ end }}
-
     <main class="main app-main">
       {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
       {{ block "content" . }}{{ end }}
     </main>
 
-    {{ if not $lab }}
-    <footer class="app-footer">
-      <div class="app-footer-inner">
-        <div class="app-footer-brand">
-          <span class="brand app-footer-logo">Gamify<span>Dev</span></span>
-          <p class="muted">Learn to code by building.</p>
+    {{ else }}
+    <a href="#learner-main" class="skip-link">Skip to content</a>
+    <input type="checkbox" id="learnerNav" class="learner-nav-cb visually-hidden" />
+    <div class="learner-shell">
+      <aside class="learner-sidebar" id="learner-sidebar">
+        <div class="learner-side-head">
+          <a href="/dashboard" class="learner-brand" aria-label="GamifyDev dashboard">
+            <span class="learner-brand-mark" aria-hidden="true">&lt;/&gt;</span>
+            <span>Gamify<em>Dev</em></span>
+          </a>
+          <label for="learnerNav" class="learner-side-close" aria-label="Close navigation">×</label>
         </div>
-        <nav class="app-footer-links" aria-label="Footer">
-          <a href="/courses">Courses</a>
-          <a href="/assignments">Assignments</a>
-          <a href="/problems">Practice</a>
-          <a href="/competitions">Competitions</a>
-          <a href="/forum">Forum</a>
+
+        <div class="learner-program">
+          <span class="learner-program-kicker">Your workspace</span>
+          <strong>Cohort-paced CS</strong>
+          <span>Learn. Build. Ship.</span>
+        </div>
+
+        {{ $p := .Path }}
+        <nav class="learner-side-nav" aria-label="Learner navigation">
+          <div class="learner-nav-group">
+            <p>Today</p>
+            <a href="/dashboard" class="{{ if eq $p "/dashboard" }}active{{ end }}"{{ if eq $p "/dashboard" }} aria-current="page"{{ end }}>{{ icon "grid" }}<span>Dashboard</span></a>
+            <a href="/schedule" class="{{ if hasprefix $p "/schedule" }}active{{ end }}"{{ if hasprefix $p "/schedule" }} aria-current="page"{{ end }}>{{ icon "calendar" }}<span>Schedule</span></a>
+            <a href="/cohort" class="{{ if hasprefix $p "/cohort" }}active{{ end }}"{{ if hasprefix $p "/cohort" }} aria-current="page"{{ end }}>{{ icon "users" }}<span>Cohort</span></a>
+          </div>
+
+          <div class="learner-nav-group">
+            <p>Learn</p>
+            <a href="/paths" class="{{ if or (hasprefix $p "/paths") (hasprefix $p "/courses") }}active{{ end }}"{{ if or (hasprefix $p "/paths") (hasprefix $p "/courses") }} aria-current="page"{{ end }}>{{ icon "compass" }}<span>Curriculum</span></a>
+            <a href="/assignments" class="{{ if hasprefix $p "/assignments" }}active{{ end }}"{{ if hasprefix $p "/assignments" }} aria-current="page"{{ end }}>{{ icon "clipboard" }}<span>Checkpoints</span></a>
+            <a href="/problems" class="{{ if hasprefix $p "/problems" }}active{{ end }}"{{ if hasprefix $p "/problems" }} aria-current="page"{{ end }}>{{ icon "terminal" }}<span>Practice</span></a>
+            {{ if index .Data "execEnabled" }}<a href="/playground" class="{{ if eq $p "/playground" }}active{{ end }}"{{ if eq $p "/playground" }} aria-current="page"{{ end }}>{{ icon "play" }}<span>Playground</span></a>{{ end }}
+          </div>
+
+          <div class="learner-nav-group">
+            <p>Community</p>
+            <a href="/competitions" class="{{ if hasprefix $p "/competitions" }}active{{ end }}"{{ if hasprefix $p "/competitions" }} aria-current="page"{{ end }}>{{ icon "trophy" }}<span>Competitions</span></a>
+            <a href="/forum" class="{{ if hasprefix $p "/forum" }}active{{ end }}"{{ if hasprefix $p "/forum" }} aria-current="page"{{ end }}>{{ icon "chat" }}<span>Forum</span></a>
+            <a href="/blog" class="{{ if hasprefix $p "/blog" }}active{{ end }}"{{ if hasprefix $p "/blog" }} aria-current="page"{{ end }}>{{ icon "file" }}<span>Journal</span></a>
+          </div>
+
+          {{ if .User.CanGrade }}
+          <div class="learner-nav-group learner-mentor-group">
+            <p>Mentor tools</p>
+            <a href="/admin/grading" class="{{ if hasprefix $p "/admin/grading" }}active{{ end }}">{{ icon "check" }}<span>Review queue</span></a>
+            {{ if .User.IsAdmin }}<a href="/admin">{{ icon "shield" }}<span>Administration</span></a>{{ end }}
+          </div>
+          {{ end }}
         </nav>
+
+        <div class="learner-side-foot">
+          <a href="/" class="learner-explore">{{ icon "compass" }}<span>Explore GamifyDev</span></a>
+          <div class="learner-user-card">
+            <span class="avatar" aria-hidden="true">{{ initials .User.Name }}</span>
+            <span class="learner-user-meta">
+              <strong>{{ .User.Name }}</strong>
+              <span>{{ titlecase .User.Role }}</span>
+            </span>
+            <form method="post" action="/logout" class="inline">
+              <button type="submit" class="learner-logout" title="Sign out" aria-label="Sign out">{{ icon "logout" }}</button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      <label for="learnerNav" class="learner-scrim" aria-label="Close navigation"></label>
+
+      <div class="learner-workspace">
+        <header class="learner-topbar">
+          <div class="learner-topbar-start">
+            <label for="learnerNav" class="learner-menu" aria-label="Open navigation" aria-controls="learner-sidebar">{{ icon "grid" }}</label>
+            <div class="learner-page-title">
+              <span>GamifyDev workspace</span>
+              <strong>{{ if .Title }}{{ .Title }}{{ else }}Dashboard{{ end }}</strong>
+            </div>
+          </div>
+          <div class="learner-topbar-end">
+            {{ if .User.IsAdmin }}<a href="/admin" class="learner-topbar-action" title="Administration">{{ icon "shield" }}</a>{{ else if .User.CanGrade }}<a href="/admin/grading" class="learner-topbar-action" title="Review queue">{{ icon "clipboard" }}</a>{{ end }}
+            <span class="learner-topbar-avatar avatar avatar-sm" title="{{ .User.Name }}">{{ initials .User.Name }}</span>
+          </div>
+        </header>
+
+        <main class="main app-main learner-main" id="learner-main">
+          {{ if .Flash }}<div class="flash">{{ .Flash }}</div>{{ end }}
+          {{ block "content" . }}{{ end }}
+        </main>
+
+        <footer class="learner-footer">
+          <span>GamifyDev</span>
+          <span>Structured learning · practical work · real accountability</span>
+        </footer>
       </div>
-      <div class="app-footer-bottom">
-        <span>&copy; 2023–2026 GamifyDev</span>
-        <span class="muted">Built for builders 🚀</span>
-      </div>
-    </footer>
+    </div>
     {{ end }}
   </body>
 </html>
