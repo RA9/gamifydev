@@ -199,11 +199,17 @@ func TestASubmissionCannotNameALanguageTheProblemDoesNotAccept(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get problem: %v", err)
 	}
-	if _, err := ts.acceptedLanguage(t.Context(), p.ID, "c"); err == nil {
-		t.Errorf("a language with no starter was accepted")
+	// Every problem in the bank accepts C, Go and Python, so the language that
+	// must be refused is one nobody wrote a starter for.
+	for _, lang := range []string{"shell", "ruby", "", "javascript"} {
+		if _, err := ts.acceptedLanguage(t.Context(), p.ID, lang); err == nil {
+			t.Errorf("%q has no starter but was accepted", lang)
+		}
 	}
-	if got, err := ts.acceptedLanguage(t.Context(), p.ID, "python"); err != nil || got != "python" {
-		t.Errorf("acceptedLanguage(python) = %q, %v; want python, nil", got, err)
+	for _, lang := range []string{"c", "go", "python"} {
+		if got, err := ts.acceptedLanguage(t.Context(), p.ID, lang); err != nil || got != lang {
+			t.Errorf("acceptedLanguage(%q) = %q, %v; want it accepted", lang, got, err)
+		}
 	}
 }
 

@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/RA9/gamifydev/platform/internal/store"
@@ -49,11 +50,21 @@ type seedProblem struct {
 	// the problem is solvable rather than leaving a learner to discover it
 	// isn't. Never served to anyone.
 	solution string
+	// solutions is the same guarantee for a problem offered in more than one
+	// language: one reference answer per language, each proven by the suite. A
+	// problem that claims to accept C, Go and Python without anybody having
+	// written all three is a promise nobody checked.
+	solutions map[string]string
 	// tooSlow is an approach the statement claims won't finish in time. Set it
 	// on any problem that makes that claim, and a test holds the claim to
 	// account — a limit generous enough to let the slow approach through turns
 	// the lesson into a lie.
 	tooSlow string
+	// tooSlowIn is tooSlow per language. The same limit does not mean the same
+	// thing in C as in Python — a quadratic loop that dies in one finishes
+	// comfortably in the other — so the claim is made, and checked, only for
+	// the languages where it actually holds.
+	tooSlowIn map[string]string
 }
 
 // Test constructors. The bank is thousands of lines of content, and
@@ -74,6 +85,59 @@ func hid(label, test string) store.Check {
 // py and cStarter declare the languages a problem accepts.
 func py(starter string) map[string]string {
 	return map[string]string{"python": starter}
+}
+
+// tri is the starter set for a problem answerable in any of the three languages
+// the bank teaches. Each starter carries the input parsing and the printing, so
+// what the learner writes is the part the problem is actually about.
+func tri(c, golang, python string) map[string]string {
+	return map[string]string{"c": c, "go": golang, "python": python}
+}
+
+// tokens asserts on what the program printed, compared as whitespace-separated
+// tokens.
+//
+// Comparing tokens rather than exact bytes is deliberate. Three languages print
+// the same answer with different habits — a trailing newline, numbers joined by
+// a space or by newlines — and none of those differences is what is being
+// taught. What has to match is the answer.
+func tokens(label, stdin, want string) store.Check {
+	return store.Check{
+		Label: label, Stdin: stdin, Points: 1,
+		Test: "_out.split() == " + pyList(strings.Fields(want)),
+	}
+}
+
+// hid2 is tokens for a case the learner cannot see.
+func hid2(label, stdin, want string) store.Check {
+	c := tokens(label, stdin, want)
+	c.Hidden = true
+	return c
+}
+
+// exact asserts on the whole printed text, for the answers where the spacing is
+// part of the answer and tokens would quietly forgive losing it.
+func exact(label, stdin, want string) store.Check {
+	return store.Check{
+		Label: label, Stdin: stdin, Points: 1,
+		Test: "_out.rstrip(\"\\n\") == " + strconv.Quote(want),
+	}
+}
+
+// exactHid is exact for a case the learner cannot see.
+func exactHid(label, stdin, want string) store.Check {
+	c := exact(label, stdin, want)
+	c.Hidden = true
+	return c
+}
+
+// pyList renders strings as a Python list literal for a check expression.
+func pyList(items []string) string {
+	quoted := make([]string, len(items))
+	for i, s := range items {
+		quoted[i] = strconv.Quote(s)
+	}
+	return "[" + strings.Join(quoted, ", ") + "]"
 }
 
 func cStarter(starter string) map[string]string {

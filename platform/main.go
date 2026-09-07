@@ -102,6 +102,7 @@ func main() {
 		Mode:         os.Getenv("CODE_EXEC"), // ""(off) | local | remote
 		PythonPath:   os.Getenv("PYTHON"),
 		CCPath:       os.Getenv("CC"),
+		GoPath:       os.Getenv("GO"),
 		SandboxURL:   os.Getenv("CODE_EXEC_SANDBOX_URL"),
 		SandboxToken: os.Getenv("CODE_EXEC_SANDBOX_TOKEN"),
 		Deployed:     os.Getenv("RAILWAY_ENVIRONMENT") != "",
@@ -111,6 +112,21 @@ func main() {
 		log.Fatalf("code exec: %v", err)
 	}
 	log.Printf("code exec: mode=%s enabled=%v", exec.Kind(), exec.Enabled())
+
+	// Warm the Go build cache in the background. A cold cache makes the first
+	// Go submission compile the standard library — around twenty seconds — and
+	// it dies on its own time limit. One learner would see a timeout on correct
+	// code for reasons that have nothing to do with them. Backgrounded so the
+	// server still starts immediately.
+	if exec.Enabled() {
+		go func() {
+			if err := runner.WarmGo(context.Background(), exec); err != nil {
+				log.Printf("code exec: go warm-up failed (first Go submission may be slow): %v", err)
+			} else {
+				log.Printf("code exec: go build cache warm")
+			}
+		}()
+	}
 
 	// If we're running code in-process (local mode), prove the sandbox actually
 	// contains it before serving. runner.New already blocks local-in-prod

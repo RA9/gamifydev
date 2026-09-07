@@ -40,6 +40,11 @@ RUN apt-get update \
 # is impossible by design.
 COPY cmd/execd/sandbox-requirements.txt /tmp/sandbox-requirements.txt
 RUN pip install --no-cache-dir -r /tmp/sandbox-requirements.txt
+# The Go toolchain, for problems answered in Go. Copied from the build stage
+# rather than installed again: same version, no second download, and it lands
+# under /usr/local where the sandbox's read-only /usr bind already covers it.
+COPY --from=build /usr/local/go /usr/local/go
+ENV GO=/usr/local/go/bin/go
 COPY --from=build /app/execd /usr/local/bin/execd
 # Run as an unprivileged user; execd never needs root.
 RUN useradd --create-home --uid 10001 sandbox
@@ -51,6 +56,7 @@ USER sandbox
 ENV EXECD_ADDR=:9090 \
     PYTHON=python3 \
     CC=cc \
+    GO=/usr/local/go/bin/go \
     EXECD_MAX_CONCURRENCY=4 \
     EXECD_REQUIRE_SANDBOX=1
 EXPOSE 9090

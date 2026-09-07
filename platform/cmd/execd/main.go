@@ -40,6 +40,7 @@ func main() {
 		Mode:        "local",
 		PythonPath:  envOr("PYTHON", "python3"),
 		CCPath:      envOr("CC", "cc"),
+		GoPath:      envOr("GO", "go"),
 		AllowUnsafe: true,
 		Limits:      runner.DefaultLimits(),
 	})
@@ -120,7 +121,7 @@ func main() {
 // runSelftest runs the containment probe and exits with a status code so it can
 // gate a container's readiness/health check: 0 = sandboxed, 1 = not.
 func runSelftest() {
-	exec, err := runner.New(runner.Config{Mode: "local", PythonPath: envOr("PYTHON", "python3"), CCPath: envOr("CC", "cc"), AllowUnsafe: true})
+	exec, err := runner.New(runner.Config{Mode: "local", PythonPath: envOr("PYTHON", "python3"), CCPath: envOr("CC", "cc"), GoPath: envOr("GO", "go"), AllowUnsafe: true})
 	if err != nil {
 		log.Fatalf("selftest: %v", err)
 	}

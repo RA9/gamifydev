@@ -1,10 +1,33 @@
-# runner — server-side Python execution
+# runner — server-side code execution
 
-This package runs short, **untrusted** Python snippets server-side so the
-platform can offer labs the in-browser Pyodide sandbox can't: real `input()`, a
-real filesystem scratch, and (in the sandboxed container) installed packages.
-It powers the `/playground` page and is the foundation for future server-run
-labs (Phase 3: web/servers).
+This package runs short, **untrusted** programs server-side so the platform can
+offer work the in-browser Pyodide sandbox can't: real `input()`, a real
+filesystem scratch, and (in the sandboxed container) installed packages. It
+powers the `/playground` page, checkpoint grading, and the practice problem
+judge.
+
+## Languages
+
+| Lang | How it runs | Notes |
+| --- | --- | --- |
+| `python` | interpreted, `python3 -I -B` | no compile step |
+| `c` | `cc -std=c11 -O0 -Wall`, then the binary | warnings are shown; they are teaching material |
+| `go` | `go build`, then the binary | standard library only — the sandbox has no network, so an import needing a download fails on the proxy rather than on the code |
+| `shell` | `bash main.sh` | for the Linux course |
+
+Two things make compiled languages workable rather than merely possible.
+
+**The build cache is shared across runs.** Go compiles the standard library on a
+cold cache — around twenty seconds, against roughly one when warm — so a
+per-run cache would time out every Go submission. Both caches are keyed by a
+hash of the build inputs, so one submission cannot make another's compile
+resolve to something it planted. Call `WarmGo` at boot; otherwise the first Go
+submission after a deploy pays for the cold build and dies on its own limit.
+
+**The compiler gets its own time budget.** The learner's limit is about their
+algorithm; a compile has nothing to do with them. `buildAllowance` adds a bounded
+extra to the wall clock for compiled languages, so a problem whose limit suits a
+correct Python answer does not fail the same answer in Go on build time alone.
 
 Running code a stranger typed is dangerous. This package treats that seriously:
 it is **disabled by default** and never pretends a bare subprocess is a security

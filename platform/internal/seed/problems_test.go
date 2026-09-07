@@ -197,3 +197,114 @@ func TestTheBankIsBigAndVariedEnoughToBrowse(t *testing.T) {
 		t.Errorf("only %d topics — the bank teaches too narrow a range", len(byTopic))
 	}
 }
+
+// newPolyglotExecutor is newProblemExecutor with Go as well, for a bank that
+// promises three languages.
+func newPolyglotExecutor(t *testing.T) runner.Executor {
+	t.Helper()
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skip("no go toolchain on PATH")
+	}
+	e := newProblemExecutor(t)
+	// One cold Go build costs about twenty seconds; every later one is a
+	// second. Pay it once here rather than inside the first problem's budget.
+	if err := runner.WarmGo(t.Context(), e); err != nil {
+		t.Fatalf("warm go: %v", err)
+	}
+	return e
+}
+
+// Every language a problem offers has to have been solved in that language by
+// somebody. Shipping a C starter for a problem nobody ever answered in C is a
+// promise the learner finds out is false at their own expense.
+func TestEveryOfferedLanguageHasAProvenSolution(t *testing.T) {
+	e := newPolyglotExecutor(t)
+	for _, p := range seedProblems {
+		if len(p.solutions) == 0 {
+			continue // single-language problems are covered by the test above
+		}
+		t.Run(p.slug, func(t *testing.T) {
+			t.Parallel()
+			// Bounded, not unbounded. Every case of every problem is a separate
+			// compile, and letting a hundred problems in three languages all
+			// build at once turns this into a measurement of the machine —
+			// correct solutions start "failing" on a time limit they never
+			// came close to on their own.
+			release := compileSlot()
+			defer release()
+			for lang := range p.starters {
+				if _, ok := p.solutions[lang]; !ok {
+					t.Errorf("offers a %s starter with no %s solution to prove it works", lang, lang)
+				}
+			}
+			for lang, src := range p.solutions {
+				if _, ok := p.starters[lang]; !ok {
+					t.Errorf("has a %s solution but no %s starter, so nobody can write one", lang, lang)
+				}
+				res, err := jobs.GradeByOutput(t.Context(), e, lang, src, nil, withIDs(p.tests), p.timeLimitMs)
+				if err != nil {
+					t.Fatalf("%s: grade: %v", lang, err)
+				}
+				for _, c := range withIDs(p.tests) {
+					if !res.Passed[c.ID] {
+						t.Errorf("the %s solution failed %q\noutput:\n%s", lang, c.Label, res.Output)
+					}
+				}
+				if res.TimedOut {
+					t.Errorf("the %s solution ran out of %dms — the limit leaves no room for a "+
+						"learner writing the same algorithm less tersely", lang, p.timeLimitMs)
+				}
+			}
+		})
+	}
+}
+
+// The slow-approach claim, per language. A limit that rejects a quadratic loop
+// in Python may not lay a finger on the same loop in C, so a problem makes the
+// claim only for the languages where it is true — and each is checked.
+func TestPerLanguageSlowClaimsHold(t *testing.T) {
+	var any bool
+	for _, p := range seedProblems {
+		if len(p.tooSlowIn) > 0 {
+			any = true
+		}
+	}
+	if !any {
+		t.Skip("no per-language slow claims in the bank")
+	}
+	e := newPolyglotExecutor(t)
+	for _, p := range seedProblems {
+		for lang, src := range p.tooSlowIn {
+			t.Run(p.slug+"/"+lang, func(t *testing.T) {
+				t.Parallel()
+				res, err := jobs.GradeByOutput(t.Context(), e, lang, src, nil, withIDs(p.tests), p.timeLimitMs)
+				if err != nil {
+					t.Fatalf("grade: %v", err)
+				}
+				passedAll := true
+				for _, c := range withIDs(p.tests) {
+					if !res.Passed[c.ID] {
+						passedAll = false
+					}
+				}
+				if passedAll {
+					t.Errorf("the slow %s approach passed everything inside %dms, so the "+
+						"statement's claim is not true for %s", lang, p.timeLimitMs, lang)
+				}
+				if !res.TimedOut {
+					t.Errorf("the slow %s approach failed for a reason other than the clock\noutput:\n%s",
+						lang, res.Output)
+				}
+			})
+		}
+	}
+}
+
+// compileSlots bounds how many sandboxed builds run at once across the tests in
+// this package.
+var compileSlots = make(chan struct{}, 3)
+
+func compileSlot() func() {
+	compileSlots <- struct{}{}
+	return func() { <-compileSlots }
+}

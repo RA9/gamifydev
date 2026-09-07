@@ -78,6 +78,10 @@ const (
 	// LangShell runs a shell script. The Linux course teaches bash, so bash is
 	// used when present and POSIX sh is the fallback.
 	LangShell = "shell"
+	// LangGo compiles a single-file Go program. Stdlib only: the sandbox has no
+	// network, so anything that needs a module download cannot build there and
+	// would fail with an error about the proxy rather than about the code.
+	LangGo = "go"
 )
 
 // NormalizeLang maps an empty language to Python (the historical default) and
@@ -90,6 +94,8 @@ func NormalizeLang(lang string) (string, bool) {
 		return LangC, true
 	case LangShell:
 		return LangShell, true
+	case LangGo, "golang":
+		return LangGo, true
 	}
 	return lang, false
 }
@@ -125,9 +131,14 @@ func DefaultLimits() Limits {
 
 // Config selects and parameterizes the executor.
 type Config struct {
-	Mode         string // "off" | "local" | "remote"
-	PythonPath   string // local mode; defaults to "python3" on PATH
-	CCPath       string // local mode; C compiler, defaults to "cc" on PATH
+	Mode       string // "off" | "local" | "remote"
+	PythonPath string // local mode; defaults to "python3" on PATH
+	CCPath     string // local mode; C compiler, defaults to "cc" on PATH
+	GoPath     string // local mode; the go toolchain, defaults to "go" on PATH
+	// GoCache is the build cache shared across runs. Go compiles the standard
+	// library on a cold cache, which takes ~20s and blows any sane time limit;
+	// warm, the same build is ~1s. See newLocal for why sharing it is safe.
+	GoCache      string
 	ShellPath    string // local mode; defaults to "bash", falling back to "sh"
 	SandboxURL   string // remote mode; the execd service base URL
 	SandboxToken string // remote mode; shared bearer secret

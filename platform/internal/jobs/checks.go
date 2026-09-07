@@ -125,13 +125,25 @@ func Grade(ctx context.Context, exec runner.Executor, lang, code string, files m
 // limit its intended solution comfortably fits and a brute force does not.
 func GradeWithin(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check, timeoutMs int) (GradeResult, error) {
 	switch lang {
-	case runner.LangC, runner.LangShell:
-		// Neither leaves a namespace to inspect, so both are checked by
+	case runner.LangC, runner.LangGo, runner.LangShell:
+		// None of these leaves a namespace to inspect, so all are checked by
 		// asserting over what the program printed for a given input.
 		return runByOutput(ctx, exec, lang, code, files, checks, timeoutMs)
 	default:
 		return runPython(ctx, exec, code, files, checks, timeoutMs)
 	}
+}
+
+// GradeByOutput judges a program by what it printed, whatever language it is
+// written in.
+//
+// The language cannot decide this on its own. A checkpoint that asks for a
+// Python function is graded by inspecting the namespace it left behind; a
+// practice problem asks for a program that reads input and prints an answer,
+// and that contract is the only one C, Go and Python share. Both are Python,
+// and they are graded differently, so the caller says which it meant.
+func GradeByOutput(ctx context.Context, exec runner.Executor, lang, code string, files map[string]string, checks []store.Check, timeoutMs int) (GradeResult, error) {
+	return runByOutput(ctx, exec, lang, code, files, checks, timeoutMs)
 }
 
 // runPython verifies an interpreted submission: one run, with every check
@@ -242,8 +254,11 @@ func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, f
 // progName is how the learner's program is referred to in the transcript shown
 // beneath the checks.
 func progName(lang string) string {
-	if lang == runner.LangShell {
+	switch lang {
+	case runner.LangShell:
 		return "./main.sh"
+	case runner.LangPython, "":
+		return "python main.py"
 	}
 	return "./prog"
 }

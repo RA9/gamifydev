@@ -494,7 +494,7 @@ func (s *Server) handleProblemRun(w http.ResponseWriter, r *http.Request) {
 		s.renderPartial(w, r, "problem.html", "cases", map[string]any{"message": "The runner is busy — try again in a moment."})
 		return
 	}
-	res, err := jobs.GradeWithin(ctx, s.exec, lang, code, nil, visible, p.TimeLimitMs)
+	res, err := jobs.GradeByOutput(ctx, s.exec, lang, code, nil, visible, p.TimeLimitMs)
 	rel()
 	if err != nil {
 		log.Printf("problem %s: run: %v", p.Slug, err)

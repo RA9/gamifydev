@@ -85,7 +85,7 @@ func Judge(ctx context.Context, st *store.Store, exec runner.Executor, subID int
 		})
 	}
 
-	res, err := GradeWithin(ctx, exec, sub.Language, sub.Code, nil, tests, sub.TimeLimitMs)
+	res, err := GradeByOutput(ctx, exec, sub.Language, sub.Code, nil, tests, sub.TimeLimitMs)
 	if err != nil {
 		return "", err
 	}
