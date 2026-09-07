@@ -195,6 +195,11 @@ func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, f
 
 	out := GradeResult{Passed: make(map[int64]bool, len(checks))}
 	var transcript strings.Builder
+
+	// Run the program once per input, collecting what each run produced. The
+	// checks are settled afterwards, in one pass — see below.
+	asserts := make([]pyharness.AssertGroup, 0, len(order))
+	ordered := make([]store.Check, 0, len(checks))
 	for _, stdin := range order {
 		group := groups[stdin]
 		res, err := exec.Run(ctx, runner.Request{Lang: lang, Code: code, Stdin: stdin, Files: files, TimeoutMs: timeoutMs})
@@ -218,20 +223,12 @@ func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, f
 		for i, c := range group {
 			tests[i] = c.Test
 		}
-		prog := pyharness.BuildAssertions(
-			map[string]string{"_out": res.Stdout, "_err": res.Stderr, "_code": code, "_in": stdin},
-			map[string]int{"_exit": res.ExitCode},
-			tests)
-		ares, err := exec.Run(ctx, runner.Request{Lang: runner.LangPython, Code: prog})
-		if err != nil {
-			return GradeResult{}, err
-		}
-		results, _ := pyharness.ParseOutput(ares.Stdout, len(tests))
-		for i, c := range group {
-			if i < len(results) {
-				out.Passed[c.ID] = results[i]
-			}
-		}
+		asserts = append(asserts, pyharness.AssertGroup{
+			Strings: map[string]string{"_out": res.Stdout, "_err": res.Stderr, "_code": code, "_in": stdin},
+			Ints:    map[string]int{"_exit": res.ExitCode},
+			Tests:   tests,
+		})
+		ordered = append(ordered, group...)
 
 		// Show the learner what their program actually printed for each input —
 		// for a stdin-driven exercise that is the whole debugging story.
@@ -247,6 +244,31 @@ func runByOutput(ctx context.Context, exec runner.Executor, lang, code string, f
 		}
 		transcript.WriteString("\n")
 	}
+
+	// One assertion pass for every input, rather than one per input.
+	//
+	// Deciding whether an answer is right is our bookkeeping, not the learner's
+	// work, and the groups do not depend on each other — so spreading them over
+	// a sandboxed Python process each doubled the number of processes a
+	// submission costs for no benefit. Its budget is the runner's default:
+	// this is our overhead, and charging it to the problem's time limit would
+	// mean a tight limit failing a correct answer on our accounting.
+	if len(asserts) > 0 {
+		ares, err := exec.Run(ctx, runner.Request{
+			Lang: runner.LangPython,
+			Code: pyharness.BuildGroupedAssertions(asserts),
+		})
+		if err != nil {
+			return GradeResult{}, err
+		}
+		results, _ := pyharness.ParseOutput(ares.Stdout, len(ordered))
+		for i, c := range ordered {
+			if i < len(results) {
+				out.Passed[c.ID] = results[i]
+			}
+		}
+	}
+
 	out.Output = strings.TrimSpace(transcript.String())
 	return out, nil
 }

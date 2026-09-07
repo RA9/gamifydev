@@ -522,6 +522,12 @@ func TestSeededCheckpointsAcceptACorrectSolution(t *testing.T) {
 			if a.lang != "c" {
 				t.Parallel()
 			}
+			// Share the package's compile budget. Go resumes a parent's paused
+			// parallel subtests alongside the *next* top-level test, so the
+			// problem bank's three hundred sandboxed builds overlap these — and
+			// unbounded, they starve a checkpoint past its limit, which then
+			// reads as a correct solution failing.
+			defer compileSlot()()
 			ref, ok := refSolutions[a.slug]
 			if !ok {
 				t.Fatalf("checkpoint %q has checks but no reference solution — "+
@@ -552,6 +558,7 @@ func TestSeededCheckpointsRejectTheMistakeTheyExistToCatch(t *testing.T) {
 			if a.lang != "c" {
 				t.Parallel()
 			}
+			defer compileSlot()()
 			ref := refSolutions[a.slug]
 			checks, files := materialize(a)
 			res, err := jobs.Grade(t.Context(), e, a.lang, ref.wrong, files, checks)

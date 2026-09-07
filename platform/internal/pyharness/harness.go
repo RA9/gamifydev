@@ -110,6 +110,58 @@ func Build(code string, tests []string) string {
 //
 // `strs` and `ints` are separate because an exit code bound as a string would
 // silently make `_exit == 0` false.
+// AssertGroup is one program run's results and the checks made against them.
+type AssertGroup struct {
+	Strings map[string]string
+	Ints    map[string]int
+	Tests   []string
+}
+
+// BuildGroupedAssertions evaluates the checks for many runs in one program.
+//
+// Grading a submission runs the learner's program once per test input, and each
+// of those used to be followed by its own Python process just to decide whether
+// the output was right. That doubled the number of sandboxed processes for work
+// with no reason to be spread across them: the groups do not depend on each
+// other, and every value each one needs is already known by the time any of them
+// is checked. One process now settles all of them.
+//
+// Results carry a running index across every group, so the caller maps them back
+// to checks with the same ParseOutput as before.
+func BuildGroupedAssertions(groups []AssertGroup) string {
+	var b strings.Builder
+	b.WriteString("import json as _gd_json\n")
+	base := 0
+	for _, g := range groups {
+		for name, value := range g.Strings {
+			enc, _ := json.Marshal(value)
+			b.WriteString(name + " = ")
+			b.Write(enc)
+			b.WriteString("\n")
+		}
+		for name, value := range g.Ints {
+			b.WriteString(name + " = " + itoa(value) + "\n")
+		}
+		testsJSON, _ := json.Marshal(g.Tests)
+		b.WriteString("_gd_tests = ")
+		b.Write(testsJSON)
+		b.WriteString("\n_gd_base = " + itoa(base) + "\n")
+		b.WriteString(groupedLoop)
+		base += len(g.Tests)
+	}
+	return b.String()
+}
+
+// groupedLoop is evalLoop with an offset, so one program can report results for
+// several runs without the indices colliding.
+const groupedLoop = `for _gd_i, _gd_t in enumerate(_gd_tests):
+    try:
+        _gd_r = bool(eval(_gd_t))
+    except Exception:
+        _gd_r = False
+    print("` + ResultMarker + `" + _gd_json.dumps([_gd_base + _gd_i, _gd_r]), flush=True)
+`
+
 func BuildAssertions(strs map[string]string, ints map[string]int, tests []string) string {
 	var b strings.Builder
 	b.WriteString("import json as _gd_json\n")
